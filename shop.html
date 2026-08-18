@@ -6,136 +6,126 @@
     <title>Arcade Shop</title>
     <script src="arcade.js"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
-        .top-bar { font-size: 1.5rem; margin-bottom: 20px; color: #facc15; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; }
-        .card { background: #1e293b; border: 2px solid #38bdf8; border-radius: 10px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
-        .card h3 { margin: 10px 0 5px 0; }
-        .card p { font-size: 0.9rem; color: #94a3b8; margin-bottom: 15px; }
-        .btn { background: #38bdf8; color: #0f172a; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; }
-        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
-        .btn.equipped { background: #22c55e; color: white; }
-        a { color: #38bdf8; text-decoration: none; margin-top: 25px; display: inline-block; font-size: 1.1rem; }
-
+        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; }
+        
         /* Themes */
-        body.theme-cyberpunk { background: #18022b; color: #00ffcc; }
-        body.theme-matrix { background: #001100; color: #00ff00; }
-        body.theme-sunset { background: #2d0b1e; color: #ff7e5f; }
+        body.theme-cyberpunk { --bg: #120024; --primary: #00ffcc; --card: #240046; }
+        body.theme-matrix { --bg: #001100; --primary: #00ff00; --card: #002200; }
+        body.theme-synthwave { --bg: #1a0933; --primary: #ff7700; --card: #2e1254; }
+
+        header { max-width: 900px; margin: 0 auto 30px auto; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 25px; border-radius: 12px; border: 2px solid var(--primary); }
+        .coins { font-size: 1.5rem; color: #facc15; font-weight: bold; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto 40px auto; }
+        .card { background: var(--card); border: 2px solid var(--primary); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-4px); }
+        .card h3 { margin: 0 0 10px 0; color: var(--primary); }
+        .card p { font-size: 0.9rem; color: #94a3b8; margin-bottom: 20px; }
+        
+        .btn { background: var(--primary); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+        .btn.active { background: #22c55e; color: white; }
+        
+        a.nav { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
-    <h1>🛍️ Arcade Shop</h1>
-    <div class="top-bar">🪙 Coins: <span id="coin-count">0</span></div>
+    <header>
+        <a href="index.html" class="nav">← Back to Hub</a>
+        <div class="coins">🪙 <span id="coin-count">0</span></div>
+    </header>
 
-    <h2>Themes</h2>
+    <h1>🛒 Cyber Shop</h1>
+
+    <h2>Global Themes</h2>
     <div class="grid">
         <div class="card">
             <h3>Cyberpunk Neon</h3>
-            <p>Futuristic purple and neon glow background.</p>
-            <button class="btn" onclick="handleTheme('cyberpunk', 20, this)">Buy (20 Coins)</button>
+            <p>Deep purple backgrounds with neon turquoise borders.</p>
+            <button class="btn" onclick="buyTheme('cyberpunk', 50)">Buy (50 Coins)</button>
         </div>
         <div class="card">
-            <h3>Retro Matrix</h3>
-            <p>Classic hacker green terminal style.</p>
-            <button class="btn" onclick="handleTheme('matrix', 30, this)">Buy (30 Coins)</button>
+            <h3>Matrix Terminal</h3>
+            <p>Green code aesthetics for a retro hacker look.</p>
+            <button class="btn" onclick="buyTheme('matrix', 75)">Buy (75 Coins)</button>
+        </div>
+        <div class="card">
+            <h3>Synthwave Sunset</h3>
+            <p>Vibrant orange and purple retro aesthetic.</p>
+            <button class="btn" onclick="buyTheme('synthwave', 100)">Buy (100 Coins)</button>
         </div>
     </div>
 
-    <h2>Skins</h2>
+    <h2>Game Multipliers</h2>
     <div class="grid">
         <div class="card">
-            <h3>Golden Skin</h3>
-            <p>Golden player color across Snake and Pong.</p>
-            <button class="btn" onclick="handleSkin('gold', 15, this)">Buy (15 Coins)</button>
+            <h3>1.5x Coin Booster</h3>
+            <p>Permanently boosts all coin earnings by 50%.</p>
+            <button class="btn" onclick="buyMult('mult_15', 1.5, 150)">Buy (150 Coins)</button>
         </div>
         <div class="card">
-            <h3>Neon Green Skin</h3>
-            <p>Vibrant glowing green player avatar.</p>
-            <button class="btn" onclick="handleSkin('neongreen', 15, this)">Buy (15 Coins)</button>
+            <h3>2.0x Double Coins</h3>
+            <p>Permanently doubles all coin earnings across every game.</p>
+            <button class="btn" onclick="buyMult('mult_20', 2.0, 300)">Buy (300 Coins)</button>
         </div>
     </div>
-
-    <h2>Powerups</h2>
-    <div class="grid">
-        <div class="card">
-            <h3>2x Coin Multiplier</h3>
-            <p>Permanently doubles all earned coins.</p>
-            <button class="btn" onclick="handlePowerup('coin_multiplier', 50, this)">Buy (50 Coins)</button>
-        </div>
-    </div>
-
-    <br>
-    <a href="index.html">← Back to Hub</a>
 
     <script>
-        function renderShop() {
+        function updateShopUI() {
             Arcade.updateUI();
 
-            // Themes
-            updateItemBtn('cyberpunk', 20, () => Arcade.getEquippedTheme() === 'cyberpunk', 'theme');
-            updateItemBtn('matrix', 30, () => Arcade.getEquippedTheme() === 'matrix', 'theme');
-
-            // Skins
-            updateItemBtn('gold', 15, () => Arcade.getEquippedSkin() === 'gold', 'skin');
-            updateItemBtn('neongreen', 15, () => Arcade.getEquippedSkin() === 'neongreen', 'skin');
-
-            // Powerups
-            updateItemBtn('coin_multiplier', 50, () => Arcade.getPowerup('coin_multiplier'), 'powerup');
-        }
-
-        function updateItemBtn(id, price, isEquippedCheck, type) {
-            const btns = document.querySelectorAll(`button[onclick*="'${id}'"]`);
-            btns.forEach(btn => {
-                const has = Arcade.hasItem(id);
-                if (type === 'powerup') {
-                    if (has) {
-                        btn.innerText = "Active";
-                        btn.disabled = true;
-                        btn.classList.add("equipped");
-                    }
-                } else {
-                    if (isEquippedCheck()) {
-                        btn.innerText = "Equipped";
-                        btn.classList.add("equipped");
-                    } else if (has) {
-                        btn.innerText = "Equip";
-                        btn.classList.remove("equipped");
-                    } else {
-                        btn.innerText = `Buy (${price} Coins)`;
-                    }
+            // Refresh Theme Buttons
+            const currentTheme = Arcade.getEquippedTheme();
+            ['cyberpunk', 'matrix', 'synthwave'].forEach(id => {
+                const btn = document.querySelector(`button[onclick*="'${id}'"]`);
+                if (!btn) return;
+                if (currentTheme === id) {
+                    btn.innerText = "Equipped";
+                    btn.className = "btn active";
+                } else if (Arcade.hasItem(id)) {
+                    btn.innerText = "Equip";
+                    btn.className = "btn";
                 }
             });
+
+            // Refresh Multiplier Buttons
+            const currentMult = Arcade.getMultiplier();
+            if (Arcade.hasItem('mult_20')) {
+                disableMultBtn('mult_20', "2.0x Active");
+                disableMultBtn('mult_15', "Owned");
+            } else if (Arcade.hasItem('mult_15')) {
+                disableMultBtn('mult_15', "1.5x Active");
+            }
         }
 
-        function handleTheme(id, price) {
+        function disableMultBtn(id, text) {
+            const btn = document.querySelector(`button[onclick*="'${id}'"]`);
+            if (btn) {
+                btn.innerText = text;
+                btn.disabled = true;
+            }
+        }
+
+        function buyTheme(id, price) {
             if (!Arcade.hasItem(id)) {
                 if (!Arcade.buyItem(id, price)) return alert("Not enough coins!");
             }
             Arcade.setEquippedTheme(Arcade.getEquippedTheme() === id ? 'default' : id);
-            renderShop();
+            updateShopUI();
         }
 
-        function handleSkin(id, price) {
-            if (!Arcade.hasItem(id)) {
-                if (!Arcade.buyItem(id, price)) return alert("Not enough coins!");
-            }
-            Arcade.setEquippedSkin(Arcade.getEquippedSkin() === id ? 'default' : id);
-            renderShop();
-        }
-
-        function handlePowerup(id, price) {
-            if (!Arcade.hasItem(id)) {
-                if (Arcade.buyItem(id, price)) {
-                    Arcade.setPowerup(id, true);
-                    renderShop();
-                } else {
-                    alert("Not enough coins!");
-                }
+        function buyMult(id, val, price) {
+            if (Arcade.buyItem(id, price)) {
+                Arcade.setMultiplier(val);
+                updateShopUI();
+            } else {
+                alert("Not enough coins!");
             }
         }
 
-        document.addEventListener("DOMContentLoaded", renderShop);
+        document.addEventListener("DOMContentLoaded", updateShopUI);
     </script>
 </body>
 </html>
