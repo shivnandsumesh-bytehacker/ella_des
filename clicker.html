@@ -1,99 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Coin Clicker Empire</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Coin Clicker</title>
+    <script src="arcade.js"></script>
     <style>
-        * { box-sizing: border-box; touch-action: manipulation; }
-        body { margin: 0; background: #1a1a2e; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-        .coin-btn { width: 160px; height: 160px; border-radius: 50%; background: gold; border: 8px solid #ffcc00; font-size: 60px; cursor: pointer; margin: 20px auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 0 #b38f00; }
-        .coin-btn:active { transform: translateY(4px); box-shadow: 0 6px 0 #b38f00; }
-        .stats { font-size: 20px; margin: 15px 0; }
-        .shop { background: #16213e; padding: 15px; border-radius: 10px; max-width: 320px; margin: 0 auto; }
-        button.upgrade { width: 100%; padding: 12px; margin: 8px 0; background: #e94560; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 15px; }
-        a { color: #4ecca3; text-decoration: none; font-size: 18px; display: inline-block; margin-top: 20px; }
+        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; user-select: none; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+
+        header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 25px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 20px; box-sizing: border-box; }
+        .stats { font-size: 1.2rem; font-weight: bold; color: #facc15; }
+        
+        .clicker-container { position: relative; margin: 20px 0; }
+        .coin-btn { width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, #ffe600 0%, #ff8c00 100%); border: 6px solid #fff; box-shadow: 0 0 30px #ff8c00, inset 0 0 15px #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 5rem; transition: transform 0.05s ease-in-out; outline: none; }
+        .coin-btn:active { transform: scale(0.92); }
+
+        .floating-text { position: absolute; color: #00f3ff; font-size: 1.8rem; font-weight: bold; pointer-events: none; animation: floatUp 0.8s ease-out forwards; text-shadow: 0 0 10px #00f3ff; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-60px) scale(1.3); } }
+
+        .upgrades { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; width: 100%; max-width: 800px; margin-top: 20px; }
+        .upgrade-card { background: var(--card); border: 2px solid var(--primary); border-radius: 10px; padding: 15px; text-align: left; }
+        .upgrade-card h4 { margin: 0 0 5px 0; color: var(--primary); font-size: 1.1rem; }
+        .upgrade-card p { margin: 0 0 10px 0; font-size: 0.85rem; color: #94a3b8; }
+        
+        .btn { background: var(--primary); color: #000; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 0.9rem; }
+        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+
+        a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h2>🪙 Coin Clicker Empire</h2>
-    <div class="stats">
-        Coins: <span id="coins">0</span><br>
-        <small>Per Click: +<span id="clickPower">1</span> | Auto/sec: +<span id="autoPower">0</span></small>
+    <header>
+        <a href="index.html" class="nav">← Hub</a>
+        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
+        <a href="shop.html" class="nav">🛒 Shop</a>
+    </header>
+
+    <h2>✨ Neon Coin Clicker</h2>
+    <p>Lifetime Earnings: <strong id="lifetime-count" style="color: #00f3ff;">0</strong></p>
+
+    <div class="clicker-container" id="clicker-box">
+        <button class="coin-btn" id="coin-btn" onclick="clickCoin(event)">🪙</button>
     </div>
 
-    <div class="coin-btn" onclick="clickCoin()">🪙</div>
-
-    <div class="shop">
-        <h3>Upgrades</h3>
-        <button class="upgrade" onclick="buyClick()">⚡ Bigger Clicks (Cost: <span id="clickCost">10</span>)</button>
-        <button class="upgrade" onclick="buyAuto()">🤖 Auto-Miner (Cost: <span id="autoCost">50</span>)</button>
+    <h3>⚡ Upgrades</h3>
+    <div class="upgrades">
+        <div class="upgrade-card">
+            <h4>Click Power (+1)</h4>
+            <p>Earn +1 extra coin per click.</p>
+            <button class="btn" id="btn-click-power" onclick="buyClickPower()">Buy (Cost: <span id="cost-click-power">10</span>)</button>
+        </div>
+        <div class="upgrade-card">
+            <h4>Auto-Miner (+1/sec)</h4>
+            <p>Automatically generates coins every second.</p>
+            <button class="btn" id="btn-auto-clicker" onclick="buyAutoClicker()">Buy (Cost: <span id="cost-auto-clicker">25</span>)</button>
+        </div>
     </div>
 
-    <p><a href="index.html">⬅️ Back to Game Hub</a></p>
+    <script>
+        let clickPower = parseInt(localStorage.getItem('clicker_power')) || 1;
+        let autoRate = parseInt(localStorage.getItem('clicker_auto_rate')) || 0;
+        let costPower = parseInt(localStorage.getItem('clicker_cost_power')) || 10;
+        let costAuto = parseInt(localStorage.getItem('clicker_cost_auto')) || 25;
 
-<script>
-let coins = parseInt(localStorage.getItem("clicker_coins")) || 0;
-let clickPower = parseInt(localStorage.getItem("clicker_clickPower")) || 1;
-let autoPower = parseInt(localStorage.getItem("clicker_autoPower")) || 0;
-let clickCost = parseInt(localStorage.getItem("clicker_clickCost")) || 10;
-let autoCost = parseInt(localStorage.getItem("clicker_autoCost")) || 50;
+        function updateClickerUI() {
+            if (window.Arcade) Arcade.updateUI();
+            document.getElementById('lifetime-count').innerText = (Arcade ? Arcade.getLifetimeClicker() : 0).toLocaleString();
+            
+            document.getElementById('cost-click-power').innerText = costPower;
+            document.getElementById('cost-auto-clicker').innerText = costAuto;
 
-function updateUI() {
-    document.getElementById("coins").innerText = coins;
-    document.getElementById("clickPower").innerText = clickPower;
-    document.getElementById("autoPower").innerText = autoPower;
-    document.getElementById("clickCost").innerText = clickCost;
-    document.getElementById("autoCost").innerText = autoCost;
-}
+            const currentCoins = Arcade ? Arcade.getCoins() : 0;
+            document.getElementById('btn-click-power').disabled = currentCoins < costPower;
+            document.getElementById('btn-auto-clicker').disabled = currentCoins < costAuto;
+        }
 
-function save() {
-    localStorage.setItem("clicker_coins", coins);
-    localStorage.setItem("clicker_clickPower", clickPower);
-    localStorage.setItem("clicker_autoPower", autoPower);
-    localStorage.setItem("clicker_clickCost", clickCost);
-    localStorage.setItem("clicker_autoCost", autoCost);
-}
+        function clickCoin(event) {
+            const earned = Arcade.addClickerScore(clickPower);
+            
+            // Spawn Floating Text Effect
+            const float = document.createElement('div');
+            float.className = 'floating-text';
+            float.innerText = `+${clickPower * Arcade.getMultiplier()}`;
+            
+            const rect = document.getElementById('clicker-box').getBoundingClientRect();
+            float.style.left = `${event.clientX - rect.left - 15}px`;
+            float.style.top = `${event.clientY - rect.top - 30}px`;
+            
+            document.getElementById('clicker-box').appendChild(float);
+            setTimeout(() => float.remove(), 800);
 
-function clickCoin() {
-    coins += clickPower;
-    updateUI();
-    save();
-}
+            updateClickerUI();
+        }
 
-function buyClick() {
-    if (coins >= clickCost) {
-        coins -= clickCost;
-        clickPower += 1;
-        clickCost = Math.floor(clickCost * 1.5);
-        updateUI();
-        save();
-    } else {
-        alert("Not enough coins!");
-    }
-}
+        function buyClickPower() {
+            if (Arcade.deductCoins(costPower)) {
+                clickPower += 1;
+                costPower = Math.round(costPower * 1.6);
+                localStorage.setItem('clicker_power', clickPower);
+                localStorage.setItem('clicker_cost_power', costPower);
+                updateClickerUI();
+            }
+        }
 
-function buyAuto() {
-    if (coins >= autoCost) {
-        coins -= autoCost;
-        autoPower += 1;
-        autoCost = Math.floor(autoCost * 1.6);
-        updateUI();
-        save();
-    } else {
-        alert("Not enough coins!");
-    }
-}
+        function buyAutoClicker() {
+            if (Arcade.deductCoins(costAuto)) {
+                autoRate += 1;
+                costAuto = Math.round(costAuto * 1.8);
+                localStorage.setItem('clicker_auto_rate', autoRate);
+                localStorage.setItem('clicker_cost_auto', costAuto);
+                updateClickerUI();
+            }
+        }
 
-setInterval(() => {
-    if (autoPower > 0) {
-        coins += autoPower;
-        updateUI();
-        save();
-    }
-}, 1000);
+        // Auto-Clicker Loop
+        setInterval(() => {
+            if (autoRate > 0) {
+                Arcade.addClickerScore(autoRate);
+                updateClickerUI();
+            }
+        }, 1000);
 
-updateUI();
-</script>
+        document.addEventListener("DOMContentLoaded", updateClickerUI);
+    </script>
 </body>
 </html>
