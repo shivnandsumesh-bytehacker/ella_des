@@ -60,30 +60,52 @@
     </div>
 
     <script>
+        function getCoins() {
+            return parseInt(localStorage.getItem('arcade_coins')) || 0;
+        }
+
+        function setCoins(val) {
+            localStorage.setItem('arcade_coins', val);
+        }
+
+        function getLifetime() {
+            return parseInt(localStorage.getItem('clicker_lifetime')) || 0;
+        }
+
+        function setLifetime(val) {
+            localStorage.setItem('clicker_lifetime', val);
+        }
+
         let clickPower = parseInt(localStorage.getItem('clicker_power')) || 1;
         let autoRate = parseInt(localStorage.getItem('clicker_auto_rate')) || 0;
         let costPower = parseInt(localStorage.getItem('clicker_cost_power')) || 10;
         let costAuto = parseInt(localStorage.getItem('clicker_cost_auto')) || 25;
 
         function updateClickerUI() {
-            if (window.Arcade) Arcade.updateUI();
-            document.getElementById('lifetime-count').innerText = (Arcade ? Arcade.getLifetimeClicker() : 0).toLocaleString();
+            const currentCoins = getCoins();
+            const lifetime = getLifetime();
+
+            document.getElementById('coin-count').innerText = currentCoins.toLocaleString();
+            document.getElementById('lifetime-count').innerText = lifetime.toLocaleString();
             
             document.getElementById('cost-click-power').innerText = costPower;
             document.getElementById('cost-auto-clicker').innerText = costAuto;
 
-            const currentCoins = Arcade ? Arcade.getCoins() : 0;
             document.getElementById('btn-click-power').disabled = currentCoins < costPower;
             document.getElementById('btn-auto-clicker').disabled = currentCoins < costAuto;
         }
 
         function clickCoin(event) {
-            const earned = Arcade.addClickerScore(clickPower);
+            let coins = getCoins() + clickPower;
+            let lifetime = getLifetime() + clickPower;
+
+            setCoins(coins);
+            setLifetime(lifetime);
             
             // Spawn Floating Text Effect
             const float = document.createElement('div');
             float.className = 'floating-text';
-            float.innerText = `+${clickPower * Arcade.getMultiplier()}`;
+            float.innerText = `+${clickPower}`;
             
             const rect = document.getElementById('clicker-box').getBoundingClientRect();
             float.style.left = `${event.clientX - rect.left - 15}px`;
@@ -96,7 +118,9 @@
         }
 
         function buyClickPower() {
-            if (Arcade.deductCoins(costPower)) {
+            let coins = getCoins();
+            if (coins >= costPower) {
+                setCoins(coins - costPower);
                 clickPower += 1;
                 costPower = Math.round(costPower * 1.6);
                 localStorage.setItem('clicker_power', clickPower);
@@ -106,7 +130,9 @@
         }
 
         function buyAutoClicker() {
-            if (Arcade.deductCoins(costAuto)) {
+            let coins = getCoins();
+            if (coins >= costAuto) {
+                setCoins(coins - costAuto);
                 autoRate += 1;
                 costAuto = Math.round(costAuto * 1.8);
                 localStorage.setItem('clicker_auto_rate', autoRate);
@@ -118,7 +144,8 @@
         // Auto-Clicker Loop
         setInterval(() => {
             if (autoRate > 0) {
-                Arcade.addClickerScore(autoRate);
+                setCoins(getCoins() + autoRate);
+                setLifetime(getLifetime() + autoRate);
                 updateClickerUI();
             }
         }, 1000);
