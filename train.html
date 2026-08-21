@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Train Express Legends</title>
+    <script src="arcade.js"></script>
+    <style>
+        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        
+        header { width: 100%; max-width: 750px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 12px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 15px; box-sizing: border-box; }
+        .stats { font-size: 1.1rem; font-weight: bold; color: #facc15; }
+        .status { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: var(--primary); min-height: 28px; }
+        
+        canvas { background: #000; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); max-width: 100%; }
+        
+        .hud-panel { display: flex; gap: 10px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
+        .btn { background: var(--primary); color: #000; border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+        
+        a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="nav">← Hub</a>
+        <div>Level: <span id="lvl-num" style="color:var(--primary)">1</span> | Map: <span id="map-name" style="color:#facc15">Alpine Express</span></div>
+        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
+    </header>
+
+    <div class="status" id="status">Switch Tracks (A/D or Left/Right) to Pick Up Passengers!</div>
+
+    <canvas id="trainCanvas" width="700" height="400"></canvas>
+
+    <div class="hud-panel">
+        <button class="btn" onclick="resetGame()">Restart Route</button>
+        <button class="btn" id="buy-diesel-btn" onclick="buyTrain('Diesel', 60)">Buy Diesel Train (60 Coins)</button>
+        <button class="btn" id="buy-bullet-btn" onclick="buyTrain('Bullet', 150)">Buy Bullet Train (150 Coins)</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("trainCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let level = 1;
+        let gameActive = true;
+        let score = 0;
+        let passengersPicked = 0;
+        const targetPassengers = 6;
+        let trackOffset = 0;
+
+        // Train Shop & State
+        let ownedTrains = JSON.parse(localStorage.getItem('train_owned')) || ['Steam Engine'];
+        let activeTrain = localStorage.getItem('train_active') || 'Steam Engine';
+
+        const maps = [
+            { name: "Alpine Express", sky: "#0b192c", ground: "#1e293b", track: "#94a3b8" },
+            { name: "Desert Valley", sky: "#3b1700", ground: "#78350f", track: "#facc15" },
+            { name: "Cyber Bullet Line", sky: "#030712", ground: "#0f172a", track: "#00f3ff" }
+        ];
+
+        // 3 Track Lanes (0: Left, 1: Center, 2: Right)
+        let playerLane = 1; 
+        const laneX = [220, 350, 480];
+
+        let trainModel = activeTrain;
+        let items = [];
+
+        function updateWallet() {
+            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            document.getElementById('coin-count').innerText = coins.toLocaleString();
+            updateShopButtons();
+        }
+
+        function addCoins(amount) {
+            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            localStorage.setItem('arcade_coins', coins + amount);
+            updateWallet();
+        }
+
+        function updateShopButtons() {
+            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            
+            const dieselBtn = document.getElementById('buy-diesel-btn');
+            if (ownedTrains.includes('Diesel')) {
+                dieselBtn.innerText = activeTrain === 'Diesel' ? 'Equipped: Diesel' : 'Equip Diesel';
+                dieselBtn.disabled = activeTrain === 'Diesel';
+            } else {
+                dieselBtn.disabled = coins < 60;
+            }
+
+            const bulletBtn = document.getElementById('buy-bullet-btn');
+            if (ownedTrains.includes('Bullet')) {
+                bulletBtn.innerText = activeTrain === 'Bullet' ? 'Equipped: Bullet Train' : 'Equip Bullet Train';
+                bulletBtn.disabled = activeTrain === 'Bullet';
+            } else {
+                bulletBtn.disabled = coins < 150;
+            }
+        }
+
+        function buyTrain(type, cost) {
+            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            if (!ownedTrains.includes(type) && coins >= cost) {
+                addCoins(-cost);
+                ownedTrains.push(type);
+                localStorage.setItem('train_owned', JSON.stringify(ownedTrains));
+            }
+            if (ownedTrains.includes(type)) {
+                activeTrain = type;
+                localStorage.setItem('train_active', type);
+                trainModel = type;
+            }
+            updateShopButtons();
+        }
+
+        // Key Listeners + Anti Scroll
+        window.addEventListener("keydown", e => {
+            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD","Space"].includes(e.code) || ["w","a","s","d","W","A","S","D"," "].includes(e.key)) {
+                e.preventDefault();
+            }
+
+            if (!gameActive) return;
+
+            if ((e.key === "a" || e.key === "A" || e.key === "ArrowLeft") && playerLane > 0) {
+                playerLane--;
+            }
+            if ((e.key === "d" || e.key === "D" || e.key === "ArrowRight") && playerLane < 2) {
+                playerLane++;
+            }
+        }, { passive: false });
+
+        function initLevel() {
+            items = [];
+            passengersPicked = 0;
+            for (let i = 0; i < 12; i++) {
+                let lane = Math.floor(Math.random() * 3);
+                let isObstacle = Math.random() < 0.3;
+                items.push({ lane: lane, z: 250 + i * 220, type: isObstacle ? 'OBSTACLE' : 'PASSENGER', hit: false });
+            }
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            trackOffset = (trackOffset + 6) % 40;
+
+            items.forEach(item => {
+                item.z -= 5;
+
+                // Collision Detection with Player
+                if (!item.hit && item.z < 40 && item.z > -20 && item.lane === playerLane) {
+                    item.hit = true;
+                    if (item.type === 'PASSENGER') {
+                        passengersPicked++;
+                        addCoins(2);
+                        document.getElementById("status").innerText = `Passengers Boarded: ${passengersPicked}/${targetPassengers}`;
+                    } else {
+                        document.getElementById("status").innerText = "💥 Hit Track Debris! Lose 1 Coin!";
+                        addCoins(-1);
+                    }
+                }
+            });
+
+            if (passengersPicked >= targetPassengers) {
+                addCoins(10);
+                if (level < maps.length) {
+                    level++;
+                    document.getElementById("lvl-num").innerText = level;
+                    document.getElementById("map-name").innerText = maps[level-1].name;
+                    document.getElementById("status").innerText = "Route Complete! Next Station Loading...";
+                    initLevel();
+                } else {
+                    gameActive = false;
+                    document.getElementById("status").innerText = "CONDUCTOR LEGEND! All Routes Completed! +20 Coins!";
+                }
+            }
+        }
+
+        function render() {
+            const currentMap = maps[level - 1];
+
+            // Sky
+            ctx.fillStyle = currentMap.sky;
+            ctx.fillRect(0, 0, canvas.width, 180);
+
+            // Ground
+            ctx.fillStyle = currentMap.ground;
+            ctx.fillRect(0, 180, canvas.width, 220);
+
+            // 3-Track Perspective Lines
+            ctx.strokeStyle = currentMap.track;
+            ctx.lineWidth = 3;
+
+            // Horizon Point at (350, 180)
+            [120, 350, 580].forEach(bottomX => {
+                ctx.beginPath();
+                ctx.moveTo(bottomX, 400);
+                ctx.lineTo(350, 180);
+                ctx.stroke();
+            });
+
+            // Animated Track Ties (Sleepers)
+            ctx.strokeStyle = "#475569";
+            ctx.lineWidth = 2;
+            for (let y = 180 + trackOffset; y < 400; y += 25) {
+                let progress = (y - 180) / 220;
+                let leftX = 350 - (230 * progress);
+                let rightX = 350 + (230 * progress);
+                ctx.beginPath();
+                ctx.moveTo(leftX, y);
+                ctx.lineTo(rightX, y);
+                ctx.stroke();
+            }
+
+            // Render Items/Passengers (3D Projection)
+            items.forEach(item => {
+                if (!item.hit && item.z > 0) {
+                    let scale = 220 / (220 + item.z);
+                    let targetX = laneX[item.lane];
+                    let screenX = 350 + (targetX - 350) * scale;
+                    let screenY = 180 + 170 * scale;
+
+                    if (item.type === 'PASSENGER') {
+                        ctx.fillStyle = "#facc15";
+                        ctx.shadowBlur = 10; ctx.shadowColor = "#facc15";
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, 14 * scale, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    } else {
+                        ctx.fillStyle = "#ff007f";
+                        ctx.shadowBlur = 10; ctx.shadowColor = "#ff007f";
+                        ctx.fillRect(screenX - 12 * scale, screenY - 12 * scale, 24 * scale, 24 * scale);
+                        ctx.shadowBlur = 0;
+                    }
+                }
+            });
+
+            // Render Player Locomotive
+            let currentX = laneX[playerLane];
+            let trainColor = trainModel === 'Bullet' ? '#00f3ff' : (trainModel === 'Diesel' ? '#ff007f' : '#facc15');
+
+            ctx.fillStyle = trainColor;
+            ctx.shadowBlur = 20; ctx.shadowColor = trainColor;
+
+            // Train Front Profile
+            ctx.beginPath();
+            ctx.roundRect(currentX - 30, 310, 60, 60, 10);
+            ctx.fill();
+
+            // Headlight
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(currentX, 330, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function gameLoop() {
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resetGame() {
+            level = 1; gameActive = true;
+            playerLane = 1;
+            document.getElementById("lvl-num").innerText = level;
+            document.getElementById("map-name").innerText = maps[0].name;
+            document.getElementById("status").innerText = "Switch Tracks (A/D or Left/Right) to Pick Up Passengers!";
+            initLevel();
+            updateWallet();
+        }
+
+        updateWallet();
+        initLevel();
+        gameLoop();
+    </script>
+</body>
+</html>
