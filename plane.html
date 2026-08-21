@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Flight Simulator Legends</title>
+    <title>3D Flight Simulator</title>
     <script src="arcade.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; }
         
-        header { width: 100%; max-width: 750px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 12px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 15px; box-sizing: border-box; }
+        header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 12px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 12px; box-sizing: border-box; }
         .stats { font-size: 1.1rem; font-weight: bold; color: #facc15; }
-        .status { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: var(--primary); min-height: 28px; }
+        .status { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; color: var(--primary); min-height: 26px; }
         
-        canvas { background: #000; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); max-width: 100%; }
+        #canvas-container { width: 100%; max-width: 800px; height: 420px; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); overflow: hidden; position: relative; }
+        canvas { width: 100% !important; height: 100% !important; display: block; }
         
-        .hud-panel { display: flex; gap: 10px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
+        .hud-panel { display: flex; gap: 10px; margin-top: 12px; justify-content: center; flex-wrap: wrap; }
         .btn { background: var(--primary); color: #000; border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
-        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
-        
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
     </style>
 </head>
@@ -26,55 +26,34 @@
 
     <header>
         <a href="index.html" class="nav">← Hub</a>
-        <div>Level: <span id="lvl-num" style="color:var(--primary)">1</span> | Map: <span id="map-name" style="color:#facc15">City Runway</span></div>
+        <div>Stage: <span id="stage-text" style="color:var(--primary)">1 - BOARDING</span></div>
         <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
     </header>
 
-    <div class="status" id="status">Stage 1: Drive & Collect Passengers! (A/D or Arrows)</div>
+    <div class="status" id="status">Steer to Passengers (A/D or Arrows)!</div>
 
-    <canvas id="flightCanvas" width="700" height="400"></canvas>
+    <div id="canvas-container"></div>
 
     <div class="hud-panel">
-        <button class="btn" onclick="resetGame()">Restart Flight</button>
-        <button class="btn" id="buy-jet-btn" onclick="buyPlane('Jet', 50)">Buy Fighter Jet (50 Coins)</button>
-        <button class="btn" id="buy-concorde-btn" onclick="buyPlane('Concorde', 120)">Buy Concorde (120 Coins)</button>
+        <button class="btn" onclick="resetFlight()">Restart Flight</button>
     </div>
 
     <script>
-        const canvas = document.getElementById("flightCanvas");
-        const ctx = canvas.getContext("2d");
-
-        let level = 1;
-        let stage = "BOARDING"; // BOARDING -> TAKEOFF -> FLIGHT -> WIN
+        let scene, camera, renderer, planeGroup;
+        let stage = "BOARDING"; 
         let gameActive = true;
-        let score = 0;
         let passengersCollected = 0;
-        const targetPassengers = 5;
         let ringsPassed = 0;
-        const targetRings = 8;
 
-        // Player & Hangar State
-        let ownedPlanes = JSON.parse(localStorage.getItem('plane_owned')) || ['Biplane'];
-        let activePlane = localStorage.getItem('plane_active') || 'Biplane';
+        let passengers3D = [];
+        let rings3D = [];
 
-        const maps = [
-            { name: "City Runway", sky: "#0f172a", ground: "#1e293b", ringColor: "#00f3ff" },
-            { name: "Sunset Canyon", sky: "#451225", ground: "#7c2d12", ringColor: "#facc15" },
-            { name: "Neon Metropolis", sky: "#030712", ground: "#0f172a", ringColor: "#ff007f" }
-        ];
-
-        const player = { x: 350, y: 320, z: 0, vx: 0, vy: 0, speed: 5, planeType: activePlane };
-
-        // Entities
-        let passengers = [];
-        let rings = [];
-
-        const keys = { left: false, right: false, up: false, down: false };
+        const planePos = { x: 0, y: 1.5, z: 0, speed: 0.8, pitch: 0, roll: 0 };
+        const keys = { W: false, S: false, A: false, D: false };
 
         function updateWallet() {
             const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
             document.getElementById('coin-count').innerText = coins.toLocaleString();
-            updateShopButtons();
         }
 
         function addCoins(amount) {
@@ -83,231 +62,197 @@
             updateWallet();
         }
 
-        function updateShopButtons() {
-            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            
-            const jetBtn = document.getElementById('buy-jet-btn');
-            if (ownedPlanes.includes('Jet')) {
-                jetBtn.innerText = activePlane === 'Jet' ? 'Equipped: Fighter Jet' : 'Equip Fighter Jet';
-                jetBtn.disabled = activePlane === 'Jet';
-            } else {
-                jetBtn.disabled = coins < 50;
-            }
-
-            const concBtn = document.getElementById('buy-concorde-btn');
-            if (ownedPlanes.includes('Concorde')) {
-                concBtn.innerText = activePlane === 'Concorde' ? 'Equipped: Concorde' : 'Equip Concorde';
-                concBtn.disabled = activePlane === 'Concorde';
-            } else {
-                concBtn.disabled = coins < 120;
-            }
-        }
-
-        function buyPlane(type, cost) {
-            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            if (!ownedPlanes.includes(type) && coins >= cost) {
-                addCoins(-cost);
-                ownedPlanes.push(type);
-                localStorage.setItem('plane_owned', JSON.stringify(ownedPlanes));
-            }
-            if (ownedPlanes.includes(type)) {
-                activePlane = type;
-                localStorage.setItem('plane_active', type);
-                player.planeType = type;
-            }
-            updateShopButtons();
-        }
-
-        // Key Listeners + Anti Scroll
+        // Window Controls & Lock Scroll
         window.addEventListener("keydown", e => {
-            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD","Space"].includes(e.code) || ["w","a","s","d","W","A","S","D"," "].includes(e.key)) {
+            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD","Space"].includes(e.code)) {
                 e.preventDefault();
             }
-            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = true;
-            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = true;
-            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.up = true;
-            if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.down = true;
+            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.W = true;
+            if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.S = true;
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.A = true;
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.D = true;
         }, { passive: false });
 
         window.addEventListener("keyup", e => {
-            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = false;
-            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = false;
-            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.up = false;
-            if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.down = false;
+            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.W = false;
+            if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.S = false;
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.A = false;
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.D = false;
         });
 
-        function initStage() {
-            passengers = [];
-            rings = [];
-            if (stage === "BOARDING") {
-                for (let i = 0; i < targetPassengers; i++) {
-                    passengers.push({ x: 150 + Math.random() * 400, z: 200 + i * 250, collected: false });
-                }
-            } else if (stage === "FLIGHT") {
-                for (let i = 0; i < targetRings; i++) {
-                    rings.push({ x: 200 + Math.random() * 300, y: 100 + Math.random() * 150, z: 300 + i * 350, passed: false });
-                }
+        function init3D() {
+            const container = document.getElementById("canvas-container");
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f172a);
+            scene.fog = new THREE.FogExp2(0x0f172a, 0.003);
+
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // 3D Lighting
+            const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambient);
+
+            const sun = new THREE.DirectionalLight(0x00f3ff, 0.8);
+            sun.position.set(50, 100, 50);
+            scene.add(sun);
+
+            // 3D Runway & Ground Terrain
+            const groundGeo = new THREE.PlaneGeometry(1000, 1000);
+            const groundMat = new THREE.MeshPhongMaterial({ color: 0x1e293b, side: THREE.DoubleSide });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = Math.PI / 2;
+            scene.add(ground);
+
+            const runwayGeo = new THREE.PlaneGeometry(30, 800);
+            const runwayMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
+            const runway = new THREE.Mesh(runwayGeo, runwayMat);
+            runway.rotation.x = Math.PI / 2;
+            runway.position.set(0, 0.1, -300);
+            scene.add(runway);
+
+            // Construct 3D Airplane Model
+            planeGroup = new THREE.Group();
+
+            const bodyGeo = new THREE.ConeGeometry(1.2, 7, 8);
+            const bodyMat = new THREE.MeshPhongMaterial({ color: 0x00f3ff });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.rotation.x = Math.PI / 2;
+            planeGroup.add(body);
+
+            const wingGeo = new THREE.BoxGeometry(10, 0.2, 2);
+            const wingMat = new THREE.MeshPhongMaterial({ color: 0xff007f });
+            const wing = new THREE.Mesh(wingGeo, wingMat);
+            wing.position.set(0, 0, 0);
+            planeGroup.add(wing);
+
+            scene.add(planeGroup);
+
+            spawnPassengers();
+            spawnRings();
+        }
+
+        function spawnPassengers() {
+            for (let i = 0; i < 5; i++) {
+                const geo = new THREE.SphereGeometry(1.2, 16, 16);
+                const mat = new THREE.MeshPhongMaterial({ color: 0xfacc15, emissive: 0xfacc15, emissiveIntensity: 0.5 });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set((Math.random() - 0.5) * 20, 1.2, -50 - i * 80);
+                scene.add(mesh);
+                passengers3D.push({ mesh, collected: false });
             }
         }
 
-        function update() {
+        function spawnRings() {
+            for (let i = 0; i < 8; i++) {
+                const geo = new THREE.TorusGeometry(8, 0.8, 16, 32);
+                const mat = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+                const ring = new THREE.Mesh(geo, mat);
+                ring.position.set((Math.random() - 0.5) * 60, 20 + Math.random() * 30, -500 - i * 120);
+                scene.add(ring);
+                rings3D.push({ mesh: ring, passed: false });
+            }
+        }
+
+        function updatePhysics() {
             if (!gameActive) return;
 
-            // Movement logic
-            if (keys.left) player.x -= player.speed;
-            if (keys.right) player.x += player.speed;
-            if (player.x < 100) player.x = 100;
-            if (player.x > 600) player.x = 600;
+            // Move Plane Forward
+            planePos.z -= planePos.speed;
 
             if (stage === "BOARDING") {
-                // Drive forward on runway
-                passengers.forEach(p => {
-                    p.z -= 4;
-                    if (!p.collected && p.z < 40 && p.z > -20 && Math.abs(p.x - player.x) < 50) {
+                if (keys.A) planePos.x -= 0.3;
+                if (keys.D) planePos.x += 0.3;
+                planePos.roll = keys.A ? 0.2 : (keys.D ? -0.2 : 0);
+
+                passengers3D.forEach(p => {
+                    if (!p.collected && Math.hypot(planePos.x - p.mesh.position.x, planePos.z - p.mesh.position.z) < 4) {
                         p.collected = true;
+                        p.mesh.visible = false;
                         passengersCollected++;
-                        addCoins(1);
-                        document.getElementById("status").innerText = `Passengers Boarded: ${passengersCollected}/${targetPassengers}`;
+                        addCoins(2);
+                        document.getElementById("status").innerText = `Passengers Boarded: ${passengersCollected}/5`;
                     }
                 });
 
-                if (passengersCollected >= targetPassengers) {
+                if (passengersCollected >= 5) {
                     stage = "TAKEOFF";
-                    document.getElementById("status").innerText = "Stage 2: TAKEOFF! Hold UP/W to Gain Altitude!";
+                    document.getElementById("stage-text").innerText = "2 - TAKEOFF";
+                    document.getElementById("status").innerText = "Pull Up (W or Up Arrow) to Take Off!";
                 }
             } 
             else if (stage === "TAKEOFF") {
-                if (keys.up) player.y -= 3;
-                if (player.y <= 200) {
+                if (keys.W) {
+                    planePos.y += 0.4;
+                    planePos.pitch = -0.3;
+                }
+                if (planePos.y >= 20) {
                     stage = "FLIGHT";
-                    document.getElementById("status").innerText = "Stage 3: Fly through Sky Rings! (WASD/Arrows)";
-                    initStage();
+                    document.getElementById("stage-text").innerText = "3 - SKY RINGS";
+                    document.getElementById("status").innerText = "Fly through the 3D Sky Rings!";
                 }
             } 
             else if (stage === "FLIGHT") {
-                if (keys.up) player.y -= 3;
-                if (keys.down) player.y += 3;
-                if (player.y < 50) player.y = 50;
-                if (player.y > 300) player.y = 300;
+                if (keys.W) planePos.y += 0.4;
+                if (keys.S) planePos.y -= 0.4;
+                if (keys.A) planePos.x -= 0.4;
+                if (keys.D) planePos.x += 0.4;
 
-                rings.forEach(r => {
-                    r.z -= 6;
-                    if (!r.passed && r.z < 40 && r.z > -20 && Math.abs(r.x - player.x) < 60 && Math.abs(r.y - player.y) < 60) {
+                planePos.pitch = keys.W ? -0.2 : (keys.S ? 0.2 : 0);
+                planePos.roll = keys.A ? 0.3 : (keys.D ? -0.3 : 0);
+
+                rings3D.forEach(r => {
+                    if (!r.passed && Math.hypot(planePos.x - r.mesh.position.x, planePos.y - r.mesh.position.y, planePos.z - r.mesh.position.z) < 9) {
                         r.passed = true;
+                        r.mesh.material.color.setHex(0xff007f);
                         ringsPassed++;
-                        addCoins(2);
-                        document.getElementById("status").innerText = `Rings Passed: ${ringsPassed}/${targetRings}`;
+                        addCoins(3);
+                        document.getElementById("status").innerText = `Rings Cleared: ${ringsPassed}/8`;
                     }
                 });
 
-                if (ringsPassed >= targetRings) {
-                    addCoins(15);
-                    if (level < maps.length) {
-                        level++;
-                        stage = "BOARDING";
-                        passengersCollected = 0;
-                        ringsPassed = 0;
-                        player.y = 320;
-                        document.getElementById("lvl-num").innerText = level;
-                        document.getElementById("map-name").innerText = maps[level-1].name;
-                        document.getElementById("status").innerText = "Level Complete! Next Map: Collect Passengers!";
-                        initStage();
-                    } else {
-                        gameActive = false;
-                        document.getElementById("status").innerText = "MASTER PILOT! All Maps Cleared! +15 Bonus Coins!";
-                    }
+                if (ringsPassed >= 8) {
+                    gameActive = false;
+                    addCoins(20);
+                    document.getElementById("status").innerText = "🏆 MISSION COMPLETE! +20 Bonus Coins!";
                 }
             }
+
+            // Sync 3D Plane Mesh
+            planeGroup.position.set(planePos.x, planePos.y, planePos.z);
+            planeGroup.rotation.set(planePos.pitch, 0, planePos.roll);
+
+            // Follow Camera
+            camera.position.set(planePos.x, planePos.y + 6, planePos.z + 20);
+            camera.lookAt(planePos.x, planePos.y + 2, planePos.z - 20);
         }
 
-        function render() {
-            const currentMap = maps[level - 1];
-
-            // Sky
-            ctx.fillStyle = currentMap.sky;
-            ctx.fillRect(0, 0, canvas.width, 220);
-
-            // Ground/Runway Perspective
-            ctx.fillStyle = currentMap.ground;
-            ctx.fillRect(0, 220, canvas.width, 180);
-
-            // 3D Perspective Lines
-            ctx.strokeStyle = "#334155";
-            ctx.beginPath();
-            ctx.moveTo(100, 400); ctx.lineTo(300, 220);
-            ctx.moveTo(600, 400); ctx.lineTo(400, 220);
-            ctx.stroke();
-
-            // Render Passengers (3D Projection)
-            if (stage === "BOARDING") {
-                passengers.forEach(p => {
-                    if (!p.collected && p.z > 0) {
-                        let scale = 200 / (200 + p.z);
-                        let screenX = 350 + (p.x - 350) * scale;
-                        let screenY = 220 + 100 * scale;
-
-                        ctx.fillStyle = "#facc15";
-                        ctx.beginPath();
-                        ctx.arc(screenX, screenY, 12 * scale, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                });
-            }
-
-            // Render Sky Rings (3D Projection)
-            if (stage === "FLIGHT") {
-                rings.forEach(r => {
-                    if (!r.passed && r.z > 0) {
-                        let scale = 250 / (250 + r.z);
-                        let screenX = 350 + (r.x - 350) * scale;
-                        let screenY = r.y * scale + 50;
-
-                        ctx.strokeStyle = currentMap.ringColor;
-                        ctx.lineWidth = 6 * scale;
-                        ctx.shadowBlur = 15; ctx.shadowColor = currentMap.ringColor;
-                        ctx.beginPath();
-                        ctx.arc(screenX, screenY, 40 * scale, 0, Math.PI * 2);
-                        ctx.stroke();
-                        ctx.shadowBlur = 0;
-                    }
-                });
-            }
-
-            // Render Player Airplane
-            let planeColor = player.planeType === 'Concorde' ? '#ffffff' : (player.planeType === 'Jet' ? '#ff007f' : '#00f3ff');
-            ctx.fillStyle = planeColor;
-            ctx.shadowBlur = 15; ctx.shadowColor = planeColor;
-
-            // Airplane Silhouette
-            ctx.beginPath();
-            ctx.moveTo(player.x, player.y - 20);
-            ctx.lineTo(player.x - 35, player.y + 15);
-            ctx.lineTo(player.x + 35, player.y + 15);
-            ctx.closePath();
-            ctx.fill();
-            ctx.shadowBlur = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            updatePhysics();
+            renderer.render(scene, camera);
         }
 
-        function gameLoop() {
-            update();
-            render();
-            requestAnimationFrame(gameLoop);
-        }
-
-        function resetGame() {
-            level = 1; stage = "BOARDING"; gameActive = true;
+        function resetFlight() {
+            planePos.x = 0; planePos.y = 1.5; planePos.z = 0;
             passengersCollected = 0; ringsPassed = 0;
-            player.x = 350; player.y = 320;
-            document.getElementById("lvl-num").innerText = level;
-            document.getElementById("map-name").innerText = maps[0].name;
-            document.getElementById("status").innerText = "Stage 1: Drive & Collect Passengers! (A/D or Arrows)";
-            initStage();
+            stage = "BOARDING"; gameActive = true;
+
+            document.getElementById("stage-text").innerText = "1 - BOARDING";
+            document.getElementById("status").innerText = "Steer to Passengers (A/D or Arrows)!";
+
+            passengers3D.forEach(p => { p.collected = false; p.mesh.visible = true; });
+            rings3D.forEach(r => { r.passed = false; r.mesh.material.color.setHex(0x00f3ff); });
             updateWallet();
         }
 
-        updateWallet();
-        initStage();
-        gameLoop();
+        document.addEventListener("DOMContentLoaded", () => {
+            init3D();
+            updateWallet();
+            animate();
+        });
     </script>
 </body>
 </html>
