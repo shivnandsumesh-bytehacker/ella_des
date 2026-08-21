@@ -3,96 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arcade Hub</title>
-    <script src="arcade.js"></script>
+    <title>Cyber Arcade Hub</title>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
-        header { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto 30px auto; padding: 10px 20px; background: #1e293b; border-radius: 12px; border: 1px solid #334155; }
-        .coin-box { font-size: 1.3rem; font-weight: bold; color: #facc15; }
-        .shop-btn { background: #38bdf8; color: #0f172a; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
-        .card { background: #1e293b; border: 2px solid #38bdf8; border-radius: 12px; padding: 20px; text-decoration: none; color: white; transition: transform 0.2s, border-color 0.2s; }
-        .card:hover { transform: translateY(-5px); border-color: #facc15; }
-        .card h2 { margin: 0 0 10px 0; font-size: 1.2rem; }
-        .card p { font-size: 0.85rem; color: #94a3b8; margin: 0; }
-
-        /* Global Themes from arcade.js */
-        body.theme-cyberpunk { background: #18022b; color: #00ffcc; }
-        body.theme-matrix { background: #001100; color: #00ff00; }
-        body.theme-sunset { background: #2d0b1e; color: #ff7e5f; }
+        :root { 
+            --primary: #00f3ff; 
+            --accent: #ff007f; 
+            --bg: #0f172a; 
+            --card: #1e293b; 
+        }
+        body { 
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            box-sizing: border-box; 
+        }
+        header { 
+            width: 100%; 
+            max-width: 1100px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: var(--card); 
+            padding: 12px 25px; 
+            border-radius: 12px; 
+            border: 2px solid var(--primary); 
+            margin-bottom: 25px; 
+            box-sizing: border-box; 
+        }
+        h1 { color: var(--primary); text-shadow: 0 0 15px var(--primary); margin: 0; font-size: 1.8rem; }
+        .stats { font-size: 1.2rem; font-weight: bold; color: #facc15; }
+        .nav-shop { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.1rem; }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 15px; 
+            width: 100%; 
+            max-width: 1100px; 
+        }
+        .card { 
+            background: var(--card); 
+            border: 2px solid var(--primary); 
+            border-radius: 12px; 
+            padding: 15px; 
+            text-decoration: none; 
+            color: white; 
+            transition: transform 0.2s, box-shadow 0.2s; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 0 20px var(--primary); 
+            border-color: var(--accent); 
+        }
+        .card h3 { margin: 8px 0 4px 0; color: var(--primary); font-size: 1.05rem; }
+        .card p { font-size: 0.8rem; color: #94a3b8; margin: 0; }
+        .icon { font-size: 2.2rem; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="coin-box">🪙 Coins: <span id="coin-count">0</span></div>
-        <a href="shop.html" class="shop-btn">🛒 Shop</a>
+        <h1>⚡ CYBER ARCADE</h1>
+        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
+        <a href="shop.html" class="nav-shop">🛒 Shop</a>
     </header>
 
-    <h1>🕹️ Arcade Hub</h1>
-
     <div class="grid">
-        <a href="snake.html" class="card">
-            <h2>Snake</h2>
-            <p>Eat food and grow without crashing!</p>
-        </a>
-        <a href="clicker.html" class="card">
-            <h2>Coin Clicker</h2>
-            <p>Click to earn coins fast.</p>
-        </a>
-        <a href="bird.html" class="card">
-            <h2>Flappy Bird</h2>
-            <p>Dodge pipes and stay airborne.</p>
-        </a>
-        <a href="car.html" class="card">
-            <h2>Car Avoid</h2>
-            <p>Dodge oncoming traffic.</p>
-        </a>
-        <a href="colorcatch.html" class="card">
-            <h2>Color Catch</h2>
-            <p>Catch matching colors.</p>
-        </a>
-        <a href="doodle.html" class="card">
-            <h2>Doodle Jump</h2>
-            <p>Jump up platforms as high as you can.</p>
-        </a>
-        <a href="mathdash.html" class="card">
-            <h2>Math Dash</h2>
-            <p>Solve quick math equations.</p>
-        </a>
-        <a href="maze.html" class="card">
-            <h2>Maze Escape</h2>
-            <p>Navigate through the maze.</p>
-        </a>
-        <a href="2048.html" class="card">
-            <h2>2048</h2>
-            <p>Combine numbers to reach 2048.</p>
-        </a>
-        <a href="memory.html" class="card">
-            <h2>Memory Match</h2>
-            <p>Flip and match pairs of cards.</p>
-        </a>
-        <a href="pong.html" class="card">
-            <h2>Pong</h2>
-            <p>Classic paddle arcade game.</p>
-        </a>
-        <a href="simon.html" class="card">
-            <h2>Simon Says</h2>
-            <p>Repeat the sequence of lights.</p>
-        </a>
-        <a href="space.html" class="card">
-            <h2>Space Invaders</h2>
-            <p>Shoot down invading alien waves.</p>
-        </a>
-        <a href="tictactoe.html" class="card">
-            <h2>Tic-Tac-Toe</h2>
-            <p>Play against the AI.</p>
-        </a>
-        <a href="tower.html" class="card">
-            <h2>Tower Stacker</h2>
-            <p>Stack blocks to build a tall tower.</p>
-        </a>
+        <a href="clicker.html" class="card"><span class="icon">🪙</span><h3>Neon Clicker</h3><p>Tap & earn multiplier coins</p></a>
+        <a href="pong.html" class="card"><span class="icon">🏓</span><h3>Cyber Pong AI</h3><p>Classic paddle action</p></a>
+        <a href="snake.html" class="card"><span class="icon">🐍</span><h3>Cyber Snake</h3><p>Eat food & grow long</p></a>
+        <a href="2048.html" class="card"><span class="icon">🔢</span><h3>2048</h3><p>Slide & merge numbers</p></a>
+        <a href="doodle.html" class="card"><span class="icon">🚀</span><h3>Doodle Jump</h3><p>Bounce to high scores</p></a>
+        <a href="bird.html" class="card"><span class="icon">🐦</span><h3>Cyber Bird</h3><p>Dodge obstacles in air</p></a>
+        <a href="car.html" class="card"><span class="icon">🏎️</span><h3>Car Racer</h3><p>Dodge traffic on highway</p></a>
+        <a href="basketball.html" class="card"><span class="icon">🏀</span><h3>Basketball Legends</h3><p>Heads-up 2D hoops</p></a>
+        <a href="volleyball.html" class="card"><span class="icon">🏐</span><h3>Volleyball Legends</h3><p>Spike over the net</p></a>
+        <a href="bat.html" class="card"><span class="icon">🏸</span><h3>Badminton Legends</h3><p>High clears & smashes</p></a>
+        <a href="plane.html" class="card"><span class="icon">✈️</span><h3>3D Flight Sim</h3><p>Collect passengers & fly rings</p></a>
+        <a href="train.html" class="card"><span class="icon">🚂</span><h3>3D Train Express</h3><p>Switch tracks & pick up riders</p></a>
+        <a href="snowrider.html" class="card"><span class="icon">🛷</span><h3>3D Snow Rider</h3><p>Dodge trees downhill</p></a>
+        <a href="space.html" class="card"><span class="icon">👾</span><h3>Space Invaders</h3><p>Blast alien waves</p></a>
+        <a href="maze.html" class="card"><span class="icon">🌀</span><h3>Cyber Maze</h3><p>Find the exit path</p></a>
+        <a href="color.html" class="card"><span class="icon">🎨</span><h3>Color Switch</h3><p>Match passing colors</p></a>
+        <a href="catch.html" class="card"><span class="icon">🧺</span><h3>Catch Game</h3><p>Catch falling items</p></a>
+        <a href="memory.html" class="card"><span class="icon">🧠</span><h3>Memory Match</h3><p>Find matching pairs</p></a>
+        <a href="simon.html" class="card"><span class="icon">💡</span><h3>Simon Says</h3><p>Follow pattern sequences</p></a>
+        <a href="tictactoe.html" class="card"><span class="icon">❌</span><h3>Tic Tac Toe</h3><p>3 in a row match</p></a>
+        <a href="tower.html" class="card"><span class="icon">🏗️</span><h3>Tower Stacker</h3><p>Stack blocks high</p></a>
+        <a href="math.html" class="card"><span class="icon">🧮</span><h3>Math Challenge</h3><p>Fast mental arithmetic</p></a>
     </div>
 
+    <script>
+        function applyGlobalTheme() {
+            const savedTheme = localStorage.getItem('arcade_theme') || 'neon';
+            const themes = {
+                neon: { primary: '#00f3ff', accent: '#ff007f', bg: '#0f172a', card: '#1e293b' },
+                cyber: { primary: '#00ff66', accent: '#ff9900', bg: '#051a0e', card: '#0b2e1a' },
+                sunset: { primary: '#facc15', accent: '#ff007f', bg: '#2a081d', card: '#421232' },
+                purple: { primary: '#a855f7', accent: '#00f3ff', bg: '#12072b', card: '#231047' }
+            };
+            const active = themes[savedTheme] || themes.neon;
+            document.documentElement.style.setProperty('--primary', active.primary);
+            document.documentElement.style.setProperty('--accent', active.accent);
+            document.documentElement.style.setProperty('--bg', active.bg);
+            document.documentElement.style.setProperty('--card', active.card);
+        }
+
+        function updateWallet() {
+            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            document.getElementById('coin-count').innerText = coins.toLocaleString();
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            applyGlobalTheme();
+            updateWallet();
+        });
+    </script>
 </body>
 </html>
