@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basketball Legends</title>
+    <script src="arcade.js"></script>
+    <style>
+        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; box-sizing: border-box; }
+        
+        header { width: 100%; max-width: 700px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 12px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 15px; box-sizing: border-box; }
+        .stats { font-size: 1.1rem; font-weight: bold; color: #facc15; }
+        .status { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: var(--primary); min-height: 28px; }
+        
+        canvas { background: #000; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); max-width: 100%; }
+        
+        .controls { margin-top: 15px; display: flex; gap: 15px; }
+        .btn { background: var(--primary); color: #000; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        
+        a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="nav">← Hub</a>
+        <div>Score: <span id="p-score" style="color:var(--primary)">0</span> - <span id="ai-score" style="color:var(--accent)">0</span></div>
+        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
+    </header>
+
+    <div class="status" id="status">A/D to move, W to jump, SPACE/S to shoot!</div>
+
+    <canvas id="hoops" width="700" height="400"></canvas>
+
+    <div class="controls">
+        <button class="btn" onclick="resetGame()">Restart Game</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("hoops");
+        const ctx = canvas.getContext("2d");
+
+        let pScore = 0, aiScore = 0, gameActive = true;
+        const targetScore = 5;
+        const gravity = 0.45;
+
+        const p1 = { x: 100, y: 280, radius: 25, vx: 0, vy: 0, speed: 5, grounded: false, hasBall: false };
+        const ai = { x: 550, y: 280, radius: 25, vx: 0, vy: 0, speed: 3.8, grounded: false, hasBall: false };
+        const ball = { x: 350, y: 200, radius: 12, vx: 0, vy: 0, holder: null };
+
+        const keys = { left: false, right: false, jump: false, shoot: false };
+
+        function updateWallet() {
+            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            document.getElementById('coin-count').innerText = coins.toLocaleString();
+        }
+
+        function addCoins(amount) {
+            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            localStorage.setItem('arcade_coins', coins + amount);
+            updateWallet();
+        }
+
+        window.addEventListener("keydown", e => {
+            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD","Space"].includes(e.code) || ["w","a","s","d","W","A","S","D"," "].includes(e.key)) {
+                e.preventDefault();
+            }
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = true;
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = true;
+            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.jump = true;
+            if (e.key === "s" || e.key === "S" || e.key === " " || e.key === "ArrowDown") {
+                if (!keys.shoot) shootBall(p1, 1);
+                keys.shoot = true;
+            }
+        }, { passive: false });
+
+        window.addEventListener("keyup", e => {
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = false;
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = false;
+            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.jump = false;
+            if (e.key === "s" || e.key === "S" || e.key === " " || e.key === "ArrowDown") keys.shoot = false;
+        });
+
+        function shootBall(player, dir) {
+            if (ball.holder === player) {
+                ball.holder = null;
+                ball.vx = dir * (7 + Math.random() * 2);
+                ball.vy = -10;
+            }
+        }
+
+        function updatePhysics(obj) {
+            obj.vy += gravity;
+            obj.x += obj.vx;
+            obj.y += obj.vy;
+
+            if (obj.y + obj.radius >= 350) {
+                obj.y = 350 - obj.radius;
+                obj.vy = 0;
+                obj.grounded = true;
+            }
+        }
+
+        function updateAI() {
+            if (!gameActive) return;
+
+            if (ball.holder === ai) {
+                if (ai.x < 500) ai.vx = ai.speed;
+                else ai.vx = 0;
+
+                if (ai.x >= 480 && Math.random() < 0.05) {
+                    ai.vy = -9;
+                    setTimeout(() => shootBall(ai, -1), 150);
+                }
+            } else if (ball.holder === p1) {
+                if (ai.x > p1.x + 80) ai.vx = -ai.speed;
+                else ai.vx = 0;
+            } else {
+                if (ai.x < ball.x) ai.vx = ai.speed;
+                else ai.vx = -ai.speed;
+            }
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            // Player movement
+            if (keys.left) p1.vx = -p1.speed;
+            else if (keys.right) p1.vx = p1.speed;
+            else p1.vx = 0;
+
+            if (keys.jump && p1.grounded) {
+                p1.vy = -10;
+                p1.grounded = false;
+            }
+
+            updatePhysics(p1);
+            updatePhysics(ai);
+            updateAI();
+
+            // Ball Physics & Pickup
+            if (ball.holder) {
+                ball.x = ball.holder.x + (ball.holder === p1 ? 20 : -20);
+                ball.y = ball.holder.y - 10;
+                ball.vx = 0; ball.vy = 0;
+            } else {
+                ball.vy += gravity * 0.7;
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+
+                if (ball.y + ball.radius >= 350) {
+                    ball.y = 350 - ball.radius;
+                    ball.vy = -ball.vy * 0.6;
+                    ball.vx *= 0.95;
+                }
+
+                // Pickup logic
+                if (dist(p1, ball) < p1.radius + ball.radius) ball.holder = p1;
+                else if (dist(ai, ball) < ai.radius + ball.radius) ball.holder = ai;
+            }
+
+            // Hoop Scoring Checks (Right Hoop = Player, Left Hoop = AI)
+            if (ball.x > 620 && ball.x < 660 && ball.y > 180 && ball.y < 200 && ball.vy > 0) {
+                pScore++;
+                document.getElementById("p-score").innerText = pScore;
+                addCoins(2);
+                resetPositions();
+            } else if (ball.x > 40 && ball.x < 80 && ball.y > 180 && ball.y < 200 && ball.vy > 0) {
+                aiScore++;
+                document.getElementById("ai-score").innerText = aiScore;
+                resetPositions();
+            }
+
+            if (pScore >= targetScore) endGame("YOU WIN! +10 Coins", true);
+            if (aiScore >= targetScore) endGame("AI Wins! Try again.", false);
+        }
+
+        function dist(a, b) {
+            return Math.hypot(a.x - b.x, a.y - b.y);
+        }
+
+        function resetPositions() {
+            p1.x = 150; p1.y = 280; p1.vx = 0; p1.vy = 0;
+            ai.x = 550; ai.y = 280; ai.vx = 0; ai.vy = 0;
+            ball.x = 350; ball.y = 200; ball.vx = 0; ball.vy = 0; ball.holder = null;
+        }
+
+        function endGame(msg, playerWon) {
+            gameActive = false;
+            document.getElementById("status").innerText = msg;
+            if (playerWon) addCoins(10);
+        }
+
+        function render() {
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Court Floor
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(0, 350, canvas.width, 50);
+
+            // Hoops & Backboards
+            ctx.fillStyle = "#ff007f";
+            ctx.fillRect(20, 150, 10, 100); // Left Backboard
+            ctx.fillRect(30, 190, 40, 8);   // Left Rim
+            
+            ctx.fillStyle = "#00f3ff";
+            ctx.fillRect(670, 150, 10, 100); // Right Backboard
+            ctx.fillRect(630, 190, 40, 8);   // Right Rim
+
+            // Player 1 (Blue Head)
+            ctx.fillStyle = "#00f3ff";
+            ctx.shadowBlur = 15; ctx.shadowColor = "#00f3ff";
+            ctx.beginPath(); ctx.arc(p1.x, p1.y, p1.radius, 0, Math.PI * 2); ctx.fill();
+
+            // AI (Pink Head)
+            ctx.fillStyle = "#ff007f";
+            ctx.shadowColor = "#ff007f";
+            ctx.beginPath(); ctx.arc(ai.x, ai.y, ai.radius, 0, Math.PI * 2); ctx.fill();
+
+            // Basketball (Orange)
+            ctx.fillStyle = "#ff8c00";
+            ctx.shadowColor = "#ff8c00";
+            ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2); ctx.fill();
+        }
+
+        function gameLoop() {
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resetGame() {
+            pScore = 0; aiScore = 0; gameActive = true;
+            document.getElementById("p-score").innerText = 0;
+            document.getElementById("ai-score").innerText = 0;
+            document.getElementById("status").innerText = "A/D to move, W to jump, SPACE/S to shoot!";
+            resetPositions();
+        }
+
+        updateWallet();
+        gameLoop();
+    </script>
+</body>
+</html>
