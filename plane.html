@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Flight Simulator Legends</title>
+    <script src="arcade.js"></script>
+    <style>
+        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        
+        header { width: 100%; max-width: 750px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 12px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 15px; box-sizing: border-box; }
+        .stats { font-size: 1.1rem; font-weight: bold; color: #facc15; }
+        .status { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: var(--primary); min-height: 28px; }
+        
+        canvas { background: #000; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); max-width: 100%; }
+        
+        .hud-panel { display: flex; gap: 10px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
+        .btn { background: var(--primary); color: #000; border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+        
+        a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="nav">← Hub</a>
+        <div>Level: <span id="lvl-num" style="color:var(--primary)">1</span> | Map: <span id="map-name" style="color:#facc15">City Runway</span></div>
+        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
+    </header>
+
+    <div class="status" id="status">Stage 1: Drive & Collect Passengers! (A/D or Arrows)</div>
+
+    <canvas id="flightCanvas" width="700" height="400"></canvas>
+
+    <div class="hud-panel">
+        <button class="btn" onclick="resetGame()">Restart Flight</button>
+        <button class="btn" id="buy-jet-btn" onclick="buyPlane('Jet', 50)">Buy Fighter Jet (50 Coins)</button>
+        <button class="btn" id="buy-concorde-btn" onclick="buyPlane('Concorde', 120)">Buy Concorde (120 Coins)</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("flightCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let level = 1;
+        let stage = "BOARDING"; // BOARDING -> TAKEOFF -> FLIGHT -> WIN
+        let gameActive = true;
+        let score = 0;
+        let passengersCollected = 0;
+        const targetPassengers = 5;
+        let ringsPassed = 0;
+        const targetRings = 8;
+
+        // Player & Hangar State
+        let ownedPlanes = JSON.parse(localStorage.getItem('plane_owned')) || ['Biplane'];
+        let activePlane = localStorage.getItem('plane_active') || 'Biplane';
+
+        const maps = [
+            { name: "City Runway", sky: "#0f172a", ground: "#1e293b", ringColor: "#00f3ff" },
+            { name: "Sunset Canyon", sky: "#451225", ground: "#7c2d12", ringColor: "#facc15" },
+            { name: "Neon Metropolis", sky: "#030712", ground: "#0f172a", ringColor: "#ff007f" }
+        ];
+
+        const player = { x: 350, y: 320, z: 0, vx: 0, vy: 0, speed: 5, planeType: activePlane };
+
+        // Entities
+        let passengers = [];
+        let rings = [];
+
+        const keys = { left: false, right: false, up: false, down: false };
+
+        function updateWallet() {
+            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            document.getElementById('coin-count').innerText = coins.toLocaleString();
+            updateShopButtons();
+        }
+
+        function addCoins(amount) {
+            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            localStorage.setItem('arcade_coins', coins + amount);
+            updateWallet();
+        }
+
+        function updateShopButtons() {
+            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            
+            const jetBtn = document.getElementById('buy-jet-btn');
+            if (ownedPlanes.includes('Jet')) {
+                jetBtn.innerText = activePlane === 'Jet' ? 'Equipped: Fighter Jet' : 'Equip Fighter Jet';
+                jetBtn.disabled = activePlane === 'Jet';
+            } else {
+                jetBtn.disabled = coins < 50;
+            }
+
+            const concBtn = document.getElementById('buy-concorde-btn');
+            if (ownedPlanes.includes('Concorde')) {
+                concBtn.innerText = activePlane === 'Concorde' ? 'Equipped: Concorde' : 'Equip Concorde';
+                concBtn.disabled = activePlane === 'Concorde';
+            } else {
+                concBtn.disabled = coins < 120;
+            }
+        }
+
+        function buyPlane(type, cost) {
+            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            if (!ownedPlanes.includes(type) && coins >= cost) {
+                addCoins(-cost);
+                ownedPlanes.push(type);
+                localStorage.setItem('plane_owned', JSON.stringify(ownedPlanes));
+            }
+            if (ownedPlanes.includes(type)) {
+                activePlane = type;
+                localStorage.setItem('plane_active', type);
+                player.planeType = type;
+            }
+            updateShopButtons();
+        }
+
+        // Key Listeners + Anti Scroll
+        window.addEventListener("keydown", e => {
+            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD","Space"].includes(e.code) || ["w","a","s","d","W","A","S","D"," "].includes(e.key)) {
+                e.preventDefault();
+            }
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = true;
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = true;
+            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.up = true;
+            if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.down = true;
+        }, { passive: false });
+
+        window.addEventListener("keyup", e => {
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = false;
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = false;
+            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.up = false;
+            if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.down = false;
+        });
+
+        function initStage() {
+            passengers = [];
+            rings = [];
+            if (stage === "BOARDING") {
+                for (let i = 0; i < targetPassengers; i++) {
+                    passengers.push({ x: 150 + Math.random() * 400, z: 200 + i * 250, collected: false });
+                }
+            } else if (stage === "FLIGHT") {
+                for (let i = 0; i < targetRings; i++) {
+                    rings.push({ x: 200 + Math.random() * 300, y: 100 + Math.random() * 150, z: 300 + i * 350, passed: false });
+                }
+            }
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            // Movement logic
+            if (keys.left) player.x -= player.speed;
+            if (keys.right) player.x += player.speed;
+            if (player.x < 100) player.x = 100;
+            if (player.x > 600) player.x = 600;
+
+            if (stage === "BOARDING") {
+                // Drive forward on runway
+                passengers.forEach(p => {
+                    p.z -= 4;
+                    if (!p.collected && p.z < 40 && p.z > -20 && Math.abs(p.x - player.x) < 50) {
+                        p.collected = true;
+                        passengersCollected++;
+                        addCoins(1);
+                        document.getElementById("status").innerText = `Passengers Boarded: ${passengersCollected}/${targetPassengers}`;
+                    }
+                });
+
+                if (passengersCollected >= targetPassengers) {
+                    stage = "TAKEOFF";
+                    document.getElementById("status").innerText = "Stage 2: TAKEOFF! Hold UP/W to Gain Altitude!";
+                }
+            } 
+            else if (stage === "TAKEOFF") {
+                if (keys.up) player.y -= 3;
+                if (player.y <= 200) {
+                    stage = "FLIGHT";
+                    document.getElementById("status").innerText = "Stage 3: Fly through Sky Rings! (WASD/Arrows)";
+                    initStage();
+                }
+            } 
+            else if (stage === "FLIGHT") {
+                if (keys.up) player.y -= 3;
+                if (keys.down) player.y += 3;
+                if (player.y < 50) player.y = 50;
+                if (player.y > 300) player.y = 300;
+
+                rings.forEach(r => {
+                    r.z -= 6;
+                    if (!r.passed && r.z < 40 && r.z > -20 && Math.abs(r.x - player.x) < 60 && Math.abs(r.y - player.y) < 60) {
+                        r.passed = true;
+                        ringsPassed++;
+                        addCoins(2);
+                        document.getElementById("status").innerText = `Rings Passed: ${ringsPassed}/${targetRings}`;
+                    }
+                });
+
+                if (ringsPassed >= targetRings) {
+                    addCoins(15);
+                    if (level < maps.length) {
+                        level++;
+                        stage = "BOARDING";
+                        passengersCollected = 0;
+                        ringsPassed = 0;
+                        player.y = 320;
+                        document.getElementById("lvl-num").innerText = level;
+                        document.getElementById("map-name").innerText = maps[level-1].name;
+                        document.getElementById("status").innerText = "Level Complete! Next Map: Collect Passengers!";
+                        initStage();
+                    } else {
+                        gameActive = false;
+                        document.getElementById("status").innerText = "MASTER PILOT! All Maps Cleared! +15 Bonus Coins!";
+                    }
+                }
+            }
+        }
+
+        function render() {
+            const currentMap = maps[level - 1];
+
+            // Sky
+            ctx.fillStyle = currentMap.sky;
+            ctx.fillRect(0, 0, canvas.width, 220);
+
+            // Ground/Runway Perspective
+            ctx.fillStyle = currentMap.ground;
+            ctx.fillRect(0, 220, canvas.width, 180);
+
+            // 3D Perspective Lines
+            ctx.strokeStyle = "#334155";
+            ctx.beginPath();
+            ctx.moveTo(100, 400); ctx.lineTo(300, 220);
+            ctx.moveTo(600, 400); ctx.lineTo(400, 220);
+            ctx.stroke();
+
+            // Render Passengers (3D Projection)
+            if (stage === "BOARDING") {
+                passengers.forEach(p => {
+                    if (!p.collected && p.z > 0) {
+                        let scale = 200 / (200 + p.z);
+                        let screenX = 350 + (p.x - 350) * scale;
+                        let screenY = 220 + 100 * scale;
+
+                        ctx.fillStyle = "#facc15";
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, 12 * scale, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+            }
+
+            // Render Sky Rings (3D Projection)
+            if (stage === "FLIGHT") {
+                rings.forEach(r => {
+                    if (!r.passed && r.z > 0) {
+                        let scale = 250 / (250 + r.z);
+                        let screenX = 350 + (r.x - 350) * scale;
+                        let screenY = r.y * scale + 50;
+
+                        ctx.strokeStyle = currentMap.ringColor;
+                        ctx.lineWidth = 6 * scale;
+                        ctx.shadowBlur = 15; ctx.shadowColor = currentMap.ringColor;
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, 40 * scale, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.shadowBlur = 0;
+                    }
+                });
+            }
+
+            // Render Player Airplane
+            let planeColor = player.planeType === 'Concorde' ? '#ffffff' : (player.planeType === 'Jet' ? '#ff007f' : '#00f3ff');
+            ctx.fillStyle = planeColor;
+            ctx.shadowBlur = 15; ctx.shadowColor = planeColor;
+
+            // Airplane Silhouette
+            ctx.beginPath();
+            ctx.moveTo(player.x, player.y - 20);
+            ctx.lineTo(player.x - 35, player.y + 15);
+            ctx.lineTo(player.x + 35, player.y + 15);
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function gameLoop() {
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resetGame() {
+            level = 1; stage = "BOARDING"; gameActive = true;
+            passengersCollected = 0; ringsPassed = 0;
+            player.x = 350; player.y = 320;
+            document.getElementById("lvl-num").innerText = level;
+            document.getElementById("map-name").innerText = maps[0].name;
+            document.getElementById("status").innerText = "Stage 1: Drive & Collect Passengers! (A/D or Arrows)";
+            initStage();
+            updateWallet();
+        }
+
+        updateWallet();
+        initStage();
+        gameLoop();
+    </script>
+</body>
+</html>
