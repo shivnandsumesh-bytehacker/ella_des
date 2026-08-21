@@ -3,136 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doodle Jump</title>
+    <title>Cyber Doodle Jump</title>
     <script src="arcade.js"></script>
     <style>
-        body { background: #0f172a; color: white; text-align: center; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        canvas { background: #1e293b; border: 2px solid #38bdf8; border-radius: 8px; }
-        .info { margin-bottom: 10px; font-size: 1.2rem; }
-        a { color: #38bdf8; text-decoration: none; margin-top: 15px; display: inline-block; }
+        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        
+        header { width: 100%; max-width: 450px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 12px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 15px; box-sizing: border-box; }
+        .stats { font-size: 1.1rem; font-weight: bold; color: #facc15; }
+        .status { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: var(--primary); min-height: 28px; }
+        
+        canvas { background: #000; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); max-width: 100%; }
+        
+        .controls { margin-top: 15px; display: flex; gap: 15px; }
+        .btn { background: var(--primary); color: #000; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        
+        a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="info">Score: <span id="score">0</span></div>
-    <canvas id="game" width="320" height="480"></canvas>
-    <a href="index.html">← Back to Hub</a>
+
+    <header>
+        <a href="index.html" class="nav">← Hub</a>
+        <div>Height: <span id="score" style="color:var(--primary)">0</span>m</div>
+        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
+    </header>
+
+    <div class="status" id="status">A/D or Left/Right Arrows to Move!</div>
+
+    <canvas id="doodleCanvas" width="400" height="600"></canvas>
+
+    <div class="controls">
+        <button class="btn" onclick="resetGame()">Restart Jump</button>
+    </div>
 
     <script>
-        const canvas = document.getElementById("game");
+        const canvas = document.getElementById("doodleCanvas");
         const ctx = canvas.getContext("2d");
 
-        let player = { x: 140, y: 300, w: 30, h: 30, vx: 0, vy: 0 };
-        let platforms = [];
         let score = 0;
-        let highestScore = 0;
-        let gameOver = false;
-        let keys = {};
+        let maxScore = 0;
+        let gameActive = true;
+        const gravity = 0.38;
 
-        document.addEventListener("keydown", (e) => { keys[e.key] = true; if (gameOver) resetGame(); });
-        document.addEventListener("keyup", (e) => { keys[e.key] = false; });
+        const player = { x: 180, y: 400, w: 30, h: 30, vx: 0, vy: -10, speed: 6 };
+        let platforms = [];
 
-        // Touch control for mobile
-        canvas.addEventListener("touchstart", (e) => {
-            if (gameOver) { resetGame(); return; }
-            let touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
-            player.vx = touchX < canvas.width / 2 ? -5 : 5;
-        });
-
-        function resetGame() {
-            player = { x: 140, y: 300, w: 30, h: 30, vx: 0, vy: -8 };
-            platforms = [];
-            score = 0;
-            highestScore = 0;
-            gameOver = false;
-            document.getElementById("score").innerText = score;
-
-            // Generate initial platforms
-            for (let i = 0; i < 7; i++) {
-                platforms.push({ x: Math.random() * (canvas.width - 60), y: i * 70 + 50, w: 60, h: 10 });
-            }
-            loop();
+        function applyGlobalTheme() {
+            const savedTheme = localStorage.getItem('arcade_theme') || 'neon';
+            const themes = {
+                neon: { primary: '#00f3ff', accent: '#ff007f', bg: '#0f172a', card: '#1e293b' },
+                cyber: { primary: '#00ff66', accent: '#ff9900', bg: '#051a0e', card: '#0b2e1a' },
+                sunset: { primary: '#facc15', accent: '#ff007f', bg: '#2a081d', card: '#421232' },
+                purple: { primary: '#a855f7', accent: '#00f3ff', bg: '#12072b', card: '#231047' }
+            };
+            const active = themes[savedTheme] || themes.neon;
+            document.documentElement.style.setProperty('--primary', active.primary);
+            document.documentElement.style.setProperty('--accent', active.accent);
+            document.documentElement.style.setProperty('--bg', active.bg);
+            document.documentElement.style.setProperty('--card', active.card);
         }
 
-        function loop() {
-            if (gameOver) return;
+        function updateWallet() {
+            const coinsCount = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            document.getElementById('coin-count').innerText = coinsCount.toLocaleString();
+        }
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function addCoins(amount) {
+            let current = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            localStorage.setItem('arcade_coins', current + amount);
+            updateWallet();
+        }
 
-            // Movement controls
-            if (keys["ArrowLeft"] || keys["a"]) player.vx = -5;
-            else if (keys["ArrowRight"] || keys["d"]) player.vx = 5;
+        const keys = { left: false, right: false };
+
+        window.addEventListener("keydown", e => {
+            if (["ArrowLeft", "ArrowRight", "KeyA", "KeyD", "a", "d", "A", "D"].includes(e.key)) {
+                e.preventDefault();
+            }
+            if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = true;
+            if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.right = true;
+        }, { passive: false });
+
+        window.addEventListener("keyup", e => {
+            if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") keys.left = false;
+            if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") keys.right = false;
+        });
+
+        function initPlatforms() {
+            platforms = [
+                { x: 160, y: 550, w: 80, h: 12, type: 'normal' }
+            ];
+            for (let i = 0; i < 7; i++) {
+                let pType = Math.random() < 0.2 ? 'spring' : (Math.random() < 0.25 ? 'moving' : 'normal');
+                platforms.push({
+                    x: Math.random() * 320,
+                    y: 500 - i * 80,
+                    w: 80,
+                    h: 12,
+                    type: pType,
+                    vx: pType === 'moving' ? (Math.random() < 0.5 ? 2 : -2) : 0
+                });
+            }
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            // Horizontal Controls
+            if (keys.left) player.vx = -player.speed;
+            else if (keys.right) player.vx = player.speed;
+            else player.vx = 0;
 
             player.x += player.vx;
-            player.vx *= 0.9; // Friction
-            player.vy += 0.3; // Gravity
-            player.y += player.vy;
 
-            // Screen wrap around
+            // Screen Wrap
             if (player.x < -player.w) player.x = canvas.width;
             if (player.x > canvas.width) player.x = -player.w;
 
-            // Platform collision (only falling down)
-            if (player.vy > 0) {
-                for (let p of platforms) {
-                    if (
-                        player.x + player.w > p.x &&
-                        player.x < p.x + p.w &&
-                        player.y + player.h >= p.y &&
-                        player.y + player.h <= p.y + 12
-                    ) {
-                        player.vy = -9; // Bounce
-                    }
-                }
-            }
+            // Vertical Physics
+            player.vy += gravity;
+            player.y += player.vy;
 
-            // Camera follow / Score tracking
-            if (player.y < canvas.height / 2) {
-                let diff = canvas.height / 2 - player.y;
-                player.y = canvas.height / 2;
+            // Camera Tracking Climb
+            if (player.y < 250) {
+                let diff = 250 - player.y;
+                player.y = 250;
                 score += Math.floor(diff);
+                document.getElementById("score").innerText = Math.floor(score / 10);
 
-                // Award coins based on score thresholds (every 100 points)
-                if (Math.floor(score / 100) > Math.floor(highestScore / 100)) {
-                    if (window.Arcade && Arcade.addCoins) Arcade.addCoins(1);
-                }
-                highestScore = Math.max(highestScore, score);
-                document.getElementById("score").innerText = score;
-
-                // Move platforms down
-                for (let p of platforms) {
+                platforms.forEach(p => {
                     p.y += diff;
                     if (p.y > canvas.height) {
                         p.y = 0;
-                        p.x = Math.random() * (canvas.width - 60);
+                        p.x = Math.random() * 320;
+                        p.type = Math.random() < 0.15 ? 'spring' : (Math.random() < 0.25 ? 'moving' : 'normal');
+                        p.vx = p.type === 'moving' ? (Math.random() < 0.5 ? 2 : -2) : 0;
                     }
+                });
+            }
+
+            // Platform Collisions (Falling down only)
+            if (player.vy > 0) {
+                platforms.forEach(p => {
+                    if (player.x + player.w > p.x &&
+                        player.x < p.x + p.w &&
+                        player.y + player.h >= p.y &&
+                        player.y + player.h <= p.y + 14) {
+                        
+                        if (p.type === 'spring') {
+                            player.vy = -15; // Spring Boost
+                            addCoins(1);
+                        } else {
+                            player.vy = -10.5; // Normal Bounce
+                        }
+                    }
+                });
+            }
+
+            // Move Horizontal Platforms
+            platforms.forEach(p => {
+                if (p.type === 'moving') {
+                    p.x += p.vx;
+                    if (p.x <= 0 || p.x + p.w >= canvas.width) p.vx = -p.vx;
                 }
-            }
+            });
 
-            // Game over check
+            // Game Over
             if (player.y > canvas.height) {
-                gameOver = true;
-            }
-
-            // Draw player
-            ctx.fillStyle = "#38bdf8";
-            ctx.fillRect(player.x, player.y, player.w, player.h);
-
-            // Draw platforms
-            ctx.fillStyle = "#22c55e";
-            for (let p of platforms) {
-                ctx.fillRect(p.x, p.y, p.w, p.h);
-            }
-
-            if (!gameOver) {
-                requestAnimationFrame(loop);
-            } else {
-                ctx.fillStyle = "white";
-                ctx.font = "18px sans-serif";
-                ctx.fillText("Game Over! Tap/Press Key to Restart", 15, canvas.height / 2);
+                gameActive = false;
+                let earnedCoins = Math.floor(score / 200);
+                if (earnedCoins > 0) addCoins(earnedCoins);
+                document.getElementById("status").innerText = `💥 FELL DOWN! Earned +${earnedCoins} Coins!`;
             }
         }
 
-        resetGame();
+        function render() {
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Render Platforms
+            platforms.forEach(p => {
+                if (p.type === 'spring') {
+                    ctx.fillStyle = "#facc15"; // Gold Spring Platform
+                    ctx.shadowColor = "#facc15";
+                } else if (p.type === 'moving') {
+                    ctx.fillStyle = "#ff007f"; // Pink Moving Platform
+                    ctx.shadowColor = "#ff007f";
+                } else {
+                    ctx.fillStyle = "#00f3ff"; // Blue Normal Platform
+                    ctx.shadowColor = "#00f3ff";
+                }
+
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.roundRect(p.x, p.y, p.w, p.h, 6);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            // Render Doodler Character
+            ctx.fillStyle = "#ffffff";
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(player.x + player.w / 2, player.y + player.h / 2, player.w / 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function gameLoop() {
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resetGame() {
+            score = 0; gameActive = true;
+            player.x = 180; player.y = 400; player.vy = -10;
+            document.getElementById("status").innerText = "A/D or Left/Right Arrows to Move!";
+            initPlatforms();
+            updateWallet();
+        }
+
+        applyGlobalTheme();
+        updateWallet();
+        initPlatforms();
+        gameLoop();
     </script>
 </body>
 </html>
