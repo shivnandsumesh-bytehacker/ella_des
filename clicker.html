@@ -4,29 +4,95 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neon Coin Clicker</title>
-    <script src="arcade.js"></script>
     <style>
-        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; user-select: none; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-
-        header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 25px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 20px; box-sizing: border-box; }
+        :root { 
+            --primary: #00f3ff; 
+            --accent: #ff007f; 
+            --bg: #0f172a; 
+            --card: #1e293b; 
+        }
+        body { 
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            padding: 20px; 
+            user-select: none; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            box-sizing: border-box;
+        }
+        header { 
+            width: 100%; 
+            max-width: 800px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: var(--card); 
+            padding: 15px 25px; 
+            border-radius: 12px; 
+            border: 2px solid var(--primary); 
+            margin-bottom: 20px; 
+            box-sizing: border-box; 
+        }
         .stats { font-size: 1.2rem; font-weight: bold; color: #facc15; }
-        
         .clicker-container { position: relative; margin: 20px 0; }
-        .coin-btn { width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, #ffe600 0%, #ff8c00 100%); border: 6px solid #fff; box-shadow: 0 0 30px #ff8c00, inset 0 0 15px #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 5rem; transition: transform 0.05s ease-in-out; outline: none; }
+        .coin-btn { 
+            width: 180px; 
+            height: 180px; 
+            border-radius: 50%; 
+            background: radial-gradient(circle, #ffe600 0%, #ff8c00 100%); 
+            border: 6px solid #fff; 
+            box-shadow: 0 0 30px #ff8c00; 
+            cursor: pointer; 
+            font-size: 5rem; 
+            transition: transform 0.05s; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            outline: none; 
+        }
         .coin-btn:active { transform: scale(0.92); }
-
-        .floating-text { position: absolute; color: #00f3ff; font-size: 1.8rem; font-weight: bold; pointer-events: none; animation: floatUp 0.8s ease-out forwards; text-shadow: 0 0 10px #00f3ff; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-60px) scale(1.3); } }
-
-        .upgrades { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; width: 100%; max-width: 800px; margin-top: 20px; }
-        .upgrade-card { background: var(--card); border: 2px solid var(--primary); border-radius: 10px; padding: 15px; text-align: left; }
-        .upgrade-card h4 { margin: 0 0 5px 0; color: var(--primary); font-size: 1.1rem; }
+        .stat-banner {
+            display: flex;
+            gap: 20px;
+            background: var(--card);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--primary);
+            margin-bottom: 15px;
+        }
+        .upgrades { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+            gap: 15px; 
+            width: 100%; 
+            max-width: 800px; 
+            margin-top: 10px; 
+        }
+        .upgrade-card { 
+            background: var(--card); 
+            border: 2px solid var(--primary); 
+            border-radius: 10px; 
+            padding: 15px; 
+            text-align: left; 
+        }
+        .upgrade-card h4 { margin: 0 0 5px 0; color: var(--primary); }
         .upgrade-card p { margin: 0 0 10px 0; font-size: 0.85rem; color: #94a3b8; }
-        
-        .btn { background: var(--primary); color: #000; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 0.9rem; }
+        .btn { 
+            background: var(--primary); 
+            color: #000; 
+            border: none; 
+            padding: 10px; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            width: 100%; 
+        }
         .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
-
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
     </style>
 </head>
@@ -39,118 +105,153 @@
     </header>
 
     <h2>✨ Neon Coin Clicker</h2>
-    <p>Lifetime Earnings: <strong id="lifetime-count" style="color: #00f3ff;">0</strong></p>
 
-    <div class="clicker-container" id="clicker-box">
-        <button class="coin-btn" id="coin-btn" onclick="clickCoin(event)">🪙</button>
+    <div class="stat-banner">
+        <div>Per Click: <strong id="per-click-display" style="color:var(--primary);">1</strong></div>
+        <div>Multiplier: <strong id="multiplier-display" style="color:var(--accent);">1x</strong></div>
+        <div>Passive: <strong id="passive-display" style="color:#facc15;">0/s</strong></div>
+    </div>
+
+    <div class="clicker-container">
+        <button class="coin-btn" id="coin-btn" onclick="clickCoin()">🪙</button>
     </div>
 
     <h3>⚡ Upgrades</h3>
     <div class="upgrades">
         <div class="upgrade-card">
-            <h4>Click Power (+1)</h4>
-            <p>Earn +1 extra coin per click.</p>
-            <button class="btn" id="btn-click-power" onclick="buyClickPower()">Buy (Cost: <span id="cost-click-power">10</span>)</button>
+            <h4>Click Power (+1 Base)</h4>
+            <p>Increases base tap yield.</p>
+            <button class="btn" id="btn-power" onclick="buyPower()">Buy (Cost: <span id="cost-power">8</span>)</button>
         </div>
         <div class="upgrade-card">
-            <h4>Auto-Miner (+1/sec)</h4>
-            <p>Automatically generates coins every second.</p>
-            <button class="btn" id="btn-auto-clicker" onclick="buyAutoClicker()">Buy (Cost: <span id="cost-auto-clicker">25</span>)</button>
+            <h4>Auto-Miner (+1/s Base)</h4>
+            <p>Generates passive income.</p>
+            <button class="btn" id="btn-auto" onclick="buyAuto()">Buy (Cost: <span id="cost-auto">18</span>)</button>
+        </div>
+        <div class="upgrade-card">
+            <h4>2x Multiplier</h4>
+            <p>Doubles total per-click & passive output.</p>
+            <button class="btn" id="btn-mult" onclick="buyMultiplier()">Buy (Cost: <span id="cost-mult">100</span>)</button>
+        </div>
+        <div class="upgrade-card" style="border-color: #facc15;">
+            <h4 style="color: #facc15;">👑 ULTRA: Custom Icon</h4>
+            <p>Set a custom emoji face for your clicker!</p>
+            <button class="btn" id="btn-ultra" style="background:#facc15; color:#000;" onclick="buyUltra()">Unlock (Cost: 50,000)</button>
         </div>
     </div>
 
     <script>
-        function getCoins() {
-            return parseInt(localStorage.getItem('arcade_coins')) || 0;
+        // Load Theme from Global Storage
+        function applyGlobalTheme() {
+            const savedTheme = localStorage.getItem('arcade_theme') || 'neon';
+            const themes = {
+                neon: { primary: '#00f3ff', accent: '#ff007f', bg: '#0f172a', card: '#1e293b' },
+                cyber: { primary: '#00ff66', accent: '#ff9900', bg: '#051a0e', card: '#0b2e1a' },
+                sunset: { primary: '#facc15', accent: '#ff007f', bg: '#2a081d', card: '#421232' },
+                purple: { primary: '#a855f7', accent: '#00f3ff', bg: '#12072b', card: '#231047' }
+            };
+            const active = themes[savedTheme] || themes.neon;
+            document.documentElement.style.setProperty('--primary', active.primary);
+            document.documentElement.style.setProperty('--accent', active.accent);
+            document.documentElement.style.setProperty('--bg', active.bg);
+            document.documentElement.style.setProperty('--card', active.card);
         }
 
-        function setCoins(val) {
-            localStorage.setItem('arcade_coins', val);
-        }
-
-        function getLifetime() {
-            return parseInt(localStorage.getItem('clicker_lifetime')) || 0;
-        }
-
-        function setLifetime(val) {
-            localStorage.setItem('clicker_lifetime', val);
-        }
-
+        // Game Variables
         let clickPower = parseInt(localStorage.getItem('clicker_power')) || 1;
         let autoRate = parseInt(localStorage.getItem('clicker_auto_rate')) || 0;
-        let costPower = parseInt(localStorage.getItem('clicker_cost_power')) || 10;
-        let costAuto = parseInt(localStorage.getItem('clicker_cost_auto')) || 25;
+        let multiplier = parseInt(localStorage.getItem('clicker_multiplier')) || 1;
+        let costPower = parseInt(localStorage.getItem('clicker_cost_power')) || 8;
+        let costAuto = parseInt(localStorage.getItem('clicker_cost_auto')) || 18;
+        let costMult = parseInt(localStorage.getItem('clicker_cost_mult')) || 100;
+        let customIcon = localStorage.getItem('clicker_custom_icon') || '🪙';
 
-        function updateClickerUI() {
-            const currentCoins = getCoins();
-            const lifetime = getLifetime();
+        function getCoins() { return parseInt(localStorage.getItem('arcade_coins')) || 0; }
+        function setCoins(val) { localStorage.setItem('arcade_coins', val); }
 
-            document.getElementById('coin-count').innerText = currentCoins.toLocaleString();
-            document.getElementById('lifetime-count').innerText = lifetime.toLocaleString();
-            
-            document.getElementById('cost-click-power').innerText = costPower;
-            document.getElementById('cost-auto-clicker').innerText = costAuto;
+        function updateUI() {
+            applyGlobalTheme();
+            const coins = getCoins();
+            const effectiveClick = clickPower * multiplier;
+            const effectiveAuto = autoRate * multiplier;
 
-            document.getElementById('btn-click-power').disabled = currentCoins < costPower;
-            document.getElementById('btn-auto-clicker').disabled = currentCoins < costAuto;
+            document.getElementById('coin-count').innerText = coins.toLocaleString();
+            document.getElementById('per-click-display').innerText = '+' + effectiveClick.toLocaleString();
+            document.getElementById('multiplier-display').innerText = multiplier + 'x';
+            document.getElementById('passive-display').innerText = '+' + effectiveAuto.toLocaleString() + '/s';
+            document.getElementById('coin-btn').innerText = customIcon;
+
+            document.getElementById('cost-power').innerText = costPower.toLocaleString();
+            document.getElementById('cost-auto').innerText = costAuto.toLocaleString();
+            document.getElementById('cost-mult').innerText = costMult.toLocaleString();
+
+            document.getElementById('btn-power').disabled = coins < costPower;
+            document.getElementById('btn-auto').disabled = coins < costAuto;
+            document.getElementById('btn-mult').disabled = coins < costMult;
+            document.getElementById('btn-ultra').disabled = coins < 50000;
         }
 
-        function clickCoin(event) {
-            let coins = getCoins() + clickPower;
-            let lifetime = getLifetime() + clickPower;
-
-            setCoins(coins);
-            setLifetime(lifetime);
-            
-            // Spawn Floating Text Effect
-            const float = document.createElement('div');
-            float.className = 'floating-text';
-            float.innerText = `+${clickPower}`;
-            
-            const rect = document.getElementById('clicker-box').getBoundingClientRect();
-            float.style.left = `${event.clientX - rect.left - 15}px`;
-            float.style.top = `${event.clientY - rect.top - 30}px`;
-            
-            document.getElementById('clicker-box').appendChild(float);
-            setTimeout(() => float.remove(), 800);
-
-            updateClickerUI();
+        function clickCoin() {
+            const gained = clickPower * multiplier;
+            setCoins(getCoins() + gained);
+            updateUI();
         }
 
-        function buyClickPower() {
-            let coins = getCoins();
-            if (coins >= costPower) {
-                setCoins(coins - costPower);
+        function buyPower() {
+            if (getCoins() >= costPower) {
+                setCoins(getCoins() - costPower);
                 clickPower += 1;
-                costPower = Math.round(costPower * 1.6);
+                costPower = Math.round(costPower * 1.4);
                 localStorage.setItem('clicker_power', clickPower);
                 localStorage.setItem('clicker_cost_power', costPower);
-                updateClickerUI();
+                updateUI();
             }
         }
 
-        function buyAutoClicker() {
-            let coins = getCoins();
-            if (coins >= costAuto) {
-                setCoins(coins - costAuto);
+        function buyAuto() {
+            if (getCoins() >= costAuto) {
+                setCoins(getCoins() - costAuto);
                 autoRate += 1;
-                costAuto = Math.round(costAuto * 1.8);
+                costAuto = Math.round(costAuto * 1.5);
                 localStorage.setItem('clicker_auto_rate', autoRate);
                 localStorage.setItem('clicker_cost_auto', costAuto);
-                updateClickerUI();
+                updateUI();
             }
         }
 
-        // Auto-Clicker Loop
+        function buyMultiplier() {
+            if (getCoins() >= costMult) {
+                setCoins(getCoins() - costMult);
+                multiplier *= 2; // Exact 2x doubling calculation
+                costMult = Math.round(costMult * 3);
+                localStorage.setItem('clicker_multiplier', multiplier);
+                localStorage.setItem('clicker_cost_mult', costMult);
+                updateUI();
+            }
+        }
+
+        function buyUltra() {
+            if (getCoins() >= 50000) {
+                setCoins(getCoins() - 50000);
+                const emoji = prompt("Enter any Emoji or character to set as your clicker face:", "🔥");
+                if (emoji && emoji.trim() !== "") {
+                    customIcon = emoji.trim();
+                    localStorage.setItem('clicker_custom_icon', customIcon);
+                }
+                updateUI();
+            }
+        }
+
+        // Passive Auto-Miner Loop
         setInterval(() => {
             if (autoRate > 0) {
-                setCoins(getCoins() + autoRate);
-                setLifetime(getLifetime() + autoRate);
-                updateClickerUI();
+                const passiveGained = autoRate * multiplier;
+                setCoins(getCoins() + passiveGained);
+                updateUI();
             }
         }, 1000);
 
-        document.addEventListener("DOMContentLoaded", updateClickerUI);
+        document.addEventListener("DOMContentLoaded", updateUI);
     </script>
 </body>
 </html>
