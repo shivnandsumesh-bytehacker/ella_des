@@ -49,9 +49,12 @@
         const paddleWidth = 12;
         const paddleHeight = 80;
 
-        const player = { x: 10, y: canvas.height/2 - 40, dy: 0, speed: 6 };
-        const ai = { x: canvas.width - 22, y: canvas.height/2 - 40, speed: 4.5, targetY: canvas.height/2 - 40 };
-        const ball = { x: canvas.width/2, y: canvas.height/2, radius: 7, speed: 5, dx: 5, dy: 3 };
+        const player = { x: 10, y: canvas.height / 2 - 40, speed: 7 };
+        const ai = { x: canvas.width - 22, y: canvas.height / 2 - 40, speed: 4.8, targetY: canvas.height / 2 - 40 };
+        const ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 7, speed: 5, dx: 5, dy: 3 };
+
+        // Key state tracker for smooth movement
+        const keys = { up: false, down: false };
 
         function updateWallet() {
             const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
@@ -64,30 +67,33 @@
             updateWallet();
         }
 
-        // Block Page Scrolling and Support WASD + Arrow Keys
-        window.addEventListener("keydown", e => {
-            if (["ArrowUp", "ArrowDown", "KeyW", "KeyS", "w", "s", "W", "S"].includes(e.key) || e.code === "ArrowUp" || e.code === "ArrowDown") {
-                e.preventDefault();
+        // Universal Control & Anti-Scroll Listener
+        window.addEventListener("keydown", function(e) {
+            const isUpKey = e.key === "ArrowUp" || e.key === "w" || e.key === "W" || e.code === "KeyW";
+            const isDownKey = e.key === "ArrowDown" || e.key === "s" || e.key === "S" || e.code === "KeyS";
+
+            if (isUpKey || isDownKey || e.key === " " || e.code === "Space") {
+                e.preventDefault(); // Stop page scrolling
             }
 
-            if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
-                player.dy = -player.speed;
-            }
-            if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
-                player.dy = player.speed;
-            }
+            if (isUpKey) keys.up = true;
+            if (isDownKey) keys.down = true;
         }, { passive: false });
 
-        window.addEventListener("keyup", e => {
-            if (["ArrowUp", "ArrowDown", "w", "W", "s", "S"].includes(e.key)) {
-                player.dy = 0;
-            }
+        window.addEventListener("keyup", function(e) {
+            const isUpKey = e.key === "ArrowUp" || e.key === "w" || e.key === "W" || e.code === "KeyW";
+            const isDownKey = e.key === "ArrowDown" || e.key === "s" || e.key === "S" || e.code === "KeyS";
+
+            if (isUpKey) keys.up = false;
+            if (isDownKey) keys.down = false;
         });
 
+        // Touch Control for iPad
         canvas.addEventListener("touchmove", e => {
+            e.preventDefault();
             const rect = canvas.getBoundingClientRect();
             player.y = e.touches[0].clientY - rect.top - paddleHeight / 2;
-        });
+        }, { passive: false });
 
         function resetBall() {
             ball.x = canvas.width / 2;
@@ -115,21 +121,29 @@
         function update() {
             if (!gameActive) return;
 
-            player.y += player.dy;
+            // Ultra-smooth Player Movement based on active keys
+            if (keys.up) player.y -= player.speed;
+            if (keys.down) player.y += player.speed;
+
+            // Bounds Clamping
             if (player.y < 0) player.y = 0;
             if (player.y + paddleHeight > canvas.height) player.y = canvas.height - paddleHeight;
 
+            // AI Movement
             predictTarget();
             if (ai.y < ai.targetY) ai.y += Math.min(ai.speed, ai.targetY - ai.y);
             if (ai.y > ai.targetY) ai.y -= Math.min(ai.speed, ai.y - ai.targetY);
 
+            // Ball Movement
             ball.x += ball.dx;
             ball.y += ball.dy;
 
+            // Wall Collisions
             if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
                 ball.dy = -ball.dy;
             }
 
+            // Paddle Collisions
             let activePaddle = (ball.x < canvas.width / 2) ? player : ai;
             if (checkCollision(ball, activePaddle)) {
                 let collidePoint = (ball.y - (activePaddle.y + paddleHeight / 2)) / (paddleHeight / 2);
@@ -141,6 +155,7 @@
                 ball.dy = ball.speed * Math.sin(angleRad);
             }
 
+            // Scoring Checks
             if (ball.x - ball.radius < 0) {
                 aiScore++;
                 document.getElementById("ai-score").innerText = aiScore;
@@ -186,15 +201,18 @@
             ctx.lineTo(canvas.width / 2, canvas.height);
             ctx.stroke();
 
+            // Player Paddle (Neon Blue)
             ctx.fillStyle = "#00f3ff";
             ctx.shadowBlur = 15;
             ctx.shadowColor = "#00f3ff";
             ctx.fillRect(player.x, player.y, paddleWidth, paddleHeight);
 
+            // AI Paddle (Neon Pink)
             ctx.fillStyle = "#ff007f";
             ctx.shadowColor = "#ff007f";
             ctx.fillRect(ai.x, ai.y, paddleWidth, paddleHeight);
 
+            // Ball (Yellow)
             ctx.fillStyle = "#facc15";
             ctx.shadowColor = "#facc15";
             ctx.beginPath();
