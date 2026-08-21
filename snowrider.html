@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Snow Rider Legends</title>
+    <script src="arcade.js"></script>
+    <style>
+        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        
+        header { width: 100%; max-width: 750px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 12px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 15px; box-sizing: border-box; }
+        .stats { font-size: 1.1rem; font-weight: bold; color: #facc15; }
+        .status { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: var(--primary); min-height: 28px; }
+        
+        canvas { background: #000; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); max-width: 100%; }
+        
+        .hud-panel { display: flex; gap: 10px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
+        .btn { background: var(--primary); color: #000; border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+        
+        a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="nav">← Hub</a>
+        <div>Distance: <span id="dist-count" style="color:var(--primary)">0</span>m</div>
+        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
+    </header>
+
+    <div class="status" id="status">Dodge Trees & Collect Gifts! (A/D or Left/Right)</div>
+
+    <canvas id="snowCanvas" width="700" height="400"></canvas>
+
+    <div class="hud-panel">
+        <button class="btn" onclick="resetGame()">Restart Ride</button>
+        <button class="btn" id="buy-racer-btn" onclick="buySled('Racer', 75)">Buy Speed Racer (75 Coins)</button>
+        <button class="btn" id="buy-sleigh-btn" onclick="buySled('Sleigh', 200)">Buy Santa Sleigh (200 Coins)</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("snowCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let gameActive = true;
+        let distance = 0;
+        let playerX = 350;
+        const playerY = 320;
+        let playerSpeed = 6;
+
+        // Sled Shop & State
+        let ownedSleds = JSON.parse(localStorage.getItem('sled_owned')) || ['Wooden Sled'];
+        let activeSled = localStorage.getItem('sled_active') || 'Wooden Sled';
+
+        let obstacles = [];
+        let gifts = [];
+
+        const keys = { left: false, right: false };
+
+        function updateWallet() {
+            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            document.getElementById('coin-count').innerText = coins.toLocaleString();
+            updateShopButtons();
+        }
+
+        function addCoins(amount) {
+            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            localStorage.setItem('arcade_coins', coins + amount);
+            updateWallet();
+        }
+
+        function updateShopButtons() {
+            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            
+            const racerBtn = document.getElementById('buy-racer-btn');
+            if (ownedSleds.includes('Racer')) {
+                racerBtn.innerText = activeSled === 'Racer' ? 'Equipped: Speed Racer' : 'Equip Speed Racer';
+                racerBtn.disabled = activeSled === 'Racer';
+            } else {
+                racerBtn.disabled = coins < 75;
+            }
+
+            const sleighBtn = document.getElementById('buy-sleigh-btn');
+            if (ownedSleds.includes('Sleigh')) {
+                sleighBtn.innerText = activeSled === 'Sleigh' ? 'Equipped: Santa Sleigh' : 'Equip Santa Sleigh';
+                sleighBtn.disabled = activeSled === 'Sleigh';
+            } else {
+                sleighBtn.disabled = coins < 200;
+            }
+        }
+
+        function buySled(type, cost) {
+            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            if (!ownedSleds.includes(type) && coins >= cost) {
+                addCoins(-cost);
+                ownedSleds.push(type);
+                localStorage.setItem('sled_owned', JSON.stringify(ownedSleds));
+            }
+            if (ownedSleds.includes(type)) {
+                activeSled = type;
+                localStorage.setItem('sled_active', type);
+            }
+            updateShopButtons();
+        }
+
+        // Key Listeners + Anti Scroll
+        window.addEventListener("keydown", e => {
+            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD","Space"].includes(e.code) || ["w","a","s","d","W","A","S","D"," "].includes(e.key)) {
+                e.preventDefault();
+            }
+
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = true;
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = true;
+        }, { passive: false });
+
+        window.addEventListener("keyup", e => {
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = false;
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = false;
+        });
+
+        function spawnEntities() {
+            obstacles = [];
+            gifts = [];
+            for (let i = 0; i < 15; i++) {
+                obstacles.push({ x: 100 + Math.random() * 500, z: 200 + i * 180, hit: false });
+                if (i % 2 === 0) {
+                    gifts.push({ x: 100 + Math.random() * 500, z: 300 + i * 180, collected: false });
+                }
+            }
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            // Player Steering
+            if (keys.left) playerX -= playerSpeed;
+            if (keys.right) playerX += playerSpeed;
+
+            if (playerX < 120) playerX = 120;
+            if (playerX > 580) playerX = 580;
+
+            distance += 1;
+            document.getElementById("dist-count").innerText = Math.floor(distance / 5);
+
+            // Obstacles / Trees
+            obstacles.forEach(obs => {
+                obs.z -= 6;
+                if (obs.z < -50) {
+                    obs.z = 2500;
+                    obs.x = 100 + Math.random() * 500;
+                    obs.hit = false;
+                }
+
+                // Collision
+                if (!obs.hit && obs.z < 40 && obs.z > -20 && Math.abs(obs.x - playerX) < 35) {
+                    obs.hit = true;
+                    gameActive = false;
+                    document.getElementById("status").innerText = "💥 CRASHED! Hit a Snow Tree!";
+                }
+            });
+
+            // Gifts / Coins
+            gifts.forEach(gift => {
+                gift.z -= 6;
+                if (gift.z < -50) {
+                    gift.z = 2500;
+                    gift.x = 100 + Math.random() * 500;
+                    gift.collected = false;
+                }
+
+                if (!gift.collected && gift.z < 40 && gift.z > -20 && Math.abs(gift.x - playerX) < 40) {
+                    gift.collected = true;
+                    addCoins(2);
+                }
+            });
+        }
+
+        function render() {
+            // Snowy Sky & Hill
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(0, 0, canvas.width, 140);
+
+            ctx.fillStyle = "#f8fafc";
+            ctx.fillRect(0, 140, canvas.width, 260);
+
+            // Perspective Slope Lines
+            ctx.strokeStyle = "#cbd5e1";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(100, 400); ctx.lineTo(300, 140);
+            ctx.moveTo(600, 400); ctx.lineTo(400, 140);
+            ctx.stroke();
+
+            // Render Gifts
+            gifts.forEach(gift => {
+                if (!gift.collected && gift.z > 0) {
+                    let scale = 220 / (220 + gift.z);
+                    let screenX = 350 + (gift.x - 350) * scale;
+                    let screenY = 140 + 220 * scale;
+
+                    ctx.fillStyle = "#ff007f";
+                    ctx.shadowBlur = 10; ctx.shadowColor = "#ff007f";
+                    ctx.fillRect(screenX - 10 * scale, screenY - 10 * scale, 20 * scale, 20 * scale);
+                    ctx.shadowBlur = 0;
+                }
+            });
+
+            // Render Tree Obstacles
+            obstacles.forEach(obs => {
+                if (obs.z > 0) {
+                    let scale = 220 / (220 + obs.z);
+                    let screenX = 350 + (obs.x - 350) * scale;
+                    let screenY = 140 + 220 * scale;
+
+                    ctx.fillStyle = "#15803d";
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, screenY - 30 * scale);
+                    ctx.lineTo(screenX - 18 * scale, screenY);
+                    ctx.lineTo(screenX + 18 * scale, screenY);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            });
+
+            // Render Player Sled
+            let sledColor = activeSled === 'Sleigh' ? '#ff007f' : (activeSled === 'Racer' ? '#00f3ff' : '#facc15');
+            ctx.fillStyle = sledColor;
+            ctx.shadowBlur = 15; ctx.shadowColor = sledColor;
+
+            ctx.beginPath();
+            ctx.roundRect(playerX - 25, playerY, 50, 30, 8);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function gameLoop() {
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resetGame() {
+            gameActive = true;
+            distance = 0;
+            playerX = 350;
+            document.getElementById("status").innerText = "Dodge Trees & Collect Gifts! (A/D or Left/Right)";
+            spawnEntities();
+            updateWallet();
+        }
+
+        updateWallet();
+        spawnEntities();
+        gameLoop();
+    </script>
+</body>
+</html>
