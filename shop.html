@@ -3,129 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arcade Shop</title>
-    <script src="arcade.js"></script>
+    <title>Arcade Theme Shop</title>
     <style>
         :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
         
-        /* Themes */
-        body.theme-cyberpunk { --bg: #120024; --primary: #00ffcc; --card: #240046; }
-        body.theme-matrix { --bg: #001100; --primary: #00ff00; --card: #002200; }
-        body.theme-synthwave { --bg: #1a0933; --primary: #ff7700; --card: #2e1254; }
-
-        header { max-width: 900px; margin: 0 auto 30px auto; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 25px; border-radius: 12px; border: 2px solid var(--primary); }
-        .coins { font-size: 1.5rem; color: #facc15; font-weight: bold; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto 40px auto; }
-        .card { background: var(--card); border: 2px solid var(--primary); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s; }
-        .card:hover { transform: translateY(-4px); }
-        .card h3 { margin: 0 0 10px 0; color: var(--primary); }
-        .card p { font-size: 0.9rem; color: #94a3b8; margin-bottom: 20px; }
-        
-        .btn { background: var(--primary); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
-        .btn.active { background: #22c55e; color: white; }
-        
+        header { width: 100%; max-width: 850px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 12px 25px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 25px; box-sizing: border-box; }
+        .stats { font-size: 1.2rem; font-weight: bold; color: #facc15; }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.1rem; }
+        
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; width: 100%; max-width: 850px; }
+        .theme-card { background: var(--card); border: 2px solid var(--primary); border-radius: 12px; padding: 20px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        .preview-box { height: 60px; border-radius: 8px; margin: 15px 0; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid rgba(255,255,255,0.2); }
+        
+        .btn { background: var(--primary); color: #000; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="index.html" class="nav">← Back to Hub</a>
-        <div class="coins">🪙 <span id="coin-count">0</span></div>
+        <a href="index.html" class="nav">← Hub</a>
+        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
     </header>
 
-    <h1>🛒 Cyber Shop</h1>
+    <h2>🎨 Global Theme Shop</h2>
+    <p style="color:#94a3b8; margin-bottom: 20px;">Equipped themes automatically customize your entire arcade interface!</p>
 
-    <h2>Global Themes</h2>
-    <div class="grid">
-        <div class="card">
-            <h3>Cyberpunk Neon</h3>
-            <p>Deep purple backgrounds with neon turquoise borders.</p>
-            <button class="btn" onclick="buyTheme('cyberpunk', 50)">Buy (50 Coins)</button>
+    <div class="shop-grid">
+        <div class="theme-card">
+            <h3>Cyber Neon</h3>
+            <div class="preview-box" style="background:#0f172a; color:#00f3ff; border-color:#00f3ff;">Default Style</div>
+            <button class="btn" id="btn-neon" onclick="equipTheme('neon')">Equip</button>
         </div>
-        <div class="card">
-            <h3>Matrix Terminal</h3>
-            <p>Green code aesthetics for a retro hacker look.</p>
-            <button class="btn" onclick="buyTheme('matrix', 75)">Buy (75 Coins)</button>
-        </div>
-        <div class="card">
-            <h3>Synthwave Sunset</h3>
-            <p>Vibrant orange and purple retro aesthetic.</p>
-            <button class="btn" onclick="buyTheme('synthwave', 100)">Buy (100 Coins)</button>
-        </div>
-    </div>
 
-    <h2>Game Multipliers</h2>
-    <div class="grid">
-        <div class="card">
-            <h3>1.5x Coin Booster</h3>
-            <p>Permanently boosts all coin earnings by 50%.</p>
-            <button class="btn" onclick="buyMult('mult_15', 1.5, 150)">Buy (150 Coins)</button>
+        <div class="theme-card">
+            <h3>Matrix Green</h3>
+            <div class="preview-box" style="background:#051a0e; color:#00ff66; border-color:#00ff66;">Cyber Grid</div>
+            <button class="btn" id="btn-cyber" onclick="handleTheme('cyber', 100)">Buy (100 Coins)</button>
         </div>
-        <div class="card">
-            <h3>2.0x Double Coins</h3>
-            <p>Permanently doubles all coin earnings across every game.</p>
-            <button class="btn" onclick="buyMult('mult_20', 2.0, 300)">Buy (300 Coins)</button>
+
+        <div class="theme-card">
+            <h3>Sunset Gold</h3>
+            <div class="preview-box" style="background:#2a081d; color:#facc15; border-color:#facc15;">Warm Glow</div>
+            <button class="btn" id="btn-sunset" onclick="handleTheme('sunset', 250)">Buy (250 Coins)</button>
+        </div>
+
+        <div class="theme-card">
+            <h3>Purple Haze</h3>
+            <div class="preview-box" style="background:#12072b; color:#a855f7; border-color:#a855f7;">Deep Space</div>
+            <button class="btn" id="btn-purple" onclick="handleTheme('purple', 500)">Buy (500 Coins)</button>
         </div>
     </div>
 
     <script>
-        function updateShopUI() {
-            Arcade.updateUI();
+        let ownedThemes = JSON.parse(localStorage.getItem('arcade_owned_themes')) || ['neon'];
+        let activeTheme = localStorage.getItem('arcade_theme') || 'neon';
 
-            // Refresh Theme Buttons
-            const currentTheme = Arcade.getEquippedTheme();
-            ['cyberpunk', 'matrix', 'synthwave'].forEach(id => {
-                const btn = document.querySelector(`button[onclick*="'${id}'"]`);
+        function getCoins() { return parseInt(localStorage.getItem('arcade_coins')) || 0; }
+        function setCoins(val) { localStorage.setItem('arcade_coins', val); }
+
+        function applyGlobalTheme() {
+            const themes = {
+                neon: { primary: '#00f3ff', accent: '#ff007f', bg: '#0f172a', card: '#1e293b' },
+                cyber: { primary: '#00ff66', accent: '#ff9900', bg: '#051a0e', card: '#0b2e1a' },
+                sunset: { primary: '#facc15', accent: '#ff007f', bg: '#2a081d', card: '#421232' },
+                purple: { primary: '#a855f7', accent: '#00f3ff', bg: '#12072b', card: '#231047' }
+            };
+            const active = themes[activeTheme] || themes.neon;
+            document.documentElement.style.setProperty('--primary', active.primary);
+            document.documentElement.style.setProperty('--accent', active.accent);
+            document.documentElement.style.setProperty('--bg', active.bg);
+            document.documentElement.style.setProperty('--card', active.card);
+        }
+
+        function updateUI() {
+            applyGlobalTheme();
+            const coins = getCoins();
+            document.getElementById('coin-count').innerText = coins.toLocaleString();
+
+            const themeList = ['neon', 'cyber', 'sunset', 'purple'];
+            themeList.forEach(t => {
+                const btn = document.getElementById(`btn-${t}`);
                 if (!btn) return;
-                if (currentTheme === id) {
-                    btn.innerText = "Equipped";
-                    btn.className = "btn active";
-                } else if (Arcade.hasItem(id)) {
-                    btn.innerText = "Equip";
-                    btn.className = "btn";
+
+                if (activeTheme === t) {
+                    btn.innerText = 'Equipped';
+                    btn.disabled = true;
+                } else if (ownedThemes.includes(t)) {
+                    btn.innerText = 'Equip';
+                    btn.disabled = false;
+                } else {
+                    const costs = { cyber: 100, sunset: 250, purple: 500 };
+                    btn.innerText = `Buy (${costs[t]} Coins)`;
+                    btn.disabled = coins < costs[t];
                 }
             });
+        }
 
-            // Refresh Multiplier Buttons
-            const currentMult = Arcade.getMultiplier();
-            if (Arcade.hasItem('mult_20')) {
-                disableMultBtn('mult_20', "2.0x Active");
-                disableMultBtn('mult_15', "Owned");
-            } else if (Arcade.hasItem('mult_15')) {
-                disableMultBtn('mult_15', "1.5x Active");
+        function handleTheme(themeName, cost) {
+            if (ownedThemes.includes(themeName)) {
+                equipTheme(themeName);
+            } else if (getCoins() >= cost) {
+                setCoins(getCoins() - cost);
+                ownedThemes.push(themeName);
+                localStorage.setItem('arcade_owned_themes', JSON.stringify(ownedThemes));
+                equipTheme(themeName);
             }
         }
 
-        function disableMultBtn(id, text) {
-            const btn = document.querySelector(`button[onclick*="'${id}'"]`);
-            if (btn) {
-                btn.innerText = text;
-                btn.disabled = true;
-            }
+        function equipTheme(themeName) {
+            activeTheme = themeName;
+            localStorage.setItem('arcade_theme', activeTheme);
+            updateUI();
         }
 
-        function buyTheme(id, price) {
-            if (!Arcade.hasItem(id)) {
-                if (!Arcade.buyItem(id, price)) return alert("Not enough coins!");
-            }
-            Arcade.setEquippedTheme(Arcade.getEquippedTheme() === id ? 'default' : id);
-            updateShopUI();
-        }
-
-        function buyMult(id, val, price) {
-            if (Arcade.buyItem(id, price)) {
-                Arcade.setMultiplier(val);
-                updateShopUI();
-            } else {
-                alert("Not enough coins!");
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", updateShopUI);
+        document.addEventListener("DOMContentLoaded", updateUI);
     </script>
 </body>
 </html>
