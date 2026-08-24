@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>99 Nights in the Forest - Definitive Roguelite 3D</title>
+    <title>99 Nights in the Forest - Complete Edition</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -130,7 +130,7 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 8px;
+            gap: 6px;
             pointer-events: auto;
             z-index: 10;
         }
@@ -138,10 +138,10 @@
             background: var(--panel-bg);
             border: 2px solid #334155;
             border-radius: 8px;
-            padding: 6px 12px;
-            min-width: 52px;
+            padding: 6px 10px;
+            min-width: 50px;
             text-align: center;
-            font-size: 0.76rem;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.15s;
         }
@@ -150,7 +150,7 @@
             transform: translateY(-3px);
             box-shadow: 0 0 12px var(--primary);
         }
-        .slot-val { font-weight: bold; color: var(--gold); font-size: 0.95rem; }
+        .slot-val { font-weight: bold; color: var(--gold); font-size: 0.92rem; }
         
         #action-prompt {
             position: absolute;
@@ -232,8 +232,8 @@
 <body>
     <header>
         <a href="index.html" class="nav">← Hub</a>
-        <div>🌲 <strong>99 NIGHTS IN THE FOREST</strong> | Night: <span id="night-count" style="color:var(--accent); font-size:1.2rem; font-weight:bold;">0</span> / 99</div>
-        <div class="stats">🪙 Gold: <span id="coin-count">0</span></div>
+        <div>🌲 <strong>99 NIGHTS IN THE FOREST</strong> | Day/Night: <span id="night-count" style="color:var(--accent); font-size:1.2rem; font-weight:bold;">1</span> / 99</div>
+        <div class="stats">🪙 Gold: <span id="coin-count">0</span> | 💎 Diamonds: <span id="diamond-count">0</span></div>
     </header>
 
     <div id="game-wrapper">
@@ -243,9 +243,9 @@
                 <h2 style="color:var(--primary); margin-top:0;">CHOOSE SURVIVOR CLASS</h2>
                 <p style="color:#94a3b8; font-size:0.9rem;">Select your loadout before stepping into the wilderness:</p>
                 <div class="btn-grid">
-                    <button class="btn" onclick="selectClass('Lumberjack')">🪓 Lumberjack<br><small>2x Wood Harvest</small></button>
+                    <button class="btn" onclick="selectClass('Lumberjack')">🪓 Lumberjack<br><small>2x Wood Harvest[cite: 1]</small></button>
                     <button class="btn" onclick="selectClass('Hunter')">🏹 Hunter<br><small>+50% Damage & Meats</small></button>
-                    <button class="btn" onclick="selectClass('Scout')">🔦 Scout<br><small>+25% Speed & Flashlight</small></button>
+                    <button class="btn" onclick="selectClass('Scout')">🔦 Scout<br><small>+25% Speed & Night Light</small></button>
                     <button class="btn" onclick="selectClass('Scientist')">🧪 Scientist<br><small>Bonus Scrap & Biofuel</small></button>
                 </div>
             </div>
@@ -255,20 +255,22 @@
         <div id="craft-modal" class="modal" style="display: none;">
             <div class="modal-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin:0; color:var(--primary);">🛠️ CAMP CRAFTING BENCH</h3>
+                    <h3 style="margin:0; color:var(--primary);">🛠️ CAMP CRAFTING BENCH (Tier <span id="bench-tier">1</span>/3)</h3>
                     <button class="btn" style="padding:4px 10px;" onclick="toggleCrafting(false)">✕ Close</button>
                 </div>
                 <div class="btn-grid" style="margin-top:15px;">
-                    <button class="btn" id="btn-craft-spear" onclick="craftItem('spear')">🗡️ Spear<br><small>3 Wood, 2 Scrap</small></button>
-                    <button class="btn" id="btn-craft-bed" onclick="craftItem('bed')">🛏️ Bed (Skip Night)<br><small>8 Wood, 4 Scrap</small></button>
-                    <button class="btn" id="btn-craft-crockpot" onclick="craftItem('crockpot')">🍲 Crockpot<br><small>6 Scrap, 4 Wood</small></button>
-                    <button class="btn" id="btn-craft-biofuel" onclick="craftItem('biofuel')">🧪 Biofuel (Fuel+50%)<br><small>4 Berries, 2 Scrap</small></button>
-                    <button class="btn" id="btn-craft-sentry" onclick="craftItem('sentry')">🛡️ Auto Turret<br><small>10 Scrap, 6 Wood</small></button>
+                    <button class="btn" id="btn-craft-map" onclick="craftItem('map')">🗺️ Map Table<br><small>3 Wood[cite: 1]</small></button>
+                    <button class="btn" id="btn-craft-bed" onclick="craftItem('bed')">🛏️ Bed (+1 Multiplier)<br><small>8 Wood, 4 Scrap (Max 4)[cite: 1]</small></button>
+                    <button class="btn" id="btn-craft-crockpot" onclick="craftItem('crockpot')">🍲 Crockpot<br><small>6 Scrap, 4 Wood[cite: 1]</small></button>
+                    <button class="btn" id="btn-craft-plot" onclick="craftItem('plot')">🥕 Carrot Farm Plot<br><small>4 Wood, 2 Carrots[cite: 1]</small></button>
+                    <button class="btn" id="btn-craft-rod" onclick="craftItem('rod')">⚡ Lightning Rod<br><small>6 Scrap, 1 Gem[cite: 1]</small></button>
+                    <button class="btn" id="btn-craft-spear" onclick="craftItem('spear')">🗡️ Spear<br><small>3 Wood, 2 Scrap[cite: 1]</small></button>
+                    <button class="btn" id="btn-craft-sentry" onclick="craftItem('sentry')">🛡️ Auto Turret<br><small>10 Scrap, 6 Wood, 1 Gem</small></button>
                 </div>
             </div>
         </div>
 
-        <!-- Docked Top HUD -->
+        <!-- Docked Top-Left HUD -->
         <div class="hud-top">
             <div class="hud-panel">
                 <div>❤️ HP <div class="hud-bar"><div id="hp-fill" class="hud-fill" style="background:#ef4444;"></div></div></div>
@@ -277,16 +279,19 @@
                 <div style="margin-top:6px; display:flex; align-items:center; gap:8px;">
                     <div class="sundial-disc"><div class="sundial-hand" id="sundial-hand"></div></div>
                     <div>
-                        <div id="cycle-title" style="font-weight:bold; color:var(--gold);">☀️ DAY PHASE</div>
+                        <div id="cycle-title" style="font-weight:bold; color:var(--gold);">☀️ DAY PHASE[cite: 1]</div>
                         <div id="cycle-timer" style="color:#94a3b8; font-size:0.75rem;">Night in: 3m 00s</div>
                     </div>
                 </div>
             </div>
 
+            <!-- Docked Top-Right HUD -->
             <div class="hud-panel" style="display: flex; flex-direction: column; align-items: flex-end;">
-                <div>🔥 Fuel: <span id="fuel-text" style="color:#fb923c; font-weight:bold;">100%</span> | 👶 Kids: <span id="kids-count" style="color:#38bdf8; font-weight:bold;">0/4</span></div>
-                <div>🔑 Keys: <span id="keys-count" style="color:var(--gold); font-weight:bold;">0</span> | 💎 Cultist Gems: <span id="gems-count" style="color:#ec4899; font-weight:bold;">0</span></div>
-                <div style="font-size:0.75rem; color:#38bdf8; margin-top:2px;">🔥 Tier <span id="fire-tier">1</span> (Light: <span id="safe-radius-text">18m</span>)</div>
+                <div>🔥 Fuel: <span id="fuel-text" style="color:#fb923c; font-weight:bold;">100%</span> | 👶 Kids: <span id="kids-count" style="color:#38bdf8; font-weight:bold;">0/4</span>[cite: 1]</div>
+                <div>🔑 Keys: <span id="keys-count" style="color:var(--gold); font-weight:bold;">0</span> | 💎 Cultist Gems: <span id="gems-count" style="color:#ec4899; font-weight:bold;">0</span>[cite: 1]</div>
+                <div style="font-size:0.75rem; color:#38bdf8; margin-top:2px;">🔥 Campfire Tier <span id="fire-tier">1</span>/5 (Radius: <span id="safe-radius-text">24m</span>)[cite: 1]</div>
+                <div style="font-size:0.75rem; color:var(--accent); margin-top:1px;">⏩ Day Multiplier: <span id="multiplier-text">1x</span>[cite: 1]</div>
+                <div style="font-size:0.75rem; color:#a3e635; margin-top:1px;" id="kid-tracker-text">🎯 Next Objective: Dino Kid Cave (West)[cite: 1]</div>
                 <canvas id="minimap-canvas" width="85" height="85"></canvas>
             </div>
         </div>
@@ -296,16 +301,19 @@
 
         <!-- Interactive Hotbar -->
         <div class="hud-bottom">
-            <div class="slot" onclick="feedFireFromHotbar()"><div class="slot-val" id="val-wood">0</div>🪵 Wood</div>
-            <div class="slot" onclick="grindScrapFromHotbar()"><div class="slot-val" id="val-scrap">0</div>⚙️ Scrap</div>
-            <div class="slot" onclick="eatFoodType('berry')"><div class="slot-val" id="val-berry">2</div>🫐 Berry</div>
-            <div class="slot" onclick="eatFoodType('meat')"><div class="slot-val" id="val-meat">1</div>🥩 Meat</div>
-            <div class="slot" onclick="tradePeltFromHotbar()"><div class="slot-val" id="val-pelt">0</div>🐺 Pelt</div>
-            <div class="slot" onclick="eatFoodType('stew')"><div class="slot-val" id="val-stew">0</div>🍲 Stew</div>
-            <div class="slot" onclick="toggleFlashlight()"><div class="slot-val" id="val-light">OFF</div>🔦 Light</div>
+            <div class="slot" onclick="feedFireFromHotbar()"><div class="slot-val" id="val-wood">0</div>🪵 Logs</div>
+            <div class="slot" onclick="plantSaplingFromHotbar()"><div class="slot-val" id="val-sapling">0</div>🌱 Sapling[cite: 1]</div>
+            <div class="slot" onclick="grindScrapFromHotbar()"><div class="slot-val" id="val-scrap">0</div>⚙️ Scrap[cite: 1]</div>
+            <div class="slot" onclick="eatFoodType('raw_meat')"><div class="slot-val" id="val-raw-meat">0</div>🥩 Raw Meat</div>
+            <div class="slot" onclick="eatFoodType('cooked_meat')"><div class="slot-val" id="val-cooked-meat">0</div>🍖 Cooked[cite: 1]</div>
+            <div class="slot" onclick="eatFoodType('carrot')"><div class="slot-val" id="val-carrot">0</div>🥕 Carrot[cite: 1]</div>
+            <div class="slot" onclick="eatFoodType('berry')"><div class="slot-val" id="val-berry">2</div>🫐 Berry[cite: 1]</div>
+            <div class="slot" onclick="eatFoodType('stew')"><div class="slot-val" id="val-stew">0</div>🍲 Stew[cite: 1]</div>
+            <div class="slot" onclick="tradePeltFromHotbar()"><div class="slot-val" id="val-pelt">0</div>🐺 Pelt[cite: 1]</div>
+            <div class="slot" onclick="toggleFlashlight()"><div class="slot-val" id="val-light">OFF</div>🔦 Flashlight[cite: 1]</div>
         </div>
     </div>
-    <div class="controls-info"><strong>WASD:</strong> Move | <strong>Shift:</strong> Sprint | <strong>E / Space:</strong> Attack / Interact | <strong>F:</strong> Quick Eat | <strong>B:</strong> Crafting | <strong>L:</strong> Flashlight</div>
+    <div class="controls-info"><strong>WASD / Arrows:</strong> Move | <strong>Shift:</strong> Sprint[cite: 1] | <strong>E / Space:</strong> Attack / Chop / Interact[cite: 1] | <strong>F:</strong> Eat | <strong>B:</strong> Crafting[cite: 1] | <strong>L:</strong> Flashlight[cite: 1]</div>
 
     <script>
         // Web Audio Synthesizer Engine
@@ -338,28 +346,49 @@
                 const mod = ctx.createOscillator();
                 const modGain = ctx.createGain();
                 const gain = ctx.createGain();
-                mod.frequency.value = 32; modGain.gain.value = 140; mod.connect(osc.frequency);
+                mod.frequency.value = 30; modGain.gain.value = 160; mod.connect(osc.frequency);
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(160, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 1.4);
-                gain.gain.setValueAtTime(0.25, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.4);
+                osc.frequency.setValueAtTime(170, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 1.5);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
                 osc.connect(gain); gain.connect(ctx.destination);
-                mod.start(); osc.start(); mod.stop(ctx.currentTime + 1.4); osc.stop(ctx.currentTime + 1.4);
+                mod.start(); osc.start(); mod.stop(ctx.currentTime + 1.5); osc.stop(ctx.currentTime + 1.5);
             } catch(e){}
         }
 
-        // Three.js State Variables
+        function playThunder() {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(80, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 1.8);
+                gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + 1.8);
+            } catch(e){}
+        }
+
+        // Game State Variables
         let scene, camera, renderer, ambientLight, campfireLight, sunLight, moonLight, hemiLight, flashlight;
-        let playerRig, deerRig, lightBarrierRing, physicalBedMesh = null, sentryTurretMesh = null;
+        let playerRig, deerRig, mapBoundaryRing, mapTableMesh = null, sentryTurretMesh = null, lightningRodMesh = null;
+        let crockpotMesh = null;
         let gameActive = false, inCutscene = false;
 
-        let playerClass = "Lumberjack", night = 0, dayMultiplier = 1;
-        let hp = 100, hunger = 100, stamina = 100, fireFuel = 100, fireTier = 1, safeRadius = 18;
-        let wood = 0, scrap = 0, berries = 2, meat = 1, pelts = 0, stews = 0, gold = 0, caveKeys = 0, cultistGems = 0;
-        let hasSpear = false, hasBed = false, hasCrockpot = false, hasFlashlight = false, hasSentry = false;
+        let playerClass = "Lumberjack", currentDay = 1, dayMultiplier = 1;
+        let hp = 100, hunger = 100, stamina = 100, fireFuel = 100, fireTier = 1, safeRadius = 24;
+        let wood = 0, saplings = 0, scrap = 0, rawMeat = 0, cookedMeat = 0, carrots = 0, berries = 2, pelts = 0, bunnyFeet = 0, stews = 0, gold = 0, diamonds = 0, caveKeys = 0, cultistGems = 0;
+        let sackCap = 10;
+        let bedCount = 0;
+        let hasSpear = false, hasCrockpot = false, hasFlashlight = false, hasSentry = false, hasLightningRod = false, hasMapTable = false;
         let isFlashlightOn = false;
+        let deerStunTimer = 0;
 
+        // Pacing: Day 180s (3m), Dusk 25s, Night 60s (1m)[cite: 1]
         let cycleTimer = 0;
         const DAY_LEN = 180, DUSK_LEN = 25, NIGHT_LEN = 60, TOTAL_CYCLE = DAY_LEN + DUSK_LEN + NIGHT_LEN;
 
@@ -367,35 +396,33 @@
         const keys = { w: false, s: false, a: false, d: false, shift: false, e: false };
         let walkClock = 0, isAttacking = false;
 
-        let trees = [], scrapPiles = [], berryBushes = [], animals = [], missingKids = [], caves = [], droppedKeys = [], campKidsMeshes = [], chests = [], cultists = [];
+        let trees = [], plantedSaplings = [], scrapPiles = [], wildCarrots = [], wildBerries = [], farmPlots = [], animals = [], missingKids = [], caves = [], droppedKeys = [], campKidsMeshes = [], campBeds = [], chests = [], cultists = [], strongholdFloors = [];
 
         function updateWallet() {
             gold = parseInt(localStorage.getItem('arcade_coins')) || 0;
             document.getElementById('coin-count').innerText = gold.toLocaleString();
+            document.getElementById('diamond-count').innerText = diamonds;
         }
         function addCoins(amt) { gold += amt; localStorage.setItem('arcade_coins', gold); updateWallet(); }
 
         function selectClass(className) {
             getAudioContext();
             playerClass = className;
-            if (className === 'Scout') hasFlashlight = true;
-            if (className === 'Hunter') { 
-                hasSpear = true; 
-                document.getElementById('btn-craft-spear').innerText = '🗡️ Spear (SOLD OUT)'; 
-                document.getElementById('btn-craft-spear').disabled = true; 
-            }
-            if (className === 'Scientist') { meat += 3; scrap += 6; }
+            if (className === 'Lumberjack') { wood += 4; saplings += 2; }
+            if (className === 'Scout') { hasFlashlight = true; }
+            if (className === 'Hunter') { hasSpear = true; document.getElementById('btn-craft-spear').disabled = true; document.getElementById('btn-craft-spear').innerText = '🗡️ Spear (OWNED)'; }
+            if (className === 'Scientist') { rawMeat += 2; scrap += 6; berries += 4; }
             document.getElementById('class-modal').style.display = 'none';
             gameActive = true;
-            showDialogue(`🌲 Welcome, ${className}! Slay Cave Guardians to open the stairs, raid Cultist camps, and keep the fire lit!`);
+            showDialogue(`🌲 Welcome, ${className}! Chop trees for logs & saplings, upgrade the fire to expand the map, and beware of the Deer at night![cite: 1]`);
         }
 
-        // Robust Key Handlers (e.code + e.key)
+        // Key Listeners
         window.addEventListener("keydown", e => {
             const code = e.code;
             const k = e.key.toLowerCase();
-            if (["KeyW","KeyA","KeyS","KeyD","ArrowUp","ArrowLeft","ArrowDown","ArrowRight","Space","KeyE","KeyF","KeyB","KeyL","ShiftLeft","ShiftRight","Digit1","Digit2","Digit3","Digit4","Digit5","Digit6"].includes(code) ||
-                ["w","a","s","d","e","f","b","l"," ","1","2","3","4","5","6","shift"].includes(k)) {
+            if (["KeyW","KeyA","KeyS","KeyD","ArrowUp","ArrowLeft","ArrowDown","ArrowRight","Space","KeyE","KeyF","KeyB","KeyL","ShiftLeft","ShiftRight"].includes(code) ||
+                ["w","a","s","d","e","f","b","l"," ","shift"].includes(k)) {
                 e.preventDefault();
             }
             if (code === "KeyW" || code === "ArrowUp" || k === "w") keys.w = true;
@@ -407,12 +434,6 @@
             if (code === "KeyF" || k === "f") eatBestFood();
             if (code === "KeyB" || k === "b") toggleCrafting();
             if (code === "KeyL" || k === "l") toggleFlashlight();
-            if (code === "Digit1" || k === "1") feedFireFromHotbar();
-            if (code === "Digit2" || k === "2") grindScrapFromHotbar();
-            if (code === "Digit3" || k === "3") eatFoodType('berry');
-            if (code === "Digit4" || k === "4") eatFoodType('meat');
-            if (code === "Digit5" || k === "5") tradePeltFromHotbar();
-            if (code === "Digit6" || k === "6") eatFoodType('stew');
         }, { passive: false });
 
         window.addEventListener("keyup", e => {
@@ -432,13 +453,24 @@
         }
 
         function toggleFlashlight() {
-            if (!hasFlashlight) return showDialogue("🔦 No flashlight equipped! Trade wolf pelts with the Pelt Trader.");
+            if (!hasFlashlight) return showDialogue("🔦 No flashlight equipped! Search the Watchtower or trade with the Pelt Trader.[cite: 1]");
             isFlashlightOn = !isFlashlightOn;
-            flashlight.intensity = isFlashlightOn ? 4.5 : 0;
+            flashlight.intensity = isFlashlightOn ? 5.0 : 0;
             document.getElementById('val-light').innerText = isFlashlightOn ? 'ON' : 'OFF';
             playTone(800, 'sine', 0.05);
+
+            // Stun Deer if aimed at it[cite: 1]
+            if (isFlashlightOn && deerRig && deerRig.root.visible) {
+                const dist = playerRig.root.position.distanceTo(deerRig.root.position);
+                if (dist < 40) {
+                    deerStunTimer = 4.0; // 4 second stun[cite: 1]
+                    showDialogue("⚡ Flashlight stunned The Deer! Run back to the campfire![cite: 1]");
+                    playTone(900, 'sawtooth', 0.2);
+                }
+            }
         }
 
+        // Rigged Blocky Humanoid Generator
         function createArticulatedHumanoid(colors) {
             const root = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: colors.shirt, roughness: 0.6 });
@@ -463,7 +495,7 @@
             const lmR = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.3, 0.65), pantsMat); lmR.position.y = -0.55; legR.add(lmR); root.add(legR);
 
             return {
-                root, torso, armL, armR, legL, legR,
+                root, torso, head, armL, armR, legL, legR,
                 updateAnim: function(moving, time, attacking) {
                     if (attacking) {
                         this.armR.rotation.x = -Math.PI / 2 + Math.sin(time * 24) * 0.7;
@@ -480,12 +512,13 @@
             };
         }
 
-        // Accurate Voxel Wolf (Matching image_3.jpeg)
+        // Accurate Voxel Wolf (Two-Tone Grey, Dark Snout, White Fangs)
         function createAccurateWolf(x, z, isBoss=false, bossName="") {
             const root = new THREE.Group();
-            const darkGrey = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8 });
-            const lightGrey = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8 });
+            const darkGrey = new THREE.MeshStandardMaterial({ color: isBoss ? 0x1e293b : 0x475569, roughness: 0.8 });
+            const lightGrey = new THREE.MeshStandardMaterial({ color: isBoss ? 0x475569 : 0x94a3b8, roughness: 0.8 });
             const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            const eyeMat = new THREE.MeshBasicMaterial({ color: isBoss ? 0xff0000 : 0x000000 }); // Alpha red eyes[cite: 1]
             const toothMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
             const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 2.6), darkGrey);
@@ -520,7 +553,7 @@
             });
 
             [-0.35, 0.35].forEach((ey, idx) => {
-                const eye = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.12, 0.1), blackMat);
+                const eye = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.12, 0.1), eyeMat);
                 eye.position.set(ey, 0.2, 0.72);
                 eye.rotation.z = idx === 0 ? -0.2 : 0.2;
                 headGroup.add(eye);
@@ -544,7 +577,7 @@
             scene.add(root);
 
             return {
-                root, legs, type: isBoss ? 'ALPHA_WOLF' : 'WOLF', hp: isBoss ? 10 : 4, maxHp: isBoss ? 10 : 4,
+                root, legs, type: isBoss ? 'ALPHA_WOLF' : 'WOLF', hp: isBoss ? 12 : 4, maxHp: isBoss ? 12 : 4,
                 speed: isBoss ? 0.18 : 0.14, alive: true, hasKey: isBoss, keyType: bossName,
                 updateAnim: function(moving, time) {
                     if (moving) {
@@ -556,7 +589,7 @@
             };
         }
 
-        // Accurate Voxel Rabbit (Matching image_fdc270.png)
+        // Accurate Voxel Rabbit
         function createAccurateRabbit(x, z) {
             const root = new THREE.Group();
             const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 });
@@ -600,43 +633,10 @@
             };
         }
 
-        function createCultist(x, z) {
-            const cultist = createArticulatedHumanoid({ skin: 0xd4a373, shirt: 0x991b1b, pants: 0x450a0a });
-            const mask = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.9), new THREE.MeshStandardMaterial({ color: 0x7f1d1d }));
-            mask.position.y = 1.6; cultist.torso.add(mask);
-
-            cultist.root.position.set(x, 0, z);
-            scene.add(cultist.root);
-            return {
-                root: cultist.root, humanoid: cultist, type: 'CULTIST', hp: 8, maxHp: 8, speed: 0.16, alive: true,
-                updateAnim: function(moving, time) { cultist.updateAnim(moving, time, false); }
-            };
-        }
-
-        function spawnCultistCamps() {
-            const camps = [
-                { x: -140, z: -120 },
-                { x: 150, z: 130 }
-            ];
-
-            camps.forEach(cp => {
-                const altar = new THREE.Mesh(new THREE.BoxGeometry(4, 2.5, 4), new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.9 }));
-                altar.position.set(cp.x, 1.25, cp.z); scene.add(altar);
-
-                const torchLight = new THREE.PointLight(0xff0055, 3, 30);
-                torchLight.position.set(cp.x, 3.5, cp.z); scene.add(torchLight);
-
-                for (let i = 0; i < 3; i++) {
-                    const cult = createCultist(cp.x + (i - 1) * 4, cp.z + 4);
-                    cultists.push(cult);
-                    animals.push(cult);
-                }
-            });
-        }
-
+        // Realistic Quadruped Animals (Bears & Mammoths)
         function createRealisticAnimal(cfg) {
             const root = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({ color: cfg.color || cfg.gColor || 0x451a03, roughness: 0.75 });
+            const mat = new THREE.MeshStandardMaterial({ color: cfg.color || 0x451a03, roughness: 0.75 });
             const darkMat = new THREE.MeshStandardMaterial({ color: cfg.darkColor || 0x1e293b, roughness: 0.9 });
 
             const chest = new THREE.Mesh(new THREE.BoxGeometry(cfg.bw, cfg.bh, cfg.bl * 0.6), mat);
@@ -685,7 +685,7 @@
             scene.add(root);
 
             return {
-                root, legs, type: cfg.type, hp: cfg.hp || cfg.gHp || 8, maxHp: cfg.hp || cfg.gHp || 8, speed: cfg.speed || cfg.spd || 0.14, alive: true, hasKey: cfg.hasKey, keyType: cfg.keyType,
+                root, legs, type: cfg.type, hp: cfg.gHp || 12, maxHp: cfg.gHp || 12, speed: cfg.spd || 0.14, alive: true, hasKey: cfg.hasKey, keyType: cfg.keyType,
                 updateAnim: function(moving, time) {
                     if (moving) {
                         const a = Math.sin(time * 7) * 0.55;
@@ -696,7 +696,99 @@
             };
         }
 
-        // Wendigo Bipedal Deer Stalker (Exact Reference Match IMG_2078.jpeg)
+        // Cultist Enemy Generator
+        function createCultist(x, z, hasBow=false) {
+            const cultist = createArticulatedHumanoid({ skin: 0xd4a373, shirt: hasBow ? 0x7f1d1d : 0x991b1b, pants: 0x450a0a });
+            const mask = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.9), new THREE.MeshStandardMaterial({ color: 0x581c87 }));
+            mask.position.y = 1.6; cultist.torso.add(mask);
+
+            cultist.root.position.set(x, 0, z);
+            scene.add(cultist.root);
+            return {
+                root: cultist.root, humanoid: cultist, type: hasBow ? 'CULTIST_ARCHER' : 'CULTIST', hp: hasBow ? 6 : 8, maxHp: hasBow ? 6 : 8, speed: hasBow ? 0.13 : 0.16, hasBow, alive: true,
+                updateAnim: function(moving, time) { cultist.updateAnim(moving, time, false); }
+            };
+        }
+
+        function spawnCultistCamps() {
+            const camps = [
+                { x: -140, z: -120 },
+                { x: 150, z: 130 }
+            ];
+
+            camps.forEach(cp => {
+                const altar = new THREE.Mesh(new THREE.BoxGeometry(4, 2.5, 4), new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.9 }));
+                altar.position.set(cp.x, 1.25, cp.z); scene.add(altar);
+
+                const torchLight = new THREE.PointLight(0xff0055, 3, 30);
+                torchLight.position.set(cp.x, 3.5, cp.z); scene.add(torchLight);
+
+                for (let i = 0; i < 3; i++) {
+                    const cult = createCultist(cp.x + (i - 1) * 4, cp.z + 4, i === 2);
+                    cultists.push(cult);
+                    animals.push(cult);
+                }
+            });
+        }
+
+        // Stronghold (3-Floor Cultist Dungeon Fortress)
+        function buildStronghold() {
+            const shGroup = new THREE.Group();
+            const stoneMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 });
+
+            // Floor 1
+            const f1 = new THREE.Mesh(new THREE.BoxGeometry(28, 6, 28), stoneMat);
+            f1.position.set(0, 3, 0); shGroup.add(f1);
+
+            // Floor 2
+            const f2 = new THREE.Mesh(new THREE.BoxGeometry(20, 6, 20), stoneMat);
+            f2.position.set(0, 9, 0); shGroup.add(f2);
+
+            // Floor 3
+            const f3 = new THREE.Mesh(new THREE.BoxGeometry(14, 6, 14), stoneMat);
+            f3.position.set(0, 15, 0); shGroup.add(f3);
+
+            // Doorway
+            const door = new THREE.Mesh(new THREE.BoxGeometry(4.5, 5, 1), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+            door.position.set(0, 2.5, 14.1); shGroup.add(door);
+
+            shGroup.position.set(220, 0, -220);
+            scene.add(shGroup);
+
+            // Stronghold Guardians
+            for (let i = 0; i < 4; i++) {
+                const cult = createCultist(220 + (i - 1.5) * 4, -200, i % 2 === 1);
+                cultists.push(cult);
+                animals.push(cult);
+            }
+        }
+
+        // Watchtower with Guaranteed Flashlight
+        function buildWatchtower() {
+            const wtGroup = new THREE.Group();
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.8 });
+
+            for (let i = 0; i < 4; i++) {
+                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 16, 6), woodMat);
+                let xOff = (i % 2 === 0 ? 3 : -3);
+                let zOff = (i < 2 ? 3 : -3);
+                leg.position.set(xOff, 8, zOff);
+                wtGroup.add(leg);
+            }
+
+            const platform = new THREE.Mesh(new THREE.BoxGeometry(8, 0.6, 8), woodMat);
+            platform.position.set(0, 16, 0); wtGroup.add(platform);
+
+            // Flashlight Pickup Model on Top Platform
+            const lightPickup = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.25, 0.9), new THREE.MeshStandardMaterial({ color: 0x00f3ff }));
+            lightPickup.position.set(0, 16.6, 0);
+            wtGroup.add(lightPickup);
+
+            wtGroup.position.set(-60, 0, -50);
+            scene.add(wtGroup);
+        }
+
+        // Bipedal Wendigo Deer Stalker
         function buildBipedalDeer() {
             const root = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.85 });
@@ -779,12 +871,11 @@
             };
         }
 
-        // Stepped Rock Mound Cave with Authentic Underground Kids' Bedroom
+        // Stepped Rock Cave with Underground Kids' Bedroom
         function createSteppedRockCaveWithBedroom(cfg) {
             const caveGroup = new THREE.Group();
             const rockMat = new THREE.MeshStandardMaterial({ color: 0x52525b, roughness: 0.95 });
 
-            // Stepped Pyramid Structure
             const steps = [
                 { w: 14, h: 2.2, l: 14, y: 1.1 },
                 { w: 11, h: 2.2, l: 11, y: 3.3 },
@@ -906,9 +997,9 @@
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x1a331a);
-            scene.fog = new THREE.Fog(0x1a331a, 45, 240);
+            scene.fog = new THREE.Fog(0x1a331a, 45, 260);
 
-            camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1200);
+            camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1400);
             camera.position.set(0, 6, 17.5);
             camera.lookAt(0, 1.8, 8);
 
@@ -923,6 +1014,7 @@
             sunLight = new THREE.DirectionalLight(0xfffaed, 0.95); sunLight.position.set(80, 140, 80); scene.add(sunLight);
             moonLight = new THREE.DirectionalLight(0x4477ff, 0.0); moonLight.position.set(-80, 100, -80); scene.add(moonLight);
 
+            // 1000m Terrain
             const ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshStandardMaterial({ color: 0x224422, roughness: 0.85 }));
             ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
@@ -940,6 +1032,8 @@
             spawnWildWolvesAndBunnies();
             spawnLootChests();
             spawnCultistCamps();
+            buildStronghold();
+            buildWatchtower();
 
             window.addEventListener('resize', () => {
                 const w = container.clientWidth || 1150;
@@ -960,23 +1054,28 @@
             campfireLight = new THREE.PointLight(0xff7700, 3.8, 55, 1.2);
             campfireLight.position.set(0, 2, 0); scene.add(campfireLight);
 
-            const ringMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
-            lightBarrierRing = new THREE.Mesh(new THREE.RingGeometry(safeRadius - 0.4, safeRadius + 0.4, 48), ringMat);
-            lightBarrierRing.rotation.x = -Math.PI / 2; lightBarrierRing.position.y = 0.08; scene.add(lightBarrierRing);
+            // Explored Map White Boundary Wall
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
+            mapBoundaryRing = new THREE.Mesh(new THREE.RingGeometry(safeRadius - 0.5, safeRadius + 0.5, 48), ringMat);
+            mapBoundaryRing.rotation.x = -Math.PI / 2; mapBoundaryRing.position.y = 0.08; scene.add(mapBoundaryRing);
 
+            // Crafting Bench
             const bench = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.4, 2.2), new THREE.MeshStandardMaterial({ color: 0x78350f }));
             bench.position.set(-6.5, 0.7, -4); scene.add(bench);
 
+            // Scrap Shredder
             const grinder = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 2, 12), new THREE.MeshStandardMaterial({ color: 0x475569 }));
             grinder.position.set(6.5, 1, -4); scene.add(grinder);
 
+            // Pelt Trader NPC
             const trader = createArticulatedHumanoid({ skin: 0xd4a373, shirt: 0x713f12, pants: 0x3f200c });
             trader.root.position.set(-7, 0, 5);
             scene.add(trader.root);
         }
 
         function spawnPhysicalBedInCamp() {
-            if (physicalBedMesh) return;
+            if (bedCount >= 4) return;
+            bedCount++;
             const bedGroup = new THREE.Group();
             const frame = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.6, 5), new THREE.MeshStandardMaterial({ color: 0x5c3a21 }));
             frame.position.y = 0.3; bedGroup.add(frame);
@@ -985,9 +1084,11 @@
             const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.3, 1.2), new THREE.MeshStandardMaterial({ color: 0x38bdf8 }));
             pillow.position.set(0, 0.95, -1.5); bedGroup.add(pillow);
 
-            bedGroup.position.set(-4, 0, 4);
+            let xOff = -4 - (bedCount % 2) * 4;
+            let zOff = 4 + Math.floor(bedCount / 2) * 6;
+            bedGroup.position.set(xOff, 0, zOff);
             scene.add(bedGroup);
-            physicalBedMesh = bedGroup;
+            campBeds.push(bedGroup);
         }
 
         function spawnSentryTurretInCamp() {
@@ -1004,13 +1105,71 @@
             sentryTurretMesh = sentryGroup;
         }
 
+        function spawnLightningRodInCamp() {
+            if (lightningRodMesh) return;
+            const rodGroup = new THREE.Group();
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.2, 14, 8), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9 }));
+            pole.position.y = 7; rodGroup.add(pole);
+
+            const tip = new THREE.Mesh(new THREE.ConeGeometry(0.4, 1.5, 8), new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.9 }));
+            tip.position.y = 14.5; rodGroup.add(tip);
+
+            rodGroup.position.set(0, 0, -8);
+            scene.add(rodGroup);
+            lightningRodMesh = rodGroup;
+        }
+
+        function spawnCrockpotInCamp() {
+            if (crockpotMesh) return;
+            const potGroup = new THREE.Group();
+            const pot = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.0, 1.4, 12), new THREE.MeshStandardMaterial({ color: 0x1f2937, metalness: 0.8 }));
+            pot.position.y = 0.7; potGroup.add(pot);
+
+            const stewLiquid = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.2, 12), new THREE.MeshBasicMaterial({ color: 0xd97706 }));
+            stewLiquid.position.y = 1.3; potGroup.add(stewLiquid);
+
+            potGroup.position.set(-6.5, 0, -8);
+            scene.add(potGroup);
+            crockpotMesh = potGroup;
+        }
+
+        function spawnMapTableInCamp() {
+            if (mapTableMesh) return;
+            const mGroup = new THREE.Group();
+            const table = new THREE.Mesh(new THREE.BoxGeometry(4, 1.4, 3), new THREE.MeshStandardMaterial({ color: 0x5c3a21 }));
+            table.position.y = 0.7; mGroup.add(table);
+
+            const mapPlane = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 2.6), new THREE.MeshBasicMaterial({ color: 0x0284c7 }));
+            mapPlane.rotation.x = -Math.PI / 2;
+            mapPlane.position.y = 1.41;
+            mGroup.add(mapPlane);
+
+            mGroup.position.set(6.5, 0, 4);
+            scene.add(mGroup);
+            mapTableMesh = mGroup;
+        }
+
+        function spawnCarrotFarmPlotInCamp() {
+            const plot = new THREE.Mesh(new THREE.BoxGeometry(4, 0.4, 4), new THREE.MeshStandardMaterial({ color: 0x3f200c }));
+            let idx = farmPlots.length;
+            plot.position.set(-12 - idx * 5, 0.2, -4);
+            scene.add(plot);
+
+            for (let c = 0; c < 4; c++) {
+                const carrotTop = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.8, 6), new THREE.MeshStandardMaterial({ color: 0x15803d }));
+                carrotTop.position.set(-13 + (c % 2) * 2 - idx * 5, 0.7, -5 + Math.floor(c / 2) * 2);
+                scene.add(carrotTop);
+            }
+            farmPlots.push(plot);
+        }
+
         function spawnRescuedKidAtCamp(kidName, hoodColor, shirtColor) {
             const kid = createArticulatedHumanoid({ skin: 0xfacc15, shirt: shirtColor, pants: 0x1d4ed8 });
             kid.root.scale.set(0.65, 0.65, 0.65);
             const hood = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.65, 0.9), new THREE.MeshStandardMaterial({ color: hoodColor }));
             hood.position.y = 1.6; kid.torso.add(hood);
 
-            let offset = campKidsMeshes.length * 1.5;
+            let offset = campKidsMeshes.length * 2.0;
             kid.root.position.set(-2 + offset, 0, -2);
             kid.root.rotation.y = Math.PI;
             scene.add(kid.root);
@@ -1069,7 +1228,7 @@
                     guard = createAccurateWolf(cfg.x, cfg.z + 12, true, cfg.kidName);
                 } else {
                     guard = createRealisticAnimal({
-                        x: cfg.x, z: cfg.z + 12, type: cfg.gType, color: cfg.gColor, darkColor: cfg.darkColor, hp: cfg.gHp, speed: cfg.spd,
+                        x: cfg.x, z: cfg.z + 12, type: cfg.gType, color: cfg.gColor, darkColor: cfg.darkColor, gHp: cfg.gHp, spd: cfg.spd,
                         bw: cfg.bw, bh: cfg.bh, bl: cfg.bl, hw: cfg.hw, hh: cfg.hh, hl: cfg.hl, legW: cfg.legW, legH: cfg.legH,
                         snout: true, ears: true, hasKey: true, keyType: cfg.kidName
                     });
@@ -1093,6 +1252,7 @@
         }
 
         function spawnForestEnvironment() {
+            // Trees
             for (let i = 0; i < 140; i++) {
                 let x = (Math.random() - 0.5) * 600, z = (Math.random() - 0.5) * 600;
                 if (Math.hypot(x, z) < 28) continue;
@@ -1101,11 +1261,35 @@
                 scene.add(trunk); scene.add(foliage); trees.push({ trunk, foliage, x, z, hp: 3 });
             }
 
+            // Scrap Metal Piles & Broken Furniture (Chairs)
             for (let i = 0; i < 35; i++) {
                 let x = (Math.random() - 0.5) * 550, z = (Math.random() - 0.5) * 550;
                 if (Math.hypot(x, z) < 25) continue;
-                const scrapM = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.9, 1.4), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.7 }));
-                scrapM.position.set(x, 0.45, z); scene.add(scrapM); scrapPiles.push({ mesh: scrapM, x, z, active: true });
+                const isChair = Math.random() < 0.3;
+                const scrapM = new THREE.Mesh(
+                    new THREE.BoxGeometry(isChair ? 1.0 : 1.4, isChair ? 1.8 : 0.9, 1.0),
+                    new THREE.MeshStandardMaterial({ color: isChair ? 0x64748b : 0x94a3b8, metalness: 0.7 })
+                );
+                scrapM.position.set(x, isChair ? 0.9 : 0.45, z); scene.add(scrapM);
+                scrapPiles.push({ mesh: scrapM, x, z, isChair, active: true });
+            }
+
+            // Wild Carrots
+            for (let i = 0; i < 25; i++) {
+                let x = (Math.random() - 0.5) * 500, z = (Math.random() - 0.5) * 500;
+                if (Math.hypot(x, z) < 25) continue;
+                const cMesh = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.9, 6), new THREE.MeshStandardMaterial({ color: 0xf97316 }));
+                cMesh.position.set(x, 0.45, z); scene.add(cMesh);
+                wildCarrots.push({ mesh: cMesh, x, z, active: true });
+            }
+
+            // Wild Berries
+            for (let i = 0; i < 25; i++) {
+                let x = (Math.random() - 0.5) * 500, z = (Math.random() - 0.5) * 500;
+                if (Math.hypot(x, z) < 25) continue;
+                const bMesh = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 8), new THREE.MeshStandardMaterial({ color: 0x38bdf8 }));
+                bMesh.position.set(x, 0.5, z); scene.add(bMesh);
+                wildBerries.push({ mesh: bMesh, x, z, active: true });
             }
         }
 
@@ -1139,85 +1323,162 @@
 
         function showDialogue(txt) {
             const d = document.getElementById("dialogue-box"); d.innerText = txt; d.style.display = "block";
-            setTimeout(() => { d.style.display = "none"; }, 3800);
+            setTimeout(() => { d.style.display = "none"; }, 4000);
         }
 
+        // Food & Hunger Mechanics
         function eatFoodType(type) {
-            if (type === 'stew' && stews > 0 && hunger < 100) {
-                stews--; hunger = Math.min(100, hunger + 70); hp = Math.min(100, hp + 40);
-                showDialogue("🍲 Ate Stew! (+70 Hunger, +40 HP)"); playTone(550, 'sine', 0.15);
-            } else if (type === 'meat' && meat > 0 && hunger < 100) {
-                meat--; hunger = Math.min(100, hunger + 35); hp = Math.min(100, hp + 15);
-                showDialogue("🥩 Ate Meat! (+35 Hunger, +15 HP)"); playTone(500, 'sine', 0.15);
+            if (type === 'raw_meat' && rawMeat > 0) {
+                rawMeat--; hp -= 15; hunger = Math.min(100, hunger + 10);
+                showDialogue("🤢 Eating RAW meat hurts your health! Cook it over the campfire first![cite: 1]");
+                playTone(180, 'sawtooth', 0.2);
+            } else if (type === 'cooked_meat' && cookedMeat > 0 && hunger < 100) {
+                cookedMeat--; hunger = Math.min(100, hunger + 40); hp = Math.min(100, hp + 20);
+                showDialogue("🍖 Ate delicious Cooked Meat (+40 Hunger, +20 HP)[cite: 1]"); playTone(500, 'sine', 0.15);
+            } else if (type === 'carrot' && carrots > 0 && hunger < 100) {
+                carrots--; hunger = Math.min(100, hunger + 20); hp = Math.min(100, hp + 8);
+                showDialogue("🥕 Ate Fresh Carrot (+20 Hunger)[cite: 1]"); playTone(550, 'sine', 0.12);
             } else if (type === 'berry' && berries > 0 && hunger < 100) {
                 berries--; hunger = Math.min(100, hunger + 15); hp = Math.min(100, hp + 5);
-                showDialogue("🫐 Ate Berry! (+15 Hunger, +5 HP)"); playTone(600, 'sine', 0.1);
+                showDialogue("🫐 Ate Wild Berry (+15 Hunger)[cite: 1]"); playTone(600, 'sine', 0.1);
+            } else if (type === 'stew' && stews > 0 && hunger < 100) {
+                stews--; hunger = Math.min(100, hunger + 75); hp = Math.min(100, hp + 45);
+                showDialogue("🍲 Ate Hearty Stew! Restored huge chunk of Hunger & Health![cite: 1]"); playTone(550, 'sine', 0.2);
             }
             updateInventoryUI();
         }
 
         function eatBestFood() {
             if (stews > 0) eatFoodType('stew');
-            else if (meat > 0) eatFoodType('meat');
+            else if (cookedMeat > 0) eatFoodType('cooked_meat');
+            else if (carrots > 0) eatFoodType('carrot');
             else if (berries > 0) eatFoodType('berry');
         }
 
+        // Sapling Planting
+        function plantSaplingFromHotbar() {
+            if (saplings <= 0) return showDialogue("🌱 You have no saplings! Chop trees to get saplings.[cite: 1]");
+            const dist = Math.hypot(player.x, player.z);
+            if (dist < 10) return showDialogue("⚠️ You can't plant saplings too close to the campfire! Walk a little further.[cite: 1]");
+
+            saplings--;
+            const saplingMesh = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.4, 6), new THREE.MeshStandardMaterial({ color: 0x84cc16 }));
+            saplingMesh.position.set(player.x, 0.7, player.z);
+            scene.add(saplingMesh);
+            plantedSaplings.push({ mesh: saplingMesh, x: player.x, z: player.z, dayPlanted: currentDay });
+            showDialogue("🌱 Planted a sapling! It will grow into a full tree by tomorrow![cite: 1]");
+            playTone(450, 'sine', 0.15);
+            updateInventoryUI();
+        }
+
         function feedFireFromHotbar() {
-            if (Math.hypot(player.x, player.z) < 6 && wood > 0) {
-                wood--; fireFuel = Math.min(100, fireFuel + 25);
-                showDialogue("🔥 Fed wood to campfire!"); playTone(250, 'sine', 0.1); updateInventoryUI();
-            } else showDialogue("🪵 Move closer to Campfire to add wood!");
+            if (Math.hypot(player.x, player.z) < 7 && wood > 0) {
+                wood--; fireFuel = Math.min(100, fireFuel + 20);
+                showDialogue("🔥 Added logs to the campfire! Safe light maintained.[cite: 1]");
+                playTone(250, 'sine', 0.1);
+
+                // Level up campfire (max 5)
+                if (fireFuel >= 100 && fireTier < 5) {
+                    fireTier++; safeRadius += 10;
+                    scene.remove(mapBoundaryRing);
+                    const ringMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
+                    mapBoundaryRing = new THREE.Mesh(new THREE.RingGeometry(safeRadius - 0.5, safeRadius + 0.5, 48), ringMat);
+                    mapBoundaryRing.rotation.x = -Math.PI / 2; mapBoundaryRing.position.y = 0.08; scene.add(mapBoundaryRing);
+                    showDialogue(`🔥 UPGRADED CAMPFIRE TO LEVEL ${fireTier}/5! White map border expanded, revealing new areas![cite: 1]`);
+                    playTone(600, 'triangle', 0.3);
+                }
+                updateInventoryUI();
+            } else showDialogue("🪵 Stand close to the Campfire to add wood![cite: 1]");
         }
 
         function grindScrapFromHotbar() {
             if (Math.hypot(player.x - 6.5, player.z - (-4)) < 4.5 && scrap > 0) {
                 let e = scrap * 8; addCoins(e); scrap = 0;
-                showDialogue(`⚙️ Ground Scrap into +${e} Gold!`); playTone(350, 'sawtooth', 0.2); updateInventoryUI();
-            } else showDialogue("⚙️ Move to the Shredder Bench to grind scrap!");
+                showDialogue(`⚙️ Ground Scrap Metal into +${e} Gold!`); playTone(350, 'sawtooth', 0.2); updateInventoryUI();
+            } else showDialogue("⚙️ Stand at the Scrap Grinder to process metal!");
         }
 
         function tradePeltFromHotbar() {
+            if (currentDay < 2) return showDialogue("🐺 The Pelt Trader arrives at camp on Day 2![cite: 1]");
             if (Math.hypot(player.x - (-7), player.z - 5) < 4.5) {
-                if (pelts >= 2 && !hasFlashlight) {
-                    pelts -= 2; hasFlashlight = true; showDialogue("🐺 Pelt Trader: 'Here is your Flashlight!'"); playTone(600, 'triangle', 0.3);
+                if (bunnyFeet >= 1 && sackCap === 10) {
+                    bunnyFeet--; sackCap = 15;
+                    showDialogue("🐺 Pelt Trader: 'Traded Bunny Foot for Good Sack! Inventory capacity increased to 15 slots!'[cite: 1]");
+                    playTone(650, 'triangle', 0.3);
+                } else if (pelts >= 2 && !hasFlashlight) {
+                    pelts -= 2; hasFlashlight = true;
+                    showDialogue("🐺 Pelt Trader: 'Here is your heavy-duty Flashlight!'[cite: 1]");
+                    playTone(600, 'triangle', 0.3);
                 } else if (pelts >= 1) {
-                    pelts--; addCoins(35); showDialogue("🐺 Pelt Trader: 'Traded 1 Pelt for +35 Gold!'"); playTone(500, 'triangle', 0.2);
-                } else showDialogue("🐺 Pelt Trader: 'Bring me pelts from hunted wolves!'");
+                    pelts--; addCoins(35);
+                    showDialogue("🐺 Pelt Trader: 'Traded 1 Wolf Pelt for +35 Gold!'[cite: 1]");
+                    playTone(500, 'triangle', 0.2);
+                } else showDialogue("🐺 Pelt Trader: 'Bring me Bunny Feet or Wolf Pelts to trade!'[cite: 1]");
                 updateInventoryUI();
-            } else showDialogue("🐺 Move to the Pelt Trader at camp to trade!");
+            } else showDialogue("🐺 Move to the Pelt Trader at camp to trade![cite: 1]");
         }
 
+        // Crafting Bench
         function craftItem(type) {
-            if (type === 'spear' && wood >= 3 && scrap >= 2 && !hasSpear) {
-                wood -= 3; scrap -= 2; hasSpear = true;
-                document.getElementById('btn-craft-spear').innerText = '🗡️ Spear (SOLD OUT)';
-                document.getElementById('btn-craft-spear').disabled = true;
-                showDialogue("🗡️ Crafted Spear! Attack damage increased!"); playTone(400, 'triangle', 0.2);
-            } else if (type === 'bed' && wood >= 8 && scrap >= 4 && !hasBed) {
-                wood -= 8; scrap -= 4; hasBed = true; dayMultiplier = 2;
+            if (type === 'map' && wood >= 3 && !hasMapTable) {
+                wood -= 3; hasMapTable = true;
+                spawnMapTableInCamp();
+                document.getElementById('btn-craft-map').disabled = true;
+                document.getElementById('btn-craft-map').innerText = '🗺️ Map (OWNED)';
+                showDialogue("🗺️ Placed Map Table at base! Minimap now displays base and kid locations![cite: 1]");
+                playTone(500, 'sine', 0.2);
+            } else if (type === 'bed' && wood >= 8 && scrap >= 4 && bedCount < 4) {
+                wood -= 8; scrap -= 4; hasBed = true;
                 spawnPhysicalBedInCamp();
-                document.getElementById('btn-craft-bed').innerText = '🛏️ Bed (SOLD OUT)';
-                document.getElementById('btn-craft-bed').disabled = true;
+                dayMultiplier = 1 + bedCount + campKidsMeshes.length;
                 document.getElementById('multiplier-text').innerText = `${dayMultiplier}x`;
-                showDialogue("🛏️ Bed Crafted & Spawned at Camp! Walk up to sleep and skip the night!"); playTone(450, 'triangle', 0.2);
+                if (bedCount >= 4) {
+                    document.getElementById('btn-craft-bed').disabled = true;
+                    document.getElementById('btn-craft-bed').innerText = '🛏️ Beds (MAX 4/4)';
+                }
+                showDialogue(`🛏️ Placed Bed ${bedCount}/4 at camp! Day progression multiplier increased to ${dayMultiplier}x![cite: 1]`);
+                playTone(450, 'triangle', 0.2);
             } else if (type === 'crockpot' && scrap >= 6 && wood >= 4 && !hasCrockpot) {
                 scrap -= 6; wood -= 4; hasCrockpot = true;
-                document.getElementById('btn-craft-crockpot').innerText = '🍲 Crockpot (SOLD OUT)';
+                spawnCrockpotInCamp();
                 document.getElementById('btn-craft-crockpot').disabled = true;
-                showDialogue("🍲 Crafted Crockpot! Combine meat & berries at camp!"); playTone(500, 'triangle', 0.2);
+                document.getElementById('btn-craft-crockpot').innerText = '🍲 Crockpot (OWNED)';
+                showDialogue("🍲 Crockpot built! Cook raw meat & carrots together to make stews![cite: 1]");
+                playTone(500, 'triangle', 0.2);
+            } else if (type === 'plot' && wood >= 4 && carrots >= 2) {
+                wood -= 4; carrots -= 2;
+                spawnCarrotFarmPlotInCamp();
+                showDialogue("🥕 Planted Carrot Farm Plot! Carrots will grow automatically for your stews![cite: 1]");
+                playTone(550, 'triangle', 0.2);
+            } else if (type === 'rod' && scrap >= 6 && cultistGems >= 1 && !hasLightningRod) {
+                scrap -= 6; cultistGems -= 1; hasLightningRod = true;
+                spawnLightningRodInCamp();
+                document.getElementById('btn-craft-rod').disabled = true;
+                document.getElementById('btn-craft-rod').innerText = '⚡ Rod (OWNED)';
+                showDialogue("⚡ Lightning Rod built! Your base is now fully protected from thunderstorm strikes![cite: 1]");
+                playTone(650, 'triangle', 0.3);
+            } else if (type === 'spear' && wood >= 3 && scrap >= 2 && !hasSpear) {
+                wood -= 3; scrap -= 2; hasSpear = true;
+                document.getElementById('btn-craft-spear').disabled = true;
+                document.getElementById('btn-craft-spear').innerText = '🗡️ Spear (OWNED)';
+                showDialogue("🗡️ Crafted Spear! Combat attack range and damage increased![cite: 1]");
+                playTone(400, 'triangle', 0.2);
             } else if (type === 'biofuel' && berries >= 4 && scrap >= 2) {
                 berries -= 4; scrap -= 2; fireFuel = Math.min(100, fireFuel + 50);
-                showDialogue("🧪 Crafted Biofuel (+50% Fire Fuel)!"); playTone(650, 'sine', 0.25);
-            } else if (type === 'sentry' && scrap >= 10 && wood >= 6 && !hasSentry) {
-                scrap -= 10; wood -= 6; hasSentry = true;
+                showDialogue("🧪 Crafted Biofuel (+50% Fire Fuel)![cite: 1]");
+                playTone(650, 'sine', 0.25);
+            } else if (type === 'sentry' && scrap >= 10 && wood >= 6 && cultistGems >= 1 && !hasSentry) {
+                scrap -= 10; wood -= 6; cultistGems -= 1; hasSentry = true;
                 spawnSentryTurretInCamp();
-                document.getElementById('btn-craft-sentry').innerText = '🛡️ Turret (SOLD OUT)';
                 document.getElementById('btn-craft-sentry').disabled = true;
-                showDialogue("🛡️ Base Sentry Turret Crafted! Defends camp automatically!"); playTone(700, 'triangle', 0.3);
+                document.getElementById('btn-craft-sentry').innerText = '🛡️ Turret (OWNED)';
+                showDialogue("🛡️ Base Sentry Turret Crafted! Shoots down cultists and repels the Deer![cite: 1]");
+                playTone(700, 'triangle', 0.3);
             }
             updateInventoryUI(); toggleCrafting(false);
         }
 
+        // Cinematic Cutscene
         function playCinematicCutscene(targetPos, lookPos, duration, message) {
             inCutscene = true;
             showDialogue(message);
@@ -1230,70 +1491,125 @@
             }, duration);
         }
 
+        // Interaction Handler
         function handleInteraction() {
             if (inCutscene) return;
             const pPos = new THREE.Vector2(player.x, player.z);
 
+            // 1. Cook Meat over Campfire
+            if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 6 && rawMeat > 0) {
+                rawMeat--; cookedMeat++;
+                showDialogue("🔥 Cooked 1 Raw Meat over the fire! Now safe to eat without taking damage![cite: 1]");
+                playTone(480, 'sine', 0.15); updateInventoryUI(); return;
+            }
+
+            // 2. Make Stew in Crockpot
+            if (hasCrockpot && pPos.distanceTo(new THREE.Vector2(-6.5, -8)) < 5) {
+                if ((cookedMeat >= 2 && carrots >= 1) || (cookedMeat >= 1 && carrots >= 2)) {
+                    cookedMeat = Math.max(0, cookedMeat - 2);
+                    carrots = Math.max(0, carrots - 1);
+                    stews++;
+                    showDialogue("🍲 Cooked nutrient-rich Stew in the Crockpot![cite: 1]");
+                    playTone(520, 'sine', 0.2); updateInventoryUI(); return;
+                } else showDialogue("🍲 Crockpot needs at least 2 Cooked Meats + 1 Carrot to brew Stew![cite: 1]");
+            }
+
+            // 3. Pickup Dropped Keys
             for (let k of droppedKeys) {
                 if (k.active && pPos.distanceTo(new THREE.Vector2(k.x, k.z)) < 3.5) {
                     k.active = false; scene.remove(k.group); caveKeys++;
-                    showDialogue(`🔑 Picked up ${k.keyType} Cave Key!`); playTone(650, 'sine', 0.2); updateInventoryUI(); return;
+                    showDialogue(`🔑 Picked up ${k.keyType} Cave Key! Use it to unlock the bedroom door![cite: 1]`);
+                    playTone(650, 'sine', 0.2); updateInventoryUI(); return;
                 }
             }
 
+            // 4. Unlock Bedroom Door inside Cave
             for (let c of caves) {
                 if (!c.isUnlocked && pPos.distanceTo(new THREE.Vector2(c.x, c.z - 27.7)) < 6) {
                     if (caveKeys > 0) {
                         caveKeys--; c.isUnlocked = true;
                         c.door.position.x += 2.8;
                         scene.remove(c.lockMesh);
-                        playCinematicCutscene(new THREE.Vector3(c.x, -7, c.z - 24), new THREE.Vector3(c.x, -10, c.z - 36), 2500, `🔓 Unlocked bedroom! Walk inside to rescue ${c.kidName}!`);
+                        playCinematicCutscene(new THREE.Vector3(c.x, -7, c.z - 24), new THREE.Vector3(c.x, -10, c.z - 36), 2500, `🔓 Unlocked bedroom! Walk inside to rescue ${c.kidName}![cite: 1]`);
                         playTone(550, 'triangle', 0.3);
                         updateInventoryUI();
-                    } else showDialogue(`🔒 Bedroom door is locked! Defeat the guardian outside for the key!`);
+                    } else showDialogue(`🔒 Bedroom door is locked! Defeat the guardian outside for the key![cite: 1]`);
                     return;
                 }
             }
 
+            // 5. Open Chests
             for (let ch of chests) {
                 if (!ch.opened && pPos.distanceTo(new THREE.Vector2(ch.x, ch.z)) < 3.5) {
                     ch.opened = true; ch.lid.rotation.x = -Math.PI / 3;
-                    if (ch.type === 'RUBY') { addCoins(80); meat += 4; cultistGems += 2; hasSpear = true; showDialogue("💎 Opened Ruby Chest! +80 Gold, +4 Meat, +2 Cultist Gems & Spear!"); }
-                    else if (ch.type === 'GOLD') { addCoins(40); scrap += 4; showDialogue("🪙 Opened Gold Chest! +40 Gold & +4 Scrap Metal!"); }
-                    else { addCoins(15); wood += 4; berries += 3; showDialogue("📦 Opened Wooden Chest! +15 Gold, +4 Wood & +3 Berries!"); }
+                    if (ch.type === 'RUBY') { addCoins(80); cookedMeat += 4; cultistGems += 2; hasSpear = true; showDialogue("💎 Opened Ruby Chest! +80 Gold, +4 Cooked Meat, +2 Cultist Gems & Spear![cite: 1]"); }
+                    else if (ch.type === 'GOLD') { addCoins(40); scrap += 4; showDialogue("🪙 Opened Gold Chest! +40 Gold & +4 Scrap Metal![cite: 1]"); }
+                    else { addCoins(15); wood += 4; berries += 3; showDialogue("📦 Opened Wooden Chest! +15 Gold, +4 Wood & +3 Berries![cite: 1]"); }
                     playTone(600, 'sine', 0.25); updateInventoryUI(); return;
                 }
             }
 
+            // 6. Rescue Kid (Put in sack)
             for (let k of missingKids) {
                 if (!k.rescued && !k.inSack && pPos.distanceTo(new THREE.Vector2(k.x, k.z)) < 6) {
-                    if (!k.cave.isUnlocked) return showDialogue("⚠️ Unlock the bedroom door first!");
+                    if (!k.cave.isUnlocked) return showDialogue("⚠️ Unlock the bedroom door first![cite: 1]");
                     k.inSack = true; k.rig.root.visible = false;
-                    showDialogue(`🎒 Placed ${k.name} in your sack! Escort them safely to the Campfire!`);
+                    showDialogue(`🎒 Placed ${k.name} in your sack! Escort them safely to the Campfire![cite: 1]`);
                     playTone(580, 'sine', 0.3); return;
                 }
             }
 
-            if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 6) {
+            // 7. Deposit Kid At Campfire
+            if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 7) {
                 missingKids.forEach(k => {
                     if (k.inSack && !k.rescued) {
                         k.inSack = false; k.rescued = true; addCoins(100);
                         spawnRescuedKidAtCamp(k.name, k.hood, k.shirt);
-                        document.getElementById('kids-count').innerText = `${missingKids.filter(x => x.rescued).length}/4`;
-                        showDialogue(`🎉 ${k.name} Rescued to Campfire! +100 Gold!`); playTone(700, 'triangle', 0.4);
+                        dayMultiplier = 1 + bedCount + campKidsMeshes.length;
+                        document.getElementById('kids-count').innerText = `${campKidsMeshes.length}/4`;
+                        document.getElementById('multiplier-text').innerText = `${dayMultiplier}x`;
+                        showDialogue(`🎉 ${k.name} Rescued to Campfire! Tent pitched, Day Multiplier increased to ${dayMultiplier}x![cite: 1]`);
+                        playTone(700, 'triangle', 0.4);
+
+                        // Update direction tracker text
+                        const nextKid = missingKids.find(x => !x.rescued);
+                        if (nextKid) {
+                            document.getElementById('kid-tracker-text').innerText = `🎯 Next Objective: ${nextKid.name} Cave[cite: 1]`;
+                        } else {
+                            document.getElementById('kid-tracker-text').innerText = `🏆 All 4 Kids Rescued! Stronghold Cleared![cite: 1]`;
+                        }
                     }
                 });
             }
 
-            if (hasBed && pPos.distanceTo(new THREE.Vector2(-4, 4)) < 4.5 && cycleTimer >= DAY_LEN) {
-                cycleTimer = 0; night += dayMultiplier; addCoins(25 * dayMultiplier);
-                document.getElementById('night-count').innerText = night;
-                showDialogue(`😴 Slept in Bed! Night skipped (${dayMultiplier}x Day Multiplier, +${25*dayMultiplier} Gold)!`);
-                playTone(350, 'sine', 0.4); return;
-            }
+            // 8. Forage Wild Carrots & Berries
+            wildCarrots.forEach(c => {
+                if (c.active && pPos.distanceTo(new THREE.Vector2(c.x, c.z)) < 3.5) {
+                    c.active = false; scene.remove(c.mesh); carrots++;
+                    showDialogue("🥕 Foraged Wild Carrot![cite: 1]"); playTone(500, 'sine', 0.1); updateInventoryUI();
+                }
+            });
 
+            wildBerries.forEach(b => {
+                if (b.active && pPos.distanceTo(new THREE.Vector2(b.x, b.z)) < 3.5) {
+                    b.active = false; scene.remove(b.mesh); berries++;
+                    showDialogue("🫐 Foraged Wild Berries![cite: 1]"); playTone(550, 'sine', 0.1); updateInventoryUI();
+                }
+            });
+
+            // 9. Harvest Scrap & Broken Chairs
+            scrapPiles.forEach(s => {
+                if (s.active && pPos.distanceTo(new THREE.Vector2(s.x, s.z)) < 3.5) {
+                    s.active = false; scene.remove(s.mesh);
+                    if (s.isChair) { wood += 5; scrap += 2; showDialogue("🪑 Hammered Broken Chair into +5 Wood & +2 Scrap![cite: 1]"); }
+                    else { scrap += 3; showDialogue("⚙️ Gathered Scrap Metal (+3 Scrap)[cite: 1]"); }
+                    playTone(420, 'sawtooth', 0.1); updateInventoryUI();
+                }
+            });
+
+            // 10. Attack Animals / Cultists / Guardians
             for (let a of animals) {
-                if (a.alive && pPos.distanceTo(new THREE.Vector2(a.root.position.x, a.root.position.z)) < 5) {
+                if (a.alive && pPos.distanceTo(new THREE.Vector2(a.root.position.x, a.root.position.z)) < 5.5) {
                     isAttacking = true; setTimeout(() => { isAttacking = false; }, 250);
                     a.hp -= hasSpear ? (playerClass === 'Hunter' ? 6 : 4) : 2;
                     playTone(180, 'sawtooth', 0.15);
@@ -1307,40 +1623,31 @@
                             if (targetCave) {
                                 scene.remove(targetCave.barrierMesh);
                                 targetCave.hasStairsOpen = true;
-                                playCinematicCutscene(new THREE.Vector3(targetCave.x, 6, targetCave.z + 16), new THREE.Vector3(targetCave.x, 2, targetCave.z), 2500, `🔓 Guardian Defeated! Cave stairs are now open!`);
+                                playCinematicCutscene(new THREE.Vector3(targetCave.x, 6, targetCave.z + 16), new THREE.Vector3(targetCave.x, 2, targetCave.z), 2500, `🔓 Guardian Defeated! Cave stairs are now open![cite: 1]`);
                             }
                         }
-                        if (a.type === 'CULTIST') { cultistGems += 1; addCoins(20); }
-                        else if (a.type === 'WOLF' || a.type.includes('WOLF')) { meat += 2; pelts += 1; }
-                        else if (a.type === 'BUNNY') meat += 1;
-                        else { meat += 4; pelts += 2; }
+                        if (a.type === 'CULTIST' || a.type === 'CULTIST_ARCHER') { cultistGems += 1; addCoins(25); }
+                        else if (a.type === 'BUNNY') { rawMeat += 1; bunnyFeet += 1; }
+                        else if (a.type === 'ALPHA_WOLF') { rawMeat += 4; pelts += 2; addCoins(40); }
+                        else if (a.type === 'WOLF') { rawMeat += 2; pelts += 1; }
+                        else { rawMeat += 6; pelts += 3; }
                     }
                     updateInventoryUI(); return;
                 }
             }
 
-            if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 5.5 && wood > 0) {
-                feedFireFromHotbar();
-                if (fireFuel >= 100 && fireTier < 5) {
-                    fireTier++; safeRadius += 8;
-                    scene.remove(lightBarrierRing);
-                    const ringMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
-                    lightBarrierRing = new THREE.Mesh(new THREE.RingGeometry(safeRadius - 0.4, safeRadius + 0.4, 48), ringMat);
-                    lightBarrierRing.rotation.x = -Math.PI / 2; lightBarrierRing.position.y = 0.08; scene.add(lightBarrierRing);
-                    showDialogue(`🔥 UPGRADED FIRE TO TIER ${fireTier}! Map light radius expanded to ${safeRadius}m!`);
-                }
-                return;
-            }
-
+            // 11. Chop Trees
             for (let i = 0; i < trees.length; i++) {
                 let t = trees[i];
-                if (pPos.distanceTo(new THREE.Vector2(t.x, t.z)) < 4.0) {
+                if (pPos.distanceTo(new THREE.Vector2(t.x, t.z)) < 4.5) {
                     isAttacking = true; setTimeout(() => { isAttacking = false; }, 200);
                     t.hp--; playTone(220, 'square', 0.08);
                     if (t.hp <= 0) {
                         scene.remove(t.trunk); scene.remove(t.foliage);
-                        trees.splice(i, 1); wood += (playerClass === 'Lumberjack' ? 4 : 2);
-                        showDialogue("🪵 Chopped Tree!");
+                        trees.splice(i, 1);
+                        wood += (playerClass === 'Lumberjack' ? 4 : 2);
+                        saplings += 1;
+                        showDialogue(`🪵 Chopped Tree! Received Logs & +1 Sapling![cite: 1]`);
                     }
                     updateInventoryUI(); return;
                 }
@@ -1349,15 +1656,19 @@
 
         function updateInventoryUI() {
             document.getElementById('val-wood').innerText = wood;
+            document.getElementById('val-sapling').innerText = saplings;
             document.getElementById('val-scrap').innerText = scrap;
+            document.getElementById('val-raw-meat').innerText = rawMeat;
+            document.getElementById('val-cooked-meat').innerText = cookedMeat;
+            document.getElementById('val-carrot').innerText = carrots;
             document.getElementById('val-berry').innerText = berries;
-            document.getElementById('val-meat').innerText = meat;
-            document.getElementById('val-pelt').innerText = pelts;
             document.getElementById('val-stew').innerText = stews;
+            document.getElementById('val-pelt').innerText = pelts;
             document.getElementById('fire-tier').innerText = fireTier;
             document.getElementById('safe-radius-text').innerText = `${safeRadius}m`;
             document.getElementById('keys-count').innerText = caveKeys;
             document.getElementById('gems-count').innerText = cultistGems;
+            document.getElementById('multiplier-text').innerText = `${dayMultiplier}x`;
         }
 
         function updateMinimap() {
@@ -1369,26 +1680,40 @@
             ctx.fillStyle = "#09101d";
             ctx.beginPath(); ctx.arc(42.5, 42.5, 40, 0, Math.PI * 2); ctx.fill();
 
+            // Campfire Center
             ctx.fillStyle = "#facc15";
             ctx.beginPath(); ctx.arc(42.5, 42.5, 3.5, 0, Math.PI * 2); ctx.fill();
 
+            // Player Position
             const px = 42.5 + (player.x / 400) * 40;
             const pz = 42.5 + (player.z / 400) * 40;
             ctx.fillStyle = "#00f3ff";
             ctx.beginPath(); ctx.arc(px, pz, 3, 0, Math.PI * 2); ctx.fill();
 
+            // Caves
             caves.forEach(c => {
                 const cx = 42.5 + (c.x / 400) * 40;
                 const cz = 42.5 + (c.z / 400) * 40;
-                ctx.fillStyle = "#94a3b8";
+                ctx.fillStyle = c.lockColor ? `#${c.lockColor.toString(16)}` : "#94a3b8";
                 ctx.fillRect(cx - 2, cz - 2, 4, 4);
             });
 
+            // The Deer Radar Ping
             if (deerRig && deerRig.root.visible) {
                 const dx = 42.5 + (deerRig.root.position.x / 400) * 40;
                 const dz = 42.5 + (deerRig.root.position.z / 400) * 40;
                 ctx.fillStyle = "#ff007f";
                 ctx.beginPath(); ctx.arc(dx, dz, 3.5, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+
+        function triggerCultistRaid() {
+            showDialogue("⚠️ A mysterious group of Cultists is heading towards your camp![cite: 1]");
+            playThunder();
+            for (let i = 0; i < 3; i++) {
+                const cult = createCultist(safeRadius + 8 + i * 3, (Math.random() - 0.5) * 15, currentDay > 3);
+                cultists.push(cult);
+                animals.push(cult);
             }
         }
 
@@ -1401,6 +1726,7 @@
             scene.fog.far = 240 + (fireTier * 25);
 
             if (cycleTimer < DAY_LEN) {
+                // Day Phase (~3m)[cite: 1]
                 let rem = Math.round(DAY_LEN - cycleTimer);
                 document.getElementById("cycle-title").innerText = "☀️ DAY PHASE";
                 document.getElementById("cycle-title").style.color = "var(--gold)";
@@ -1410,6 +1736,7 @@
                 scene.background.setHex(0x1a331a); scene.fog.color.setHex(0x1a331a);
                 deerRig.root.visible = false;
             } else if (cycleTimer < DAY_LEN + DUSK_LEN) {
+                // Dusk Phase (25s)
                 let rem = Math.round(DAY_LEN + DUSK_LEN - cycleTimer);
                 document.getElementById("cycle-title").innerText = "🌅 DUSK (Return to Camp!)";
                 document.getElementById("cycle-title").style.color = "#fb923c";
@@ -1419,6 +1746,7 @@
                 scene.background.setHex(0x2d1808); scene.fog.color.setHex(0x2d1808);
                 deerRig.root.visible = false;
             } else if (cycleTimer < TOTAL_CYCLE) {
+                // Night Phase (~1m)[cite: 1]
                 let rem = Math.round(TOTAL_CYCLE - cycleTimer);
                 document.getElementById("cycle-title").innerText = "🦌 THE DEER IS HUNTING";
                 document.getElementById("cycle-title").style.color = "var(--accent)";
@@ -1431,18 +1759,50 @@
                     deerRig.root.position.set(player.x + 35, 0, player.z + 35);
                     deerRig.root.visible = true;
                     playDeerRoar();
-                    playCinematicCutscene(new THREE.Vector3(deerRig.root.position.x, 5, deerRig.root.position.z + 12), deerRig.root.position, 2000, "⚠️ THE DEER HAS AWAKENED! RETREAT TO THE FIRE!");
+
+                    // Night 1: Deer is passive & stares; Night 2+: lethal pursuit[cite: 1]
+                    if (currentDay === 1) {
+                        showDialogue("🦌 Night 1: The Deer stares silently from the shadows... It won't attack yet.[cite: 1]");
+                    } else {
+                        playCinematicCutscene(new THREE.Vector3(deerRig.root.position.x, 5, deerRig.root.position.z + 12), deerRig.root.position, 2000, "⚠️ THE DEER HAS AWAKENED! RETREAT TO THE FIRE![cite: 1]");
+                    }
                 }
             } else {
-                cycleTimer = 0; night++; addCoins(25);
-                document.getElementById('night-count').innerText = night;
+                // Next Day Dawn!
+                cycleTimer = 0;
+                currentDay += dayMultiplier;
+                addCoins(25 * dayMultiplier);
+                document.getElementById('night-count').innerText = currentDay;
+
+                // Grow planted saplings into trees on day start[cite: 1]
+                plantedSaplings.forEach(ps => {
+                    scene.remove(ps.mesh);
+                    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.65, 4.5, 8), new THREE.MeshStandardMaterial({ color: 0x452210 }));
+                    trunk.position.set(ps.x, 2.25, ps.z);
+                    const foliage = new THREE.Mesh(new THREE.ConeGeometry(3.2, 7.5, 8), new THREE.MeshStandardMaterial({ color: 0x14532d }));
+                    foliage.position.set(ps.x, 7.0, ps.z);
+                    scene.add(trunk); scene.add(foliage);
+                    trees.push({ trunk, foliage, x: ps.x, z: ps.z, hp: 3 });
+                });
+                plantedSaplings = [];
+
+                // Cultist Raids every few nights[cite: 1]
+                if (currentDay % 2 === 0) triggerCultistRaid();
+
+                if (currentDay >= 99) {
+                    gameActive = false;
+                    alert("🏆 CONGRATULATIONS! You survived all 99 Nights in the Forest!");
+                }
             }
 
             if (fireFuel > 0) fireFuel -= 0.015;
             campfireLight.intensity = (fireFuel / 100) * 3.8 + Math.sin(walkClock * 12) * 0.3;
             document.getElementById("fuel-text").innerText = `${Math.round(fireFuel)}%`;
 
-            hunger -= 0.008; if (hunger <= 0) { hunger = 0; hp -= 0.05; }
+            // Running depletes hunger faster[cite: 1]
+            let hungerDrain = (keys.shift && (keys.w || keys.s || keys.a || keys.d)) ? 0.016 : 0.007;
+            hunger -= hungerDrain;
+            if (hunger <= 0) { hunger = 0; hp -= 0.05; }
             if (Math.hypot(player.x, player.z) < safeRadius && fireFuel > 5 && hp < 100) hp += 0.04;
 
             document.getElementById("hp-fill").style.width = `${Math.max(0, hp)}%`;
@@ -1451,7 +1811,7 @@
 
             if (hp <= 0 && gameActive) {
                 gameActive = false;
-                alert(`💀 You died in the forest on Night ${night}.`); location.reload();
+                alert(`💀 You were claimed by the forest on Day/Night ${currentDay}.`); location.reload();
             }
         }
 
@@ -1461,6 +1821,27 @@
             const pPos = new THREE.Vector3(player.x, player.y, player.z);
             const distToFire = Math.hypot(player.x, player.z);
 
+            // Night 1: Deer stands and runs if approached[cite: 1]
+            if (currentDay === 1) {
+                deerRig.root.lookAt(pPos);
+                let distToPlayer = deerRig.root.position.distanceTo(pPos);
+                if (distToPlayer < 12) {
+                    deerRig.root.translateZ(-0.25); // Flees
+                    deerRig.updateAnim(walkClock, true);
+                } else {
+                    deerRig.updateAnim(walkClock, false); // Stares
+                }
+                return;
+            }
+
+            // Stunned by Flashlight[cite: 1]
+            if (deerStunTimer > 0) {
+                deerStunTimer -= 0.03;
+                deerRig.updateAnim(walkClock, false);
+                return;
+            }
+
+            // Night 2+ Lethal Pursuit[cite: 1]
             if (distToFire > safeRadius || fireFuel <= 0) {
                 deerRig.root.lookAt(pPos);
                 deerRig.root.translateZ(0.36);
@@ -1468,10 +1849,11 @@
 
                 if (deerRig.root.position.distanceTo(pPos) < 3.5) {
                     hp -= 0.9;
-                    showDialogue("⚠️ THE DEER IS ATTACKING! SPRINT TO THE CAMPFIRE LIGHT!");
+                    showDialogue("⚠️ THE DEER IS ATTACKING! SPRINT TO THE CAMPFIRE LIGHT![cite: 1]");
                     playTone(120, 'sawtooth', 0.2);
                 }
             } else {
+                // Repelled by campfire safe light[cite: 1]
                 deerRig.root.lookAt(new THREE.Vector3(0, 0, 0));
                 deerRig.root.translateZ(-0.25);
                 deerRig.updateAnim(walkClock, true);
@@ -1486,7 +1868,7 @@
 
                 if (!c.hasStairsOpen && Math.abs(dx) < 4 && dz > 5 && dz < 9) {
                     player.z = c.z + 9.2;
-                    showDialogue("⚠️ Slay the Cave Guardian outside to dispel the barrier!");
+                    showDialogue("⚠️ Slay the Cave Guardian outside to open the stairs![cite: 1]");
                     return;
                 }
 
