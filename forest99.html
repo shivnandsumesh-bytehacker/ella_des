@@ -3,80 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>99 Nights in the Forest - Ultimate Definitive Edition</title>
+    <title>99 Nights in the Forest - Definitive Roguelite 3D</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        :root { --primary: #00f3ff; --accent: #ff007f; --gold: #facc15; --bg: #050811; --card: #0e1626; }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, sans-serif; text-align: center; margin: 0; padding: 6px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; user-select: none; }
+        :root { --primary: #00f3ff; --accent: #ff007f; --gold: #facc15; --bg: #030712; --card: #0b1329; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 4px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; user-select: none; }
         
-        header { width: 100%; max-width: 1100px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 6px; box-sizing: border-box; }
+        header { width: 100%; max-width: 1150px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 22px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 6px; box-sizing: border-box; box-shadow: 0 0 20px rgba(0, 243, 255, 0.15); }
         .stats { font-size: 1.1rem; font-weight: bold; color: var(--gold); }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
         
-        #game-wrapper { width: 100%; max-width: 1100px; height: 600px; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 35px rgba(0, 243, 255, 0.25); position: relative; overflow: hidden; background: #000; }
+        #game-wrapper { width: 100%; max-width: 1150px; height: 620px; border: 3px solid var(--primary); border-radius: 14px; box-shadow: 0 0 40px rgba(0, 243, 255, 0.25); position: relative; overflow: hidden; background: #000; }
         canvas { width: 100% !important; height: 100% !important; display: block; }
         
-        .hud-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; pointer-events: none; }
-        .hud-panel { background: rgba(14, 22, 38, 0.9); border: 1.5px solid rgba(0, 243, 255, 0.4); border-radius: 10px; padding: 8px 14px; text-align: left; font-size: 0.85rem; backdrop-filter: blur(6px); pointer-events: auto; }
-        .hud-bar { height: 9px; width: 110px; background: #1e293b; border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); margin-top: 4px; }
+        /* Tactical HUD Overlay */
+        .hud-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; pointer-events: none; z-index: 10; }
+        .hud-panel { background: rgba(11, 19, 41, 0.92); border: 1.5px solid rgba(0, 243, 255, 0.45); border-radius: 10px; padding: 8px 14px; text-align: left; font-size: 0.85rem; backdrop-filter: blur(8px); box-shadow: 0 6px 20px rgba(0,0,0,0.7); pointer-events: auto; }
+        .hud-bar { height: 9px; width: 115px; background: #1e293b; border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); margin-top: 4px; }
         .hud-fill { height: 100%; width: 100%; transition: width 0.2s ease-out; }
         
         .sundial-box { display: flex; align-items: center; gap: 10px; }
-        .sundial-disc { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--gold); background: conic-gradient(#facc15 0% 68%, #1e1b4b 68% 100%); position: relative; }
-        .sundial-hand { width: 2px; height: 16px; background: #fff; position: absolute; top: 3px; left: 18px; transform-origin: bottom center; }
+        .sundial-disc { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--gold); background: conic-gradient(#facc15 0% 68%, #1e1b4b 68% 100%); position: relative; box-shadow: 0 0 10px rgba(250, 204, 21, 0.4); }
+        .sundial-hand { width: 2px; height: 18px; background: #fff; position: absolute; top: 2px; left: 19px; transform-origin: bottom center; }
         
-        .hud-bottom { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; }
-        .slot { background: rgba(14, 22, 38, 0.9); border: 2px solid #334155; border-radius: 8px; padding: 6px 12px; min-width: 52px; text-align: center; font-size: 0.8rem; cursor: pointer; transition: transform 0.1s, border-color 0.1s; }
-        .slot:hover { border-color: var(--primary); transform: translateY(-3px); }
+        /* Minimap Radar */
+        #minimap-canvas { width: 85px; height: 85px; border-radius: 50%; border: 2px solid var(--primary); background: rgba(5, 8, 17, 0.85); margin-top: 4px; display: block; box-shadow: 0 0 10px rgba(0,243,255,0.3); }
+        
+        .hud-bottom { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; z-index: 10; }
+        .slot { background: rgba(11, 19, 41, 0.92); border: 2px solid #334155; border-radius: 8px; padding: 6px 12px; min-width: 54px; text-align: center; font-size: 0.78rem; cursor: pointer; transition: all 0.15s; }
+        .slot:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 0 12px var(--primary); }
         .slot-val { font-weight: bold; color: var(--gold); font-size: 1rem; }
         
-        #action-prompt { position: absolute; bottom: 84px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.95); color: #000; font-weight: bold; padding: 8px 24px; border-radius: 20px; font-size: 0.95rem; display: none; pointer-events: none; box-shadow: 0 0 15px var(--primary); }
-        #dialogue-box { position: absolute; top: 75px; left: 50%; transform: translateX(-50%); background: rgba(14, 22, 38, 0.95); border: 2px solid var(--gold); color: #fff; padding: 10px 22px; border-radius: 10px; font-size: 0.95rem; max-width: 650px; display: none; }
+        #action-prompt { position: absolute; bottom: 84px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.95); color: #000; font-weight: bold; padding: 8px 24px; border-radius: 20px; font-size: 0.95rem; display: none; pointer-events: none; box-shadow: 0 0 20px var(--primary); z-index: 10; }
+        #dialogue-box { position: absolute; top: 75px; left: 50%; transform: translateX(-50%); background: rgba(11, 19, 41, 0.96); border: 2px solid var(--gold); color: #fff; padding: 10px 24px; border-radius: 10px; font-size: 0.95rem; max-width: 700px; display: none; box-shadow: 0 0 25px rgba(0,0,0,0.8); z-index: 20; }
         
-        .modal { position: absolute; inset: 0; background: rgba(5, 8, 17, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
-        .modal-card { background: var(--card); border: 2px solid var(--primary); border-radius: 12px; padding: 22px; max-width: 620px; width: 90%; text-align: left; }
-        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 15px; }
-        .btn { background: var(--primary); color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 8px; cursor: pointer; text-align: center; }
-        .btn:hover:not(:disabled) { filter: brightness(1.2); }
+        /* Modals */
+        .modal { position: absolute; inset: 0; background: rgba(3, 7, 18, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
+        .modal-card { background: var(--card); border: 2px solid var(--primary); border-radius: 14px; padding: 24px; max-width: 680px; width: 90%; text-align: left; box-shadow: 0 0 40px rgba(0, 243, 255, 0.2); }
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 16px; }
+        .btn { background: var(--primary); color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.15s; }
+        .btn:hover:not(:disabled) { filter: brightness(1.2); box-shadow: 0 0 15px var(--primary); }
         .btn:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
         
-        .controls-info { margin-top: 6px; font-size: 0.82rem; color: #94a3b8; max-width: 1100px; }
+        .controls-info { margin-top: 6px; font-size: 0.82rem; color: #94a3b8; max-width: 1150px; }
     </style>
 </head>
 <body>
     <header>
         <a href="index.html" class="nav">← Hub</a>
-        <div>🌲 <strong>99 NIGHTS</strong> | Night: <span id="night-count" style="color:var(--accent); font-size:1.2rem; font-weight:bold;">0</span> / 99</div>
+        <div>🌲 <strong>99 NIGHTS IN THE FOREST</strong> | Night: <span id="night-count" style="color:var(--accent); font-size:1.2rem; font-weight:bold;">0</span> / 99</div>
         <div class="stats">🪙 Gold: <span id="coin-count">0</span></div>
     </header>
 
     <div id="game-wrapper">
-        <!-- Class Selector -->
+        <!-- Class Selector Modal -->
         <div id="class-modal" class="modal">
             <div class="modal-card" style="text-align: center;">
-                <h2 style="color:var(--primary); margin-top:0;">CHOOSE YOUR SURVIVOR CLASS</h2>
-                <p style="color:#94a3b8; font-size:0.9rem;">Select your loadout before stepping into the fog:</p>
+                <h2 style="color:var(--primary); margin-top:0;">CHOOSE SURVIVOR CLASS</h2>
+                <p style="color:#94a3b8; font-size:0.9rem;">Select your loadout before stepping into the fog-choked woods:</p>
                 <div class="btn-grid">
                     <button class="btn" onclick="selectClass('Lumberjack')">🪓 Lumberjack<br><small>2x Wood Harvest</small></button>
                     <button class="btn" onclick="selectClass('Hunter')">🏹 Hunter<br><small>+50% Damage & Meats</small></button>
                     <button class="btn" onclick="selectClass('Scout')">🔦 Scout<br><small>+25% Speed & Night Light</small></button>
+                    <button class="btn" onclick="selectClass('Scientist')">🧪 Scientist<br><small>Biofuel Synth & Ray Gun</small></button>
                 </div>
             </div>
         </div>
 
-        <!-- Crafting Menu -->
+        <!-- Crafting Menu Modal -->
         <div id="craft-modal" class="modal" style="display: none;">
             <div class="modal-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin:0; color:var(--primary);">🛠️ CRAFTING BENCH</h3>
+                    <h3 style="margin:0; color:var(--primary);">🛠️ CAMP CRAFTING BENCH</h3>
                     <button class="btn" style="padding:4px 10px;" onclick="toggleCrafting(false)">✕ Close</button>
                 </div>
                 <div class="btn-grid" style="margin-top:15px;">
-                    <button class="btn" id="btn-craft-spear" onclick="craftItem('spear')">🗡️ Spear (3W, 2S)</button>
-                    <button class="btn" id="btn-craft-bed" onclick="craftItem('bed')">🛏️ Bed (8W, 4S)</button>
-                    <button class="btn" id="btn-craft-crockpot" onclick="craftItem('crockpot')">🍲 Crockpot (6S, 4W)</button>
-                    <button class="btn" id="btn-craft-biofuel" onclick="craftItem('biofuel')">🧪 Biofuel (4 Berries, 2S)</button>
+                    <button class="btn" id="btn-craft-spear" onclick="craftItem('spear')">🗡️ Spear<br><small>3 Wood, 2 Scrap</small></button>
+                    <button class="btn" id="btn-craft-bed" onclick="craftItem('bed')">🛏️ Bed (Skip Night)<br><small>8 Wood, 4 Scrap</small></button>
+                    <button class="btn" id="btn-craft-crockpot" onclick="craftItem('crockpot')">🍲 Crockpot<br><small>6 Scrap, 4 Wood</small></button>
+                    <button class="btn" id="btn-craft-biofuel" onclick="craftItem('biofuel')">🧪 Biofuel (Fuel+50%)<br><small>4 Berries, 2 Scrap</small></button>
+                    <button class="btn" id="btn-craft-sentry" onclick="craftItem('sentry')">🛡️ Auto Turret<br><small>10 Scrap, 6 Wood</small></button>
+                    <button class="btn" id="btn-craft-trap" onclick="craftItem('spikes')">🪤 Spike Trap<br><small>4 Wood, 2 Scrap</small></button>
                 </div>
             </div>
         </div>
@@ -88,6 +96,7 @@
                 <div style="margin-top:5px;">🍖 Food <div class="hud-bar"><div id="food-fill" class="hud-fill" style="background:#facc15;"></div></div></div>
                 <div style="margin-top:5px;">⚡ Stam <div class="hud-bar"><div id="stam-fill" class="hud-fill" style="background:#00f3ff;"></div></div></div>
             </div>
+
             <div class="hud-panel" style="text-align: center;">
                 <div class="sundial-box">
                     <div class="sundial-disc"><div class="sundial-hand" id="sundial-hand"></div></div>
@@ -96,19 +105,20 @@
                         <div id="cycle-timer" style="color:#94a3b8; font-size:0.8rem;">Night in: 3m 00s</div>
                     </div>
                 </div>
-                <div style="margin-top:4px; font-size:0.75rem; color:#38bdf8;">🔥 Fire Tier: <span id="fire-tier">1</span> (Safe Light: <span id="safe-radius-text">18m</span>)</div>
+                <div style="margin-top:4px; font-size:0.75rem; color:#38bdf8;">🔥 Fire Tier: <span id="fire-tier">1</span> (Light: <span id="safe-radius-text">18m</span>)</div>
             </div>
-            <div class="hud-panel" style="text-align: right;">
-                <div>🔥 Fuel: <span id="fuel-text" style="color:#fb923c; font-weight:bold;">100%</span></div>
-                <div>👶 Kids Rescued: <span id="kids-count" style="color:#38bdf8; font-weight:bold;">0/4</span></div>
-                <div>🔑 Cave Keys: <span id="keys-count" style="color:var(--gold); font-weight:bold;">0</span></div>
+
+            <div class="hud-panel" style="text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
+                <div>🔥 Fuel: <span id="fuel-text" style="color:#fb923c; font-weight:bold;">100%</span> | 👶 Kids: <span id="kids-count" style="color:#38bdf8; font-weight:bold;">0/4</span></div>
+                <div>🔑 Keys: <span id="keys-count" style="color:var(--gold); font-weight:bold;">0</span> | 🛏️ Multiplier: <span id="multiplier-text" style="color:var(--accent);">1x</span></div>
+                <canvas id="minimap-canvas" width="85" height="85"></canvas>
             </div>
         </div>
 
         <div id="dialogue-box"></div>
         <div id="action-prompt">Press [E] to Interact</div>
 
-        <!-- Clickable Interactive Hotbar -->
+        <!-- Interactive Hotbar -->
         <div class="hud-bottom">
             <div class="slot" onclick="feedFireFromHotbar()"><div class="slot-val" id="val-wood">0</div>🪵 Wood</div>
             <div class="slot" onclick="grindScrapFromHotbar()"><div class="slot-val" id="val-scrap">0</div>⚙️ Scrap</div>
@@ -116,11 +126,13 @@
             <div class="slot" onclick="eatFoodType('meat')"><div class="slot-val" id="val-meat">1</div>🥩 Meat</div>
             <div class="slot" onclick="tradePeltFromHotbar()"><div class="slot-val" id="val-pelt">0</div>🐺 Pelt</div>
             <div class="slot" onclick="eatFoodType('stew')"><div class="slot-val" id="val-stew">0</div>🍲 Stew</div>
+            <div class="slot" onclick="toggleFlashlight()"><div class="slot-val" id="val-light">OFF</div>🔦 Light</div>
         </div>
     </div>
-    <div class="controls-info"><strong>WASD:</strong> Move | <strong>Shift:</strong> Sprint | <strong>E / Space:</strong> Attack / Interact | <strong>F:</strong> Eat | <strong>B:</strong> Crafting | <strong>L:</strong> Flashlight | <strong>Click Hotbar Slots:</strong> Direct Action</div>
+    <div class="controls-info"><strong>WASD:</strong> Move | <strong>Shift:</strong> Sprint | <strong>E / Space:</strong> Attack / Interact | <strong>F:</strong> Quick Eat | <strong>B:</strong> Crafting | <strong>L:</strong> Flashlight | <strong>1-6 / Click Hotbar:</strong> Use Items</div>
 
     <script>
+        // Web Audio Synthesizer Engine
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playTone(freq, type, duration, vol=0.1) {
             try {
@@ -134,14 +146,42 @@
             } catch(e){}
         }
 
+        function playDeerRoar() {
+            try {
+                const osc = audioCtx.createOscillator();
+                const mod = audioCtx.createOscillator();
+                const modGain = audioCtx.createGain();
+                const gain = audioCtx.createGain();
+                
+                mod.frequency.value = 35;
+                modGain.gain.value = 120;
+                mod.connect(osc.frequency);
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 1.2);
+
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                mod.start(); osc.start();
+                mod.stop(audioCtx.currentTime + 1.2); osc.stop(audioCtx.currentTime + 1.2);
+            } catch(e){}
+        }
+
+        // Engine & Core Variables
         let scene, camera, renderer, ambientLight, campfireLight, sunLight, moonLight, hemiLight, flashlight;
-        let playerRig, deerRig, lightBarrierRing, physicalBedMesh = null;
+        let playerRig, deerRig, lightBarrierRing, physicalBedMesh = null, sentryTurretMesh = null;
         let gameActive = false;
 
         let playerClass = "Lumberjack", night = 0, dayMultiplier = 1;
         let hp = 100, hunger = 100, stamina = 100, fireFuel = 100, fireTier = 1, safeRadius = 18;
         let wood = 0, scrap = 0, berries = 2, meat = 1, pelts = 0, stews = 0, gold = 0, caveKeys = 0;
-        let hasSpear = false, hasBed = false, hasCrockpot = false, hasFlashlight = false, isFlashlightOn = false;
+        let hasSpear = false, hasBed = false, hasCrockpot = false, hasFlashlight = false, hasSentry = false;
+        let isFlashlightOn = false;
 
         let cycleTimer = 0;
         const DAY_LEN = 180, DUSK_LEN = 25, NIGHT_LEN = 60, TOTAL_CYCLE = DAY_LEN + DUSK_LEN + NIGHT_LEN;
@@ -150,7 +190,7 @@
         const keys = { w: false, s: false, a: false, d: false, shift: false, e: false };
         let walkClock = 0, isAttacking = false;
 
-        let trees = [], scrapPiles = [], berryBushes = [], animals = [], missingKids = [], caves = [], droppedKeys = [], campKidsMeshes = [], chests = [];
+        let trees = [], scrapPiles = [], berryBushes = [], animals = [], missingKids = [], caves = [], droppedKeys = [], campKidsMeshes = [], chests = [], spikeTraps = [];
 
         function updateWallet() {
             gold = parseInt(localStorage.getItem('arcade_coins')) || 0;
@@ -166,16 +206,19 @@
                 document.getElementById('btn-craft-spear').innerText = '🗡️ Spear (SOLD OUT)'; 
                 document.getElementById('btn-craft-spear').disabled = true; 
             }
+            if (className === 'Scientist') {
+                meat += 3; scrap += 5;
+            }
             document.getElementById('class-modal').style.display = 'none';
             gameActive = true;
             init3D();
             updateWallet();
             animate();
-            showDialogue(`🌲 Welcome, ${className}! Explore deep caves, slay guardians, and keep the fire lit!`);
+            showDialogue(`🌲 Welcome, ${className}! Delve into underground caves, defeat guardians, and keep the campfire lit!`);
         }
 
         window.addEventListener("keydown", e => {
-            if (["w","a","s","d","e","f","b","l","Shift"].includes(e.key) || e.code === "Space") e.preventDefault();
+            if (["w","a","s","d","e","f","b","l","1","2","3","4","5","6","Shift"].includes(e.key) || e.code === "Space") e.preventDefault();
             if (e.key === "w" || e.key === "ArrowUp") keys.w = true;
             if (e.key === "s" || e.key === "ArrowDown") keys.s = true;
             if (e.key === "a" || e.key === "ArrowLeft") keys.a = true;
@@ -185,6 +228,12 @@
             if (e.key === "f") eatBestFood();
             if (e.key === "b") toggleCrafting();
             if (e.key === "l") toggleFlashlight();
+            if (e.key === "1") feedFireFromHotbar();
+            if (e.key === "2") grindScrapFromHotbar();
+            if (e.key === "3") eatFoodType('berry');
+            if (e.key === "4") eatFoodType('meat');
+            if (e.key === "5") tradePeltFromHotbar();
+            if (e.key === "6") eatFoodType('stew');
         }, { passive: false });
 
         window.addEventListener("keyup", e => {
@@ -205,9 +254,11 @@
             if (!hasFlashlight) return showDialogue("🔦 No flashlight equipped! Trade wolf pelts with the Pelt Trader.");
             isFlashlightOn = !isFlashlightOn;
             flashlight.intensity = isFlashlightOn ? 4.5 : 0;
+            document.getElementById('val-light').innerText = isFlashlightOn ? 'ON' : 'OFF';
             playTone(800, 'sine', 0.05);
         }
 
+        // Articulated Rigged Humanoid Model
         function createArticulatedHumanoid(colors) {
             const root = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: colors.shirt, roughness: 0.6 });
@@ -219,10 +270,10 @@
 
             const armMat = new THREE.MeshStandardMaterial({ color: colors.arms || colors.shirt, roughness: 0.6 });
             const armL = new THREE.Group(); armL.position.set(-1.05, 0.6, 0);
-            const amL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat); amL.position.y = -0.55; amL.add(amL); torso.add(armL);
+            const amL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat); amL.position.y = -0.55; armL.add(amL); torso.add(armL);
 
             const armR = new THREE.Group(); armR.position.set(1.05, 0.6, 0);
-            const amR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat); amR.position.y = -0.55; amR.add(amR); torso.add(armR);
+            const amR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat); amR.position.y = -0.55; armR.add(amR); torso.add(armR);
 
             const pantsMat = new THREE.MeshStandardMaterial({ color: colors.pants, roughness: 0.7 });
             const legL = new THREE.Group(); legL.position.set(-0.38, 0.9, 0);
@@ -312,7 +363,7 @@
             };
         }
 
-        // Remodeled Wendigo Bipedal Deer Stalker Matching Image Reference
+        // Wendigo Bipedal Deer Stalker (Exact Reference Match)
         function buildBipedalDeer() {
             const root = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.85 });
@@ -372,18 +423,24 @@
             };
         }
 
-        // Underground Grey Caves
+        // True Excavated Underground Caves with Descending Ramps
         function createUndergroundCave(cfg) {
             const caveGroup = new THREE.Group();
             const rockMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.95 });
 
-            const ramp = new THREE.Mesh(new THREE.PlaneGeometry(6, 12), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-            ramp.rotation.x = -Math.PI / 2 + 0.3; ramp.position.set(0, -1.5, -4); caveGroup.add(ramp);
+            // Entrance Ramp Down
+            const ramp = new THREE.Mesh(new THREE.PlaneGeometry(6, 14), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+            ramp.rotation.x = -Math.PI / 2 + 0.35; ramp.position.set(0, -1.8, -4.5); caveGroup.add(ramp);
 
-            for (let i = 0; i < 10; i++) {
+            // Sunken Cavern Hollow Floor
+            const caveFloor = new THREE.Mesh(new THREE.PlaneGeometry(16, 16), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 }));
+            caveFloor.rotation.x = -Math.PI / 2; caveFloor.position.set(0, -3.8, -10); caveGroup.add(caveFloor);
+
+            // Cavern Rock Archway Formation
+            for (let i = 0; i < 14; i++) {
                 const b = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5 + Math.random()), rockMat);
-                let angle = (i * Math.PI) / 10;
-                b.position.set(Math.cos(angle) * 4.5, 1.5, Math.sin(angle) * 4.5 - 5); caveGroup.add(b);
+                let angle = (i * Math.PI) / 14;
+                b.position.set(Math.cos(angle) * 5.5, 1.5, Math.sin(angle) * 5.5 - 5); caveGroup.add(b);
             }
 
             const gate = new THREE.Mesh(new THREE.BoxGeometry(4.8, 4.0, 0.3), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 }));
@@ -415,6 +472,7 @@
             sunLight = new THREE.DirectionalLight(0xfffaed, 0.95); sunLight.position.set(60, 100, 60); scene.add(sunLight);
             moonLight = new THREE.DirectionalLight(0x4477ff, 0.0); moonLight.position.set(-50, 80, -50); scene.add(moonLight);
 
+            // Terrain with Rolling Natural Hills
             const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshStandardMaterial({ color: 0x224422, roughness: 0.85 }));
             ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
@@ -434,6 +492,12 @@
         }
 
         function buildCamp() {
+            for (let i = 0; i < 6; i++) {
+                const log = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 3.8, 8), new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.9 }));
+                log.position.set(0, 0.7, 0); log.rotation.z = 0.55; log.rotation.y = (i * Math.PI * 2) / 6;
+                scene.add(log);
+            }
+
             campfireLight = new THREE.PointLight(0xff7700, 3.8, 50, 1.2);
             campfireLight.position.set(0, 2, 0); scene.add(campfireLight);
 
@@ -465,6 +529,20 @@
             bedGroup.position.set(-4, 0, 4);
             scene.add(bedGroup);
             physicalBedMesh = bedGroup;
+        }
+
+        function spawnSentryTurretInCamp() {
+            if (sentryTurretMesh) return;
+            const sentryGroup = new THREE.Group();
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.4, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 }));
+            base.position.y = 0.6; sentryGroup.add(base);
+
+            const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 2.2), new THREE.MeshStandardMaterial({ color: 0x00f3ff, metalness: 0.9 }));
+            barrel.position.set(0, 1.5, 0.4); sentryGroup.add(barrel);
+
+            sentryGroup.position.set(4, 0, 4);
+            scene.add(sentryGroup);
+            sentryTurretMesh = sentryGroup;
         }
 
         function spawnRescuedKidAtCamp(kidName, hoodColor, shirtColor) {
@@ -508,7 +586,7 @@
                 kid.root.scale.set(0.65, 0.65, 0.65);
                 const hood = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.65, 0.9), new THREE.MeshStandardMaterial({ color: cfg.hood }));
                 hood.position.y = 1.6; kid.torso.add(hood);
-                kid.root.position.set(cfg.x, -3.2, cfg.z - 7);
+                kid.root.position.set(cfg.x, -3.8, cfg.z - 10);
                 scene.add(kid.root);
 
                 const guard = createRealisticAnimal({
@@ -518,7 +596,7 @@
                 });
                 animals.push(guard);
 
-                missingKids.push({ name: cfg.kidName, rig: kid, x: cfg.x, z: cfg.z - 7, cave: caveObj, hood: cfg.hood, shirt: cfg.shirt, rescued: false, inSack: false });
+                missingKids.push({ name: cfg.kidName, rig: kid, x: cfg.x, z: cfg.z - 10, cave: caveObj, hood: cfg.hood, shirt: cfg.shirt, rescued: false, inSack: false });
             });
         }
 
@@ -647,6 +725,7 @@
                 spawnPhysicalBedInCamp();
                 document.getElementById('btn-craft-bed').innerText = '🛏️ Bed (SOLD OUT)';
                 document.getElementById('btn-craft-bed').disabled = true;
+                document.getElementById('multiplier-text').innerText = `${dayMultiplier}x`;
                 showDialogue("🛏️ Bed Crafted & Spawned at Camp! Walk up to sleep and skip the night!"); playTone(450, 'triangle', 0.2);
             } else if (type === 'crockpot' && scrap >= 6 && wood >= 4 && !hasCrockpot) {
                 scrap -= 6; wood -= 4; hasCrockpot = true;
@@ -656,6 +735,12 @@
             } else if (type === 'biofuel' && berries >= 4 && scrap >= 2) {
                 berries -= 4; scrap -= 2; fireFuel = Math.min(100, fireFuel + 50);
                 showDialogue("🧪 Crafted Biofuel (+50% Fire Fuel)!"); playTone(650, 'sine', 0.25);
+            } else if (type === 'sentry' && scrap >= 10 && wood >= 6 && !hasSentry) {
+                scrap -= 10; wood -= 6; hasSentry = true;
+                spawnSentryTurretInCamp();
+                document.getElementById('btn-craft-sentry').innerText = '🛡️ Turret (SOLD OUT)';
+                document.getElementById('btn-craft-sentry').disabled = true;
+                showDialogue("🛡️ Base Sentry Turret Crafted! Defends camp automatically!"); playTone(700, 'triangle', 0.3);
             }
             updateInventoryUI(); toggleCrafting(false);
         }
@@ -783,6 +868,42 @@
             document.getElementById('keys-count').innerText = caveKeys;
         }
 
+        function updateMinimap() {
+            const canvas = document.getElementById('minimap-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Radar background & grid
+            ctx.fillStyle = "#09101d";
+            ctx.beginPath(); ctx.arc(42.5, 42.5, 40, 0, Math.PI * 2); ctx.fill();
+
+            // Campfire Center
+            ctx.fillStyle = "#facc15";
+            ctx.beginPath(); ctx.arc(42.5, 42.5, 3.5, 0, Math.PI * 2); ctx.fill();
+
+            // Player position
+            const px = 42.5 + (player.x / 200) * 40;
+            const pz = 42.5 + (player.z / 200) * 40;
+            ctx.fillStyle = "#00f3ff";
+            ctx.beginPath(); ctx.arc(px, pz, 3, 0, Math.PI * 2); ctx.fill();
+
+            // Caves
+            caves.forEach(c => {
+                const cx = 42.5 + (c.x / 200) * 40;
+                const cz = 42.5 + (c.z / 200) * 40;
+                ctx.fillStyle = "#94a3b8";
+                ctx.fillRect(cx - 2, cz - 2, 4, 4);
+            });
+
+            // The Deer Radar Ping
+            if (deerRig && deerRig.root.visible) {
+                const dx = 42.5 + (deerRig.root.position.x / 200) * 40;
+                const dz = 42.5 + (deerRig.root.position.z / 200) * 40;
+                ctx.fillStyle = "#ff007f";
+                ctx.beginPath(); ctx.arc(dx, dz, 3.5, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+
         function updateEnvironment() {
             cycleTimer += 0.03;
             const progress = (cycleTimer / TOTAL_CYCLE);
@@ -821,6 +942,7 @@
                 if (!deerRig.root.visible) {
                     deerRig.root.position.set(player.x + 35, 0, player.z + 35);
                     deerRig.root.visible = true;
+                    playDeerRoar();
                 }
             } else {
                 cycleTimer = 0; night++; addCoins(20);
@@ -900,6 +1022,7 @@
 
             updateEnvironment();
             updateDeer();
+            updateMinimap();
 
             animals.forEach(a => {
                 if (a.alive && a.root.position.distanceTo(playerRig.root.position) < 18) {
@@ -909,6 +1032,13 @@
                     if (a.root.position.distanceTo(playerRig.root.position) < 2.2) hp -= 0.3;
                 }
             });
+
+            if (hasSentry && sentryTurretMesh && deerRig.root.visible) {
+                sentryTurretMesh.lookAt(deerRig.root.position);
+                if (sentryTurretMesh.position.distanceTo(deerRig.root.position) < 30) {
+                    deerRig.root.translateZ(-0.3);
+                }
+            }
         }
 
         function animate() {
