@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>99 Nights in the Forest 3D</title>
+    <script src="arcade.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; user-select: none; }
+        
+        header { width: 100%; max-width: 900px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 10px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 8px; box-sizing: border-box; }
+        .stats { font-size: 1.1rem; font-weight: bold; color: #facc15; }
+        a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
+        
+        #game-container { width: 100%; max-width: 900px; height: 500px; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); position: relative; overflow: hidden; }
+        canvas { width: 100% !important; height: 100% !important; display: block; }
+        
+        /* 3D HUD Overlay */
+        .hud-overlay { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; pointer-events: none; }
+        .hud-box { background: rgba(15, 23, 42, 0.85); border: 2px solid var(--primary); border-radius: 8px; padding: 8px 14px; text-align: left; font-size: 0.9rem; }
+        .hud-bar { height: 10px; width: 100px; background: #334155; border-radius: 5px; overflow: hidden; margin-top: 3px; }
+        .hud-fill { height: 100%; width: 100%; transition: width 0.2s; }
+        
+        #action-prompt { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.9); color: #000; font-weight: bold; padding: 8px 18px; border-radius: 20px; font-size: 1rem; display: none; }
+        
+        .controls-info { margin-top: 10px; font-size: 0.85rem; color: #94a3b8; max-width: 900px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="nav">← Hub</a>
+        <div>🌙 Night: <span id="night-count" style="color:var(--accent); font-size: 1.2rem; font-weight: bold;">0</span> / 99</div>
+        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
+    </header>
+
+    <div id="game-container">
+        <div class="hud-overlay">
+            <div class="hud-box">
+                <div>❤️ Health <div class="hud-bar"><div id="hp-fill" class="hud-fill" style="background:#ef4444;"></div></div></div>
+                <div style="margin-top:5px;">🍖 Hunger <div class="hud-bar"><div id="food-fill" class="hud-fill" style="background:#facc15;"></div></div></div>
+            </div>
+            <div class="hud-box">
+                <div>🔥 Fire Fuel: <span id="fuel-text" style="color:#fb923c;">100%</span></div>
+                <div>🪵 Wood: <span id="wood-text" style="color:#a3e635;">0</span> | 🥩 Food: <span id="meat-text" style="color:#f43f5e;">0</span></div>
+                <div>👶 Rescued: <span id="kid-text" style="color:#38bdf8;">0</span></div>
+            </div>
+            <div class="hud-box" style="text-align: right;">
+                <div id="cycle-text" style="color:#facc15; font-weight:bold;">☀️ DAY TIME</div>
+                <div id="cycle-timer" style="color:#94a3b8; font-size:0.8rem;">Night in: 25s</div>
+            </div>
+        </div>
+
+        <div id="action-prompt">Press [E] or [SPACE] to Interact</div>
+    </div>
+
+    <div class="controls-info">
+        <strong>Controls:</strong> WASD / Arrows to Move & Turn | <strong>E / SPACE</strong> to Chop Trees, Hunt, Rescue Child & Feed Campfire | <strong>F</strong> to Eat Food
+    </div>
+
+    <script>
+        let scene, camera, renderer, playerGroup, campfireLight;
+        let gameActive = true;
+        
+        // Game State
+        let night = 0;
+        let timeOfDay = 0; // 0 to 60 (0-35 Day, 35-40 Dusk, 40-60 Night)
+        let hp = 100, hunger = 100, wood = 0, meat = 2, fireFuel = 100, rescuedKids = 0;
+        
+        const keys = { w: false, s: false, a: false, d: false, interact: false };
+        const player = { x: 0, z: 12, rot: 0, speed: 0.35, isNearCabin: false };
+
+        // World Entities
+        let trees = [];
+        let deers = [];
+        let wolves = [];
+        let bears = [];
+        let lostKid = null;
+        let campfirePos = new THREE.Vector3(0, 0.5, 0);
+
+        function updateWallet() {
+            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            document.getElementById('coin-count').innerText = coins.toLocaleString();
+        }
+
+        function addCoins(amount) {
+            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            localStorage.setItem('arcade_coins', coins + amount);
+            updateWallet();
+        }
+
+        window.addEventListener("keydown", e => {
+            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD","Space","KeyE","KeyF"].includes(e.code)) {
+                e.preventDefault();
+            }
+            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.w = true;
+            if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.s = true;
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.a = true;
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.d = true;
+            
+            if (e.key === "e" || e.key === "E" || e.key === " " || e.code === "Space") handleInteraction();
+            if (e.key === "f" || e.key === "F") eatFood();
+        }, { passive: false });
+
+        window.addEventListener("keyup", e => {
+            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.w = false;
+            if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.s = false;
+            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.a = false;
+            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.d = false;
+        });
+
+        function init3D() {
+            const container = document.getElementById("game-container");
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1e3a1e);
+            scene.fog = new THREE.FogExp2(0x1e3a1e, 0.02);
+
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // Sunlight / Moonlight
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x224422, 0.6);
+            scene.add(hemiLight);
+
+            sunLight = new THREE.DirectionalLight(0xfffaed, 0.8);
+            sunLight.position.set(50, 100, 50);
+            sunLight.castShadow = true;
+            scene.add(sunLight);
+
+            // Ground Terrain
+            const groundGeo = new THREE.PlaneGeometry(300, 300, 32, 32);
+            const groundMat = new THREE.MeshLambertMaterial({ color: 0x244422 });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            buildCabinAndCampfire();
+            buildPlayer();
+            spawnForest();
+            spawnWildlife();
+            spawnKid();
+        }
+
+        function buildCabinAndCampfire() {
+            // Wooden Cabin
+            const cabinGeo = new THREE.BoxGeometry(10, 6, 10);
+            const cabinMat = new THREE.MeshLambertMaterial({ color: 0x5c3a21 });
+            const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+            cabin.position.set(0, 3, -10);
+            cabin.castShadow = true;
+            scene.add(cabin);
+
+            // Roof
+            const roofGeo = new THREE.ConeGeometry(8, 4, 4);
+            const roofMat = new THREE.MeshLambertMaterial({ color: 0x3e2716 });
+            const roof = new THREE.Mesh(roofGeo, roofMat);
+            roof.position.set(0, 8, -10);
+            roof.rotation.y = Math.PI / 4;
+            scene.add(roof);
+
+            // Campfire Pit
+            const firePitGeo = new THREE.CylinderGeometry(1.5, 1.8, 0.4, 8);
+            const firePitMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+            const pit = new THREE.Mesh(firePitGeo, firePitMat);
+            pit.position.set(0, 0.2, 0);
+            scene.add(pit);
+
+            // Campfire Light & Flame
+            campfireLight = new THREE.PointLight(0xff7700, 2, 25);
+            campfireLight.position.set(0, 1.5, 0);
+            scene.add(campfireLight);
+        }
+
+        function buildPlayer() {
+            playerGroup = new THREE.Group();
+            
+            // Body
+            const bodyGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.8, 8);
+            const bodyMat = new THREE.MeshLambertMaterial({ color: 0x00f3ff });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.9;
+            playerGroup.add(body);
+
+            // Head
+            const headGeo = new THREE.SphereGeometry(0.4, 8, 8);
+            const headMat = new THREE.MeshLambertMaterial({ color: 0xffdbac });
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.y = 2.1;
+            playerGroup.add(head);
+
+            playerGroup.position.set(player.x, 0, player.z);
+            scene.add(playerGroup);
+        }
+
+        function spawnForest() {
+            for (let i = 0; i < 60; i++) {
+                let x = (Math.random() - 0.5) * 220;
+                let z = (Math.random() - 0.5) * 220;
+                if (Math.hypot(x, z) < 16) continue; // Keep clearing near cabin
+
+                const treeGroup = new THREE.Group();
+                const trunkGeo = new THREE.CylinderGeometry(0.4, 0.6, 4, 6);
+                const trunkMat = new THREE.MeshLambertMaterial({ color: 0x4a2e18 });
+                const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                trunk.position.y = 2;
+                treeGroup.add(trunk);
+
+                const foliageGeo = new THREE.ConeGeometry(2.5, 6, 6);
+                const foliageMat = new THREE.MeshLambertMaterial({ color: 0x14532d });
+                const foliage = new THREE.Mesh(foliageGeo, foliageMat);
+                foliage.position.y = 5.5;
+                treeGroup.add(foliage);
+
+                treeGroup.position.set(x, 0, z);
+                scene.add(treeGroup);
+                trees.push({ mesh: treeGroup, x, z, health: 3 });
+            }
+        }
+
+        function spawnWildlife() {
+            // Deer (Prey)
+            for (let i = 0; i < 4; i++) {
+                const deerMat = new THREE.MeshLambertMaterial({ color: 0xc27c38 });
+                const deerMesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 2), deerMat);
+                deerMesh.position.set((Math.random()-0.5)*120, 0.6, (Math.random()-0.5)*120);
+                scene.add(deerMesh);
+                deers.push({ mesh: deerMesh, hp: 2 });
+            }
+        }
+
+        function spawnNightPredators() {
+            // Wolves
+            for (let i = 0; i < 2 + Math.floor(night / 3); i++) {
+                const wolfMat = new THREE.MeshLambertMaterial({ color: 0x64748b });
+                const wolfMesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1, 2.2), wolfMat);
+                wolfMesh.position.set((Math.random()-0.5)*180, 0.5, (Math.random()-0.5)*180);
+                scene.add(wolfMesh);
+                wolves.push({ mesh: wolfMesh, hp: 3, speed: 0.18 });
+            }
+
+            // Big Bear (Every 3rd night)
+            if (night >= 3 && bears.length === 0) {
+                const bearMat = new THREE.MeshLambertMaterial({ color: 0x271810 });
+                const bearMesh = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.2, 3.8), bearMat);
+                bearMesh.position.set(70, 1.1, -70);
+                scene.add(bearMesh);
+                bears.push({ mesh: bearMesh, hp: 8, speed: 0.12 });
+            }
+        }
+
+        function spawnKid() {
+            if (lostKid) return;
+            const kidMat = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
+            const kidMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.2, 6), kidMat);
+            const kX = (Math.random() > 0.5 ? 1 : -1) * (50 + Math.random() * 40);
+            const kZ = (Math.random() > 0.5 ? 1 : -1) * (50 + Math.random() * 40);
+            kidMesh.position.set(kX, 0.6, kZ);
+            scene.add(kidMesh);
+            lostKid = { mesh: kidMesh, x: kX, z: kZ, rescued: false };
+        }
+
+        function handleInteraction() {
+            const pVec = new THREE.Vector2(player.x, player.z);
+
+            // 1. Feed Campfire
+            if (pVec.distanceTo(new THREE.Vector2(0, 0)) < 4) {
+                if (wood > 0) {
+                    wood--;
+                    fireFuel = Math.min(100, fireFuel + 25);
+                    document.getElementById("wood-text").innerText = wood;
+                    return;
+                }
+            }
+
+            // 2. Rescue Kid
+            if (lostKid && !lostKid.rescued && pVec.distanceTo(new THREE.Vector2(lostKid.x, lostKid.z)) < 4) {
+                lostKid.rescued = true;
+                scene.remove(lostKid.mesh);
+                rescuedKids++;
+                addCoins(15);
+                document.getElementById("kid-text").innerText = rescuedKids;
+                setTimeout(spawnKid, 30000); // New lost kid appears later
+                return;
+            }
+
+            // 3. Chop Trees
+            for (let i = 0; i < trees.length; i++) {
+                let t = trees[i];
+                if (pVec.distanceTo(new THREE.Vector2(t.x, t.z)) < 3.5) {
+                    t.health--;
+                    if (t.health <= 0) {
+                        scene.remove(t.mesh);
+                        trees.splice(i, 1);
+                        wood += 3;
+                        addCoins(1);
+                        document.getElementById("wood-text").innerText = wood;
+                    }
+                    return;
+                }
+            }
+
+            // 4. Hunt Deer
+            for (let i = 0; i < deers.length; i++) {
+                let d = deers[i];
+                if (pVec.distanceTo(new THREE.Vector2(d.mesh.position.x, d.mesh.position.z)) < 3.5) {
+                    d.hp--;
+                    if (d.hp <= 0) {
+                        scene.remove(d.mesh);
+                        deers.splice(i, 1);
+                        meat += 2;
+                        document.getElementById("meat-text").innerText = meat;
+                    }
+                    return;
+                }
+            }
+
+            // 5. Attack Wolves / Bears
+            wolves.forEach((w, idx) => {
+                if (pVec.distanceTo(new THREE.Vector2(w.mesh.position.x, w.mesh.position.z)) < 3.5) {
+                    w.hp--;
+                    if (w.hp <= 0) { scene.remove(w.mesh); wolves.splice(idx, 1); meat += 1; addCoins(2); }
+                }
+            });
+        }
+
+        function eatFood() {
+            if (meat > 0 && hunger < 100) {
+                meat--;
+                hunger = Math.min(100, hunger + 30);
+                hp = Math.min(100, hp + 15);
+                document.getElementById("meat-text").innerText = meat;
+            }
+        }
+
+        function updateEnvironment() {
+            timeOfDay += 0.05;
+            let cycleText = document.getElementById("cycle-text");
+            let cycleTimer = document.getElementById("cycle-timer");
+
+            // Day / Night Transitions
+            if (timeOfDay < 35) {
+                cycleText.innerText = "☀️ DAY TIME";
+                cycleText.style.color = "#facc15";
+                cycleTimer.innerText = `Night in: ${Math.round(35 - timeOfDay)}s`;
+                scene.background.setHex(0x1e3a1e);
+                scene.fog.color.setHex(0x1e3a1e);
+                sunLight.intensity = 0.8;
+            } else if (timeOfDay < 40) {
+                cycleText.innerText = "🌅 DUSK (Return to Camp!)";
+                cycleText.style.color = "#fb923c";
+                cycleTimer.innerText = `Night in: ${Math.round(40 - timeOfDay)}s`;
+                scene.background.setHex(0x381e11);
+                scene.fog.color.setHex(0x381e11);
+                sunLight.intensity = 0.3;
+            } else if (timeOfDay < 70) {
+                cycleText.innerText = "🐺 NIGHT TIME (Stay Near Fire!)";
+                cycleText.style.color = "#ff007f";
+                cycleTimer.innerText = `Dawn in: ${Math.round(70 - timeOfDay)}s`;
+                scene.background.setHex(0x050b14);
+                scene.fog.color.setHex(0x050b14);
+                sunLight.intensity = 0.05;
+
+                if (wolves.length === 0 && bears.length === 0) spawnNightPredators();
+            } else {
+                // Survived a full Night!
+                timeOfDay = 0;
+                night++;
+                addCoins(10);
+                document.getElementById("night-count").innerText = night;
+                
+                // Clear night monsters
+                wolves.forEach(w => scene.remove(w.mesh));
+                bears.forEach(b => scene.remove(b.mesh));
+                wolves = []; bears = [];
+
+                if (night >= 99) {
+                    gameActive = false;
+                    alert("🎉 CONGRATULATIONS! You survived all 99 Nights in the Forest!");
+                }
+            }
+
+            // Burn Campfire
+            if (fireFuel > 0) fireFuel -= 0.03;
+            campfireLight.intensity = (fireFuel / 100) * 2.5;
+            document.getElementById("fuel-text").innerText = `${Math.round(fireFuel)}%`;
+
+            // Hunger & Freezing tick
+            hunger -= 0.02;
+            if (hunger <= 0) { hunger = 0; hp -= 0.05; }
+
+            const distToFire = Math.hypot(player.x, player.z);
+            if (timeOfDay >= 40 && distToFire > 12 && fireFuel <= 0) {
+                hp -= 0.08; // Freezing in dark forest
+            }
+
+            document.getElementById("hp-fill").style.width = `${Math.max(0, hp)}%`;
+            document.getElementById("food-fill").style.width = `${Math.max(0, hunger)}%`;
+
+            if (hp <= 0 && gameActive) {
+                gameActive = false;
+                alert(`💀 You died in the forest on Night ${night}. Restart to try again!`);
+                location.reload();
+            }
+        }
+
+        function updatePredatorsAndPrey() {
+            const pPos = new THREE.Vector3(player.x, 0, player.z);
+            const distToFire = Math.hypot(player.x, player.z);
+
+            // Wolves AI
+            wolves.forEach(w => {
+                let dist = w.mesh.position.distanceTo(pPos);
+                // Fire repels wolves
+                if (distToFire < 8 && fireFuel > 10) {
+                    w.mesh.position.x += (w.mesh.position.x - 0) * 0.01;
+                    w.mesh.position.z += (w.mesh.position.z - 0) * 0.01;
+                } else if (dist < 35) {
+                    w.mesh.lookAt(pPos);
+                    w.mesh.translateZ(w.speed);
+                    if (dist < 1.8) hp -= 0.3; // Attack player
+                }
+            });
+
+            // Bears AI
+            bears.forEach(b => {
+                let dist = b.mesh.position.distanceTo(pPos);
+                if (dist < 40) {
+                    b.mesh.lookAt(pPos);
+                    b.mesh.translateZ(b.speed);
+                    if (dist < 2.5) hp -= 0.6; // Heavy bear attack
+                }
+            });
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            // Player Movement & Rotation
+            if (keys.a) player.rot += 0.04;
+            if (keys.d) player.rot -= 0.04;
+
+            if (keys.w) {
+                player.x -= Math.sin(player.rot) * player.speed;
+                player.z -= Math.cos(player.rot) * player.speed;
+            }
+            if (keys.s) {
+                player.x += Math.sin(player.rot) * (player.speed * 0.6);
+                player.z += Math.cos(player.rot) * (player.speed * 0.6);
+            }
+
+            playerGroup.position.set(player.x, 0, player.z);
+            playerGroup.rotation.y = player.rot;
+
+            // Third Person Camera Follow
+            camera.position.x = player.x + Math.sin(player.rot) * 9;
+            camera.position.y = 5.5;
+            camera.position.z = player.z + Math.cos(player.rot) * 9;
+            camera.lookAt(player.x, 1.8, player.z);
+
+            // Action Prompt detection
+            const pVec = new THREE.Vector2(player.x, player.z);
+            let prompt = document.getElementById("action-prompt");
+            let nearInteractable = false;
+
+            if (pVec.distanceTo(new THREE.Vector2(0, 0)) < 4 && wood > 0) nearInteractable = true;
+            if (lostKid && !lostKid.rescued && pVec.distanceTo(new THREE.Vector2(lostKid.x, lostKid.z)) < 4) nearInteractable = true;
+            for (let t of trees) { if (pVec.distanceTo(new THREE.Vector2(t.x, t.z)) < 3.5) nearInteractable = true; }
+            for (let d of deers) { if (pVec.distanceTo(new THREE.Vector2(d.mesh.position.x, d.mesh.position.z)) < 3.5) nearInteractable = true; }
+
+            prompt.style.display = nearInteractable ? "block" : "none";
+
+            updateEnvironment();
+            updatePredatorsAndPrey();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            update();
+            renderer.render(scene, camera);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            init3D();
+            updateWallet();
+            animate();
+        });
+    </script>
+</body>
+</html>
