@@ -3,114 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>99 Nights in the Forest - 3D Caves & Beasts Edition</title>
+    <title>99 Nights in the Forest - V2</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         :root { --primary: #00f3ff; --accent: #ff007f; --gold: #facc15; --bg: #050811; --card: #0e1626; }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 6px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; user-select: none; }
-        
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, sans-serif; text-align: center; margin: 0; padding: 6px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; user-select: none; }
         header { width: 100%; max-width: 1080px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 6px; box-sizing: border-box; }
         .stats { font-size: 1.1rem; font-weight: bold; color: var(--gold); }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
-        
         #game-wrapper { width: 100%; max-width: 1080px; height: 580px; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 35px rgba(0, 243, 255, 0.25); position: relative; overflow: hidden; background: #000; }
         canvas { width: 100% !important; height: 100% !important; display: block; }
-        
         .hud-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; pointer-events: none; }
-        .hud-panel { background: rgba(14, 22, 38, 0.88); border: 1.5px solid rgba(0, 243, 255, 0.4); border-radius: 10px; padding: 8px 14px; text-align: left; font-size: 0.85rem; backdrop-filter: blur(6px); box-shadow: 0 4px 20px rgba(0,0,0,0.6); pointer-events: auto; }
-        
+        .hud-panel { background: rgba(14, 22, 38, 0.88); border: 1.5px solid rgba(0, 243, 255, 0.4); border-radius: 10px; padding: 8px 14px; text-align: left; font-size: 0.85rem; backdrop-filter: blur(6px); pointer-events: auto; }
         .hud-bar { height: 9px; width: 110px; background: #1e293b; border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); margin-top: 4px; }
         .hud-fill { height: 100%; width: 100%; transition: width 0.2s ease-out; }
-        
         .sundial-box { display: flex; align-items: center; gap: 10px; }
         .sundial-disc { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--gold); background: conic-gradient(#facc15 0% 68%, #1e1b4b 68% 100%); position: relative; }
         .sundial-hand { width: 2px; height: 16px; background: #fff; position: absolute; top: 3px; left: 18px; transform-origin: bottom center; }
-        
         .hud-bottom { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; }
         .slot { background: rgba(14, 22, 38, 0.9); border: 2px solid #334155; border-radius: 8px; padding: 6px 12px; min-width: 50px; text-align: center; font-size: 0.8rem; }
         .slot-val { font-weight: bold; color: var(--gold); font-size: 1rem; }
-        
-        #action-prompt { position: absolute; bottom: 78px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.95); color: #000; font-weight: bold; padding: 8px 22px; border-radius: 20px; font-size: 0.95rem; display: none; box-shadow: 0 0 20px #00f3ff; pointer-events: none; }
-        #dialogue-box { position: absolute; top: 75px; left: 50%; transform: translateX(-50%); background: rgba(14, 22, 38, 0.95); border: 2px solid var(--gold); color: #fff; padding: 10px 22px; border-radius: 10px; font-size: 0.95rem; max-width: 650px; display: none; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-        
+        #action-prompt { position: absolute; bottom: 78px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.95); color: #000; font-weight: bold; padding: 8px 22px; border-radius: 20px; font-size: 0.95rem; display: none; pointer-events: none; }
+        #dialogue-box { position: absolute; top: 75px; left: 50%; transform: translateX(-50%); background: rgba(14, 22, 38, 0.95); border: 2px solid var(--gold); color: #fff; padding: 10px 22px; border-radius: 10px; font-size: 0.95rem; max-width: 650px; display: none; }
         .modal { position: absolute; inset: 0; background: rgba(5, 8, 17, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
-        .modal-card { background: var(--card); border: 2px solid var(--primary); border-radius: 12px; padding: 22px; max-width: 620px; width: 90%; text-align: left; box-shadow: 0 0 30px rgba(0,243,255,0.2); }
+        .modal-card { background: var(--card); border: 2px solid var(--primary); border-radius: 12px; padding: 22px; max-width: 620px; width: 90%; text-align: left; }
         .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 15px; }
         .btn { background: var(--primary); color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 8px; cursor: pointer; text-align: center; }
-        .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--primary); }
-        
+        .btn:hover { filter: brightness(1.2); }
         .controls-info { margin-top: 6px; font-size: 0.82rem; color: #94a3b8; max-width: 1080px; }
     </style>
 </head>
 <body>
-
     <header>
         <a href="index.html" class="nav">← Hub</a>
-        <div>🌲 <strong>99 NIGHTS IN THE FOREST</strong> | Night: <span id="night-count" style="color:var(--accent); font-size:1.2rem; font-weight:bold;">0</span> / 99</div>
+        <div>🌲 <strong>99 NIGHTS</strong> | Night: <span id="night-count" style="color:var(--accent); font-size:1.2rem; font-weight:bold;">0</span>/99</div>
         <div class="stats">🪙 Gold: <span id="coin-count">0</span></div>
     </header>
-
     <div id="game-wrapper">
-        <!-- Class Selector -->
         <div id="class-modal" class="modal">
             <div class="modal-card" style="text-align: center;">
                 <h2 style="color:var(--primary); margin-top:0;">CHOOSE YOUR SURVIVOR CLASS</h2>
-                <p style="color:#94a3b8; font-size:0.9rem;">Select your loadout before exploring the deep forest caves:</p>
                 <div class="btn-grid">
-                    <button class="btn" onclick="selectClass('Lumberjack')">🪓 Lumberjack<br><small>2x Wood Chopping</small></button>
-                    <button class="btn" onclick="selectClass('Hunter')">🏹 Hunter<br><small>+50% Damage & Meats</small></button>
-                    <button class="btn" onclick="selectClass('Scout')">🔦 Scout<br><small>+25% Speed & Night Light</small></button>
+                    <button class="btn" onclick="selectClass('Lumberjack')">🪓 Lumberjack</button>
+                    <button class="btn" onclick="selectClass('Hunter')">🏹 Hunter</button>
+                    <button class="btn" onclick="selectClass('Scout')">🔦 Scout</button>
                 </div>
             </div>
         </div>
-
-        <!-- Crafting Menu -->
         <div id="craft-modal" class="modal" style="display: none;">
             <div class="modal-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between;">
                     <h3 style="margin:0; color:var(--primary);">🛠️ CRAFTING BENCH</h3>
                     <button class="btn" style="padding:4px 10px;" onclick="toggleCrafting(false)">✕ Close</button>
                 </div>
                 <div class="btn-grid" style="margin-top:15px;">
-                    <button class="btn" onclick="craftItem('spear')">🗡️ Spear<br><small>3 Wood, 2 Scrap</small></button>
-                    <button class="btn" onclick="craftItem('bed')">🛏️ Bed (Skip Night)<br><small>8 Wood, 4 Scrap</small></button>
-                    <button class="btn" onclick="craftItem('crockpot')">🍲 Crockpot<br><small>6 Scrap, 4 Wood</small></button>
-                    <button class="btn" onclick="craftItem('biofuel')">🧪 Biofuel (Fuel+50%)<br><small>4 Berries, 2 Scrap</small></button>
+                    <button class="btn" onclick="craftItem('spear')">🗡️ Spear (3W, 2S)</button>
+                    <button class="btn" onclick="craftItem('bed')">🛏️ Bed (8W, 4S)</button>
+                    <button class="btn" onclick="craftItem('crockpot')">🍲 Crockpot (6S, 4W)</button>
                 </div>
             </div>
         </div>
-
-        <!-- HUD Top -->
         <div class="hud-top">
             <div class="hud-panel">
-                <div>❤️ Health <div class="hud-bar"><div id="hp-fill" class="hud-fill" style="background:#ef4444;"></div></div></div>
-                <div style="margin-top:5px;">🍖 Hunger <div class="hud-bar"><div id="food-fill" class="hud-fill" style="background:#facc15;"></div></div></div>
-                <div style="margin-top:5px;">⚡ Stamina <div class="hud-bar"><div id="stam-fill" class="hud-fill" style="background:#00f3ff;"></div></div></div>
+                <div>❤️ HP <div class="hud-bar"><div id="hp-fill" class="hud-fill" style="background:#ef4444;"></div></div></div>
+                <div style="margin-top:5px;">🍖 Food <div class="hud-bar"><div id="food-fill" class="hud-fill" style="background:#facc15;"></div></div></div>
+                <div style="margin-top:5px;">⚡ Stam <div class="hud-bar"><div id="stam-fill" class="hud-fill" style="background:#00f3ff;"></div></div></div>
             </div>
-
             <div class="hud-panel" style="text-align: center;">
                 <div class="sundial-box">
                     <div class="sundial-disc"><div class="sundial-hand" id="sundial-hand"></div></div>
                     <div>
                         <div id="cycle-title" style="font-weight:bold; color:var(--gold);">☀️ DAY PHASE</div>
-                        <div id="cycle-timer" style="color:#94a3b8; font-size:0.8rem;">Night in: 2m 30s</div>
+                        <div id="cycle-timer" style="color:#94a3b8; font-size:0.8rem;">Night in: 5m 00s</div>
                     </div>
                 </div>
-                <div style="margin-top:4px; font-size:0.75rem; color:#38bdf8;">🔥 Fire Tier: <span id="fire-tier">1</span> (Safe Radius: <span id="safe-radius-text">18m</span>)</div>
+                <div style="margin-top:4px; font-size:0.75rem; color:#38bdf8;">🔥 Fire Tier: <span id="fire-tier">1</span> (Light: <span id="safe-radius-text">18m</span>)</div>
             </div>
-
             <div class="hud-panel" style="text-align: right;">
                 <div>🔥 Fuel: <span id="fuel-text" style="color:#fb923c; font-weight:bold;">100%</span></div>
-                <div>👶 Kids Rescued: <span id="kids-count" style="color:#38bdf8; font-weight:bold;">0/4</span></div>
-                <div>🔑 Cave Keys: <span id="keys-count" style="color:var(--gold); font-weight:bold;">0</span></div>
+                <div>👶 Kids: <span id="kids-count" style="color:#38bdf8; font-weight:bold;">0/4</span></div>
+                <div>🔑 Keys: <span id="keys-count" style="color:var(--gold); font-weight:bold;">0</span></div>
             </div>
         </div>
-
         <div id="dialogue-box"></div>
         <div id="action-prompt">Press [E] to Interact</div>
-
-        <!-- Hotbar -->
         <div class="hud-bottom">
             <div class="slot"><div class="slot-val" id="val-wood">0</div>🪵 Wood</div>
             <div class="slot"><div class="slot-val" id="val-scrap">0</div>⚙️ Scrap</div>
@@ -120,10 +97,7 @@
             <div class="slot"><div class="slot-val" id="val-stew">0</div>🍲 Stew</div>
         </div>
     </div>
-
-    <div class="controls-info">
-        <strong>WASD:</strong> Move | <strong>Shift:</strong> Sprint | <strong>E / Space:</strong> Attack / Chop / Unlock / Open Chest | <strong>F:</strong> Eat | <strong>B:</strong> Crafting | <strong>L:</strong> Flashlight
-    </div>
+    <div class="controls-info"><strong>WASD:</strong> Move | <strong>Shift:</strong> Sprint | <strong>E:</strong> Attack / Interact | <strong>F:</strong> Eat | <strong>B:</strong> Crafting | <strong>L:</strong> Flashlight</div>
 
     <script>
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -140,46 +114,27 @@
         }
 
         let scene, camera, renderer, campfireLight, sunLight, moonLight, hemiLight, flashlight;
-        let playerRig, deerRig, lightBarrierRing, campfireEmbers;
+        let playerRig, deerRig, lightBarrierRing;
         let gameActive = false;
-
-        let playerClass = "Lumberjack";
-        let night = 0, dayMultiplier = 1;
-        let hp = 100, hunger = 100, stamina = 100;
-        let fireFuel = 100, fireTier = 1, safeRadius = 18;
-
-        let wood = 0, scrap = 0, berries = 2, meat = 1, pelts = 0, stews = 0, gold = 0;
-        let caveKeys = 0;
-        let hasSpear = false, hasBed = false, hasCrockpot = false, hasFlashlight = false;
-        let isFlashlightOn = false;
-
+        let playerClass = "Lumberjack", night = 0, hp = 100, hunger = 100, stamina = 100, fireFuel = 100, fireTier = 1, safeRadius = 18;
+        let wood = 0, scrap = 0, berries = 2, meat = 1, pelts = 0, stews = 0, gold = 0, caveKeys = 0;
+        let hasSpear = false, hasBed = false, hasCrockpot = false, hasFlashlight = false, isFlashlightOn = false;
+        
+        // Slower cycle times
         let cycleTimer = 0;
-        const DAY_LEN = 150, DUSK_LEN = 20, NIGHT_LEN = 50;
-        const TOTAL_CYCLE = DAY_LEN + DUSK_LEN + NIGHT_LEN;
+        const DAY_LEN = 300, DUSK_LEN = 30, NIGHT_LEN = 120, TOTAL_CYCLE = DAY_LEN + DUSK_LEN + NIGHT_LEN;
 
         const player = { x: 0, z: 8, rot: 0, baseSpeed: 0.28, sprintSpeed: 0.44 };
-        const keys = { w: false, s: false, a: false, d: false, shift: false };
-        let walkClock = 0;
+        const keys = { w: false, s: false, a: false, d: false, shift: false, e: false };
+        let walkClock = 0, attackTimer = 0;
 
-        let trees = [];
-        let scrapPiles = [];
-        let berryBushes = [];
-        let animals = [];
-        let missingKids = [];
-        let caves = [];
-        let chests = [];
-        let droppedKeys = [];
+        let trees = [], scrapPiles = [], animals = [], missingKids = [], caves = [], droppedKeys = [];
 
         function updateWallet() {
             gold = parseInt(localStorage.getItem('arcade_coins')) || 0;
             document.getElementById('coin-count').innerText = gold.toLocaleString();
         }
-
-        function addCoins(amt) {
-            gold += amt;
-            localStorage.setItem('arcade_coins', gold);
-            updateWallet();
-        }
+        function addCoins(amt) { gold += amt; localStorage.setItem('arcade_coins', gold); updateWallet(); }
 
         function selectClass(className) {
             playerClass = className;
@@ -187,270 +142,209 @@
             if (className === 'Hunter') hasSpear = true;
             document.getElementById('class-modal').style.display = 'none';
             gameActive = true;
-            init3D();
-            updateWallet();
-            animate();
-            showDialogue(`🌲 Welcome, ${className}! Slay Key-Guardians, unlock the caves, and rescue the kids!`);
+            init3D(); updateWallet(); animate();
         }
 
         window.addEventListener("keydown", e => {
-            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD","Space","KeyE","KeyF","KeyB","KeyL","ShiftLeft","ShiftRight"].includes(e.code)) {
-                e.preventDefault();
-            }
-            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.w = true;
-            if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.s = true;
-            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.a = true;
-            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.d = true;
+            if (["w","a","s","d","e","f","b","l","Shift"].includes(e.key) || e.code==="Space") e.preventDefault();
+            if (e.key === "w") keys.w = true; if (e.key === "s") keys.s = true;
+            if (e.key === "a") keys.a = true; if (e.key === "d") keys.d = true;
             if (e.key === "Shift") keys.shift = true;
-            if (e.key === "e" || e.key === "E" || e.key === " " || e.code === "Space") handleInteraction();
-            if (e.key === "f" || e.key === "F") eatBestFood();
-            if (e.key === "b" || e.key === "B") toggleCrafting();
-            if (e.key === "l" || e.key === "L") toggleFlashlight();
+            if (e.key === "e" || e.code === "Space") { keys.e = true; handleInteraction(); }
+            if (e.key === "f") eatBestFood(); if (e.key === "b") toggleCrafting();
+            if (e.key === "l") toggleFlashlight();
         }, { passive: false });
-
         window.addEventListener("keyup", e => {
-            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.w = false;
-            if (e.key === "s" || e.key === "S" || e.key === "ArrowDown") keys.s = false;
-            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.a = false;
-            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.d = false;
-            if (e.key === "Shift") keys.shift = false;
+            if (e.key === "w") keys.w = false; if (e.key === "s") keys.s = false;
+            if (e.key === "a") keys.a = false; if (e.key === "d") keys.d = false;
+            if (e.key === "Shift") keys.shift = false; if (e.key === "e" || e.code === "Space") keys.e = false;
         });
 
         function toggleCrafting(force) {
             const modal = document.getElementById("craft-modal");
             modal.style.display = force !== undefined ? (force ? 'flex' : 'none') : (modal.style.display === 'none' ? 'flex' : 'none');
         }
-
         function toggleFlashlight() {
-            if (!hasFlashlight) {
-                showDialogue("🔦 You don't have a flashlight! Trade pelts with the Pelt Trader or pick Scout class.");
-                return;
-            }
+            if (!hasFlashlight) return showDialogue("🔦 No flashlight equipped!");
             isFlashlightOn = !isFlashlightOn;
             flashlight.intensity = isFlashlightOn ? 4.2 : 0;
             playTone(800, 'sine', 0.05);
         }
 
-        function createGrassCanvas() {
-            const c = document.createElement('canvas');
-            c.width = 512; c.height = 512;
-            const ctx = c.getContext('2d');
-            ctx.fillStyle = '#1e3d1e';
-            ctx.fillRect(0, 0, 512, 512);
-            for (let i = 0; i < 5000; i++) {
-                ctx.fillStyle = Math.random() < 0.5 ? '#274e27' : '#173017';
-                ctx.fillRect(Math.random() * 512, Math.random() * 512, 3, 3);
-            }
-            return new THREE.CanvasTexture(c);
-        }
-
         function createArticulatedHumanoid(colors) {
             const root = new THREE.Group();
-            const torsoMat = new THREE.MeshStandardMaterial({ color: colors.shirt, roughness: 0.6 });
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.4, 0.8), torsoMat);
-            torso.position.y = 1.6; torso.castShadow = true; root.add(torso);
-
-            const skinMat = new THREE.MeshStandardMaterial({ color: colors.skin, roughness: 0.8 });
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.85, 0.85), skinMat);
-            head.position.y = 1.15; head.castShadow = true; torso.add(head);
-
+            const mat = new THREE.MeshStandardMaterial({ color: colors.shirt, roughness: 0.6 });
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.4, 0.8), mat);
+            torso.position.y = 1.6; root.add(torso);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.85, 0.85), new THREE.MeshStandardMaterial({ color: colors.skin, roughness: 0.8 }));
+            head.position.y = 1.15; torso.add(head);
+            
             const armMat = new THREE.MeshStandardMaterial({ color: colors.arms || colors.shirt, roughness: 0.6 });
-            const armPivotL = new THREE.Group();
-            armPivotL.position.set(-1.05, 0.6, 0);
-            const armMeshL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat);
-            armMeshL.position.y = -0.55; armMeshL.castShadow = true; armPivotL.add(armMeshL); torso.add(armPivotL);
-
-            const armPivotR = new THREE.Group();
-            armPivotR.position.set(1.05, 0.6, 0);
-            const armMeshR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat);
-            armMeshR.position.y = -0.55; armMeshR.castShadow = true; armPivotR.add(armMeshR); torso.add(armPivotR);
+            const armPivotL = new THREE.Group(); armPivotL.position.set(-1.05, 0.6, 0);
+            const armMeshL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat); armMeshL.position.y = -0.55; armPivotL.add(armMeshL); torso.add(armPivotL);
+            const armPivotR = new THREE.Group(); armPivotR.position.set(1.05, 0.6, 0);
+            const armMeshR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat); armMeshR.position.y = -0.55; armPivotR.add(armMeshR); torso.add(armPivotR);
 
             const pantsMat = new THREE.MeshStandardMaterial({ color: colors.pants, roughness: 0.7 });
-            const legPivotL = new THREE.Group();
-            legPivotL.position.set(-0.38, 0.9, 0);
-            const legMeshL = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.3, 0.65), pantsMat);
-            legMeshL.position.y = -0.55; legMeshL.castShadow = true; legPivotL.add(legMeshL); root.add(legPivotL);
-
-            const legPivotR = new THREE.Group();
-            legPivotR.position.set(0.38, 0.9, 0);
-            const legMeshR = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.3, 0.65), pantsMat);
-            legMeshR.position.y = -0.55; legMeshR.castShadow = true; legPivotR.add(legMeshR); root.add(legPivotR);
+            const legPivotL = new THREE.Group(); legPivotL.position.set(-0.38, 0.9, 0);
+            const legMeshL = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.3, 0.65), pantsMat); legMeshL.position.y = -0.55; legPivotL.add(legMeshL); root.add(legPivotL);
+            const legPivotR = new THREE.Group(); legPivotR.position.set(0.38, 0.9, 0);
+            const legMeshR = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.3, 0.65), pantsMat); legMeshR.position.y = -0.55; legPivotR.add(legMeshR); root.add(legPivotR);
 
             return {
-                root, torso, head, armL: armPivotL, armR: armPivotR, legL: legPivotL, legR: legPivotR,
-                updateAnim: function(isMoving, time) {
-                    if (isMoving) {
+                root, torso, armL: armPivotL, armR: armPivotR, legL: legPivotL, legR: legPivotR,
+                updateAnim: function(isMoving, time, isAttacking) {
+                    if (isAttacking) {
+                        this.armR.rotation.x = -Math.PI / 2 + Math.sin(time * 20) * 0.5; 
+                    } else if (isMoving) {
                         const angle = Math.sin(time * 8) * 0.6;
-                        this.legL.rotation.x = angle;
-                        this.legR.rotation.x = -angle;
-                        this.armL.rotation.x = -angle * 0.8;
-                        this.armR.rotation.x = angle * 0.8;
+                        this.legL.rotation.x = angle; this.legR.rotation.x = -angle;
+                        this.armL.rotation.x = -angle * 0.8; this.armR.rotation.x = angle * 0.8;
                         this.torso.position.y = 1.6 + Math.abs(Math.sin(time * 8)) * 0.08;
                     } else {
                         this.legL.rotation.x = 0; this.legR.rotation.x = 0;
-                        this.armL.rotation.x = 0; this.armR.rotation.x = 0;
-                        this.torso.position.y = 1.6;
+                        this.armL.rotation.x = 0; this.armR.rotation.x = 0; this.torso.position.y = 1.6;
                     }
                 }
             };
         }
 
-        // Realistic High-Detail Anatomical Quadruped Rig
         function createRealisticAnimal(cfg) {
             const root = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: cfg.color, roughness: 0.75 });
             const darkMat = new THREE.MeshStandardMaterial({ color: cfg.darkColor || 0x1e293b, roughness: 0.9 });
-
-            // Chest & Pelvis Body Segments
+            
             const chest = new THREE.Mesh(new THREE.BoxGeometry(cfg.bw, cfg.bh, cfg.bl * 0.6), mat);
-            chest.position.set(0, cfg.legH + cfg.bh / 2, cfg.bl * 0.2);
-            chest.castShadow = true;
-            root.add(chest);
-
+            chest.position.set(0, cfg.legH + cfg.bh / 2, cfg.bl * 0.2); root.add(chest);
             const pelvis = new THREE.Mesh(new THREE.BoxGeometry(cfg.bw * 0.85, cfg.bh * 0.9, cfg.bl * 0.5), mat);
-            pelvis.position.set(0, cfg.legH + cfg.bh * 0.45, -cfg.bl * 0.3);
-            pelvis.castShadow = true;
-            root.add(pelvis);
-
-            // Neck & Detailed Head
+            pelvis.position.set(0, cfg.legH + cfg.bh * 0.45, -cfg.bl * 0.3); root.add(pelvis);
+            
             const neck = new THREE.Mesh(new THREE.BoxGeometry(cfg.hw * 0.7, cfg.hh * 0.8, cfg.hl * 0.6), mat);
-            neck.position.set(0, (cfg.bh / 2) + 0.3, (cfg.bl * 0.3) + 0.2);
-            neck.rotation.x = -0.3;
-            chest.add(neck);
-
+            neck.position.set(0, (cfg.bh / 2) + 0.3, (cfg.bl * 0.3) + 0.2); neck.rotation.x = -0.3; chest.add(neck);
             const head = new THREE.Mesh(new THREE.BoxGeometry(cfg.hw, cfg.hh, cfg.hl), mat);
-            head.position.set(0, 0.4, 0.4);
-            head.castShadow = true;
-            neck.add(head);
+            head.position.set(0, 0.4, 0.4); neck.add(head);
 
-            // Snout / Muzzle
             if (cfg.snout) {
                 const snout = new THREE.Mesh(new THREE.BoxGeometry(cfg.hw * 0.6, cfg.hh * 0.45, cfg.hl * 0.8), darkMat);
-                snout.position.set(0, -cfg.hh * 0.15, cfg.hl * 0.75);
-                head.add(snout);
+                snout.position.set(0, -cfg.hh * 0.15, cfg.hl * 0.75); head.add(snout);
             }
-
-            // Ears
             if (cfg.ears) {
                 [-cfg.hw * 0.35, cfg.hw * 0.35].forEach(ex => {
                     const ear = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.4, 0.15), darkMat);
-                    ear.position.set(ex, cfg.hh * 0.55, -cfg.hl * 0.2);
-                    ear.rotation.x = -0.2;
-                    head.add(ear);
+                    ear.position.set(ex, cfg.hh * 0.55, -cfg.hl * 0.2); ear.rotation.x = -0.2; head.add(ear);
                 });
             }
 
-            // Tusks & Trunk for Mammoth
-            if (cfg.type === 'MAMMOTH') {
-                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.35, 2.0, 8), mat);
-                trunk.position.set(0, -0.6, 1.2); trunk.rotation.x = 0.4; head.add(trunk);
-
-                [-1.1, 1.1].forEach((tx, idx) => {
-                    const tusk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.2, 2.6, 8), new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.3 }));
-                    tusk.position.set(tx, -0.2, 1.3); tusk.rotation.x = -Math.PI / 3; tusk.rotation.z = (idx === 0 ? 0.3 : -0.3);
-                    head.add(tusk);
-                });
-            }
-
-            // 4 Articulated Leg Pivots
             const legs = [];
-            const offsets = [
-                [-cfg.bw / 2 + 0.2, cfg.bl * 0.25], // FL
-                [cfg.bw / 2 - 0.2, cfg.bl * 0.25],  // FR
-                [-cfg.bw * 0.4, -cfg.bl * 0.35],    // BL
-                [cfg.bw * 0.4, -cfg.bl * 0.35]     // BR
-            ];
-
+            const offsets = [[-cfg.bw/2+0.2, cfg.bl*0.25], [cfg.bw/2-0.2, cfg.bl*0.25], [-cfg.bw*0.4, -cfg.bl*0.35], [cfg.bw*0.4, -cfg.bl*0.35]];
             offsets.forEach(off => {
-                const lp = new THREE.Group();
-                lp.position.set(off[0], cfg.legH, off[1]);
-                const upperLeg = new THREE.Mesh(new THREE.BoxGeometry(cfg.legW, cfg.legH * 0.6, cfg.legW), mat);
-                upperLeg.position.y = -cfg.legH * 0.3; upperLeg.castShadow = true; lp.add(upperLeg);
-
-                const lowerLeg = new THREE.Mesh(new THREE.BoxGeometry(cfg.legW * 0.85, cfg.legH * 0.5, cfg.legW * 0.85), darkMat);
-                lowerLeg.position.y = -cfg.legH * 0.75; lowerLeg.castShadow = true; lp.add(lowerLeg);
-
-                root.add(lp);
-                legs.push(lp);
+                const lp = new THREE.Group(); lp.position.set(off[0], cfg.legH, off[1]);
+                const upperLeg = new THREE.Mesh(new THREE.BoxGeometry(cfg.legW, cfg.legH * 0.6, cfg.legW), mat); upperLeg.position.y = -cfg.legH * 0.3; lp.add(upperLeg);
+                const lowerLeg = new THREE.Mesh(new THREE.BoxGeometry(cfg.legW * 0.85, cfg.legH * 0.5, cfg.legW * 0.85), darkMat); lowerLeg.position.y = -cfg.legH * 0.75; lp.add(lowerLeg);
+                root.add(lp); legs.push(lp);
             });
-
-            root.position.set(cfg.x, 0, cfg.z);
-            scene.add(root);
-
+            
+            root.position.set(cfg.x, 0, cfg.z); scene.add(root);
             return {
-                root, chest, head, legs, type: cfg.type, hp: cfg.hp, maxHp: cfg.hp, speed: cfg.speed, alive: true, hasKey: cfg.hasKey, keyType: cfg.keyType,
+                root, legs, type: cfg.type, hp: cfg.hp, maxHp: cfg.hp, speed: cfg.speed, alive: true, hasKey: cfg.hasKey, keyType: cfg.keyType,
                 updateAnim: function(isMoving, time) {
                     if (isMoving) {
                         const a = Math.sin(time * 7) * 0.55;
-                        this.legs[0].rotation.x = a;
-                        this.legs[1].rotation.x = -a;
-                        this.legs[2].rotation.x = -a;
-                        this.legs[3].rotation.x = a;
+                        this.legs[0].rotation.x = a; this.legs[1].rotation.x = -a;
+                        this.legs[2].rotation.x = -a; this.legs[3].rotation.x = a;
+                    } else this.legs.forEach(l => l.rotation.x = 0);
+                }
+            };
+        }
+
+        // Bipedal Wendigo-Style Deer based on the image provided
+        function buildBipedalDeer() {
+            const root = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.9 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x111, roughness: 0.8 });
+
+            // Torso (Upright)
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.6, 3.2, 1.2), mat);
+            torso.position.y = 3.6; root.add(torso);
+
+            // Head (Large, wide eyes, open mouth)
+            const headGroup = new THREE.Group();
+            headGroup.position.set(0, 5.8, 0.4); root.add(headGroup);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 1.6), mat); headGroup.add(head);
+            const mouth = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.4, 0.2), new THREE.MeshBasicMaterial({ color: 0x000 }));
+            mouth.position.set(0, -0.6, 0.8); headGroup.add(mouth);
+
+            [-0.4, 0.4].forEach(x => {
+                const eye = new THREE.Mesh(new THREE.CircleGeometry(0.35, 12), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                eye.position.set(x, 0.3, 0.81); headGroup.add(eye);
+                const pup = new THREE.Mesh(new THREE.CircleGeometry(0.18, 12), new THREE.MeshBasicMaterial({ color: 0x000 }));
+                pup.position.set(x, 0.3, 0.82); headGroup.add(pup);
+            });
+
+            // Huge Antlers
+            [-1, 1].forEach((dir, idx) => {
+                const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.2, 3), darkMat);
+                beam.position.set(dir * 1.2, 1.8, -0.2); beam.rotation.z = idx===0 ? 0.4 : -0.4; headGroup.add(beam);
+                const br = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 1.5), darkMat);
+                br.position.set(dir * 1.8, 2.5, 0); br.rotation.z = idx===0 ? 0.8 : -0.8; headGroup.add(br);
+            });
+
+            // Long black arms with claws
+            const armL = new THREE.Group(); armL.position.set(-1.1, 4.8, 0);
+            const armMeshL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.8, 0.4), darkMat); armMeshL.position.y = -1.4; armL.add(armMeshL); root.add(armL);
+            const armR = new THREE.Group(); armR.position.set(1.1, 4.8, 0);
+            const armMeshR = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.8, 0.4), darkMat); armMeshR.position.y = -1.4; armR.add(armMeshR); root.add(armR);
+
+            // Legs with hooves
+            const legL = new THREE.Group(); legL.position.set(-0.5, 2.0, 0);
+            const legMeshL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 2.0, 0.5), mat); legMeshL.position.y = -1.0; legL.add(legMeshL); root.add(legL);
+            const legR = new THREE.Group(); legR.position.set(0.5, 2.0, 0);
+            const legMeshR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 2.0, 0.5), mat); legMeshR.position.y = -1.0; legR.add(legMeshR); root.add(legR);
+
+            root.position.set(0, -100, 0);
+            scene.add(root);
+
+            deerRig = {
+                root, armL, armR, legL, legR,
+                updateAnim: function(time, isMoving) {
+                    if (isMoving) {
+                        const a = Math.sin(time * 8) * 0.8;
+                        this.legL.rotation.x = a; this.legR.rotation.x = -a;
+                        this.armL.rotation.x = -a + 0.3; this.armR.rotation.x = a + 0.3; // Reaching forward
+                        this.root.position.y = Math.abs(Math.sin(time * 8)) * 0.2;
                     } else {
-                        this.legs.forEach(l => l.rotation.x = 0);
+                        this.legL.rotation.x = 0; this.legR.rotation.x = 0;
+                        this.armL.rotation.x = 0.3; this.armR.rotation.x = 0.3;
                     }
                 }
             };
         }
 
-        // Build Underground Rocky Caves with Opening Archway & Padlocked Gate
-        function createGreyCave(cfg) {
+        // Underground Cave (Ramp going down)
+        function createUndergroundCave(cfg) {
             const caveGroup = new THREE.Group();
             const rockMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.95 });
 
-            // Boulder Shell (Dome formation)
-            for (let i = 0; i < 14; i++) {
-                const b = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5 + Math.random() * 1.5), rockMat);
-                let angle = (i * Math.PI * 2) / 14;
-                b.position.set(Math.cos(angle) * 7.0, 1.5 + Math.random() * 2.0, Math.sin(angle) * 7.0);
-                b.castShadow = true; caveGroup.add(b);
+            // Ramp down
+            const ramp = new THREE.Mesh(new THREE.PlaneGeometry(6, 12), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+            ramp.rotation.x = -Math.PI / 2 + 0.3; ramp.position.set(0, -1.5, -4); caveGroup.add(ramp);
+
+            // Rock cover over the entrance
+            for (let i = 0; i < 10; i++) {
+                const b = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5 + Math.random()), rockMat);
+                let angle = (i * Math.PI) / 10;
+                b.position.set(Math.cos(angle) * 4, 1.5, Math.sin(angle) * 4 - 5); caveGroup.add(b);
             }
 
-            // Cave Entrance Archway Rocks
-            const archL = new THREE.Mesh(new THREE.BoxGeometry(2.5, 6, 3), rockMat);
-            archL.position.set(-3.5, 3, 7.5); archL.castShadow = true; caveGroup.add(archL);
-            const archR = new THREE.Mesh(new THREE.BoxGeometry(2.5, 6, 3), rockMat);
-            archR.position.set(3.5, 3, 7.5); archR.castShadow = true; caveGroup.add(archR);
-            const archTop = new THREE.Mesh(new THREE.BoxGeometry(9, 2.5, 3), rockMat);
-            archTop.position.set(0, 6.5, 7.5); archTop.castShadow = true; caveGroup.add(archTop);
-
-            // Padlocked Cave Gate
-            const gateGeo = new THREE.BoxGeometry(4.8, 5.0, 0.3);
-            const gateMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
-            const gate = new THREE.Mesh(gateGeo, gateMat);
-            gate.position.set(0, 2.5, 7.5);
-            gate.castShadow = true;
-            caveGroup.add(gate);
-
-            // Color-Coded Lock on Gate
-            const lockMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.4), new THREE.MeshStandardMaterial({ color: cfg.lockColor, metalness: 0.5, roughness: 0.2 }));
-            lockMesh.position.set(0, 2.5, 7.8);
-            caveGroup.add(lockMesh);
+            // Locked Gate
+            const gate = new THREE.Mesh(new THREE.BoxGeometry(4.8, 4.0, 0.3), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 }));
+            gate.position.set(0, 1.5, 0); caveGroup.add(gate);
+            const lockMesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.4), new THREE.MeshStandardMaterial({ color: cfg.lockColor }));
+            lockMesh.position.set(0, 1.5, 0.2); caveGroup.add(lockMesh);
 
             caveGroup.position.set(cfg.x, 0, cfg.z);
             scene.add(caveGroup);
-
             return { group: caveGroup, gate, lockMesh, x: cfg.x, z: cfg.z, isUnlocked: false, kidName: cfg.kidName, lockColor: cfg.lockColor };
-        }
-
-        // Interactive Loot Chests
-        function spawnLootChest(x, z, type='WOOD') {
-            const chestGroup = new THREE.Group();
-            const boxMat = new THREE.MeshStandardMaterial({ color: type === 'RUBY' ? 0xef4444 : (type === 'GOLD' ? 0xfacc15 : 0x78350f), roughness: 0.6 });
-            const trimMat = new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 0.8, roughness: 0.2 });
-
-            const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.0, 1.2), boxMat);
-            base.position.y = 0.5; base.castShadow = true; chestGroup.add(base);
-
-            const lid = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.4, 1.25), boxMat);
-            lid.position.set(0, 1.1, 0); lid.castShadow = true; chestGroup.add(lid);
-
-            const lock = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.2), trimMat);
-            lock.position.set(0, 0.7, 0.65); chestGroup.add(lock);
-
-            chestGroup.position.set(x, 0, z);
-            scene.add(chestGroup);
-            chests.push({ group: chestGroup, lid, x, z, opened: false, type });
         }
 
         function init3D() {
@@ -460,712 +354,212 @@
             scene.fog = new THREE.Fog(0x112211, 20, 160);
 
             camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
-            hemiLight = new THREE.HemisphereLight(0xe8f5e9, 0x142814, 0.7);
-            scene.add(hemiLight);
+            hemiLight = new THREE.HemisphereLight(0xe8f5e9, 0x142814, 0.7); scene.add(hemiLight);
+            sunLight = new THREE.DirectionalLight(0xfffaed, 0.95); sunLight.position.set(60, 100, 60); scene.add(sunLight);
+            moonLight = new THREE.DirectionalLight(0x38bdf8, 0.0); moonLight.position.set(-50, 80, -50); scene.add(moonLight);
 
-            sunLight = new THREE.DirectionalLight(0xfffaed, 0.95);
-            sunLight.position.set(60, 100, 60);
-            sunLight.castShadow = true;
-            sunLight.shadow.mapSize.width = 1024;
-            sunLight.shadow.mapSize.height = 1024;
-            scene.add(sunLight);
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(450, 450), new THREE.MeshStandardMaterial({ color: 0x1e3d1e, roughness: 0.9 }));
+            ground.rotation.x = -Math.PI / 2; scene.add(ground);
 
-            moonLight = new THREE.DirectionalLight(0x38bdf8, 0.0);
-            moonLight.position.set(-50, 80, -50);
-            scene.add(moonLight);
-
-            const gTex = createGrassCanvas();
-            gTex.wrapS = THREE.RepeatWrapping; gTex.wrapT = THREE.RepeatWrapping;
-            gTex.repeat.set(30, 30);
-            const ground = new THREE.Mesh(new THREE.PlaneGeometry(450, 450), new THREE.MeshStandardMaterial({ map: gTex, roughness: 0.9 }));
-            ground.rotation.x = -Math.PI / 2;
-            ground.receiveShadow = true;
-            scene.add(ground);
-
-            buildCamp();
-            buildPlayer();
-            buildTheDeer();
-            buildCavesKidsAndKeyGuardians();
-            spawnForestEnvironment();
-            spawnWildlife();
-            buildCampfireEmbers();
+            buildCamp(); buildPlayer(); buildBipedalDeer();
+            buildCavesKidsAndKeyGuardians(); spawnForestEnvironment();
         }
 
         function buildCamp() {
-            for (let i = 0; i < 6; i++) {
-                const log = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 3.8, 8), new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.9 }));
-                log.position.set(0, 0.7, 0); log.rotation.z = 0.55; log.rotation.y = (i * Math.PI * 2) / 6;
-                log.castShadow = true; scene.add(log);
-            }
-
-            for (let i = 0; i < 10; i++) {
-                const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.65), new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 }));
-                let ang = (i * Math.PI * 2) / 10;
-                rock.position.set(Math.cos(ang) * 2.8, 0.35, Math.sin(ang) * 2.8);
-                scene.add(rock);
-            }
-
             campfireLight = new THREE.PointLight(0xff7700, 3.8, 50, 1.2);
-            campfireLight.position.set(0, 2, 0);
-            campfireLight.castShadow = true;
-            scene.add(campfireLight);
+            campfireLight.position.set(0, 2, 0); scene.add(campfireLight);
 
-            const ringGeo = new THREE.RingGeometry(safeRadius - 0.4, safeRadius + 0.4, 48);
-            const ringMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
-            lightBarrierRing = new THREE.Mesh(ringGeo, ringMat);
-            lightBarrierRing.rotation.x = -Math.PI / 2;
-            lightBarrierRing.position.y = 0.08;
-            scene.add(lightBarrierRing);
-
-            const bench = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.4, 2.2), new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 }));
-            bench.position.set(-6.5, 0.7, -4); bench.castShadow = true; scene.add(bench);
-
-            const grinder = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 2, 12), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.5, roughness: 0.5 }));
-            grinder.position.set(6.5, 1, -4); grinder.castShadow = true; scene.add(grinder);
-
-            const mapBoard = new THREE.Mesh(new THREE.BoxGeometry(5.5, 4, 0.2), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 }));
-            mapBoard.position.set(0, 3, -6.5); scene.add(mapBoard);
-
-            const trader = createArticulatedHumanoid({ skin: 0xd4a373, shirt: 0x713f12, pants: 0x3f200c });
-            trader.root.position.set(-7, 0, 5);
-            scene.add(trader.root);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+            lightBarrierRing = new THREE.Mesh(new THREE.RingGeometry(safeRadius - 0.4, safeRadius + 0.4, 48), ringMat);
+            lightBarrierRing.rotation.x = -Math.PI / 2; lightBarrierRing.position.y = 0.08; scene.add(lightBarrierRing);
         }
 
-        function buildCampfireEmbers() {
-            const emberGeo = new THREE.BufferGeometry();
-            const count = 30;
-            const positions = new Float32Array(count * 3);
-            for (let i = 0; i < count * 3; i += 3) {
-                positions[i] = (Math.random() - 0.5) * 1.5;
-                positions[i + 1] = Math.random() * 3;
-                positions[i + 2] = (Math.random() - 0.5) * 1.5;
-            }
-            emberGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            const emberMat = new THREE.PointsMaterial({ color: 0xfacc15, size: 0.25, transparent: true, opacity: 0.85 });
-            campfireEmbers = new THREE.Points(emberGeo, emberMat);
-            scene.add(campfireEmbers);
-        }
-
-        function buildPlayer() {
-            playerRig = createArticulatedHumanoid({ skin: 0xffe0bd, shirt: 0x00bcd4, pants: 0xffffff });
-            
-            flashlight = new THREE.SpotLight(0xffffff, 0, 50, Math.PI / 5, 0.3, 1.2);
-            flashlight.position.set(0, 1.8, 0);
-            flashlight.target.position.set(0, 1.8, -10);
-            playerRig.root.add(flashlight);
-            playerRig.root.add(flashlight.target);
-
-            playerRig.root.position.set(player.x, 0, player.z);
-            scene.add(playerRig.root);
-        }
-
-        function buildTheDeer() {
-            const root = new THREE.Group();
-            const deerMat = new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.9 });
-
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.8, 4.5, 1.6), deerMat);
-            torso.position.y = 3.8; torso.castShadow = true; root.add(torso);
-
-            const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2.2, 1.6), deerMat);
-            head.position.set(0, 6.8, 0.4); root.add(head);
-
-            const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.2, 0.2), new THREE.MeshBasicMaterial({ color: 0x000000 }));
-            mouth.position.set(0, 6.4, 1.25); root.add(mouth);
-
-            [-0.42, 0.42].forEach(x => {
-                const eyeW = new THREE.Mesh(new THREE.CircleGeometry(0.32, 12), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-                eyeW.position.set(x, 7.2, 1.22);
-                const eyeP = new THREE.Mesh(new THREE.CircleGeometry(0.16, 8), new THREE.MeshBasicMaterial({ color: 0x000000 }));
-                eyeP.position.set(x, 7.2, 1.23);
-                root.add(eyeW); root.add(eyeP);
-            });
-
-            const antlerMat = new THREE.MeshStandardMaterial({ color: 0x3e200c, roughness: 0.9 });
-            [-1, 1].forEach((dir, idx) => {
-                const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 3.4), antlerMat);
-                beam.position.set(dir * 1.1, 9.2, 0.2); beam.rotation.z = (idx === 0 ? 0.35 : -0.35); root.add(beam);
-                const br = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 1.8), antlerMat);
-                br.position.set(dir * 1.7, 9.8, 0.4); br.rotation.z = (idx === 0 ? 0.8 : -0.8); root.add(br);
-            });
-
-            root.position.set(0, 0, -100);
-            root.visible = false;
-            scene.add(root);
-
-            deerRig = {
-                root, torso, head,
-                updateAnim: function(time) {
-                    this.head.rotation.x = Math.sin(time * 3) * 0.1;
-                    this.torso.position.y = 3.8 + Math.sin(time * 4) * 0.15;
-                }
-            };
-        }
-
-        // Build Underground Grey Caves, Kids inside, and Key-Dropping Guardians
         function buildCavesKidsAndKeyGuardians() {
             const data = [
-                {
-                    kidName: "Dino Kid", x: -80, z: -75, lockColor: 0xef4444, hood: 0xef4444, shirt: 0xffffff, pants: 0x1d4ed8,
-                    gType: 'ALPHA_WOLF', gColor: 0x334155, darkColor: 0x0f172a, gHp: 6, bw: 1.3, bh: 1.1, bl: 2.5, hw: 0.8, hh: 0.8, hl: 0.9, legW: 0.35, legH: 0.9, spd: 0.16
-                },
-                {
-                    kidName: "Kraken Kid", x: 80, z: -80, lockColor: 0x06b6d4, hood: 0x06b6d4, shirt: 0x0284c7, pants: 0x0284c7,
-                    gType: 'SHADOW_WOLF', gColor: 0x0f172a, darkColor: 0x020617, gHp: 9, bw: 1.4, bh: 1.2, bl: 2.7, hw: 0.9, hh: 0.9, hl: 1.0, legW: 0.4, legH: 1.0, spd: 0.19
-                },
-                {
-                    kidName: "Squid Kid", x: -85, z: 80, lockColor: 0xfacc15, hood: 0xfacc15, shirt: 0xfacc15, pants: 0x1e3a8a,
-                    gType: 'GRIZZLY_BEAR', gColor: 0x451a03, darkColor: 0x270e02, gHp: 14, bw: 2.0, bh: 1.8, bl: 3.2, hw: 1.2, hh: 1.1, hl: 1.2, legW: 0.6, legH: 1.2, spd: 0.14
-                },
-                {
-                    kidName: "Koala Kid", x: 85, z: 85, lockColor: 0x94a3b8, hood: 0x94a3b8, shirt: 0x18181b, pants: 0x18181b,
-                    gType: 'MAMMOTH', gColor: 0x292524, darkColor: 0x18181b, gHp: 22, bw: 2.8, bh: 2.6, bl: 4.2, hw: 1.8, hh: 1.8, hl: 1.8, legW: 0.8, legH: 1.8, spd: 0.10
-                }
+                { kidName: "Dino Kid", x: -80, z: -75, lockColor: 0xef4444, hood: 0xef4444, shirt: 0xffffff, pants: 0x1d4ed8, gType: 'ALPHA_WOLF', gColor: 0x334155, darkColor: 0x0f172a, gHp: 6, bw: 1.3, bh: 1.1, bl: 2.5, hw: 0.8, hh: 0.8, hl: 0.9, legW: 0.35, legH: 0.9, spd: 0.16 },
+                { kidName: "Kraken Kid", x: 80, z: -80, lockColor: 0x06b6d4, hood: 0x06b6d4, shirt: 0x0284c7, pants: 0x0284c7, gType: 'SHADOW_WOLF', gColor: 0x0f172a, darkColor: 0x020617, gHp: 9, bw: 1.4, bh: 1.2, bl: 2.7, hw: 0.9, hh: 0.9, hl: 1.0, legW: 0.4, legH: 1.0, spd: 0.19 }
             ];
 
             data.forEach(cfg => {
-                // 1. Build Grey Cave Chamber
-                const caveObj = createGreyCave({ x: cfg.x, z: cfg.z, lockColor: cfg.lockColor, kidName: cfg.kidName });
-                caves.push(caveObj);
-
-                // 2. Build Kid inside Cave interior (behind gate)
+                const caveObj = createUndergroundCave(cfg); caves.push(caveObj);
+                
                 const kid = createArticulatedHumanoid({ skin: 0xfacc15, shirt: cfg.shirt, pants: cfg.pants });
                 kid.root.scale.set(0.65, 0.65, 0.65);
-                const hood = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.65, 0.9), new THREE.MeshStandardMaterial({ color: cfg.hood, roughness: 0.7 }));
+                const hood = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.65, 0.9), new THREE.MeshStandardMaterial({ color: cfg.hood }));
                 hood.position.y = 1.6; kid.torso.add(hood);
-                kid.root.position.set(cfg.x, 0, cfg.z - 2); // Inside Cave
+                kid.root.position.set(cfg.x, -3, cfg.z - 8); // Placed deep underground on the ramp
                 scene.add(kid.root);
 
-                // 3. Build Key-Carrying Guardian patrolling outside the opening
                 const guard = createRealisticAnimal({
-                    x: cfg.x, z: cfg.z + 12, type: cfg.gType, color: cfg.gColor, darkColor: cfg.darkColor, hp: cfg.gHp, speed: cfg.spd,
-                    bw: cfg.bw, bh: cfg.bh, bl: cfg.bl, hw: cfg.hw, hh: cfg.hh, hl: cfg.hl, legW: cfg.legW, legH: cfg.legH,
-                    snout: true, ears: true, hasKey: true, keyType: cfg.kidName
+                    x: cfg.x, z: cfg.z + 8, type: cfg.gType, color: cfg.gColor, darkColor: cfg.darkColor, hp: cfg.gHp, speed: cfg.spd,
+                    bw: cfg.bw, bh: cfg.bh, bl: cfg.bl, hw: cfg.hw, hh: cfg.hh, hl: cfg.hl, legW: cfg.legW, legH: cfg.legH, snout: true, ears: true, hasKey: true, keyType: cfg.kidName
                 });
                 animals.push(guard);
-
-                missingKids.push({ name: cfg.kidName, rig: kid, x: cfg.x, z: cfg.z - 2, cave: caveObj, rescued: false, inSack: false });
+                missingKids.push({ name: cfg.kidName, rig: kid, x: cfg.x, z: cfg.z - 8, cave: caveObj, rescued: false, inSack: false });
             });
         }
 
-        function spawnWildlife() {
-            for (let i = 0; i < 6; i++) {
-                let x = (Math.random() - 0.5) * 220;
-                let z = (Math.random() - 0.5) * 220;
-                if (Math.hypot(x, z) < 25) continue;
-                animals.push(createRealisticAnimal({
-                    x, z, type: 'BUNNY', color: 0xf8fafc, darkColor: 0xfbcfe8, hp: 2, speed: 0.12,
-                    bw: 0.8, bh: 0.6, bl: 1.1, hw: 0.5, hh: 0.5, hl: 0.5, legW: 0.2, legH: 0.35, ears: true
-                }));
-            }
-        }
-
         function spawnForestEnvironment() {
-            for (let i = 0; i < 90; i++) {
-                let x = (Math.random() - 0.5) * 280;
-                let z = (Math.random() - 0.5) * 280;
+            for (let i = 0; i < 60; i++) {
+                let x = (Math.random() - 0.5) * 280, z = (Math.random() - 0.5) * 280;
                 if (Math.hypot(x, z) < 24) continue;
-
-                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.65, 4.5, 8), new THREE.MeshStandardMaterial({ color: 0x452210, roughness: 0.9 }));
-                trunk.position.set(x, 2.25, z); trunk.castShadow = true;
-                const foliage = new THREE.Mesh(new THREE.ConeGeometry(3.2, 7.5, 8), new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.8 }));
-                foliage.position.set(x, 7.0, z); foliage.castShadow = true;
-                scene.add(trunk); scene.add(foliage);
-                trees.push({ trunk, foliage, x, z, hp: playerClass === 'Lumberjack' ? 2 : 4 });
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.65, 4.5, 8), new THREE.MeshStandardMaterial({ color: 0x452210 })); trunk.position.set(x, 2.25, z);
+                const foliage = new THREE.Mesh(new THREE.ConeGeometry(3.2, 7.5, 8), new THREE.MeshStandardMaterial({ color: 0x14532d })); foliage.position.set(x, 7.0, z);
+                scene.add(trunk); scene.add(foliage); trees.push({ trunk, foliage, x, z, hp: 3 });
             }
-
-            for (let i = 0; i < 22; i++) {
-                let x = (Math.random() - 0.5) * 250;
-                let z = (Math.random() - 0.5) * 250;
-                if (Math.hypot(x, z) < 20) continue;
-                const scrapM = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.9, 1.4), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.7, roughness: 0.4 }));
-                scrapM.position.set(x, 0.45, z); scrapM.castShadow = true; scene.add(scrapM);
-                scrapPiles.push({ mesh: scrapM, x, z, active: true });
-            }
-
-            for (let i = 0; i < 25; i++) {
-                let x = (Math.random() - 0.5) * 250;
-                let z = (Math.random() - 0.5) * 250;
-                if (Math.hypot(x, z) < 20) continue;
-                const bush = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8), new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8 }));
-                bush.position.set(x, 0.6, z);
-                const berry = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.3 }));
-                berry.position.set(x, 1.1, z);
-                scene.add(bush); scene.add(berry);
-                berryBushes.push({ bush, berry, x, z, active: true });
-            }
-
-            // Scatter Loot Chests
-            spawnLootChest(-45, -35, 'WOOD');
-            spawnLootChest(45, -40, 'GOLD');
-            spawnLootChest(-35, 45, 'GOLD');
-            spawnLootChest(50, 50, 'RUBY');
         }
 
-        // Spawn Floating Dropped Key upon Guardian Death
         function dropCaveKey(x, z, keyType) {
             const keyGroup = new THREE.Group();
-            const keyMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.8, roughness: 0.2 });
-
-            const loop = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.1, 8, 16), keyMat);
-            loop.position.y = 1.0; keyGroup.add(loop);
-            const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.8), keyMat);
-            shaft.position.set(0, 0.5, 0); keyGroup.add(shaft);
-
-            keyGroup.position.set(x, 0.2, z);
-            scene.add(keyGroup);
+            const keyMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.8 });
+            const loop = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.1, 8, 16), keyMat); loop.position.y = 1.0; keyGroup.add(loop);
+            const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.8), keyMat); shaft.position.set(0, 0.5, 0); keyGroup.add(shaft);
+            keyGroup.position.set(x, 0.2, z); scene.add(keyGroup);
             droppedKeys.push({ group: keyGroup, x, z, keyType, active: true });
         }
 
         function showDialogue(txt) {
-            const d = document.getElementById("dialogue-box");
-            d.innerText = txt; d.style.display = "block";
+            const d = document.getElementById("dialogue-box"); d.innerText = txt; d.style.display = "block";
             setTimeout(() => { d.style.display = "none"; }, 3800);
-        }
-
-        function eatBestFood() {
-            if (stews > 0 && hunger < 100) {
-                stews--; hunger = Math.min(100, hunger + 70); hp = Math.min(100, hp + 40);
-                showDialogue("🍲 Ate Hearty Stew! (+70 Hunger, +40 HP)"); playTone(550, 'sine', 0.15);
-            } else if (meat > 0 && hunger < 100) {
-                meat--; hunger = Math.min(100, hunger + 35); hp = Math.min(100, hp + 15);
-                showDialogue("🥩 Ate Roasted Meat! (+35 Hunger, +15 HP)"); playTone(500, 'sine', 0.15);
-            } else if (berries > 0 && hunger < 100) {
-                berries--; hunger = Math.min(100, hunger + 15); hp = Math.min(100, hp + 5);
-                showDialogue("🫐 Ate Wild Berry! (+15 Hunger, +5 HP)"); playTone(600, 'sine', 0.1);
-            }
-            updateInventoryUI();
-        }
-
-        function craftItem(type) {
-            if (type === 'spear' && wood >= 3 && scrap >= 2) {
-                wood -= 3; scrap -= 2; hasSpear = true;
-                showDialogue("🗡️ Crafted Spear! Attack damage increased by 2.5x!"); playTone(400, 'triangle', 0.2);
-            } else if (type === 'bed' && wood >= 8 && scrap >= 4) {
-                wood -= 8; scrap -= 4; hasBed = true; dayMultiplier = 2;
-                showDialogue("🛏️ Crafted Bed! Sleep at camp to skip the dangerous night!"); playTone(450, 'triangle', 0.2);
-            } else if (type === 'crockpot' && scrap >= 6 && wood >= 4) {
-                scrap -= 6; wood -= 4; hasCrockpot = true;
-                showDialogue("🍲 Crafted Crockpot! Cook stews with meat & berries at camp!"); playTone(500, 'triangle', 0.2);
-            } else if (type === 'biofuel' && berries >= 4 && scrap >= 2) {
-                berries -= 4; scrap -= 2; fireFuel = Math.min(100, fireFuel + 50);
-                showDialogue("🧪 Crafted High-Grade Biofuel! Restored 50% Fire Fuel!"); playTone(650, 'sine', 0.25);
-            } else {
-                showDialogue("⚠️ Not enough resources to craft this item!");
-            }
-            updateInventoryUI();
-            toggleCrafting(false);
         }
 
         function handleInteraction() {
             const pPos = new THREE.Vector2(player.x, player.z);
 
-            // 1. Pick Up Dropped Keys
+            // Pickup Keys
             for (let k of droppedKeys) {
                 if (k.active && pPos.distanceTo(new THREE.Vector2(k.x, k.z)) < 3.5) {
-                    k.active = false; scene.remove(k.group);
-                    caveKeys++;
-                    showDialogue(`🔑 Picked up ${k.keyType} Cave Key! Use it to unlock the cave gate!`);
-                    playTone(650, 'sine', 0.2);
-                    updateInventoryUI();
-                    return;
+                    k.active = false; scene.remove(k.group); caveKeys++;
+                    showDialogue(`🔑 Picked up ${k.keyType} Cave Key!`); return;
                 }
             }
 
-            // 2. Unlock Cave Gate with Key
+            // Unlock Caves
             for (let c of caves) {
-                if (!c.isUnlocked && pPos.distanceTo(new THREE.Vector2(c.x, c.z + 7.5)) < 4.5) {
+                if (!c.isUnlocked && pPos.distanceTo(new THREE.Vector2(c.x, c.z)) < 6) {
                     if (caveKeys > 0) {
-                        caveKeys--; c.isUnlocked = true;
-                        c.gate.position.y = 7.5; // Open gate upwards
-                        scene.remove(c.lockMesh);
-                        showDialogue(`🔓 Unlocked the cave gate! You can now enter and rescue ${c.kidName}!`);
-                        playTone(550, 'triangle', 0.3);
-                        updateInventoryUI();
-                    } else {
-                        showDialogue(`🔒 Cave Gate is locked! Slay the guardian outside to get the key!`);
-                    }
+                        caveKeys--; c.isUnlocked = true; c.gate.position.y = 7.5; scene.remove(c.lockMesh);
+                        showDialogue(`🔓 Unlocked cave gate!`);
+                    } else showDialogue(`🔒 Cave Gate is locked! Slay the guardian!`);
                     return;
                 }
             }
 
-            // 3. Open Loot Chests
-            for (let ch of chests) {
-                if (!ch.opened && pPos.distanceTo(new THREE.Vector2(ch.x, ch.z)) < 3.5) {
-                    ch.opened = true;
-                    ch.lid.rotation.x = -Math.PI / 3;
-                    if (ch.type === 'RUBY') { addCoins(80); meat += 4; hasSpear = true; showDialogue("💎 Opened Ruby Chest! +80 Gold, +4 Meat & Upgraded Spear!"); }
-                    else if (ch.type === 'GOLD') { addCoins(40); scrap += 4; showDialogue("🪙 Opened Gold Chest! +40 Gold & +4 Scrap Metal!"); }
-                    else { addCoins(15); wood += 4; berries += 3; showDialogue("📦 Opened Wooden Chest! +15 Gold, +4 Wood & +3 Berries!"); }
-                    playTone(600, 'sine', 0.25);
-                    updateInventoryUI();
-                    return;
-                }
-            }
-
-            // 4. Rescue Kid inside Cave
+            // Rescue Kid
             for (let k of missingKids) {
-                if (!k.rescued && !k.inSack && pPos.distanceTo(new THREE.Vector2(k.x, k.z)) < 4.5) {
-                    if (!k.cave.isUnlocked) {
-                        showDialogue("⚠️ Unlock the cave gate first before rescuing the kid!");
-                    } else {
-                        k.inSack = true; k.rig.root.visible = false;
-                        showDialogue(`🎒 Rescued ${k.name} into your sack! Escort them safely to Campfire!`);
-                        playTone(580, 'sine', 0.3);
-                    }
-                    return;
+                if (!k.rescued && !k.inSack && pPos.distanceTo(new THREE.Vector2(k.x, k.z)) < 5) {
+                    if (!k.cave.isUnlocked) return showDialogue("⚠️ Unlock the gate first!");
+                    k.inSack = true; k.rig.root.visible = false;
+                    showDialogue(`🎒 Rescued ${k.name}! Escort to Campfire!`); return;
                 }
             }
 
-            // 5. Deposit Kids at Campfire
+            // Deposit Kid
             if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 6) {
                 missingKids.forEach(k => {
                     if (k.inSack && !k.rescued) {
                         k.inSack = false; k.rescued = true; addCoins(100);
-                        let total = missingKids.filter(x => x.rescued).length;
-                        document.getElementById('kids-count').innerText = `${total}/4`;
-                        showDialogue(`🎉 ${k.name} Rescued to Campfire! Received +100 Gold Coins!`);
-                        playTone(700, 'triangle', 0.4);
+                        document.getElementById('kids-count').innerText = `${missingKids.filter(x => x.rescued).length}/4`;
+                        showDialogue(`🎉 ${k.name} Rescued! +100 Gold!`);
                     }
                 });
             }
 
-            // 6. Bed / Sleep
-            if (hasBed && pPos.distanceTo(new THREE.Vector2(0, 0)) < 6 && cycleTimer >= DAY_LEN) {
-                cycleTimer = 0; night += dayMultiplier; addCoins(20 * dayMultiplier);
-                document.getElementById('night-count').innerText = night;
-                showDialogue(`😴 Slept through the night in bed! (${dayMultiplier}x Multiplier Applied, +${20*dayMultiplier} Gold)`);
-                playTone(300, 'sine', 0.5);
-                return;
-            }
-
-            // 7. Feed Campfire
-            if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 5.5) {
-                if (wood > 0) {
-                    wood--;
-                    let fuelGain = fireTier === 1 ? 25 : (fireTier === 2 ? 15 : 8);
-                    fireFuel = Math.min(100, fireFuel + fuelGain);
-                    if (fireFuel >= 100 && fireTier < 5) {
-                        fireTier++; safeRadius += 6;
-                        scene.remove(lightBarrierRing);
-                        const ringGeo = new THREE.RingGeometry(safeRadius - 0.4, safeRadius + 0.4, 48);
-                        const ringMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
-                        lightBarrierRing = new THREE.Mesh(ringGeo, ringMat);
-                        lightBarrierRing.rotation.x = -Math.PI / 2;
-                        lightBarrierRing.position.y = 0.08;
-                        scene.add(lightBarrierRing);
-                        showDialogue(`🔥 UPGRADED CAMPFIRE TO TIER ${fireTier}! Safe Light Radius expanded to ${safeRadius}m!`);
-                    } else {
-                        showDialogue("🔥 Added Wood to Campfire! Safe light maintained.");
-                    }
-                    playTone(250, 'sine', 0.1); updateInventoryUI(); return;
-                }
-            }
-
-            // 8. Shredder & Crockpot
-            if (pPos.distanceTo(new THREE.Vector2(6.5, -4)) < 4.5 && scrap > 0) {
-                let earned = scrap * 8; addCoins(earned);
-                showDialogue(`⚙️ Ground ${scrap} Scrap into +${earned} Gold Coins!`);
-                scrap = 0; playTone(350, 'sawtooth', 0.2); updateInventoryUI(); return;
-            }
-
-            if (hasCrockpot && pPos.distanceTo(new THREE.Vector2(-6.5, -4)) < 4.5) {
-                if (meat >= 1 && berries >= 2) {
-                    meat--; berries -= 2; stews++;
-                    showDialogue("🍲 Cooked a nutrient-rich Stew in the Crockpot!");
-                    playTone(520, 'sine', 0.2); updateInventoryUI(); return;
-                }
-            }
-
-            // 9. Attack Animals & Key Guardians
-            let attackDmg = hasSpear ? (playerClass === 'Hunter' ? 6 : 4) : (playerClass === 'Hunter' ? 3 : 2);
+            // Attack Animals
             for (let a of animals) {
-                if (a.alive && pPos.distanceTo(new THREE.Vector2(a.root.position.x, a.root.position.z)) < 4.5) {
-                    a.hp -= attackDmg; playTone(180, 'sawtooth', 0.15);
-                    showDialogue(`⚔️ Hit ${a.type}! (HP: ${Math.max(0, a.hp)}/${a.maxHp})`);
+                if (a.alive && pPos.distanceTo(new THREE.Vector2(a.root.position.x, a.root.position.z)) < 5) {
+                    a.hp -= hasSpear ? 5 : 2; 
+                    // Visual Hit Feedback
+                    a.root.children.forEach(c => { if(c.material) c.material.color.setHex(0xff0000); });
+                    setTimeout(() => { a.root.children.forEach(c => { if(c.material) c.material.color.setHex(0x334155); }); }, 200);
+
                     if (a.hp <= 0) {
                         a.alive = false; scene.remove(a.root);
-                        if (a.hasKey) {
-                            dropCaveKey(a.root.position.x, a.root.position.z, a.keyType);
-                            showDialogue(`🔑 GUARDIAN DEFEATED! The ${a.keyType} Cave Key dropped on the ground!`);
-                        }
-                        if (a.type === 'BUNNY') meat += 1;
-                        else if (a.type === 'GRIZZLY_BEAR') { meat += 6; pelts += 3; addCoins(50); }
-                        else if (a.type === 'MAMMOTH') { meat += 10; pelts += 5; addCoins(100); }
-                        else { meat += 3; pelts += 1; }
+                        if (a.hasKey) dropCaveKey(a.root.position.x, a.root.position.z, a.keyType);
                     }
-                    updateInventoryUI(); return;
+                    return;
                 }
             }
-
-            // 10. Harvest Trees & Scrap
-            for (let i = 0; i < trees.length; i++) {
-                let t = trees[i];
-                if (pPos.distanceTo(new THREE.Vector2(t.x, t.z)) < 4.0) {
-                    t.hp--; playTone(220, 'square', 0.08);
-                    if (t.hp <= 0) {
-                        scene.remove(t.trunk); scene.remove(t.foliage);
-                        trees.splice(i, 1);
-                        wood += (playerClass === 'Lumberjack' ? 4 : 2);
-                        showDialogue(`🪵 Chopped Pine Tree! (+${playerClass === 'Lumberjack' ? 4 : 2} Wood)`);
-                    }
-                    updateInventoryUI(); return;
-                }
-            }
-
-            scrapPiles.forEach(s => {
-                if (s.active && pPos.distanceTo(new THREE.Vector2(s.x, s.z)) < 3.5) {
-                    s.active = false; scene.remove(s.mesh); scrap += 2;
-                    showDialogue("⚙️ Scavenged Scrap Metal (+2 Scrap)"); playTone(420, 'sawtooth', 0.1); updateInventoryUI();
-                }
-            });
-
-            berryBushes.forEach(b => {
-                if (b.active && pPos.distanceTo(new THREE.Vector2(b.x, b.z)) < 3.5) {
-                    b.active = false; scene.remove(b.berry); berries += 2;
-                    showDialogue("🫐 Foraged Wild Berries (+2 Berries)"); playTone(620, 'sine', 0.08); updateInventoryUI();
-                }
-            });
         }
 
-        function updateInventoryUI() {
-            document.getElementById('val-wood').innerText = wood;
-            document.getElementById('val-scrap').innerText = scrap;
-            document.getElementById('val-berry').innerText = berries;
-            document.getElementById('val-meat').innerText = meat;
-            document.getElementById('val-pelt').innerText = pelts;
-            document.getElementById('val-stew').innerText = stews;
-            document.getElementById('fire-tier').innerText = fireTier;
-            document.getElementById('safe-radius-text').innerText = `${safeRadius}m`;
-            document.getElementById('multiplier-text').innerText = `${dayMultiplier}x`;
-            document.getElementById('keys-count').innerText = caveKeys;
-        }
-
-        function updateTimeAndEnvironment() {
-            cycleTimer += 0.05;
-
+        function updateEnvironment() {
+            cycleTimer += 0.02; // Slowed down progression
             const progress = (cycleTimer / TOTAL_CYCLE);
             document.getElementById("sundial-hand").style.transform = `rotate(${progress * 360}deg)`;
 
-            const cycleTitle = document.getElementById("cycle-title");
-            const cycleTimerText = document.getElementById("cycle-timer");
-
             if (cycleTimer < DAY_LEN) {
-                let rem = Math.round(DAY_LEN - cycleTimer);
-                cycleTitle.innerText = "☀️ DAY PHASE";
-                cycleTitle.style.color = "var(--gold)";
-                cycleTimerText.innerText = `Night in: ${Math.floor(rem/60)}m ${rem%60}s`;
-
-                scene.background.setHex(0x112211);
-                scene.fog.color.setHex(0x112211);
-                sunLight.intensity = 0.95;
-                moonLight.intensity = 0.0;
-                deerRig.root.visible = false;
-            } 
-            else if (cycleTimer < DAY_LEN + DUSK_LEN) {
-                let rem = Math.round(DAY_LEN + DUSK_LEN - cycleTimer);
-                cycleTitle.innerText = "🌅 DUSK (Return to Camp!)";
-                cycleTitle.style.color = "#fb923c";
-                cycleTimerText.innerText = `Night in: ${rem}s`;
-
-                scene.background.setHex(0x2d1808);
-                scene.fog.color.setHex(0x2d1808);
-                sunLight.intensity = 0.3;
-                moonLight.intensity = 0.1;
-                deerRig.root.visible = false;
-            } 
-            else if (cycleTimer < TOTAL_CYCLE) {
-                let rem = Math.round(TOTAL_CYCLE - cycleTimer);
-                cycleTitle.innerText = "🦌 THE DEER IS HUNTING";
-                cycleTitle.style.color = "var(--accent)";
-                cycleTimerText.innerText = `Dawn in: ${rem}s`;
-
-                scene.background.setHex(0x040810);
-                scene.fog.color.setHex(0x040810);
-                sunLight.intensity = 0.0;
-                moonLight.intensity = 0.35;
-                deerRig.root.visible = true;
-            } 
-            else {
-                cycleTimer = 0; night += dayMultiplier; addCoins(15 * dayMultiplier);
-                document.getElementById('night-count').innerText = night;
-                showDialogue(`🌅 Dawn breaks! Survived Night ${night}! (+${15*dayMultiplier} Gold)`);
-                playTone(440, 'triangle', 0.4);
-
-                if (night >= 99) {
-                    gameActive = false;
-                    alert("🏆 CONGRATULATIONS! You survived all 99 Nights in the Forest!");
-                }
-            }
-
-            if (fireFuel > 0) fireFuel -= 0.018;
-            campfireLight.intensity = (fireFuel / 100) * 3.8 + Math.sin(walkClock * 12) * 0.3;
-            document.getElementById("fuel-text").innerText = `${Math.round(fireFuel)}%`;
-
-            hunger -= 0.008;
-            if (hunger <= 0) { hunger = 0; hp -= 0.05; }
-
-            const distToFire = Math.hypot(player.x, player.z);
-            if (distToFire < safeRadius && fireFuel > 5) {
-                if (hp < 100) hp += 0.04;
-            }
-
-            if (keys.shift && (keys.w || keys.s || keys.a || keys.d) && stamina > 0) {
-                stamina -= 0.35;
-            } else if (stamina < 100) {
-                stamina += 0.2;
-            }
-
-            if (campfireEmbers) {
-                const pos = campfireEmbers.geometry.attributes.position.array;
-                for (let i = 1; i < pos.length; i += 3) {
-                    pos[i] += 0.04;
-                    if (pos[i] > 3.5) pos[i] = 0.5;
-                }
-                campfireEmbers.geometry.attributes.position.needsUpdate = true;
-            }
-
-            // Animate Floating Keys
-            droppedKeys.forEach(k => {
-                if (k.active) {
-                    k.group.rotation.y += 0.04;
-                    k.group.position.y = 0.4 + Math.sin(walkClock * 4) * 0.15;
-                }
-            });
-
-            document.getElementById("hp-fill").style.width = `${Math.max(0, hp)}%`;
-            document.getElementById("food-fill").style.width = `${Math.max(0, hunger)}%`;
-            document.getElementById("stam-fill").style.width = `${Math.max(0, stamina)}%`;
-
-            if (hp <= 0 && gameActive) {
-                gameActive = false;
-                alert(`💀 You were claimed by the forest on Night ${night}. Restart to try again!`);
-                location.reload();
-            }
-        }
-
-        function updateTheDeerStalker() {
-            if (cycleTimer < DAY_LEN + DUSK_LEN) return;
-
-            const pPos = new THREE.Vector3(player.x, 0, player.z);
-            const distToFire = Math.hypot(player.x, player.z);
-
-            deerRig.updateAnim(walkClock);
-
-            if (distToFire > safeRadius || fireFuel <= 0) {
-                deerRig.root.lookAt(pPos);
-                deerRig.root.translateZ(0.18);
-
-                let dist = deerRig.root.position.distanceTo(pPos);
-                if (dist < 3.2) {
-                    hp -= 0.8;
-                    showDialogue("⚠️ THE DEER IS ATTACKING! SPRINT TO THE CAMPFIRE LIGHT!");
-                    playTone(120, 'sawtooth', 0.2);
+                scene.fog.color.setHex(0x112211); sunLight.intensity = 0.95; moonLight.intensity = 0.0; deerRig.root.visible = false;
+            } else if (cycleTimer < DAY_LEN + DUSK_LEN) {
+                scene.fog.color.setHex(0x2d1808); sunLight.intensity = 0.3; moonLight.intensity = 0.1; deerRig.root.visible = false;
+            } else if (cycleTimer < TOTAL_CYCLE) {
+                scene.fog.color.setHex(0x040810); sunLight.intensity = 0.0; moonLight.intensity = 0.35; 
+                if (!deerRig.root.visible) {
+                    deerRig.root.position.set(player.x + 40, 0, player.z + 40); // Spawn nearby
+                    deerRig.root.visible = true;
                 }
             } else {
-                deerRig.root.lookAt(new THREE.Vector3(0, 0, 0));
-                deerRig.root.translateZ(-0.25);
+                cycleTimer = 0; night += dayMultiplier; addCoins(15 * dayMultiplier);
+                document.getElementById('night-count').innerText = night;
             }
+
+            // Map Expansion via Campfire Tier (Fog pushes back)
+            scene.fog.near = 20 + (fireTier * 5);
+            scene.fog.far = 160 + (fireTier * 15);
+
+            if (fireFuel > 0) fireFuel -= 0.015;
+            campfireLight.intensity = (fireFuel / 100) * 3.8 + Math.sin(walkClock * 12) * 0.3;
         }
 
-        function updateWildlifeAI() {
+        function updateDeer() {
+            if (cycleTimer < DAY_LEN + DUSK_LEN) return;
             const pPos = new THREE.Vector3(player.x, 0, player.z);
-            animals.forEach(a => {
-                if (a.alive) {
-                    let dist = a.root.position.distanceTo(pPos);
-                    let isMoving = false;
-                    if (a.type !== 'BUNNY' && dist < 20) {
-                        a.root.lookAt(pPos);
-                        a.root.translateZ(a.speed);
-                        isMoving = true;
-                        if (dist < 2.2) {
-                            hp -= (a.type === 'MAMMOTH' ? 0.6 : (a.type === 'GRIZZLY_BEAR' ? 0.45 : 0.25));
-                        }
-                    }
-                    a.updateAnim(isMoving, walkClock);
-                }
-            });
+            if (Math.hypot(player.x, player.z) > safeRadius || fireFuel <= 0) {
+                deerRig.root.lookAt(pPos); deerRig.root.translateZ(0.22); // Deer speed balanced
+                deerRig.updateAnim(walkClock, true);
+                if (deerRig.root.position.distanceTo(pPos) < 3.5) hp -= 0.8;
+            } else {
+                deerRig.root.lookAt(new THREE.Vector3(0, 0, 0)); deerRig.root.translateZ(-0.25);
+                deerRig.updateAnim(walkClock, true);
+            }
         }
 
         function update() {
             if (!gameActive) return;
-
             let isMoving = false;
             let curSpeed = (keys.shift && stamina > 0) ? player.sprintSpeed : player.baseSpeed;
 
-            if (keys.a) player.rot += 0.038;
-            if (keys.d) player.rot -= 0.038;
-
-            if (keys.w) {
-                player.x -= Math.sin(player.rot) * curSpeed;
-                player.z -= Math.cos(player.rot) * curSpeed;
-                isMoving = true;
-            }
-            if (keys.s) {
-                player.x += Math.sin(player.rot) * (curSpeed * 0.6);
-                player.z += Math.cos(player.rot) * (curSpeed * 0.6);
-                isMoving = true;
-            }
+            if (keys.a) player.rot += 0.038; if (keys.d) player.rot -= 0.038;
+            if (keys.w) { player.x -= Math.sin(player.rot) * curSpeed; player.z -= Math.cos(player.rot) * curSpeed; isMoving = true; }
+            if (keys.s) { player.x += Math.sin(player.rot) * (curSpeed * 0.6); player.z += Math.cos(player.rot) * (curSpeed * 0.6); isMoving = true; }
 
             if (isMoving) walkClock += 0.05;
+            if (keys.e) attackTimer += 0.1; else attackTimer = 0;
 
+            // Attack Animation Trigger
             playerRig.root.position.set(player.x, 0, player.z);
             playerRig.root.rotation.y = player.rot;
-            playerRig.updateAnim(isMoving, walkClock);
+            playerRig.updateAnim(isMoving, walkClock, keys.e);
 
             camera.position.x = player.x + Math.sin(player.rot) * 9.5;
             camera.position.y = 6.0;
             camera.position.z = player.z + Math.cos(player.rot) * 9.5;
             camera.lookAt(player.x, 1.8, player.z);
 
-            // Interaction Prompts
-            const pVec = new THREE.Vector2(player.x, player.z);
-            let prompt = document.getElementById("action-prompt");
-            let near = false;
-
-            for (let k of droppedKeys) {
-                if (k.active && pVec.distanceTo(new THREE.Vector2(k.x, k.z)) < 3.5) {
-                    prompt.innerText = `[E] Pick up ${k.keyType} Cave Key`; near = true; break;
+            updateEnvironment(); updateDeer();
+            animals.forEach(a => {
+                if (a.alive && a.root.position.distanceTo(playerRig.root.position) < 20) {
+                    a.root.lookAt(playerRig.root.position); a.root.translateZ(a.speed);
+                    a.updateAnim(true, walkClock);
                 }
-            }
-            if (!near) {
-                for (let c of caves) {
-                    if (!c.isUnlocked && pVec.distanceTo(new THREE.Vector2(c.x, c.z + 7.5)) < 4.5) {
-                        prompt.innerText = caveKeys > 0 ? `[E] Unlock ${c.kidName} Cave Gate` : `[Locked] Slay Guardian for Key`;
-                        near = true; break;
-                    }
-                }
-            }
-            if (!near) {
-                for (let ch of chests) {
-                    if (!ch.opened && pVec.distanceTo(new THREE.Vector2(ch.x, ch.z)) < 3.5) {
-                        prompt.innerText = `[E] Open ${ch.type} Loot Chest`; near = true; break;
-                    }
-                }
-            }
-            if (!near && pVec.distanceTo(new THREE.Vector2(0, 0)) < 5.5 && wood > 0) {
-                prompt.innerText = "[E] Feed Wood to Campfire"; near = true;
-            } else if (!near && pVec.distanceTo(new THREE.Vector2(6.5, -4)) < 4.5 && scrap > 0) {
-                prompt.innerText = "[E] Grind Scrap into Gold"; near = true;
-            }
-
-            prompt.style.display = near ? "block" : "none";
-
-            updateTimeAndEnvironment();
-            updateTheDeerStalker();
-            updateWildlifeAI();
+            });
         }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            update();
-            renderer.render(scene, camera);
-        }
+        function animate() { requestAnimationFrame(animate); update(); renderer.render(scene, camera); }
     </script>
 </body>
 </html>
