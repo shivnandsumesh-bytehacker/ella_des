@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>99 Nights in the Forest - Master Edition</title>
+    <title>99 Nights in the Forest - Ultimate Definitive Edition</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -60,7 +60,7 @@
                 <div class="btn-grid">
                     <button class="btn" onclick="selectClass('Lumberjack')">🪓 Lumberjack<br><small>2x Wood Harvest</small></button>
                     <button class="btn" onclick="selectClass('Hunter')">🏹 Hunter<br><small>+50% Damage & Meats</small></button>
-                    <button class="btn" onclick="selectClass('Scout')">🔦 Scout<br><small>+25% Speed & Flashlight</small></button>
+                    <button class="btn" onclick="selectClass('Scout')">🔦 Scout<br><small>+25% Speed & Night Light</small></button>
                 </div>
             </div>
         </div>
@@ -150,7 +150,7 @@
         const keys = { w: false, s: false, a: false, d: false, shift: false, e: false };
         let walkClock = 0, isAttacking = false;
 
-        let trees = [], scrapPiles = [], animals = [], missingKids = [], caves = [], droppedKeys = [], campKidsMeshes = [], chests = [];
+        let trees = [], scrapPiles = [], berryBushes = [], animals = [], missingKids = [], caves = [], droppedKeys = [], campKidsMeshes = [], chests = [];
 
         function updateWallet() {
             gold = parseInt(localStorage.getItem('arcade_coins')) || 0;
@@ -171,7 +171,7 @@
             init3D();
             updateWallet();
             animate();
-            showDialogue(`🌲 Welcome, ${className}! Explore the deep caves, slay guardians, and keep the fire lit!`);
+            showDialogue(`🌲 Welcome, ${className}! Explore deep caves, slay guardians, and keep the fire lit!`);
         }
 
         window.addEventListener("keydown", e => {
@@ -219,10 +219,10 @@
 
             const armMat = new THREE.MeshStandardMaterial({ color: colors.arms || colors.shirt, roughness: 0.6 });
             const armL = new THREE.Group(); armL.position.set(-1.05, 0.6, 0);
-            const amL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat); amL.position.y = -0.55; armL.add(amL); torso.add(armL);
+            const amL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat); amL.position.y = -0.55; amL.add(amL); torso.add(armL);
 
             const armR = new THREE.Group(); armR.position.set(1.05, 0.6, 0);
-            const amR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat); amR.position.y = -0.55; armR.add(amR); torso.add(armR);
+            const amR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat); amR.position.y = -0.55; amR.add(amR); torso.add(armR);
 
             const pantsMat = new THREE.MeshStandardMaterial({ color: colors.pants, roughness: 0.7 });
             const legL = new THREE.Group(); legL.position.set(-0.38, 0.9, 0);
@@ -249,6 +249,7 @@
             };
         }
 
+        // Realistic Anatomical Quadruped Rig (Wolves, Bears, Mammoths, Bunnies)
         function createRealisticAnimal(cfg) {
             const root = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: cfg.color, roughness: 0.75 });
@@ -311,7 +312,7 @@
             };
         }
 
-        // Bipedal Wendigo Stalker
+        // Remodeled Wendigo Bipedal Deer Stalker Matching Image Reference
         function buildBipedalDeer() {
             const root = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.85 });
@@ -334,6 +335,7 @@
                 pup.position.set(x, 0.3, 0.83); headGroup.add(pup);
             });
 
+            // Massive Branching Antlers
             [-1, 1].forEach((dir, idx) => {
                 const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.2, 3), darkMat);
                 beam.position.set(dir * 1.2, 1.8, -0.2); beam.rotation.z = idx === 0 ? 0.4 : -0.4; headGroup.add(beam);
@@ -359,7 +361,7 @@
                 root, armL, armR, legL, legR,
                 updateAnim: function(time, moving) {
                     if (moving) {
-                        const a = Math.sin(time * 10) * 0.8;
+                        const a = Math.sin(time * 11) * 0.85;
                         this.legL.rotation.x = a; this.legR.rotation.x = -a;
                         this.armL.rotation.x = -a + 0.4; this.armR.rotation.x = a + 0.4;
                     } else {
@@ -375,15 +377,13 @@
             const caveGroup = new THREE.Group();
             const rockMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.95 });
 
-            // Excavated Entrance Ramp Down
             const ramp = new THREE.Mesh(new THREE.PlaneGeometry(6, 12), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
             ramp.rotation.x = -Math.PI / 2 + 0.3; ramp.position.set(0, -1.5, -4); caveGroup.add(ramp);
 
-            // Cavern Rock Archway Formation
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < 10; i++) {
                 const b = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5 + Math.random()), rockMat);
-                let angle = (i * Math.PI) / 12;
-                b.position.set(Math.cos(angle) * 5.0, 1.5, Math.sin(angle) * 5.0 - 5); caveGroup.add(b);
+                let angle = (i * Math.PI) / 10;
+                b.position.set(Math.cos(angle) * 4.5, 1.5, Math.sin(angle) * 4.5 - 5); caveGroup.add(b);
             }
 
             const gate = new THREE.Mesh(new THREE.BoxGeometry(4.8, 4.0, 0.3), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 }));
@@ -415,7 +415,6 @@
             sunLight = new THREE.DirectionalLight(0xfffaed, 0.95); sunLight.position.set(60, 100, 60); scene.add(sunLight);
             moonLight = new THREE.DirectionalLight(0x4477ff, 0.0); moonLight.position.set(-50, 80, -50); scene.add(moonLight);
 
-            // Procedural Terrain with Mounds
             const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshStandardMaterial({ color: 0x224422, roughness: 0.85 }));
             ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
