@@ -3,49 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>99 Nights in the Forest - Definitive Edition</title>
+    <title>99 Nights in the Forest - Definitive Roguelite 3D</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        :root { --primary: #00f3ff; --accent: #ff007f; --gold: #facc15; --bg: #030712; --card: #0b1329; }
+        :root {
+            --primary: #00f3ff;
+            --primary-glow: rgba(0, 243, 255, 0.4);
+            --accent: #ff007f;
+            --gold: #facc15;
+            --bg: #030712;
+            --card: #0b1329;
+            --panel-bg: rgba(11, 19, 41, 0.92);
+        }
         * { box-sizing: border-box; }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 4px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; user-select: none; }
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
         
-        header { width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 22px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 6px; box-shadow: 0 0 20px rgba(0, 243, 255, 0.15); }
+        header {
+            width: 100%;
+            max-width: 1240px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+            padding: 8px 22px;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            margin-bottom: 6px;
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
         .stats { font-size: 1.1rem; font-weight: bold; color: var(--gold); }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
+        a.nav:hover { text-shadow: 0 0 8px var(--primary); }
         
-        #game-wrapper { width: 100%; max-width: 1200px; height: 640px; border: 3px solid var(--primary); border-radius: 14px; box-shadow: 0 0 40px rgba(0, 243, 255, 0.25); position: relative; overflow: hidden; background: #1a331a; }
+        #game-wrapper {
+            width: 100%;
+            max-width: 1240px;
+            height: 660px;
+            border: 3px solid var(--primary);
+            border-radius: 14px;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
+            position: relative;
+            overflow: hidden;
+            background: #0f2214;
+        }
         #webgl-canvas { width: 100% !important; height: 100% !important; display: block; }
         
-        /* Non-Obstructive Docked UI */
-        .hud-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; pointer-events: none; z-index: 10; }
-        .hud-panel { background: rgba(11, 19, 41, 0.9); border: 1.5px solid rgba(0, 243, 255, 0.4); border-radius: 10px; padding: 8px 14px; text-align: left; font-size: 0.82rem; backdrop-filter: blur(8px); box-shadow: 0 6px 20px rgba(0,0,0,0.7); pointer-events: auto; }
-        .hud-bar { height: 8px; width: 110px; background: #1e293b; border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); margin-top: 4px; }
+        /* Non-Obstructive Docked Tactical HUD */
+        .hud-top {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .hud-panel {
+            background: var(--panel-bg);
+            border: 1.5px solid rgba(0, 243, 255, 0.4);
+            border-radius: 10px;
+            padding: 8px 14px;
+            text-align: left;
+            font-size: 0.82rem;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+            pointer-events: auto;
+        }
+        .hud-bar {
+            height: 8px;
+            width: 110px;
+            background: #1e293b;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-top: 4px;
+        }
         .hud-fill { height: 100%; width: 100%; transition: width 0.2s ease-out; }
         
-        .sundial-disc { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--gold); background: conic-gradient(#facc15 0% 68%, #1e1b4b 68% 100%); position: relative; }
-        .sundial-hand { width: 2px; height: 15px; background: #fff; position: absolute; top: 2px; left: 16px; transform-origin: bottom center; }
+        .sundial-disc {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            background: conic-gradient(#facc15 0% 68%, #1e1b4b 68% 100%);
+            position: relative;
+        }
+        .sundial-hand {
+            width: 2px;
+            height: 15px;
+            background: #fff;
+            position: absolute;
+            top: 2px;
+            left: 16px;
+            transform-origin: bottom center;
+        }
         
-        #minimap-canvas { width: 85px !important; height: 85px !important; border-radius: 50%; border: 2px solid var(--primary); background: rgba(5, 8, 17, 0.9); margin-top: 4px; display: block; box-shadow: 0 0 10px rgba(0,243,255,0.3); }
+        #minimap-canvas {
+            width: 85px !important;
+            height: 85px !important;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            background: rgba(5, 8, 17, 0.9);
+            margin-top: 4px;
+            display: block;
+            box-shadow: 0 0 10px rgba(0,243,255,0.3);
+        }
         
-        .hud-bottom { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; z-index: 10; }
-        .slot { background: rgba(11, 19, 41, 0.92); border: 2px solid #334155; border-radius: 8px; padding: 6px 12px; min-width: 52px; text-align: center; font-size: 0.76rem; cursor: pointer; transition: all 0.15s; }
-        .slot:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 0 12px var(--primary); }
+        .hud-bottom {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            pointer-events: auto;
+            z-index: 10;
+        }
+        .slot {
+            background: var(--panel-bg);
+            border: 2px solid #334155;
+            border-radius: 8px;
+            padding: 6px 12px;
+            min-width: 52px;
+            text-align: center;
+            font-size: 0.76rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .slot:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 0 12px var(--primary);
+        }
         .slot-val { font-weight: bold; color: var(--gold); font-size: 0.95rem; }
         
-        #action-prompt { position: absolute; bottom: 84px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.95); color: #000; font-weight: bold; padding: 8px 24px; border-radius: 20px; font-size: 0.95rem; display: none; pointer-events: none; box-shadow: 0 0 20px var(--primary); z-index: 10; }
-        #dialogue-box { position: absolute; top: 75px; left: 50%; transform: translateX(-50%); background: rgba(11, 19, 41, 0.96); border: 2px solid var(--gold); color: #fff; padding: 10px 24px; border-radius: 10px; font-size: 0.95rem; max-width: 700px; display: none; box-shadow: 0 0 25px rgba(0,0,0,0.8); z-index: 20; }
+        #action-prompt {
+            position: absolute;
+            bottom: 84px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 243, 255, 0.95);
+            color: #000;
+            font-weight: bold;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            display: none;
+            pointer-events: none;
+            box-shadow: 0 0 20px var(--primary);
+            z-index: 10;
+        }
+        #dialogue-box {
+            position: absolute;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(11, 19, 41, 0.96);
+            border: 2px solid var(--gold);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            max-width: 700px;
+            display: none;
+            box-shadow: 0 0 25px rgba(0,0,0,0.8);
+            z-index: 20;
+        }
         
         /* Modals */
-        .modal { position: absolute; inset: 0; background: rgba(3, 7, 18, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
-        .modal-card { background: var(--card); border: 2px solid var(--primary); border-radius: 14px; padding: 24px; max-width: 680px; width: 90%; text-align: left; box-shadow: 0 0 40px rgba(0, 243, 255, 0.2); }
-        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 16px; }
-        .btn { background: var(--primary); color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.15s; }
+        .modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.94);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        .modal-card {
+            background: var(--card);
+            border: 2px solid var(--primary);
+            border-radius: 14px;
+            padding: 24px;
+            max-width: 680px;
+            width: 90%;
+            text-align: left;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.2);
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+        }
         .btn:hover:not(:disabled) { filter: brightness(1.2); box-shadow: 0 0 15px var(--primary); }
         .btn:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
         
-        .controls-info { margin-top: 6px; font-size: 0.82rem; color: #94a3b8; max-width: 1200px; }
+        .controls-info { margin-top: 6px; font-size: 0.82rem; color: #94a3b8; max-width: 1240px; }
     </style>
 </head>
 <body>
@@ -64,7 +245,7 @@
                 <div class="btn-grid">
                     <button class="btn" onclick="selectClass('Lumberjack')">🪓 Lumberjack<br><small>2x Wood Harvest</small></button>
                     <button class="btn" onclick="selectClass('Hunter')">🏹 Hunter<br><small>+50% Damage & Meats</small></button>
-                    <button class="btn" onclick="selectClass('Scout')">🔦 Scout<br><small>+25% Speed & Night Light</small></button>
+                    <button class="btn" onclick="selectClass('Scout')">🔦 Scout<br><small>+25% Speed & Flashlight</small></button>
                     <button class="btn" onclick="selectClass('Scientist')">🧪 Scientist<br><small>Bonus Scrap & Biofuel</small></button>
                 </div>
             </div>
@@ -87,7 +268,7 @@
             </div>
         </div>
 
-        <!-- Non-Obstructive Top HUD Docked at Edges -->
+        <!-- Docked Top HUD -->
         <div class="hud-top">
             <div class="hud-panel">
                 <div>❤️ HP <div class="hud-bar"><div id="hp-fill" class="hud-fill" style="background:#ef4444;"></div></div></div>
@@ -127,7 +308,7 @@
     <div class="controls-info"><strong>WASD:</strong> Move | <strong>Shift:</strong> Sprint | <strong>E / Space:</strong> Attack / Interact | <strong>F:</strong> Quick Eat | <strong>B:</strong> Crafting | <strong>L:</strong> Flashlight</div>
 
     <script>
-        // Audio Synthesizer
+        // Web Audio Synthesizer Engine
         let audioCtx = null;
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -209,32 +390,40 @@
             showDialogue(`🌲 Welcome, ${className}! Slay Cave Guardians to open the stairs, raid Cultist camps, and keep the fire lit!`);
         }
 
+        // Robust Key Handlers (e.code + e.key)
         window.addEventListener("keydown", e => {
-            if (["w","a","s","d","e","f","b","l","1","2","3","4","5","6","Shift"].includes(e.key) || e.code === "Space") e.preventDefault();
-            if (e.key === "w" || e.key === "ArrowUp") keys.w = true;
-            if (e.key === "s" || e.key === "ArrowDown") keys.s = true;
-            if (e.key === "a" || e.key === "ArrowLeft") keys.a = true;
-            if (e.key === "d" || e.key === "ArrowRight") keys.d = true;
-            if (e.key === "Shift") keys.shift = true;
-            if (e.key === "e" || e.code === "Space") { keys.e = true; handleInteraction(); }
-            if (e.key === "f") eatBestFood();
-            if (e.key === "b") toggleCrafting();
-            if (e.key === "l") toggleFlashlight();
-            if (e.key === "1") feedFireFromHotbar();
-            if (e.key === "2") grindScrapFromHotbar();
-            if (e.key === "3") eatFoodType('berry');
-            if (e.key === "4") eatFoodType('meat');
-            if (e.key === "5") tradePeltFromHotbar();
-            if (e.key === "6") eatFoodType('stew');
+            const code = e.code;
+            const k = e.key.toLowerCase();
+            if (["KeyW","KeyA","KeyS","KeyD","ArrowUp","ArrowLeft","ArrowDown","ArrowRight","Space","KeyE","KeyF","KeyB","KeyL","ShiftLeft","ShiftRight","Digit1","Digit2","Digit3","Digit4","Digit5","Digit6"].includes(code) ||
+                ["w","a","s","d","e","f","b","l"," ","1","2","3","4","5","6","shift"].includes(k)) {
+                e.preventDefault();
+            }
+            if (code === "KeyW" || code === "ArrowUp" || k === "w") keys.w = true;
+            if (code === "KeyS" || code === "ArrowDown" || k === "s") keys.s = true;
+            if (code === "KeyA" || code === "ArrowLeft" || k === "a") keys.a = true;
+            if (code === "KeyD" || code === "ArrowRight" || k === "d") keys.d = true;
+            if (code === "ShiftLeft" || code === "ShiftRight" || k === "shift") keys.shift = true;
+            if (code === "KeyE" || code === "Space" || k === "e" || k === " ") { keys.e = true; handleInteraction(); }
+            if (code === "KeyF" || k === "f") eatBestFood();
+            if (code === "KeyB" || k === "b") toggleCrafting();
+            if (code === "KeyL" || k === "l") toggleFlashlight();
+            if (code === "Digit1" || k === "1") feedFireFromHotbar();
+            if (code === "Digit2" || k === "2") grindScrapFromHotbar();
+            if (code === "Digit3" || k === "3") eatFoodType('berry');
+            if (code === "Digit4" || k === "4") eatFoodType('meat');
+            if (code === "Digit5" || k === "5") tradePeltFromHotbar();
+            if (code === "Digit6" || k === "6") eatFoodType('stew');
         }, { passive: false });
 
         window.addEventListener("keyup", e => {
-            if (e.key === "w" || e.key === "ArrowUp") keys.w = false;
-            if (e.key === "s" || e.key === "ArrowDown") keys.s = false;
-            if (e.key === "a" || e.key === "ArrowLeft") keys.a = false;
-            if (e.key === "d" || e.key === "ArrowRight") keys.d = false;
-            if (e.key === "Shift") keys.shift = false;
-            if (e.key === "e" || e.code === "Space") keys.e = false;
+            const code = e.code;
+            const k = e.key.toLowerCase();
+            if (code === "KeyW" || code === "ArrowUp" || k === "w") keys.w = false;
+            if (code === "KeyS" || code === "ArrowDown" || k === "s") keys.s = false;
+            if (code === "KeyA" || code === "ArrowLeft" || k === "a") keys.a = false;
+            if (code === "KeyD" || code === "ArrowRight" || k === "d") keys.d = false;
+            if (code === "ShiftLeft" || code === "ShiftRight" || k === "shift") keys.shift = false;
+            if (code === "KeyE" || code === "Space" || k === "e" || k === " ") keys.e = false;
         });
 
         function toggleCrafting(force) {
@@ -291,6 +480,7 @@
             };
         }
 
+        // Accurate Voxel Wolf (Matching image_3.jpeg)
         function createAccurateWolf(x, z, isBoss=false, bossName="") {
             const root = new THREE.Group();
             const darkGrey = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8 });
@@ -366,6 +556,7 @@
             };
         }
 
+        // Accurate Voxel Rabbit (Matching image_fdc270.png)
         function createAccurateRabbit(x, z) {
             const root = new THREE.Group();
             const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 });
@@ -505,6 +696,7 @@
             };
         }
 
+        // Wendigo Bipedal Deer Stalker (Exact Reference Match IMG_2078.jpeg)
         function buildBipedalDeer() {
             const root = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.85 });
@@ -587,10 +779,12 @@
             };
         }
 
+        // Stepped Rock Mound Cave with Authentic Underground Kids' Bedroom
         function createSteppedRockCaveWithBedroom(cfg) {
             const caveGroup = new THREE.Group();
             const rockMat = new THREE.MeshStandardMaterial({ color: 0x52525b, roughness: 0.95 });
 
+            // Stepped Pyramid Structure
             const steps = [
                 { w: 14, h: 2.2, l: 14, y: 1.1 },
                 { w: 11, h: 2.2, l: 11, y: 3.3 },
