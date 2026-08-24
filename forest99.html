@@ -2,20 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>99 Nights in the Forest - Definitive Edition</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         :root { --primary: #00f3ff; --accent: #ff007f; --gold: #facc15; --bg: #030712; --card: #0b1329; }
-        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 4px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; user-select: none; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 4px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; user-select: none; }
         
-        header { width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 22px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 6px; box-sizing: border-box; box-shadow: 0 0 20px rgba(0, 243, 255, 0.15); }
+        header { width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 22px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 6px; box-shadow: 0 0 20px rgba(0, 243, 255, 0.15); }
         .stats { font-size: 1.1rem; font-weight: bold; color: var(--gold); }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
         
-        #game-wrapper { width: 100%; max-width: 1200px; height: 640px; border: 3px solid var(--primary); border-radius: 14px; box-shadow: 0 0 40px rgba(0, 243, 255, 0.25); position: relative; overflow: hidden; background: #000; }
-        canvas { width: 100% !important; height: 100% !important; display: block; }
+        #game-wrapper { width: 100%; max-width: 1200px; height: 640px; border: 3px solid var(--primary); border-radius: 14px; box-shadow: 0 0 40px rgba(0, 243, 255, 0.25); position: relative; overflow: hidden; background: #1a331a; }
+        #webgl-canvas { width: 100% !important; height: 100% !important; display: block; }
         
         /* Non-Obstructive Docked UI */
         .hud-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; pointer-events: none; z-index: 10; }
@@ -26,7 +27,7 @@
         .sundial-disc { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--gold); background: conic-gradient(#facc15 0% 68%, #1e1b4b 68% 100%); position: relative; }
         .sundial-hand { width: 2px; height: 15px; background: #fff; position: absolute; top: 2px; left: 16px; transform-origin: bottom center; }
         
-        #minimap-canvas { width: 85px; height: 85px; border-radius: 50%; border: 2px solid var(--primary); background: rgba(5, 8, 17, 0.9); margin-top: 4px; display: block; box-shadow: 0 0 10px rgba(0,243,255,0.3); }
+        #minimap-canvas { width: 85px !important; height: 85px !important; border-radius: 50%; border: 2px solid var(--primary); background: rgba(5, 8, 17, 0.9); margin-top: 4px; display: block; box-shadow: 0 0 10px rgba(0,243,255,0.3); }
         
         .hud-bottom { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; z-index: 10; }
         .slot { background: rgba(11, 19, 41, 0.92); border: 2px solid #334155; border-radius: 8px; padding: 6px 12px; min-width: 52px; text-align: center; font-size: 0.76rem; cursor: pointer; transition: all 0.15s; }
@@ -126,17 +127,18 @@
     <div class="controls-info"><strong>WASD:</strong> Move | <strong>Shift:</strong> Sprint | <strong>E / Space:</strong> Attack / Interact | <strong>F:</strong> Quick Eat | <strong>B:</strong> Crafting | <strong>L:</strong> Flashlight</div>
 
     <script>
-        // Web Audio Synthesizer
+        // Audio Synthesizer
         let audioCtx = null;
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
             return audioCtx;
         }
 
         function playTone(freq, type, duration, vol=0.1) {
             try {
                 const ctx = getAudioContext();
+                if (!ctx) return;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.type = type; osc.frequency.value = freq;
@@ -150,6 +152,7 @@
         function playDeerRoar() {
             try {
                 const ctx = getAudioContext();
+                if (!ctx) return;
                 const osc = ctx.createOscillator();
                 const mod = ctx.createOscillator();
                 const modGain = ctx.createGain();
@@ -165,7 +168,7 @@
             } catch(e){}
         }
 
-        // Core Engine Variables
+        // Three.js State Variables
         let scene, camera, renderer, ambientLight, campfireLight, sunLight, moonLight, hemiLight, flashlight;
         let playerRig, deerRig, lightBarrierRing, physicalBedMesh = null, sentryTurretMesh = null;
         let gameActive = false, inCutscene = false;
@@ -217,6 +220,12 @@
             if (e.key === "f") eatBestFood();
             if (e.key === "b") toggleCrafting();
             if (e.key === "l") toggleFlashlight();
+            if (e.key === "1") feedFireFromHotbar();
+            if (e.key === "2") grindScrapFromHotbar();
+            if (e.key === "3") eatFoodType('berry');
+            if (e.key === "4") eatFoodType('meat');
+            if (e.key === "5") tradePeltFromHotbar();
+            if (e.key === "6") eatFoodType('stew');
         }, { passive: false });
 
         window.addEventListener("keyup", e => {
@@ -434,6 +443,68 @@
             });
         }
 
+        function createRealisticAnimal(cfg) {
+            const root = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: cfg.color || cfg.gColor || 0x451a03, roughness: 0.75 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: cfg.darkColor || 0x1e293b, roughness: 0.9 });
+
+            const chest = new THREE.Mesh(new THREE.BoxGeometry(cfg.bw, cfg.bh, cfg.bl * 0.6), mat);
+            chest.position.set(0, cfg.legH + cfg.bh / 2, cfg.bl * 0.2); root.add(chest);
+
+            const pelvis = new THREE.Mesh(new THREE.BoxGeometry(cfg.bw * 0.85, cfg.bh * 0.9, cfg.bl * 0.5), mat);
+            pelvis.position.set(0, cfg.legH + cfg.bh * 0.45, -cfg.bl * 0.3); root.add(pelvis);
+
+            const neck = new THREE.Mesh(new THREE.BoxGeometry(cfg.hw * 0.7, cfg.hh * 0.8, cfg.hl * 0.6), mat);
+            neck.position.set(0, (cfg.bh / 2) + 0.3, (cfg.bl * 0.3) + 0.2); neck.rotation.x = -0.3; chest.add(neck);
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(cfg.hw, cfg.hh, cfg.hl), mat);
+            head.position.set(0, 0.4, 0.4); neck.add(head);
+
+            if (cfg.snout) {
+                const snout = new THREE.Mesh(new THREE.BoxGeometry(cfg.hw * 0.6, cfg.hh * 0.45, cfg.hl * 0.8), darkMat);
+                snout.position.set(0, -cfg.hh * 0.15, cfg.hl * 0.75); head.add(snout);
+            }
+            if (cfg.ears) {
+                [-cfg.hw * 0.35, cfg.hw * 0.35].forEach(ex => {
+                    const ear = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.4, 0.15), darkMat);
+                    ear.position.set(ex, cfg.hh * 0.55, -cfg.hl * 0.2); ear.rotation.x = -0.2; head.add(ear);
+                });
+            }
+
+            if (cfg.type === 'MAMMOTH') {
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.35, 2.0, 8), mat);
+                trunk.position.set(0, -0.6, 1.2); trunk.rotation.x = 0.4; head.add(trunk);
+                [-1.1, 1.1].forEach((tx, idx) => {
+                    const tusk = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.2, 2.6, 8), new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.3 }));
+                    tusk.position.set(tx, -0.2, 1.3); tusk.rotation.x = -Math.PI / 3; tusk.rotation.z = (idx === 0 ? 0.3 : -0.3);
+                    head.add(tusk);
+                });
+            }
+
+            const legs = [];
+            const offsets = [[-cfg.bw/2+0.2, cfg.bl*0.25], [cfg.bw/2-0.2, cfg.bl*0.25], [-cfg.bw*0.4, -cfg.bl*0.35], [cfg.bw*0.4, -cfg.bl*0.35]];
+            offsets.forEach(off => {
+                const lp = new THREE.Group(); lp.position.set(off[0], cfg.legH, off[1]);
+                const upper = new THREE.Mesh(new THREE.BoxGeometry(cfg.legW, cfg.legH * 0.6, cfg.legW), mat); upper.position.y = -cfg.legH * 0.3; lp.add(upper);
+                const lower = new THREE.Mesh(new THREE.BoxGeometry(cfg.legW * 0.85, cfg.legH * 0.5, cfg.legW * 0.85), darkMat); lower.position.y = -cfg.legH * 0.75; lp.add(lower);
+                root.add(lp); legs.push(lp);
+            });
+
+            root.position.set(cfg.x, 0, cfg.z);
+            scene.add(root);
+
+            return {
+                root, legs, type: cfg.type, hp: cfg.hp || cfg.gHp || 8, maxHp: cfg.hp || cfg.gHp || 8, speed: cfg.speed || cfg.spd || 0.14, alive: true, hasKey: cfg.hasKey, keyType: cfg.keyType,
+                updateAnim: function(moving, time) {
+                    if (moving) {
+                        const a = Math.sin(time * 7) * 0.55;
+                        this.legs[0].rotation.x = a; this.legs[1].rotation.x = -a;
+                        this.legs[2].rotation.x = -a; this.legs[3].rotation.x = a;
+                    } else this.legs.forEach(l => l.rotation.x = 0);
+                }
+            };
+        }
+
         function buildBipedalDeer() {
             const root = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.85 });
@@ -636,17 +707,24 @@
 
         function init3D() {
             const container = document.getElementById("game-wrapper");
+            const width = container.clientWidth || 1150;
+            const height = container.clientHeight || 640;
+
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x1a331a);
             scene.fog = new THREE.Fog(0x1a331a, 45, 240);
 
-            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1200);
+            camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1200);
+            camera.position.set(0, 6, 17.5);
+            camera.lookAt(0, 1.8, 8);
+
             renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setSize(width, height);
             renderer.shadowMap.enabled = true;
+            renderer.domElement.id = "webgl-canvas";
             container.appendChild(renderer.domElement);
 
-            ambientLight = new THREE.AmbientLight(0xffffff, 0.65); scene.add(ambientLight);
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.75); scene.add(ambientLight);
             hemiLight = new THREE.HemisphereLight(0xe8f5e9, 0x142814, 0.6); scene.add(hemiLight);
             sunLight = new THREE.DirectionalLight(0xfffaed, 0.95); sunLight.position.set(80, 140, 80); scene.add(sunLight);
             moonLight = new THREE.DirectionalLight(0x4477ff, 0.0); moonLight.position.set(-80, 100, -80); scene.add(moonLight);
@@ -668,6 +746,14 @@
             spawnWildWolvesAndBunnies();
             spawnLootChests();
             spawnCultistCamps();
+
+            window.addEventListener('resize', () => {
+                const w = container.clientWidth || 1150;
+                const h = container.clientHeight || 640;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+            });
         }
 
         function buildCamp() {
@@ -1082,6 +1168,7 @@
 
         function updateMinimap() {
             const canvas = document.getElementById('minimap-canvas');
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1125,7 +1212,7 @@
                 document.getElementById("cycle-title").style.color = "var(--gold)";
                 document.getElementById("cycle-timer").innerText = `Night in: ${Math.floor(rem/60)}m ${rem%60}s`;
 
-                ambientLight.intensity = 0.65; sunLight.intensity = 0.95; moonLight.intensity = 0.0;
+                ambientLight.intensity = 0.75; sunLight.intensity = 0.95; moonLight.intensity = 0.0;
                 scene.background.setHex(0x1a331a); scene.fog.color.setHex(0x1a331a);
                 deerRig.root.visible = false;
             } else if (cycleTimer < DAY_LEN + DUSK_LEN) {
@@ -1134,7 +1221,7 @@
                 document.getElementById("cycle-title").style.color = "#fb923c";
                 document.getElementById("cycle-timer").innerText = `Night in: ${rem}s`;
 
-                ambientLight.intensity = 0.4; sunLight.intensity = 0.3; moonLight.intensity = 0.15;
+                ambientLight.intensity = 0.45; sunLight.intensity = 0.3; moonLight.intensity = 0.15;
                 scene.background.setHex(0x2d1808); scene.fog.color.setHex(0x2d1808);
                 deerRig.root.visible = false;
             } else if (cycleTimer < TOTAL_CYCLE) {
@@ -1143,7 +1230,7 @@
                 document.getElementById("cycle-title").style.color = "var(--accent)";
                 document.getElementById("cycle-timer").innerText = `Dawn in: ${rem}s`;
 
-                ambientLight.intensity = 0.25; sunLight.intensity = 0.0; moonLight.intensity = 0.45;
+                ambientLight.intensity = 0.3; sunLight.intensity = 0.0; moonLight.intensity = 0.45;
                 scene.background.setHex(0x040810); scene.fog.color.setHex(0x040810);
 
                 if (!deerRig.root.visible) {
@@ -1222,12 +1309,10 @@
         }
 
         function update() {
-            if (!gameActive) return;
-
             let isMoving = false;
             let curSpeed = (keys.shift && stamina > 0) ? player.sprintSpeed : player.baseSpeed;
 
-            if (!inCutscene) {
+            if (!inCutscene && gameActive) {
                 if (keys.a) player.rot += 0.038;
                 if (keys.d) player.rot -= 0.038;
 
@@ -1251,28 +1336,30 @@
                 playerRig.updateAnim(isMoving, walkClock, isAttacking);
 
                 camera.position.x = player.x + Math.sin(player.rot) * 9.5;
-                camera.position.y = player.y + 6.0;
+                camera.position.y = (player.y || 0) + 6.0;
                 camera.position.z = player.z + Math.cos(player.rot) * 9.5;
-                camera.lookAt(player.x, player.y + 1.8, player.z);
+                camera.lookAt(player.x, (player.y || 0) + 1.8, player.z);
             }
 
             updateEnvironment();
             updateDeer();
             updateMinimap();
 
-            animals.forEach(a => {
-                if (a.alive && a.root.position.distanceTo(playerRig.root.position) < 22) {
-                    a.root.lookAt(playerRig.root.position);
-                    a.root.translateZ(a.speed);
-                    a.updateAnim(true, walkClock);
-                    if (a.root.position.distanceTo(playerRig.root.position) < 2.2) hp -= 0.3;
-                }
-            });
+            if (gameActive) {
+                animals.forEach(a => {
+                    if (a.alive && a.root.position.distanceTo(playerRig.root.position) < 22) {
+                        a.root.lookAt(playerRig.root.position);
+                        a.root.translateZ(a.speed || 0.14);
+                        a.updateAnim(true, walkClock);
+                        if (a.root.position.distanceTo(playerRig.root.position) < 2.2) hp -= 0.3;
+                    }
+                });
 
-            if (hasSentry && sentryTurretMesh && deerRig.root.visible) {
-                sentryTurretMesh.lookAt(deerRig.root.position);
-                if (sentryTurretMesh.position.distanceTo(deerRig.root.position) < 30) {
-                    deerRig.root.translateZ(-0.35);
+                if (hasSentry && sentryTurretMesh && deerRig.root.visible) {
+                    sentryTurretMesh.lookAt(deerRig.root.position);
+                    if (sentryTurretMesh.position.distanceTo(deerRig.root.position) < 30) {
+                        deerRig.root.translateZ(-0.35);
+                    }
                 }
             }
         }
