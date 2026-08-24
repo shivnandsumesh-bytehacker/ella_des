@@ -126,34 +126,42 @@
     <div class="controls-info"><strong>WASD:</strong> Move | <strong>Shift:</strong> Sprint | <strong>E / Space:</strong> Attack / Interact | <strong>F:</strong> Quick Eat | <strong>B:</strong> Crafting | <strong>L:</strong> Flashlight</div>
 
     <script>
-        // Audio Synthesizer
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // Web Audio Synthesizer
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
         function playTone(freq, type, duration, vol=0.1) {
             try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
                 osc.type = type; osc.frequency.value = freq;
-                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + duration);
+                gain.gain.setValueAtTime(vol, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + duration);
             } catch(e){}
         }
 
         function playDeerRoar() {
             try {
-                const osc = audioCtx.createOscillator();
-                const mod = audioCtx.createOscillator();
-                const modGain = audioCtx.createGain();
-                const gain = audioCtx.createGain();
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const mod = ctx.createOscillator();
+                const modGain = ctx.createGain();
+                const gain = ctx.createGain();
                 mod.frequency.value = 32; modGain.gain.value = 140; mod.connect(osc.frequency);
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(160, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 1.4);
-                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.4);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                mod.start(); osc.start(); mod.stop(audioCtx.currentTime + 1.4); osc.stop(audioCtx.currentTime + 1.4);
+                osc.frequency.setValueAtTime(160, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 1.4);
+                gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.4);
+                osc.connect(gain); gain.connect(ctx.destination);
+                mod.start(); osc.start(); mod.stop(ctx.currentTime + 1.4); osc.stop(ctx.currentTime + 1.4);
             } catch(e){}
         }
 
@@ -184,6 +192,7 @@
         function addCoins(amt) { gold += amt; localStorage.setItem('arcade_coins', gold); updateWallet(); }
 
         function selectClass(className) {
+            getAudioContext();
             playerClass = className;
             if (className === 'Scout') hasFlashlight = true;
             if (className === 'Hunter') { 
@@ -194,14 +203,11 @@
             if (className === 'Scientist') { meat += 3; scrap += 6; }
             document.getElementById('class-modal').style.display = 'none';
             gameActive = true;
-            init3D();
-            updateWallet();
-            animate();
             showDialogue(`🌲 Welcome, ${className}! Slay Cave Guardians to open the stairs, raid Cultist camps, and keep the fire lit!`);
         }
 
         window.addEventListener("keydown", e => {
-            if (["w","a","s","d","e","f","b","l","Shift"].includes(e.key) || e.code === "Space") e.preventDefault();
+            if (["w","a","s","d","e","f","b","l","1","2","3","4","5","6","Shift"].includes(e.key) || e.code === "Space") e.preventDefault();
             if (e.key === "w" || e.key === "ArrowUp") keys.w = true;
             if (e.key === "s" || e.key === "ArrowDown") keys.s = true;
             if (e.key === "a" || e.key === "ArrowLeft") keys.a = true;
@@ -235,7 +241,6 @@
             playTone(800, 'sine', 0.05);
         }
 
-        // Articulated Rigged Humanoid Model
         function createArticulatedHumanoid(colors) {
             const root = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: colors.shirt, roughness: 0.6 });
@@ -277,7 +282,6 @@
             };
         }
 
-        // Accurate Voxel Wolf (Matching image_3.jpeg)
         function createAccurateWolf(x, z, isBoss=false, bossName="") {
             const root = new THREE.Group();
             const darkGrey = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8 });
@@ -285,35 +289,29 @@
             const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
             const toothMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-            // Main Back Body
             const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 2.6), darkGrey);
             body.position.y = 1.6; root.add(body);
 
-            // Lower Belly / Undercoat
             const belly = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 2.4), lightGrey);
             belly.position.set(0, 1.0, 0); root.add(belly);
 
-            // Head Group
             const headGroup = new THREE.Group();
             headGroup.position.set(0, 2.0, 1.4); root.add(headGroup);
 
             const head = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 1.4), darkGrey);
             headGroup.add(head);
 
-            // Pointed Ears
             [-0.45, 0.45].forEach(ex => {
                 const ear = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.6, 0.2), darkGrey);
                 ear.position.set(ex, 0.8, -0.2); headGroup.add(ear);
             });
 
-            // Dark Grey Upper Snout & Black Nose Cube
             const snout = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.6, 0.9), darkGrey);
             snout.position.set(0, -0.1, 0.9); headGroup.add(snout);
 
             const nose = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.25), blackMat);
             nose.position.set(0, 0.05, 1.4); headGroup.add(nose);
 
-            // Light Grey Lower Jaw with Visible Teeth
             const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.35, 0.8), lightGrey);
             jaw.position.set(0, -0.4, 0.85); headGroup.add(jaw);
 
@@ -322,7 +320,6 @@
                 tooth.position.set(tx, -0.2, 1.15); headGroup.add(tooth);
             });
 
-            // Slanted Angry Eyes
             [-0.35, 0.35].forEach((ey, idx) => {
                 const eye = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.12, 0.1), blackMat);
                 eye.position.set(ey, 0.2, 0.72);
@@ -330,7 +327,6 @@
                 headGroup.add(eye);
             });
 
-            // 4 Blocky Legs
             const legs = [];
             const legOffsets = [[-0.55, 0.8], [0.55, 0.8], [-0.55, -0.8], [0.55, -0.8]];
             legOffsets.forEach(lo => {
@@ -341,7 +337,6 @@
                 root.add(lp); legs.push(lp);
             });
 
-            // Tail
             const tail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.8), darkGrey);
             tail.position.set(0, 1.7, -1.5); tail.rotation.x = -0.4; root.add(tail);
 
@@ -362,27 +357,22 @@
             };
         }
 
-        // Accurate Voxel Rabbit (Matching image_fdc270.png)
         function createAccurateRabbit(x, z) {
             const root = new THREE.Group();
             const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 });
             const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
 
-            // White Boxy Body
             const body = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.9, 1.4), whiteMat);
             body.position.y = 0.65; root.add(body);
 
-            // Head
             const head = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.75, 0.75), whiteMat);
             head.position.set(0, 0.85, 0.8); root.add(head);
 
-            // Tall Angled White Ears
             [-0.2, 0.2].forEach(ex => {
                 const ear = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.7, 0.22), whiteMat);
                 ear.position.set(ex, 1.4, 0.65); ear.rotation.x = -0.25; root.add(ear);
             });
 
-            // Grumpy Slanted Black Eyes & Nose
             [-0.22, 0.22].forEach((ex, idx) => {
                 const eye = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.05), blackMat);
                 eye.position.set(ex, 0.9, 1.18); eye.rotation.z = idx === 0 ? 0.25 : -0.25; root.add(eye);
@@ -391,7 +381,6 @@
             const nose = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.05, 0.05), blackMat);
             nose.position.set(0, 0.75, 1.18); root.add(nose);
 
-            // 4 Tiny Feet
             const feet = [];
             [[-0.35, 0.4], [0.35, 0.4], [-0.35, -0.4], [0.35, -0.4]].forEach(fo => {
                 const foot = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.3), whiteMat);
@@ -411,10 +400,8 @@
             };
         }
 
-        // Cultist Enemy & Camp Spawner
         function createCultist(x, z) {
             const cultist = createArticulatedHumanoid({ skin: 0xd4a373, shirt: 0x991b1b, pants: 0x450a0a });
-            // Red Hood / Mask
             const mask = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.9), new THREE.MeshStandardMaterial({ color: 0x7f1d1d }));
             mask.position.y = 1.6; cultist.torso.add(mask);
 
@@ -426,14 +413,13 @@
             };
         }
 
-        function spawnCultistCamps(seed) {
+        function spawnCultistCamps() {
             const camps = [
                 { x: -140, z: -120 },
                 { x: 150, z: 130 }
             ];
 
             camps.forEach(cp => {
-                // Altar / Monolith
                 const altar = new THREE.Mesh(new THREE.BoxGeometry(4, 2.5, 4), new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.9 }));
                 altar.position.set(cp.x, 1.25, cp.z); scene.add(altar);
 
@@ -448,7 +434,6 @@
             });
         }
 
-        // Wendigo Bipedal Deer Stalker (Exact Reference Match IMG_2078.jpeg)
         function buildBipedalDeer() {
             const root = new THREE.Group();
             const mat = new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.85 });
@@ -456,18 +441,15 @@
             const tanMat = new THREE.MeshStandardMaterial({ color: 0xd2b48c, roughness: 0.6 });
             const pinkMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.5 });
 
-            // Torso
             const torso = new THREE.Mesh(new THREE.BoxGeometry(1.6, 3.2, 1.2), mat);
             torso.position.y = 3.6; root.add(torso);
 
-            // Head Group
             const headGroup = new THREE.Group();
             headGroup.position.set(0, 5.8, 0.4); root.add(headGroup);
 
             const head = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.6, 1.6), mat);
             headGroup.add(head);
 
-            // Large Pointed Ears with Pink Inner Lining (Matching IMG_2078.jpeg)
             [-0.75, 0.75].forEach((ex, idx) => {
                 const earOuter = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1.1, 4), mat);
                 earOuter.position.set(ex, 0.9, -0.1);
@@ -480,18 +462,15 @@
                 headGroup.add(earInner);
             });
 
-            // Protruding Tan/Beige Snout with Black Nose (Matching IMG_2078.jpeg)
             const snout = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.8), tanMat);
             snout.position.set(0, 0.1, 1.1); headGroup.add(snout);
 
             const nose = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.2), darkMat);
             nose.position.set(0, 0.25, 1.5); headGroup.add(nose);
 
-            // Yawning Screaming Black Mouth (Matching IMG_2078.jpeg)
             const mouth = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.4, 0.25), new THREE.MeshBasicMaterial({ color: 0x000000 }));
             mouth.position.set(0, -0.65, 0.85); headGroup.add(mouth);
 
-            // Bulging Eyes
             [-0.42, 0.42].forEach(x => {
                 const eye = new THREE.Mesh(new THREE.CircleGeometry(0.35, 16), new THREE.MeshBasicMaterial({ color: 0xffffff }));
                 eye.position.set(x, 0.35, 0.82); headGroup.add(eye);
@@ -499,7 +478,6 @@
                 pup.position.set(x, 0.35, 0.83); headGroup.add(pup);
             });
 
-            // Massive Branching Black Antlers (Matching IMG_2078.jpeg)
             [-1, 1].forEach((dir, idx) => {
                 const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.22, 3.2), darkMat);
                 beam.position.set(dir * 1.2, 1.8, -0.2); beam.rotation.z = idx === 0 ? 0.4 : -0.4; headGroup.add(beam);
@@ -509,7 +487,6 @@
                 br2.position.set(dir * 1.4, 3.1, -0.2); br2.rotation.z = idx === 0 ? 0.2 : -0.2; headGroup.add(br2);
             });
 
-            // Long Black Claws & Legs
             const armL = new THREE.Group(); armL.position.set(-1.1, 4.8, 0);
             const amL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 3.0, 0.4), darkMat); amL.position.y = -1.5; armL.add(amL); root.add(armL);
             const armR = new THREE.Group(); armR.position.set(1.1, 4.8, 0);
@@ -539,12 +516,10 @@
             };
         }
 
-        // Stepped Rock Mound Cave with Authentic Underground Kids' Bedroom
         function createSteppedRockCaveWithBedroom(cfg) {
             const caveGroup = new THREE.Group();
             const rockMat = new THREE.MeshStandardMaterial({ color: 0x52525b, roughness: 0.95 });
 
-            // 1. Exterior Stepped Rock Pyramid Structure (Matching Screenshot 1)
             const steps = [
                 { w: 14, h: 2.2, l: 14, y: 1.1 },
                 { w: 11, h: 2.2, l: 11, y: 3.3 },
@@ -557,17 +532,14 @@
                 caveGroup.add(stepMesh);
             });
 
-            // Dark Entrance Portal
             const portal = new THREE.Mesh(new THREE.BoxGeometry(3.6, 4.4, 1.2), new THREE.MeshBasicMaterial({ color: 0x000000 }));
             portal.position.set(0, 2.2, 7.1);
             caveGroup.add(portal);
 
-            // Barrier Aura (Disappears when Guardian is killed)
             const barrierMesh = new THREE.Mesh(new THREE.PlaneGeometry(4, 5), new THREE.MeshBasicMaterial({ color: cfg.lockColor, transparent: true, opacity: 0.75, side: THREE.DoubleSide }));
             barrierMesh.position.set(0, 2.5, 7.2);
             caveGroup.add(barrierMesh);
 
-            // 2. Stone Staircase Going Underground (Matching Screenshot 2)
             const stairGroup = new THREE.Group();
             for (let s = 0; s < 12; s++) {
                 const step = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.9, 1.8), new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.9 }));
@@ -576,7 +548,6 @@
             }
             caveGroup.add(stairGroup);
 
-            // 3. Subterranean Hallway & Door (Matching Screenshot 2)
             const hallMat = new THREE.MeshStandardMaterial({ color: 0x3f3f46, roughness: 0.9 });
             const hallFloor = new THREE.Mesh(new THREE.PlaneGeometry(8, 12), hallMat);
             hallFloor.rotation.x = -Math.PI / 2;
@@ -595,7 +566,6 @@
             lockMesh.position.set(0, -8, -27.4);
             caveGroup.add(lockMesh);
 
-            // 4. Authentic Kid's Bedroom (Matching Screenshot 3)
             const roomGroup = new THREE.Group();
             roomGroup.position.set(0, -11, -38);
 
@@ -620,7 +590,6 @@
             rightWall.position.set(9, 4, 0);
             roomGroup.add(rightWall);
 
-            // Rainbow Wall Decor (Matching Screenshot 3)
             const rainbowColors = [0xef4444, 0xf97316, 0xfacc15, 0x22c55e, 0x3b82f6, 0xa855f7];
             rainbowColors.forEach((rc, rIdx) => {
                 const ring = new THREE.Mesh(new THREE.TorusGeometry(3.0 - rIdx * 0.35, 0.16, 8, 24, Math.PI), new THREE.MeshBasicMaterial({ color: rc }));
@@ -628,7 +597,6 @@
                 roomGroup.add(ring);
             });
 
-            // Bookshelf with Books (Matching Screenshot 3)
             const shelf = new THREE.Mesh(new THREE.BoxGeometry(3.5, 6, 1.6), new THREE.MeshStandardMaterial({ color: 0x3e2723 }));
             shelf.position.set(-6.5, 3, -7.8);
             roomGroup.add(shelf);
@@ -638,7 +606,6 @@
                 roomGroup.add(book);
             }
 
-            // Bed with Blanket & Pillow (Matching Screenshot 3)
             const bedFrame = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.8, 6.5), new THREE.MeshStandardMaterial({ color: 0x5d4037 }));
             bedFrame.position.set(5.5, 0.4, -4.5);
             roomGroup.add(bedFrame);
@@ -651,13 +618,11 @@
             bedPillow.position.set(5.5, 1.3, -6.6);
             roomGroup.add(bedPillow);
 
-            // Fallen Dresser (Matching Screenshot 3)
             const fallenDresser = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.4, 4.5), new THREE.MeshStandardMaterial({ color: 0x4a2c11 }));
             fallenDresser.position.set(-5, 0.7, 1);
             fallenDresser.rotation.y = 0.4;
             roomGroup.add(fallenDresser);
 
-            // Bedroom Light
             const roomLight = new THREE.PointLight(0xfffaed, 1.8, 25);
             roomLight.position.set(0, 6.5, 0);
             roomGroup.add(roomLight);
@@ -686,11 +651,9 @@
             sunLight = new THREE.DirectionalLight(0xfffaed, 0.95); sunLight.position.set(80, 140, 80); scene.add(sunLight);
             moonLight = new THREE.DirectionalLight(0x4477ff, 0.0); moonLight.position.set(-80, 100, -80); scene.add(moonLight);
 
-            // Giant 1000m Generated Map
             const ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshStandardMaterial({ color: 0x224422, roughness: 0.85 }));
             ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
-            // Procedural Mountains & Hills
             for (let i = 0; i < 65; i++) {
                 const mound = new THREE.Mesh(new THREE.DodecahedronGeometry(4 + Math.random() * 6), new THREE.MeshStandardMaterial({ color: 0x274a27, roughness: 0.9 }));
                 mound.position.set((Math.random() - 0.5) * 800, 1, (Math.random() - 0.5) * 800);
@@ -821,7 +784,6 @@
                 kid.root.position.set(cfg.x, -10.4, cfg.z - 36);
                 scene.add(kid.root);
 
-                // Boss Guardian guarding the stepped entrance
                 let guard;
                 if (cfg.gType === 'ALPHA_WOLF' || cfg.gType === 'SHADOW_WOLF') {
                     guard = createAccurateWolf(cfg.x, cfg.z + 12, true, cfg.kidName);
@@ -956,6 +918,7 @@
                 spawnPhysicalBedInCamp();
                 document.getElementById('btn-craft-bed').innerText = '🛏️ Bed (SOLD OUT)';
                 document.getElementById('btn-craft-bed').disabled = true;
+                document.getElementById('multiplier-text').innerText = `${dayMultiplier}x`;
                 showDialogue("🛏️ Bed Crafted & Spawned at Camp! Walk up to sleep and skip the night!"); playTone(450, 'triangle', 0.2);
             } else if (type === 'crockpot' && scrap >= 6 && wood >= 4 && !hasCrockpot) {
                 scrap -= 6; wood -= 4; hasCrockpot = true;
@@ -975,7 +938,6 @@
             updateInventoryUI(); toggleCrafting(false);
         }
 
-        // Cinematic Cutscene Helper
         function playCinematicCutscene(targetPos, lookPos, duration, message) {
             inCutscene = true;
             showDialogue(message);
@@ -992,7 +954,6 @@
             if (inCutscene) return;
             const pPos = new THREE.Vector2(player.x, player.z);
 
-            // Pickup Dropped Keys
             for (let k of droppedKeys) {
                 if (k.active && pPos.distanceTo(new THREE.Vector2(k.x, k.z)) < 3.5) {
                     k.active = false; scene.remove(k.group); caveKeys++;
@@ -1000,12 +961,11 @@
                 }
             }
 
-            // Unlock Bedroom Door inside Cave
             for (let c of caves) {
                 if (!c.isUnlocked && pPos.distanceTo(new THREE.Vector2(c.x, c.z - 27.7)) < 6) {
                     if (caveKeys > 0) {
                         caveKeys--; c.isUnlocked = true;
-                        c.door.position.x += 2.8; // Open door
+                        c.door.position.x += 2.8;
                         scene.remove(c.lockMesh);
                         playCinematicCutscene(new THREE.Vector3(c.x, -7, c.z - 24), new THREE.Vector3(c.x, -10, c.z - 36), 2500, `🔓 Unlocked bedroom! Walk inside to rescue ${c.kidName}!`);
                         playTone(550, 'triangle', 0.3);
@@ -1015,7 +975,6 @@
                 }
             }
 
-            // Open Chests
             for (let ch of chests) {
                 if (!ch.opened && pPos.distanceTo(new THREE.Vector2(ch.x, ch.z)) < 3.5) {
                     ch.opened = true; ch.lid.rotation.x = -Math.PI / 3;
@@ -1026,7 +985,6 @@
                 }
             }
 
-            // Rescue Kid inside bedroom (Put in sack)
             for (let k of missingKids) {
                 if (!k.rescued && !k.inSack && pPos.distanceTo(new THREE.Vector2(k.x, k.z)) < 6) {
                     if (!k.cave.isUnlocked) return showDialogue("⚠️ Unlock the bedroom door first!");
@@ -1036,7 +994,6 @@
                 }
             }
 
-            // Deposit Kid At Campfire
             if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 6) {
                 missingKids.forEach(k => {
                     if (k.inSack && !k.rescued) {
@@ -1048,7 +1005,6 @@
                 });
             }
 
-            // Sleep in Bed
             if (hasBed && pPos.distanceTo(new THREE.Vector2(-4, 4)) < 4.5 && cycleTimer >= DAY_LEN) {
                 cycleTimer = 0; night += dayMultiplier; addCoins(25 * dayMultiplier);
                 document.getElementById('night-count').innerText = night;
@@ -1056,7 +1012,6 @@
                 playTone(350, 'sine', 0.4); return;
             }
 
-            // Attack Animals / Cultists / Guardians
             for (let a of animals) {
                 if (a.alive && pPos.distanceTo(new THREE.Vector2(a.root.position.x, a.root.position.z)) < 5) {
                     isAttacking = true; setTimeout(() => { isAttacking = false; }, 250);
@@ -1068,7 +1023,6 @@
                         a.alive = false; scene.remove(a.root);
                         if (a.hasKey) {
                             dropCaveKey(a.root.position.x, a.root.position.z, a.keyType);
-                            // Open entrance staircase
                             const targetCave = caves.find(c => c.kidName === a.keyType);
                             if (targetCave) {
                                 scene.remove(targetCave.barrierMesh);
@@ -1085,7 +1039,6 @@
                 }
             }
 
-            // Campfire Upgrade
             if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 5.5 && wood > 0) {
                 feedFireFromHotbar();
                 if (fireFuel >= 100 && fireTier < 5) {
@@ -1099,7 +1052,6 @@
                 return;
             }
 
-            // Chop Trees
             for (let i = 0; i < trees.length; i++) {
                 let t = trees[i];
                 if (pPos.distanceTo(new THREE.Vector2(t.x, t.z)) < 4.0) {
@@ -1133,21 +1085,17 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Radar Circle
             ctx.fillStyle = "#09101d";
             ctx.beginPath(); ctx.arc(42.5, 42.5, 40, 0, Math.PI * 2); ctx.fill();
 
-            // Campfire Center
             ctx.fillStyle = "#facc15";
             ctx.beginPath(); ctx.arc(42.5, 42.5, 3.5, 0, Math.PI * 2); ctx.fill();
 
-            // Player Position
             const px = 42.5 + (player.x / 400) * 40;
             const pz = 42.5 + (player.z / 400) * 40;
             ctx.fillStyle = "#00f3ff";
             ctx.beginPath(); ctx.arc(px, pz, 3, 0, Math.PI * 2); ctx.fill();
 
-            // Caves
             caves.forEach(c => {
                 const cx = 42.5 + (c.x / 400) * 40;
                 const cz = 42.5 + (c.z / 400) * 40;
@@ -1155,7 +1103,6 @@
                 ctx.fillRect(cx - 2, cz - 2, 4, 4);
             });
 
-            // The Deer Radar Ping
             if (deerRig && deerRig.root.visible) {
                 const dx = 42.5 + (deerRig.root.position.x / 400) * 40;
                 const dz = 42.5 + (deerRig.root.position.z / 400) * 40;
@@ -1256,14 +1203,12 @@
                 let dx = player.x - c.x;
                 let dz = player.z - c.z;
 
-                // If stairs are blocked by guardian
                 if (!c.hasStairsOpen && Math.abs(dx) < 4 && dz > 5 && dz < 9) {
-                    player.z = c.z + 9.2; // Push back from cave portal
+                    player.z = c.z + 9.2;
                     showDialogue("⚠️ Slay the Cave Guardian outside to dispel the barrier!");
                     return;
                 }
 
-                // Descending stone stairs into underground bedroom
                 if (Math.abs(dx) < 5 && dz <= 7 && dz >= -42) {
                     if (dz <= 7 && dz > -20) {
                         let stairProgress = (7 - dz) / 27;
@@ -1305,7 +1250,6 @@
                 playerRig.root.rotation.y = player.rot;
                 playerRig.updateAnim(isMoving, walkClock, isAttacking);
 
-                // Third person camera following player through underground descent
                 camera.position.x = player.x + Math.sin(player.rot) * 9.5;
                 camera.position.y = player.y + 6.0;
                 camera.position.z = player.z + Math.cos(player.rot) * 9.5;
@@ -1336,11 +1280,15 @@
         function animate() {
             requestAnimationFrame(animate);
             update();
-            renderer.render(scene, camera);
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            init3D();
             updateWallet();
+            animate();
         });
     </script>
 </body>
