@@ -2,245 +2,1111 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basketball Legends</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Basketball Legends Arcade - Championship Edition</title>
     <script src="arcade.js"></script>
     <style>
-        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; box-sizing: border-box; }
-        
-        header { width: 100%; max-width: 700px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 12px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 15px; box-sizing: border-box; }
-        .stats { font-size: 1.1rem; font-weight: bold; color: #facc15; }
-        .status { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: var(--primary); min-height: 28px; }
-        
-        canvas { background: #000; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); max-width: 100%; }
-        
-        .controls { margin-top: 15px; display: flex; gap: 15px; }
-        .btn { background: var(--primary); color: #000; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
-        
+        :root {
+            --primary: #00f3ff;
+            --primary-glow: rgba(0, 243, 255, 0.4);
+            --accent: #ff007f;
+            --accent-glow: rgba(255, 0, 127, 0.4);
+            --gold: #facc15;
+            --emerald: #10b981;
+            --bg: #030712;
+            --card: #0b1329;
+            --panel-bg: rgba(11, 19, 41, 0.92);
+        }
+        * { box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        header {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+            padding: 8px 22px;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            margin-bottom: 6px;
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+        .stats { font-size: 1.05rem; font-weight: bold; color: var(--gold); }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
+        a.nav:hover { text-shadow: 0 0 8px var(--primary); }
+
+        #game-wrapper {
+            width: 100%;
+            max-width: 980px;
+            height: calc(100vh - 90px);
+            max-height: 660px;
+            background: var(--card);
+            border: 3px solid var(--primary);
+            border-radius: 14px;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 6px;
+            overflow: hidden;
+        }
+
+        /* Top Stadium Scoreboard */
+        .scoreboard {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel-bg);
+            border: 1.5px solid rgba(0, 243, 255, 0.35);
+            border-radius: 10px;
+            padding: 6px 18px;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            z-index: 10;
+        }
+        .team-box { display: flex; align-items: center; gap: 10px; font-weight: bold; }
+        .score-display { font-size: 1.6rem; font-weight: bold; font-family: monospace; color: var(--gold); }
+        .match-clock { font-size: 1.2rem; font-weight: bold; color: var(--primary); font-family: monospace; }
+        .shot-clock { font-size: 0.95rem; font-weight: bold; color: var(--accent); font-family: monospace; }
+
+        /* Canvas Arena */
+        #canvas-container {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        canvas {
+            background: #020617;
+            border: 2px solid #1e293b;
+            border-radius: 10px;
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+        }
+
+        /* Banners & Alerts */
+        #announcement-banner {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 243, 255, 0.95);
+            color: #000;
+            font-weight: bold;
+            padding: 8px 28px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            display: none;
+            pointer-events: none;
+            box-shadow: 0 0 25px var(--primary);
+            z-index: 25;
+        }
+
+        /* iPad / Mobile Touch Overlay Controls */
+        .touch-zone {
+            position: absolute;
+            bottom: 58px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 15;
+            touch-action: none;
+        }
+        #touch-left { left: 14px; }
+        #touch-right { right: 14px; }
+
+        .touch-btn {
+            width: 50px;
+            height: 50px;
+            background: var(--panel-bg);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .touch-btn:active { background: var(--primary); color: #000; transform: scale(0.92); }
+        .touch-btn.shoot { border-color: var(--gold); color: var(--gold); }
+        .touch-btn.shoot:active { background: var(--gold); color: #000; }
+        .touch-btn.super { border-color: var(--accent); color: var(--accent); }
+        .touch-btn.super:active { background: var(--accent); color: #fff; }
+
+        /* Desktop Controls Bar */
+        .hud-bottom {
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            pointer-events: auto;
+            z-index: 10;
+        }
+        .slot {
+            background: var(--panel-bg);
+            border: 1.5px solid #334155;
+            border-radius: 8px;
+            padding: 4px 10px;
+            min-width: 58px;
+            text-align: center;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .slot:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .slot-val { font-weight: bold; color: var(--gold); font-size: 0.85rem; }
+
+        /* Match End Modal */
+        .modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.94);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 20px;
+        }
+        .modal-card {
+            background: var(--card);
+            border: 2px solid var(--primary);
+            border-radius: 14px;
+            padding: 24px;
+            max-width: 500px;
+            width: 95%;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--primary); }
+
+        .controls-info { margin-top: 5px; font-size: 0.78rem; color: #94a3b8; max-width: 980px; }
     </style>
 </head>
 <body>
 
     <header>
         <a href="index.html" class="nav">← Hub</a>
-        <div>Score: <span id="p-score" style="color:var(--primary)">0</span> - <span id="ai-score" style="color:var(--accent)">0</span></div>
-        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
+        <div>🏀 <strong>BASKETBALL LEGENDS ARCADE</strong></div>
+        <div class="stats">🪙 Gold: <span id="coin-count">0</span></div>
     </header>
 
-    <div class="status" id="status">A/D to move, W to jump, SPACE/S to shoot!</div>
+    <div id="game-wrapper">
+        <!-- Live Match Scoreboard -->
+        <div class="scoreboard">
+            <div class="team-box">
+                <span style="color:var(--primary);">🔵 YOU</span>
+                <span class="score-display" id="score-p1">0</span>
+            </div>
+            <div style="text-align:center;">
+                <div class="match-clock" id="match-timer">01:30</div>
+                <div class="shot-clock">SHOT CLOCK: <span id="shot-timer">24</span>s</div>
+            </div>
+            <div class="team-box">
+                <span class="score-display" id="score-ai">0</span>
+                <span style="color:var(--accent);">🔴 RIVAL AI</span>
+            </div>
+        </div>
 
-    <canvas id="hoops" width="700" height="400"></canvas>
+        <div id="announcement-banner">3-POINTER! 🎯</div>
 
-    <div class="controls">
-        <button class="btn" onclick="resetGame()">Restart Game</button>
+        <!-- 2D Canvas Basketball Court -->
+        <div id="canvas-container">
+            <canvas id="court-canvas" width="960" height="520"></canvas>
+        </div>
+
+        <!-- Touch Controls for iPad & Mobile -->
+        <div class="touch-zone" id="touch-left">
+            <div class="touch-btn" id="tbtn-left">◀</div>
+            <div class="touch-btn" id="tbtn-right">▶</div>
+            <div class="touch-btn" id="tbtn-jump">▲<br><small>JUMP</small></div>
+        </div>
+
+        <div class="touch-zone" id="touch-right">
+            <div class="touch-btn" id="tbtn-steal">⚡<br><small>STEAL</small></div>
+            <div class="touch-btn shoot" id="tbtn-shoot">🏀<br><small>SHOOT</small></div>
+            <div class="touch-btn super" id="tbtn-super">🔥<br><small>SUPER</small></div>
+        </div>
+
+        <!-- Desktop Action Bar -->
+        <div class="hud-bottom">
+            <div class="slot" onclick="executePlayerAction('jump')"><div class="slot-val">[W / ↑]</div>Jump / Rebound</div>
+            <div class="slot" onclick="executePlayerAction('shoot')"><div class="slot-val" style="color:var(--gold);">[K / Space]</div>Shoot / Dunk</div>
+            <div class="slot" onclick="executePlayerAction('steal')"><div class="slot-val">[J]</div>Steal / Dash</div>
+            <div class="slot" onclick="executePlayerAction('super')"><div class="slot-val" style="color:var(--accent);">[L]</div>Super Shot</div>
+            <div class="slot" onclick="resetMatch()"><div class="slot-val" style="color:var(--primary);">[R]</div>Restart</div>
+        </div>
+
+        <!-- Match End Modal -->
+        <div id="end-modal" class="modal" style="display: none;">
+            <div class="modal-card">
+                <h2 id="end-title" style="color:var(--primary); margin:0 0 6px 0;">VICTORY! 🏆</h2>
+                <p style="color:#94a3b8; font-size:1rem; margin:6px 0;">Final Score: <span id="final-p1" style="color:var(--primary); font-weight:bold;">0</span> - <span id="final-ai" style="color:var(--accent); font-weight:bold;">0</span></p>
+                <p style="color:var(--gold); font-size:0.9rem;" id="end-bounty">+100 Gold Coins Earned! 🪙</p>
+                <div class="btn-grid">
+                    <button class="btn" onclick="resetMatch()">🔄 Play Again</button>
+                    <button class="btn" style="background:#334155; color:#fff;" onclick="location.href='index.html'">← Arcade Hub</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls-info">
+        <strong>Move:</strong> A/D or Left/Right Arrows | <strong>Jump / Block:</strong> W or Up Arrow | <strong>Shoot / Dunk:</strong> K or Space | <strong>Steal / Dash:</strong> J | <strong>Super Shot:</strong> L
     </div>
 
     <script>
-        const canvas = document.getElementById("hoops");
-        const ctx = canvas.getContext("2d");
-
-        let pScore = 0, aiScore = 0, gameActive = true;
-        const targetScore = 5;
-        const gravity = 0.45;
-
-        const p1 = { x: 100, y: 280, radius: 25, vx: 0, vy: 0, speed: 5, grounded: false, hasBall: false };
-        const ai = { x: 550, y: 280, radius: 25, vx: 0, vy: 0, speed: 3.8, grounded: false, hasBall: false };
-        const ball = { x: 350, y: 200, radius: 12, vx: 0, vy: 0, holder: null };
-
-        const keys = { left: false, right: false, jump: false, shoot: false };
-
-        function updateWallet() {
-            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            document.getElementById('coin-count').innerText = coins.toLocaleString();
+        // Web Audio Synthesizer Engine
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
         }
 
-        function addCoins(amount) {
-            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            localStorage.setItem('arcade_coins', coins + amount);
+        function playSound(type) {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+
+                if (type === 'bounce') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(160, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(); osc.stop(ctx.currentTime + 0.08);
+                } else if (type === 'swish') {
+                    // White noise swish
+                    const bufferSize = ctx.sampleRate * 0.2;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 2400;
+                    const gain = ctx.createGain();
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+                    noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+                    noise.start();
+                } else if (type === 'rim') {
+                    // Metallic clank
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(480, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(); osc.stop(ctx.currentTime + 0.15);
+                } else if (type === 'whistle') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(2400, ctx.currentTime);
+                    osc.frequency.setValueAtTime(2800, ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(); osc.stop(ctx.currentTime + 0.35);
+                } else if (type === 'super') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.4);
+                    gain.gain.setValueAtTime(0.35, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(); osc.stop(ctx.currentTime + 0.4);
+                }
+            } catch(e){}
+        }
+
+        // Match State & Wallet
+        const canvas = document.getElementById("court-canvas");
+        const ctx = canvas.getContext("2d");
+
+        let scoreP1 = 0, scoreAI = 0;
+        let matchTime = 90; // 90 seconds
+        let shotClock = 24;
+        let matchActive = true;
+        let gold = 0;
+
+        function updateWallet() {
+            gold = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            document.getElementById('coin-count').innerText = gold.toLocaleString();
+        }
+        function addCoins(amt) {
+            gold += amt;
+            localStorage.setItem('arcade_coins', gold);
             updateWallet();
         }
 
+        function showAnnouncement(text, color = "var(--primary)") {
+            const b = document.getElementById("announcement-banner");
+            b.innerText = text;
+            b.style.background = color;
+            b.style.display = "block";
+            setTimeout(() => { b.style.display = "none"; }, 1800);
+        }
+
+        // Court Dimensions & Physics Constants
+        const FLOOR_Y = 440;
+        const GRAVITY = 0.58;
+        const JUMP_FORCE = -14.2;
+
+        // Hoops Setup (Left Hoop: AI Basket, Right Hoop: Player Basket)
+        const leftHoop = { x: 90, rimY: 260, backboardX: 60, backboardTop: 180, backboardBottom: 310, rimWidth: 44, netY: 295 };
+        const rightHoop = { x: 870, rimY: 260, backboardX: 900, backboardTop: 180, backboardBottom: 310, rimWidth: 44, netY: 295 };
+
+        // Player & AI Character Objects (Basketball Legends Style)
+        const p1 = {
+            x: 280, y: FLOOR_Y, vx: 0, vy: 0,
+            width: 44, height: 75,
+            headRadius: 24,
+            onGround: true,
+            hasBall: true,
+            isShooting: false,
+            shootCharge: 0,
+            superMeter: 100,
+            isDunking: false,
+            dunkTarget: null,
+            faceDir: 1, // 1: Right, -1: Left
+            speed: 5.8,
+            color: '#00f3ff',
+            skinColor: '#ffe0bd',
+            hairColor: '#facc15'
+        };
+
+        const ai = {
+            x: 680, y: FLOOR_Y, vx: 0, vy: 0,
+            width: 44, height: 75,
+            headRadius: 24,
+            onGround: true,
+            hasBall: false,
+            isShooting: false,
+            shootCharge: 0,
+            superMeter: 60,
+            isDunking: false,
+            dunkTarget: null,
+            faceDir: -1,
+            speed: 5.2,
+            reactionTimer: 0,
+            state: 'DEFENSE', // 'DEFENSE', 'OFFENSE', 'LOOSE_BALL'
+            color: '#ff007f',
+            skinColor: '#d4a373',
+            hairColor: '#1e293b'
+        };
+
+        // Basketball Physics State
+        const ball = {
+            x: 320, y: FLOOR_Y - 40,
+            vx: 0, vy: 0,
+            radius: 12,
+            heldBy: p1,
+            isFree: false,
+            isSuper: false,
+            lastShooter: p1,
+            shotOriginX: 280,
+            rotation: 0
+        };
+
+        let particles = [];
+        const keys = { a: false, d: false, w: false, s: false, k: false, j: false, l: false };
+
+        // Ball Reset After Score / Out of Bounds
+        function resetBallPosition(awardedTo = p1) {
+            matchActive = true;
+            shotClock = 24;
+            p1.x = 280; p1.y = FLOOR_Y; p1.vx = 0; p1.vy = 0; p1.isDunking = false; p1.onGround = true;
+            ai.x = 680; ai.y = FLOOR_Y; ai.vx = 0; ai.vy = 0; ai.isDunking = false; ai.onGround = true;
+
+            ball.vx = 0; ball.vy = 0;
+            ball.isFree = false;
+            ball.isSuper = false;
+            ball.heldBy = awardedTo;
+            p1.hasBall = (awardedTo === p1);
+            ai.hasBall = (awardedTo === ai);
+
+            playSound('whistle');
+        }
+
+        // Actions & Shooting Engine
+        function shootBall(character, isSuper = false) {
+            if (!character.hasBall) return;
+            getAudioContext();
+
+            character.hasBall = false;
+            ball.heldBy = null;
+            ball.isFree = true;
+            ball.lastShooter = character;
+            ball.shotOriginX = character.x;
+            ball.isSuper = isSuper;
+
+            const targetHoop = (character === p1) ? rightHoop : leftHoop;
+            const dist = Math.abs(targetHoop.x - character.x);
+
+            // Check if player is close enough for a Dunk
+            if (dist < 140 && !character.onGround && character.vy < 2) {
+                // High-flying slam dunk
+                character.isDunking = true;
+                character.dunkTarget = targetHoop;
+                ball.x = character.x;
+                ball.y = character.y - 30;
+                playSound('super');
+                return;
+            }
+
+            // Calculate precise arc trajectory targeting the hoop opening
+            const travelTime = Math.max(38, dist / 9.5);
+            ball.vx = (targetHoop.x - character.x) / travelTime;
+            ball.vy = -Math.sqrt(2 * GRAVITY * Math.max(120, (character.y - targetHoop.rimY + 80)));
+
+            if (isSuper) {
+                ball.vx *= 1.35;
+                ball.vy *= 1.2;
+                playSound('super');
+                createExplosion(ball.x, ball.y, '#ff007f');
+            } else {
+                playSound('bounce');
+            }
+        }
+
+        function executePlayerAction(action) {
+            getAudioContext();
+            if (!matchActive) return;
+
+            if (action === 'jump' && p1.onGround) {
+                p1.vy = JUMP_FORCE;
+                p1.onGround = false;
+                playSound('bounce');
+            } else if (action === 'shoot') {
+                if (p1.hasBall) {
+                    shootBall(p1, false);
+                } else {
+                    // Swipe steal
+                    trySteal(p1, ai);
+                }
+            } else if (action === 'steal') {
+                trySteal(p1, ai);
+            } else if (action === 'super') {
+                if (p1.hasBall && p1.superMeter >= 100) {
+                    p1.superMeter = 0;
+                    shootBall(p1, true);
+                }
+            }
+        }
+
+        function trySteal(stealer, target) {
+            const dist = Math.abs(stealer.x - target.x);
+            if (target.hasBall && dist < 55) {
+                target.hasBall = false;
+                stealer.hasBall = true;
+                ball.heldBy = stealer;
+                ball.isFree = false;
+                playSound('swish');
+                showAnnouncement("STEAL! ⚡", "var(--gold)");
+            } else {
+                // Quick dash forward
+                stealer.vx = stealer.faceDir * 8.5;
+            }
+        }
+
+        // Desktop Keyboard Controls
         window.addEventListener("keydown", e => {
-            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD","Space"].includes(e.code) || ["w","a","s","d","W","A","S","D"," "].includes(e.key)) {
+            const k = e.key.toLowerCase();
+            if (["a", "d", "w", "s", "k", "j", "l", "r", " ", "arrowleft", "arrowright", "arrowup", "arrowdown"].includes(k)) {
                 e.preventDefault();
             }
-            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = true;
-            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = true;
-            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.jump = true;
-            if (e.key === "s" || e.key === "S" || e.key === " " || e.key === "ArrowDown") {
-                if (!keys.shoot) shootBall(p1, 1);
-                keys.shoot = true;
-            }
-        }, { passive: false });
-
-        window.addEventListener("keyup", e => {
-            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = false;
-            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = false;
-            if (e.key === "w" || e.key === "W" || e.key === "ArrowUp") keys.jump = false;
-            if (e.key === "s" || e.key === "S" || e.key === " " || e.key === "ArrowDown") keys.shoot = false;
+            if (k === 'a' || e.code === 'ArrowLeft') keys.a = true;
+            if (k === 'd' || e.code === 'ArrowRight') keys.d = true;
+            if (k === 'w' || e.code === 'ArrowUp') executePlayerAction('jump');
+            if (k === 'k' || e.code === 'Space') executePlayerAction('shoot');
+            if (k === 'j') executePlayerAction('steal');
+            if (k === 'l') executePlayerAction('super');
+            if (k === 'r') resetMatch();
         });
 
-        function shootBall(player, dir) {
-            if (ball.holder === player) {
-                ball.holder = null;
-                ball.vx = dir * (7 + Math.random() * 2);
-                ball.vy = -10;
+        window.addEventListener("keyup", e => {
+            const k = e.key.toLowerCase();
+            if (k === 'a' || e.code === 'ArrowLeft') keys.a = false;
+            if (k === 'd' || e.code === 'ArrowRight') keys.d = false;
+        });
+
+        // Touch Control Listeners for iPad / Mobile
+        function setupTouchListeners() {
+            const bindBtn = (id, actionStart, actionEnd = null) => {
+                const el = document.getElementById(id);
+                el.addEventListener("touchstart", e => { e.preventDefault(); actionStart(); }, { passive: false });
+                if (actionEnd) el.addEventListener("touchend", e => { e.preventDefault(); actionEnd(); }, { passive: false });
+            };
+
+            bindBtn("tbtn-left", () => { keys.a = true; }, () => { keys.a = false; });
+            bindBtn("tbtn-right", () => { keys.d = true; }, () => { keys.d = false; });
+            bindBtn("tbtn-jump", () => executePlayerAction('jump'));
+            bindBtn("tbtn-shoot", () => executePlayerAction('shoot'));
+            bindBtn("tbtn-steal", () => executePlayerAction('steal'));
+            bindBtn("tbtn-super", () => executePlayerAction('super'));
+        }
+
+        // Particle System
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 16; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const spd = Math.random() * 5 + 2;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.sin(angle) * spd,
+                    color, life: 1.0
+                });
             }
         }
 
-        function updatePhysics(obj) {
-            obj.vy += gravity;
-            obj.x += obj.vx;
-            obj.y += obj.vy;
+        // Physics & AI Update Loop
+        function updateGame() {
+            if (!matchActive) return;
 
-            if (obj.y + obj.radius >= 350) {
-                obj.y = 350 - obj.radius;
-                obj.vy = 0;
-                obj.grounded = true;
+            // 1. Player Physics & Controls
+            if (keys.a) { p1.vx = -p1.speed; p1.faceDir = -1; }
+            else if (keys.d) { p1.vx = p1.speed; p1.faceDir = 1; }
+            else { p1.vx *= 0.8; }
+
+            p1.x += p1.vx;
+            p1.y += p1.vy;
+            p1.vy += GRAVITY;
+
+            // Strict Ground Collision & Court Clamping
+            if (p1.y >= FLOOR_Y) {
+                p1.y = FLOOR_Y;
+                p1.vy = 0;
+                p1.onGround = true;
+                p1.isDunking = false;
             }
-        }
+            p1.x = Math.max(50, Math.min(910, p1.x));
 
-        function updateAI() {
-            if (!gameActive) return;
+            // Super Meter Regeneration
+            p1.superMeter = Math.min(100, p1.superMeter + 0.08);
+            ai.superMeter = Math.min(100, ai.superMeter + 0.08);
 
-            if (ball.holder === ai) {
-                if (ai.x < 500) ai.vx = ai.speed;
-                else ai.vx = 0;
+            // 2. AI State Machine & Smart Tactics
+            ai.reactionTimer += 0.016;
 
-                if (ai.x >= 480 && Math.random() < 0.05) {
-                    ai.vy = -9;
-                    setTimeout(() => shootBall(ai, -1), 150);
+            if (ai.hasBall) {
+                ai.state = 'OFFENSE';
+                const distToHoop = Math.abs(leftHoop.x - ai.x);
+                ai.faceDir = -1;
+
+                // Move toward shooting or dunking range
+                if (distToHoop > 220) {
+                    ai.vx = -ai.speed;
+                } else if (distToHoop <= 220 && distToHoop > 110) {
+                    // Open 3-pointer or mid-range pull-up
+                    if (ai.onGround && Math.random() < 0.035) {
+                        ai.vy = JUMP_FORCE;
+                        ai.onGround = false;
+                        setTimeout(() => {
+                            if (ai.hasBall) {
+                                shootBall(ai, ai.superMeter >= 100);
+                                if (ai.superMeter >= 100) ai.superMeter = 0;
+                            }
+                        }, 280);
+                    }
+                } else {
+                    // Close range: Drive for Slam Dunk!
+                    if (ai.onGround) {
+                        ai.vy = JUMP_FORCE;
+                        ai.onGround = false;
+                        ai.isDunking = true;
+                        ai.dunkTarget = leftHoop;
+                    }
                 }
-            } else if (ball.holder === p1) {
-                if (ai.x > p1.x + 80) ai.vx = -ai.speed;
+            } else if (p1.hasBall) {
+                ai.state = 'DEFENSE';
+                const idealDefenseX = p1.x + 90; // Stay between player and AI hoop
+                ai.faceDir = p1.x > ai.x ? 1 : -1;
+
+                if (ai.x < idealDefenseX - 10) ai.vx = ai.speed;
+                else if (ai.x > idealDefenseX + 10) ai.vx = -ai.speed;
                 else ai.vx = 0;
+
+                // AI Block Jump: Only jump when player is shooting/jumping in air!
+                if (!p1.onGround && ai.onGround && Math.abs(p1.x - ai.x) < 80) {
+                    ai.vy = JUMP_FORCE;
+                    ai.onGround = false;
+                    trySteal(ai, p1);
+                }
             } else {
-                if (ai.x < ball.x) ai.vx = ai.speed;
-                else ai.vx = -ai.speed;
-            }
-        }
+                // Loose Ball Tracking (Strictly within court walls)
+                ai.state = 'LOOSE_BALL';
+                ai.faceDir = ball.x > ai.x ? 1 : -1;
+                if (ai.x < ball.x - 10) ai.vx = ai.speed;
+                else if (ai.x > ball.x + 10) ai.vx = -ai.speed;
+                else ai.vx = 0;
 
-        function update() {
-            if (!gameActive) return;
-
-            // Player movement
-            if (keys.left) p1.vx = -p1.speed;
-            else if (keys.right) p1.vx = p1.speed;
-            else p1.vx = 0;
-
-            if (keys.jump && p1.grounded) {
-                p1.vy = -10;
-                p1.grounded = false;
+                if (ball.y < ai.y - 40 && ai.onGround && Math.abs(ball.x - ai.x) < 40) {
+                    ai.vy = JUMP_FORCE;
+                    ai.onGround = false;
+                }
             }
 
-            updatePhysics(p1);
-            updatePhysics(ai);
-            updateAI();
+            // Apply AI Physics
+            ai.x += ai.vx;
+            ai.y += ai.vy;
+            ai.vy += GRAVITY;
 
-            // Ball Physics & Pickup
-            if (ball.holder) {
-                ball.x = ball.holder.x + (ball.holder === p1 ? 20 : -20);
-                ball.y = ball.holder.y - 10;
-                ball.vx = 0; ball.vy = 0;
-            } else {
-                ball.vy += gravity * 0.7;
+            // Strict Ground Collision & Court Clamping for AI
+            if (ai.y >= FLOOR_Y) {
+                ai.y = FLOOR_Y;
+                ai.vy = 0;
+                ai.onGround = true;
+                ai.isDunking = false;
+            }
+            ai.x = Math.max(50, Math.min(910, ai.x));
+
+            // 3. Dunk Animation Physics
+            if (p1.isDunking && p1.dunkTarget) {
+                p1.x += (p1.dunkTarget.x - p1.x) * 0.18;
+                p1.y += (p1.dunkTarget.rimY - 20 - p1.y) * 0.18;
+                ball.x = p1.x + 15;
+                ball.y = p1.y - 10;
+                if (Math.abs(p1.x - p1.dunkTarget.x) < 20) {
+                    scoreBasket(rightHoop, p1, true);
+                    p1.isDunking = false;
+                }
+            }
+
+            if (ai.isDunking && ai.dunkTarget) {
+                ai.x += (ai.dunkTarget.x - ai.x) * 0.18;
+                ai.y += (ai.dunkTarget.rimY - 20 - ai.y) * 0.18;
+                ball.x = ai.x - 15;
+                ball.y = ai.y - 10;
+                if (Math.abs(ai.x - ai.dunkTarget.x) < 20) {
+                    scoreBasket(leftHoop, ai, true);
+                    ai.isDunking = false;
+                }
+            }
+
+            // 4. Basketball Dribble & Flight Physics
+            if (ball.heldBy) {
+                // Ball held in player/AI hands
+                const holder = ball.heldBy;
+                const dribbleOffset = holder.onGround ? Math.sin(Date.now() * 0.012) * 16 : -10;
+                ball.x = holder.x + (holder.faceDir * 20);
+                ball.y = holder.y - 35 + dribbleOffset;
+            } else if (ball.isFree) {
                 ball.x += ball.vx;
                 ball.y += ball.vy;
+                ball.vy += GRAVITY;
+                ball.rotation += ball.vx * 0.05;
 
-                if (ball.y + ball.radius >= 350) {
-                    ball.y = 350 - ball.radius;
-                    ball.vy = -ball.vy * 0.6;
-                    ball.vx *= 0.95;
+                // Particle trail for Super Shot
+                if (ball.isSuper) {
+                    particles.push({
+                        x: ball.x, y: ball.y,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        color: Math.random() < 0.5 ? '#ff007f' : '#facc15',
+                        life: 0.6
+                    });
                 }
 
-                // Pickup logic
-                if (dist(p1, ball) < p1.radius + ball.radius) ball.holder = p1;
-                else if (dist(ai, ball) < ai.radius + ball.radius) ball.holder = ai;
+                // Bounce off court floor
+                if (ball.y >= FLOOR_Y - ball.radius) {
+                    ball.y = FLOOR_Y - ball.radius;
+                    ball.vy = -ball.vy * 0.72;
+                    ball.vx *= 0.88;
+                    if (Math.abs(ball.vy) > 1.5) playSound('bounce');
+                }
+
+                // Bounce off left / right walls
+                if (ball.x <= 40 + ball.radius) {
+                    ball.x = 40 + ball.radius;
+                    ball.vx = -ball.vx * 0.65;
+                    playSound('rim');
+                } else if (ball.x >= 920 - ball.radius) {
+                    ball.x = 920 - ball.radius;
+                    ball.vx = -ball.vx * 0.65;
+                    playSound('rim');
+                }
+
+                // Backboard & Rim Collisions
+                checkHoopCollisions(leftHoop);
+                checkHoopCollisions(rightHoop);
+
+                // Pickup detection by player or AI
+                if (!ball.heldBy && ball.y > FLOOR_Y - 80) {
+                    if (Math.hypot(p1.x - ball.x, p1.y - ball.y) < 38) {
+                        ball.heldBy = p1;
+                        p1.hasBall = true;
+                        ball.isFree = false;
+                        ball.isSuper = false;
+                        playSound('bounce');
+                    } else if (Math.hypot(ai.x - ball.x, ai.y - ball.y) < 38) {
+                        ball.heldBy = ai;
+                        ai.hasBall = true;
+                        ball.isFree = false;
+                        ball.isSuper = false;
+                        playSound('bounce');
+                    }
+                }
+            }
+        }
+
+        // Rim & Backboard Collision Check
+        function checkHoopCollisions(hoop) {
+            // Backboard collision
+            if (ball.y >= hoop.backboardTop && ball.y <= hoop.backboardBottom) {
+                if (Math.abs(ball.x - hoop.backboardX) < ball.radius + 6) {
+                    ball.vx = -ball.vx * 0.75;
+                    ball.x = hoop.backboardX + (hoop === leftHoop ? 12 : -12);
+                    playSound('rim');
+                }
             }
 
-            // Hoop Scoring Checks (Right Hoop = Player, Left Hoop = AI)
-            if (ball.x > 620 && ball.x < 660 && ball.y > 180 && ball.y < 200 && ball.vy > 0) {
-                pScore++;
-                document.getElementById("p-score").innerText = pScore;
-                addCoins(2);
-                resetPositions();
-            } else if (ball.x > 40 && ball.x < 80 && ball.y > 180 && ball.y < 200 && ball.vy > 0) {
-                aiScore++;
-                document.getElementById("ai-score").innerText = aiScore;
-                resetPositions();
+            // Rim collision & Swish Score Detection
+            const rimFrontX = (hoop === leftHoop) ? hoop.x + hoop.rimWidth : hoop.x - hoop.rimWidth;
+            const rimBackX = hoop.x;
+
+            [rimFrontX, rimBackX].forEach(rx => {
+                if (Math.hypot(ball.x - rx, ball.y - hoop.rimY) < ball.radius + 4) {
+                    ball.vy = -ball.vy * 0.6;
+                    ball.vx = (ball.x - rx) * 0.5;
+                    playSound('rim');
+                }
+            });
+
+            // Score Detection (Passing downwards through rim)
+            const inRimX = (hoop === leftHoop) ? (ball.x >= hoop.x && ball.x <= hoop.x + hoop.rimWidth) : (ball.x >= hoop.x - hoop.rimWidth && ball.x <= hoop.x);
+            if (inRimX && ball.y >= hoop.rimY && ball.y <= hoop.netY && ball.vy > 0) {
+                scoreBasket(hoop, ball.lastShooter, false);
+            }
+        }
+
+        function scoreBasket(hoop, shooter, isDunk) {
+            matchActive = false;
+            playSound('swish');
+
+            const is3Pointer = Math.abs(ball.shotOriginX - hoop.x) > 420;
+            const points = isDunk ? 2 : (is3Pointer ? 3 : 2);
+
+            if (hoop === rightHoop) {
+                scoreP1 += points;
+                document.getElementById("score-p1").innerText = scoreP1;
+                showAnnouncement(isDunk ? "SLAM DUNK! 💥 (+2 PTS)" : (is3Pointer ? "3-POINTER! 🎯 (+3 PTS)" : "BUCKET! 🏀 (+2 PTS)"), "var(--primary)");
+                createExplosion(hoop.x, hoop.rimY, '#00f3ff');
+                addCoins(points * 10);
+            } else {
+                scoreAI += points;
+                document.getElementById("score-ai").innerText = scoreAI;
+                showAnnouncement(isDunk ? "AI SLAM DUNK! 💥" : "AI SCORED! 🏀", "var(--accent)");
+                createExplosion(hoop.x, hoop.rimY, '#ff007f');
             }
 
-            if (pScore >= targetScore) endGame("YOU WIN! +10 Coins", true);
-            if (aiScore >= targetScore) endGame("AI Wins! Try again.", false);
+            setTimeout(() => {
+                resetBallPosition(hoop === rightHoop ? ai : p1);
+            }, 1400);
         }
 
-        function dist(a, b) {
-            return Math.hypot(a.x - b.x, a.y - b.y);
+        // Match Clock & Shot Clock Interval
+        setInterval(() => {
+            if (!matchActive) return;
+            if (matchTime > 0) {
+                matchTime--;
+                const mins = Math.floor(matchTime / 60);
+                const secs = matchTime % 60;
+                document.getElementById("match-timer").innerText = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+
+                if (shotClock > 0) {
+                    shotClock--;
+                    document.getElementById("shot-timer").innerText = shotClock;
+                } else {
+                    showAnnouncement("SHOT CLOCK VIOLATION! 🚨", "var(--accent)");
+                    playSound('whistle');
+                    resetBallPosition(ball.heldBy === p1 ? ai : p1);
+                }
+            } else {
+                endMatch();
+            }
+        }, 1000);
+
+        function endMatch() {
+            matchActive = false;
+            playSound('whistle');
+            const endModal = document.getElementById("end-modal");
+            document.getElementById("final-p1").innerText = scoreP1;
+            document.getElementById("final-ai").innerText = scoreAI;
+
+            if (scoreP1 > scoreAI) {
+                document.getElementById("end-title").innerText = "CHAMPIONSHIP VICTORY! 🏆";
+                document.getElementById("end-title").style.color = "var(--primary)";
+                document.getElementById("end-bounty").innerText = "+150 Gold Coins Earned! 🪙";
+                addCoins(150);
+            } else if (scoreP1 < scoreAI) {
+                document.getElementById("end-title").innerText = "DEFEAT! 💀";
+                document.getElementById("end-title").style.color = "var(--accent)";
+                document.getElementById("end-bounty").innerText = "+25 Consolation Gold Coins";
+                addCoins(25);
+            } else {
+                document.getElementById("end-title").innerText = "OVERTIME DRAW! 🤝";
+                document.getElementById("end-title").style.color = "var(--gold)";
+                document.getElementById("end-bounty").innerText = "+50 Gold Coins Earned! 🪙";
+                addCoins(50);
+            }
+            endModal.style.display = "flex";
         }
 
-        function resetPositions() {
-            p1.x = 150; p1.y = 280; p1.vx = 0; p1.vy = 0;
-            ai.x = 550; ai.y = 280; ai.vx = 0; ai.vy = 0;
-            ball.x = 350; ball.y = 200; ball.vx = 0; ball.vy = 0; ball.holder = null;
+        function resetMatch() {
+            scoreP1 = 0; scoreAI = 0; matchTime = 90; shotClock = 24;
+            document.getElementById("score-p1").innerText = 0;
+            document.getElementById("score-ai").innerText = 0;
+            document.getElementById("end-modal").style.display = "none";
+            resetBallPosition(p1);
         }
 
-        function endGame(msg, playerWon) {
-            gameActive = false;
-            document.getElementById("status").innerText = msg;
-            if (playerWon) addCoins(10);
-        }
+        // Canvas Rendering Engine (Stadium, Characters, Ball & Hoops)
+        function drawCourt() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        function render() {
-            ctx.fillStyle = "#0f172a";
+            // 1. Stadium Backdrop with Cheering Crowd
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGrad.addColorStop(0, '#091026');
+            bgGrad.addColorStop(1, '#020617');
+            ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Court Floor
-            ctx.fillStyle = "#334155";
-            ctx.fillRect(0, 350, canvas.width, 50);
+            // Crowd silhouettes
+            ctx.fillStyle = '#1e293b';
+            for (let i = 0; i < canvas.width; i += 18) {
+                const bounce = Math.sin(Date.now() * 0.008 + i) * 6;
+                ctx.beginPath();
+                ctx.arc(i, 200 + bounce, 10, 0, Math.PI * 2);
+                ctx.fill();
+            }
 
-            // Hoops & Backboards
-            ctx.fillStyle = "#ff007f";
-            ctx.fillRect(20, 150, 10, 100); // Left Backboard
-            ctx.fillRect(30, 190, 40, 8);   // Left Rim
-            
-            ctx.fillStyle = "#00f3ff";
-            ctx.fillRect(670, 150, 10, 100); // Right Backboard
-            ctx.fillRect(630, 190, 40, 8);   // Right Rim
+            // 2. Hardwood Court Floor with Glossy Reflective Lines
+            const woodGrad = ctx.createLinearGradient(0, FLOOR_Y, 0, canvas.height);
+            woodGrad.addColorStop(0, '#d97706');
+            woodGrad.addColorStop(1, '#78350f');
+            ctx.fillStyle = woodGrad;
+            ctx.fillRect(0, FLOOR_Y, canvas.width, canvas.height - FLOOR_Y);
 
-            // Player 1 (Blue Head)
-            ctx.fillStyle = "#00f3ff";
-            ctx.shadowBlur = 15; ctx.shadowColor = "#00f3ff";
-            ctx.beginPath(); ctx.arc(p1.x, p1.y, p1.radius, 0, Math.PI * 2); ctx.fill();
+            // Court Line Markings
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            // Baseline & Center Court Line
+            ctx.strokeRect(30, FLOOR_Y, canvas.width - 60, canvas.height - FLOOR_Y);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, FLOOR_Y);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
 
-            // AI (Pink Head)
-            ctx.fillStyle = "#ff007f";
-            ctx.shadowColor = "#ff007f";
-            ctx.beginPath(); ctx.arc(ai.x, ai.y, ai.radius, 0, Math.PI * 2); ctx.fill();
+            // Center Court Circle
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, FLOOR_Y + 40, 50, 0, Math.PI, true);
+            ctx.stroke();
 
-            // Basketball (Orange)
-            ctx.fillStyle = "#ff8c00";
-            ctx.shadowColor = "#ff8c00";
-            ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2); ctx.fill();
+            // 3-Point Arcs
+            ctx.beginPath();
+            ctx.arc(100, FLOOR_Y, 260, 0, -Math.PI / 2, true);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(860, FLOOR_Y, 260, Math.PI, -Math.PI / 2, false);
+            ctx.stroke();
+
+            // 3. Draw Left & Right Hoops & Nets
+            drawHoop(leftHoop, true);
+            drawHoop(rightHoop, false);
+
+            // 4. Draw Characters (Head, Jersey, Shoes, Hands)
+            drawCharacter(p1);
+            drawCharacter(ai);
+
+            // 5. Draw Basketball with Seams
+            drawBall();
+
+            // 6. Draw Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.life -= 0.035;
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3 * p.life, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
         }
 
+        function drawHoop(hoop, isLeft) {
+            // Backboard
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(hoop.backboardX - 4, hoop.backboardTop, 8, hoop.backboardBottom - hoop.backboardTop);
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(hoop.backboardX - (isLeft ? 2 : 6), hoop.rimY - 24, 6, 32);
+
+            // Rim
+            ctx.strokeStyle = '#f97316';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(hoop.x, hoop.rimY);
+            ctx.lineTo(isLeft ? hoop.x + hoop.rimWidth : hoop.x - hoop.rimWidth, hoop.rimY);
+            ctx.stroke();
+
+            // Net Lines
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1.5;
+            for (let nx = 0; nx < hoop.rimWidth; nx += 8) {
+                const startX = isLeft ? hoop.x + nx : hoop.x - nx;
+                const endX = isLeft ? hoop.x + nx * 0.7 + 6 : hoop.x - nx * 0.7 - 6;
+                ctx.beginPath();
+                ctx.moveTo(startX, hoop.rimY);
+                ctx.lineTo(endX, hoop.netY);
+                ctx.stroke();
+            }
+        }
+
+        function drawCharacter(c) {
+            ctx.save();
+            ctx.translate(c.x, c.y);
+
+            // Shoes / Sneakers
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-16, -12, 14, 12);
+            ctx.fillRect(2, -12, 14, 12);
+
+            // Jersey Body
+            ctx.fillStyle = c.color;
+            ctx.fillRect(-15, -45, 30, 34);
+
+            // Team Number
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText(c === p1 ? '23' : '8', -5, -24);
+
+            // Big Head (Bobblehead Legends Style)
+            ctx.fillStyle = c.skinColor;
+            ctx.beginPath();
+            ctx.arc(0, -62, c.headRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hair
+            ctx.fillStyle = c.hairColor;
+            ctx.beginPath();
+            ctx.arc(0, -70, c.headRadius - 4, Math.PI, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes & Expression
+            ctx.fillStyle = '#000000';
+            const eyeOffset = c.faceDir * 6;
+            ctx.beginPath();
+            ctx.arc(eyeOffset - 2, -62, 3, 0, Math.PI * 2);
+            ctx.arc(eyeOffset + 8, -62, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hands holding ball
+            ctx.fillStyle = c.skinColor;
+            ctx.beginPath();
+            ctx.arc(c.faceDir * 18, -32, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawBall() {
+            ctx.save();
+            ctx.translate(ball.x, ball.y);
+            ctx.rotate(ball.rotation);
+
+            // Orange Leather Texture
+            ctx.fillStyle = ball.isSuper ? '#ff007f' : '#f97316';
+            ctx.beginPath();
+            ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Basketball Ribbed Seams
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
+            ctx.moveTo(-ball.radius, 0); ctx.lineTo(ball.radius, 0);
+            ctx.moveTo(0, -ball.radius); ctx.lineTo(0, ball.radius);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Main 60 FPS Game Loop
         function gameLoop() {
-            update();
-            render();
+            updateGame();
+            drawCourt();
             requestAnimationFrame(gameLoop);
         }
 
-        function resetGame() {
-            pScore = 0; aiScore = 0; gameActive = true;
-            document.getElementById("p-score").innerText = 0;
-            document.getElementById("ai-score").innerText = 0;
-            document.getElementById("status").innerText = "A/D to move, W to jump, SPACE/S to shoot!";
-            resetPositions();
-        }
-
-        updateWallet();
-        gameLoop();
+        document.addEventListener("DOMContentLoaded", () => {
+            updateWallet();
+            setupTouchListeners();
+            resetBallPosition(p1);
+            requestAnimationFrame(gameLoop);
+        });
     </script>
 </body>
 </html>
