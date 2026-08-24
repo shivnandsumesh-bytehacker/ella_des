@@ -3,52 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>99 Nights in the Forest - 3D Roguelite Survival</title>
+    <title>99 Nights in the Forest - Enhanced 3D</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        :root { --primary: #00f3ff; --accent: #ff007f; --gold: #facc15; --bg: #060911; --card: #0f172a; }
+        :root { --primary: #00f3ff; --accent: #ff007f; --gold: #facc15; --bg: #050811; --card: #0e1626; }
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 6px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; overflow-x: hidden; user-select: none; }
         
-        header { width: 100%; max-width: 1050px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 18px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 6px; box-sizing: border-box; }
+        header { width: 100%; max-width: 1080px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 6px; box-sizing: border-box; }
         .stats { font-size: 1.1rem; font-weight: bold; color: var(--gold); }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
         
-        #game-wrapper { width: 100%; max-width: 1050px; height: 560px; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 30px rgba(0, 243, 255, 0.2); position: relative; overflow: hidden; background: #000; }
+        #game-wrapper { width: 100%; max-width: 1080px; height: 580px; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 35px rgba(0, 243, 255, 0.25); position: relative; overflow: hidden; background: #000; }
         canvas { width: 100% !important; height: 100% !important; display: block; }
         
-        /* Modern Survival HUD */
+        /* Modern HUD Overlays */
         .hud-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; pointer-events: none; }
-        .hud-panel { background: rgba(15, 23, 42, 0.88); border: 1.5px solid rgba(0, 243, 255, 0.4); border-radius: 8px; padding: 8px 14px; text-align: left; font-size: 0.85rem; backdrop-filter: blur(4px); box-shadow: 0 4px 15px rgba(0,0,0,0.6); pointer-events: auto; }
+        .hud-panel { background: rgba(14, 22, 38, 0.88); border: 1.5px solid rgba(0, 243, 255, 0.4); border-radius: 10px; padding: 8px 14px; text-align: left; font-size: 0.85rem; backdrop-filter: blur(6px); box-shadow: 0 4px 20px rgba(0,0,0,0.6); pointer-events: auto; }
         
         .bar-wrap { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-        .hud-bar { height: 10px; width: 100px; background: #1e293b; border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
-        .hud-fill { height: 100%; width: 100%; transition: width 0.25s ease-out; }
+        .hud-bar { height: 9px; width: 110px; background: #1e293b; border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .hud-fill { height: 100%; width: 100%; transition: width 0.2s ease-out; }
         
-        /* Sundial Watch */
+        /* Sundial Clock */
         .sundial-box { display: flex; align-items: center; gap: 10px; }
-        .sundial-disc { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--gold); background: conic-gradient(#facc15 0% 65%, #1e1b4b 65% 100%); position: relative; transition: transform 0.3s; }
-        .sundial-hand { width: 2px; height: 16px; background: #fff; position: absolute; top: 2px; left: 17px; transform-origin: bottom center; }
+        .sundial-disc { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--gold); background: conic-gradient(#facc15 0% 68%, #1e1b4b 68% 100%); position: relative; }
+        .sundial-hand { width: 2px; height: 16px; background: #fff; position: absolute; top: 3px; left: 18px; transform-origin: bottom center; }
         
-        /* Hotbar / Inventory HUD */
+        /* Hotbar */
         .hud-bottom { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; }
-        .slot { background: rgba(15, 23, 42, 0.9); border: 2px solid #334155; border-radius: 8px; padding: 6px 10px; min-width: 52px; text-align: center; font-size: 0.8rem; }
-        .slot.active { border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
-        .slot-val { font-weight: bold; color: var(--gold); font-size: 0.95rem; }
+        .slot { background: rgba(14, 22, 38, 0.9); border: 2px solid #334155; border-radius: 8px; padding: 6px 12px; min-width: 50px; text-align: center; font-size: 0.8rem; }
+        .slot-val { font-weight: bold; color: var(--gold); font-size: 1rem; }
         
-        /* Interactive Popups */
-        #action-prompt { position: absolute; bottom: 75px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.95); color: #000; font-weight: bold; padding: 8px 20px; border-radius: 20px; font-size: 0.95rem; display: none; box-shadow: 0 0 15px #00f3ff; pointer-events: none; }
-        #dialogue-box { position: absolute; top: 75px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.95); border: 2px solid var(--gold); color: #fff; padding: 10px 22px; border-radius: 10px; font-size: 0.95rem; max-width: 650px; display: none; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+        #action-prompt { position: absolute; bottom: 78px; left: 50%; transform: translateX(-50%); background: rgba(0, 243, 255, 0.95); color: #000; font-weight: bold; padding: 8px 22px; border-radius: 20px; font-size: 0.95rem; display: none; box-shadow: 0 0 20px #00f3ff; pointer-events: none; }
+        #dialogue-box { position: absolute; top: 75px; left: 50%; transform: translateX(-50%); background: rgba(14, 22, 38, 0.95); border: 2px solid var(--gold); color: #fff; padding: 10px 22px; border-radius: 10px; font-size: 0.95rem; max-width: 650px; display: none; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
         
-        /* Crafting / Class Modal */
-        .modal { position: absolute; inset: 0; background: rgba(6, 9, 17, 0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
-        .modal-card { background: var(--card); border: 2px solid var(--primary); border-radius: 12px; padding: 20px; max-width: 600px; width: 90%; text-align: left; }
-        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 15px; }
-        .btn { background: var(--primary); color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; text-align: center; }
-        .btn:hover { filter: brightness(1.15); box-shadow: 0 0 12px var(--primary); }
-        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+        /* Class & Crafting Modals */
+        .modal { position: absolute; inset: 0; background: rgba(5, 8, 17, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
+        .modal-card { background: var(--card); border: 2px solid var(--primary); border-radius: 12px; padding: 22px; max-width: 620px; width: 90%; text-align: left; box-shadow: 0 0 30px rgba(0,243,255,0.2); }
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 15px; }
+        .btn { background: var(--primary); color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--primary); transform: translateY(-2px); }
         
-        .controls-info { margin-top: 6px; font-size: 0.82rem; color: #94a3b8; max-width: 1050px; }
+        .controls-info { margin-top: 6px; font-size: 0.82rem; color: #94a3b8; max-width: 1080px; }
     </style>
 </head>
 <body>
@@ -60,20 +57,20 @@
     </header>
 
     <div id="game-wrapper">
-        <!-- Class Selector Modal (Start of Run) -->
+        <!-- Class Selector -->
         <div id="class-modal" class="modal">
             <div class="modal-card" style="text-align: center;">
                 <h2 style="color:var(--primary); margin-top:0;">CHOOSE YOUR SURVIVOR CLASS</h2>
-                <p style="color:#94a3b8; font-size:0.9rem;">Select your loadout before entering the dark forest:</p>
+                <p style="color:#94a3b8; font-size:0.9rem;">Select your loadout before stepping into the fog-choked forest:</p>
                 <div class="btn-grid">
-                    <button class="btn" onclick="selectClass('Lumberjack')">🪓 Lumberjack<br><small>2x Wood Harvest</small></button>
+                    <button class="btn" onclick="selectClass('Lumberjack')">🪓 Lumberjack<br><small>2x Wood Chopping</small></button>
                     <button class="btn" onclick="selectClass('Hunter')">🏹 Hunter<br><small>+50% Damage & Meats</small></button>
-                    <button class="btn" onclick="selectClass('Scout')">🔦 Scout<br><small>+25% Speed & Flashlight</small></button>
+                    <button class="btn" onclick="selectClass('Scout')">🔦 Scout<br><small>+25% Speed & Night Light</small></button>
                 </div>
             </div>
         </div>
 
-        <!-- Crafting Bench Modal -->
+        <!-- Crafting Menu -->
         <div id="craft-modal" class="modal" style="display: none;">
             <div class="modal-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -81,16 +78,15 @@
                     <button class="btn" style="padding:4px 10px;" onclick="toggleCrafting(false)">✕ Close</button>
                 </div>
                 <div class="btn-grid" style="margin-top:15px;">
-                    <button class="btn" id="craft-spear" onclick="craftItem('spear')">🗡️ Spear<br><small>3 Wood, 2 Scrap</small></button>
-                    <button class="btn" id="craft-bed" onclick="craftItem('bed')">🛏️ Bed (Skip Night)<br><small>8 Wood, 4 Scrap</small></button>
-                    <button class="btn" id="craft-spikes" onclick="craftItem('spikes')">🪤 Spike Trap<br><small>4 Wood, 2 Scrap</small></button>
-                    <button class="btn" id="craft-crockpot" onclick="craftItem('crockpot')">🍲 Crockpot<br><small>6 Scrap, 4 Wood</small></button>
-                    <button class="btn" id="craft-biofuel" onclick="craftItem('biofuel')">🧪 Biofuel (Tier 3+)<br><small>4 Berries, 2 Scrap</small></button>
+                    <button class="btn" onclick="craftItem('spear')">🗡️ Spear<br><small>3 Wood, 2 Scrap</small></button>
+                    <button class="btn" onclick="craftItem('bed')">🛏️ Bed (Skip Night)<br><small>8 Wood, 4 Scrap</small></button>
+                    <button class="btn" onclick="craftItem('crockpot')">🍲 Crockpot<br><small>6 Scrap, 4 Wood</small></button>
+                    <button class="btn" onclick="craftItem('biofuel')">🧪 Biofuel (Fuel+50%)<br><small>4 Berries, 2 Scrap</small></button>
                 </div>
             </div>
         </div>
 
-        <!-- Top Status HUD -->
+        <!-- HUD Top -->
         <div class="hud-top">
             <div class="hud-panel">
                 <div>❤️ Health <div class="hud-bar"><div id="hp-fill" class="hud-fill" style="background:#ef4444;"></div></div></div>
@@ -106,20 +102,20 @@
                         <div id="cycle-timer" style="color:#94a3b8; font-size:0.8rem;">Night in: 2m 30s</div>
                     </div>
                 </div>
-                <div style="margin-top:4px; font-size:0.75rem; color:#38bdf8;">🔥 Fire Tier: <span id="fire-tier">1</span> (Safe Radius: <span id="safe-radius-text">18m</span>)</div>
+                <div style="margin-top:4px; font-size:0.75rem; color:#38bdf8;">🔥 Fire Tier: <span id="fire-tier">1</span> (Safe Light: <span id="safe-radius-text">18m</span>)</div>
             </div>
 
             <div class="hud-panel" style="text-align: right;">
-                <div>🔥 Fire Fuel: <span id="fuel-text" style="color:#fb923c; font-weight:bold;">100%</span></div>
-                <div>👶 Kids Rescued: <span id="kids-count" style="color:#38bdf8; font-weight:bold;">0/4</span></div>
-                <div>🛏️ Day Multiplier: <span id="multiplier-text" style="color:var(--accent);">1x</span></div>
+                <div>🔥 Fuel: <span id="fuel-text" style="color:#fb923c; font-weight:bold;">100%</span></div>
+                <div>👶 Rescued: <span id="kids-count" style="color:#38bdf8; font-weight:bold;">0/4</span></div>
+                <div>🛏️ Multiplier: <span id="multiplier-text" style="color:var(--accent);">1x</span></div>
             </div>
         </div>
 
         <div id="dialogue-box"></div>
         <div id="action-prompt">Press [E] to Interact</div>
 
-        <!-- Bottom Hotbar HUD -->
+        <!-- Hotbar -->
         <div class="hud-bottom">
             <div class="slot"><div class="slot-val" id="val-wood">0</div>🪵 Wood</div>
             <div class="slot"><div class="slot-val" id="val-scrap">0</div>⚙️ Scrap</div>
@@ -131,11 +127,11 @@
     </div>
 
     <div class="controls-info">
-        <strong>WASD / Arrows:</strong> Move & Turn | <strong>Shift:</strong> Sprint | <strong>E / Space:</strong> Attack / Chop / Interact | <strong>F:</strong> Eat | <strong>B:</strong> Crafting Menu | <strong>L:</strong> Flashlight
+        <strong>WASD:</strong> Move | <strong>Shift:</strong> Sprint | <strong>E / Space:</strong> Attack / Chop / Interact | <strong>F:</strong> Eat | <strong>B:</strong> Crafting Menu | <strong>L:</strong> Flashlight
     </div>
 
     <script>
-        // Audio Synthesizer for SFX
+        // Web Audio Synthesizer
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playTone(freq, type, duration, vol=0.1) {
             try {
@@ -149,39 +145,37 @@
             } catch(e){}
         }
 
-        // Core 3D Engine Variables
-        let scene, camera, renderer, playerGroup, campfireLight, sunLight, hemiLight, flashlight;
-        let deerGroup, lightBarrierRing;
+        // Three.js Globals
+        let scene, camera, renderer, campfireLight, sunLight, moonLight, hemiLight, flashlight;
+        let playerRig, deerRig, lightBarrierRing, campfireEmbers;
         let gameActive = false;
 
-        // Player Stats & Progression
+        // Game Stats
         let playerClass = "Lumberjack";
-        let night = 0;
-        let dayMultiplier = 1;
+        let night = 0, dayMultiplier = 1;
         let hp = 100, hunger = 100, stamina = 100;
-        let fireFuel = 100, fireTier = 1;
-        let safeRadius = 18;
+        let fireFuel = 100, fireTier = 1, safeRadius = 18;
 
         // Inventory
         let wood = 0, scrap = 0, berries = 2, meat = 1, pelts = 0, stews = 0, gold = 0;
         let hasSpear = false, hasBed = false, hasCrockpot = false, hasFlashlight = false;
         let isFlashlightOn = false;
 
-        // Pacing: Day 150s, Dusk 20s, Night 50s (Total = 220s cycle)
-        let cycleTimer = 0; 
-        const DAY_LENGTH = 150, DUSK_LENGTH = 20, NIGHT_LENGTH = 50;
-        const TOTAL_CYCLE = DAY_LENGTH + DUSK_LENGTH + NIGHT_LENGTH;
+        // Time Cycle (Day: 150s, Dusk: 20s, Night: 50s)
+        let cycleTimer = 0;
+        const DAY_LEN = 150, DUSK_LEN = 20, NIGHT_LEN = 50;
+        const TOTAL_CYCLE = DAY_LEN + DUSK_LEN + NIGHT_LEN;
 
         const player = { x: 0, z: 8, rot: 0, baseSpeed: 0.28, sprintSpeed: 0.44 };
         const keys = { w: false, s: false, a: false, d: false, shift: false };
+        let walkClock = 0;
 
-        // World Objects
+        // World Data
         let trees = [];
         let scrapPiles = [];
         let berryBushes = [];
-        let animals = []; // Bunnies, Wolves, Bears, Mammoths
+        let animals = [];
         let missingKids = [];
-        let spikeTraps = [];
 
         function updateWallet() {
             gold = parseInt(localStorage.getItem('arcade_coins')) || 0;
@@ -229,65 +223,202 @@
             if (e.key === "Shift") keys.shift = false;
         });
 
-        function toggleCrafting(forceState) {
+        function toggleCrafting(force) {
             const modal = document.getElementById("craft-modal");
-            modal.style.display = (forceState !== undefined ? (forceState ? 'flex' : 'none') : (modal.style.display === 'none' ? 'flex' : 'none'));
+            modal.style.display = force !== undefined ? (force ? 'flex' : 'none') : (modal.style.display === 'none' ? 'flex' : 'none');
         }
 
         function toggleFlashlight() {
             if (!hasFlashlight) {
-                showDialogue("🔦 You don't have a flashlight! Trade pelts with the Pelt Trader or choose Scout class.");
+                showDialogue("🔦 You don't have a flashlight! Trade pelts with the Pelt Trader or pick Scout class.");
                 return;
             }
             isFlashlightOn = !isFlashlightOn;
-            flashlight.intensity = isFlashlightOn ? 3.5 : 0;
+            flashlight.intensity = isFlashlightOn ? 4.0 : 0;
             playTone(800, 'sine', 0.05);
         }
 
-        // Procedural Grass & Terrain Texture Generator
-        function generateGrassTexture() {
+        // Procedural Textures
+        function createGrassCanvas() {
             const c = document.createElement('canvas');
             c.width = 512; c.height = 512;
-            const cx = c.getContext('2d');
-            cx.fillStyle = '#1e3f1e';
-            cx.fillRect(0, 0, 512, 512);
-            for (let i = 0; i < 4000; i++) {
-                cx.fillStyle = Math.random() < 0.5 ? '#244c24' : '#183318';
-                cx.fillRect(Math.random() * 512, Math.random() * 512, 4, 4);
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#1e3d1e';
+            ctx.fillRect(0, 0, 512, 512);
+            for (let i = 0; i < 5000; i++) {
+                ctx.fillStyle = Math.random() < 0.5 ? '#274e27' : '#173017';
+                ctx.fillRect(Math.random() * 512, Math.random() * 512, 3, 3);
             }
             return new THREE.CanvasTexture(c);
+        }
+
+        // Hierarchical Joint-Rigged Blocky Avatar
+        function createArticulatedHumanoid(colors) {
+            const root = new THREE.Group();
+
+            // Torso
+            const torsoMat = new THREE.MeshStandardMaterial({ color: colors.shirt, roughness: 0.6 });
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.4, 0.8), torsoMat);
+            torso.position.y = 1.6;
+            torso.castShadow = true;
+            root.add(torso);
+
+            // Head (Mounted on Torso)
+            const skinMat = new THREE.MeshStandardMaterial({ color: colors.skin, roughness: 0.8 });
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.85, 0.85), skinMat);
+            head.position.y = 1.15;
+            head.castShadow = true;
+            torso.add(head);
+
+            // Left Arm Pivot (Shoulder)
+            const armMat = new THREE.MeshStandardMaterial({ color: colors.arms || colors.shirt, roughness: 0.6 });
+            const armPivotL = new THREE.Group();
+            armPivotL.position.set(-1.05, 0.6, 0);
+            const armMeshL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat);
+            armMeshL.position.y = -0.55;
+            armMeshL.castShadow = true;
+            armPivotL.add(armMeshL);
+            torso.add(armPivotL);
+
+            // Right Arm Pivot (Shoulder)
+            const armPivotR = new THREE.Group();
+            armPivotR.position.set(1.05, 0.6, 0);
+            const armMeshR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.3, 0.5), armMat);
+            armMeshR.position.y = -0.55;
+            armMeshR.castShadow = true;
+            armPivotR.add(armMeshR);
+            torso.add(armPivotR);
+
+            // Left Leg Pivot (Hip)
+            const pantsMat = new THREE.MeshStandardMaterial({ color: colors.pants, roughness: 0.7 });
+            const legPivotL = new THREE.Group();
+            legPivotL.position.set(-0.38, 0.9, 0);
+            const legMeshL = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.3, 0.65), pantsMat);
+            legMeshL.position.y = -0.55;
+            legMeshL.castShadow = true;
+            legPivotL.add(legMeshL);
+            root.add(legPivotL);
+
+            // Right Leg Pivot (Hip)
+            const legPivotR = new THREE.Group();
+            legPivotR.position.set(0.38, 0.9, 0);
+            const legMeshR = new THREE.Mesh(new THREE.BoxGeometry(0.65, 1.3, 0.65), pantsMat);
+            legMeshR.position.y = -0.55;
+            legMeshR.castShadow = true;
+            legPivotR.add(legMeshR);
+            root.add(legPivotR);
+
+            return {
+                root, torso, head, armL: armPivotL, armR: armPivotR, legL: legPivotL, legR: legPivotR,
+                updateAnim: function(isMoving, time) {
+                    if (isMoving) {
+                        const angle = Math.sin(time * 8) * 0.6;
+                        this.legL.rotation.x = angle;
+                        this.legR.rotation.x = -angle;
+                        this.armL.rotation.x = -angle * 0.8;
+                        this.armR.rotation.x = angle * 0.8;
+                        this.torso.position.y = 1.6 + Math.abs(Math.sin(time * 8)) * 0.08;
+                    } else {
+                        this.legL.rotation.x = 0;
+                        this.legR.rotation.x = 0;
+                        this.armL.rotation.x = 0;
+                        this.armR.rotation.x = 0;
+                        this.torso.position.y = 1.6;
+                    }
+                }
+            };
+        }
+
+        // Articulated Quadruped Animal Rig
+        function createArticulatedQuadruped(cfg) {
+            const root = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: cfg.color, roughness: 0.8 });
+
+            // Body
+            const body = new THREE.Mesh(new THREE.BoxGeometry(cfg.bw, cfg.bh, cfg.bl), mat);
+            body.position.y = cfg.legH + cfg.bh / 2;
+            body.castShadow = true;
+            root.add(body);
+
+            // Head
+            const head = new THREE.Mesh(new THREE.BoxGeometry(cfg.hw, cfg.hh, cfg.hl), mat);
+            head.position.set(0, (cfg.bh / 2) + (cfg.hh / 2) * 0.5, (cfg.bl / 2) + (cfg.hl / 2) * 0.6);
+            head.castShadow = true;
+            body.add(head);
+
+            // 4 Leg Pivots
+            const legs = [];
+            const offsets = [
+                [-cfg.bw / 2 + 0.25, (cfg.bl / 2) - 0.3], // FL
+                [cfg.bw / 2 - 0.25, (cfg.bl / 2) - 0.3],  // FR
+                [-cfg.bw / 2 + 0.25, (-cfg.bl / 2) + 0.3], // BL
+                [cfg.bw / 2 - 0.25, (-cfg.bl / 2) + 0.3]   // BR
+            ];
+
+            offsets.forEach(off => {
+                const lp = new THREE.Group();
+                lp.position.set(off[0], cfg.legH, off[1]);
+                const lm = new THREE.Mesh(new THREE.BoxGeometry(cfg.legW, cfg.legH, cfg.legW), mat);
+                lm.position.y = -cfg.legH / 2;
+                lm.castShadow = true;
+                lp.add(lm);
+                root.add(lp);
+                legs.push(lp);
+            });
+
+            root.position.set(cfg.x, 0, cfg.z);
+            scene.add(root);
+
+            return {
+                root, body, head, legs, type: cfg.type, hp: cfg.hp, maxHp: cfg.hp, speed: cfg.speed, alive: true,
+                updateAnim: function(isMoving, time) {
+                    if (isMoving) {
+                        const a = Math.sin(time * 7) * 0.5;
+                        this.legs[0].rotation.x = a;
+                        this.legs[1].rotation.x = -a;
+                        this.legs[2].rotation.x = -a;
+                        this.legs[3].rotation.x = a;
+                    } else {
+                        this.legs.forEach(l => l.rotation.x = 0);
+                    }
+                }
+            };
         }
 
         function init3D() {
             const container = document.getElementById("game-wrapper");
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x132613);
-            scene.fog = new THREE.FogExp2(0x132613, 0.02);
+            scene.background = new THREE.Color(0x112211);
+            scene.fog = new THREE.Fog(0x112211, 20, 160); // Clearer depth fog
 
             camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
-            // Lighting
-            hemiLight = new THREE.HemisphereLight(0xdff0d8, 0x142814, 0.75);
+            // Lighting Engine
+            hemiLight = new THREE.HemisphereLight(0xe8f5e9, 0x142814, 0.7);
             scene.add(hemiLight);
 
-            sunLight = new THREE.DirectionalLight(0xfffaed, 0.9);
-            sunLight.position.set(50, 90, 50);
+            sunLight = new THREE.DirectionalLight(0xfffaed, 0.95);
+            sunLight.position.set(60, 100, 60);
             sunLight.castShadow = true;
             sunLight.shadow.mapSize.width = 1024;
             sunLight.shadow.mapSize.height = 1024;
             scene.add(sunLight);
 
-            // Detailed Ground
-            const groundTex = generateGrassTexture();
-            groundTex.wrapS = THREE.RepeatWrapping; groundTex.wrapT = THREE.RepeatWrapping;
-            groundTex.repeat.set(24, 24);
-            const groundMat = new THREE.MeshLambertMaterial({ map: groundTex });
-            const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), groundMat);
+            // Soft Ambient Moonlight (Improves dark night visibility)
+            moonLight = new THREE.DirectionalLight(0x38bdf8, 0.0);
+            moonLight.position.set(-50, 80, -50);
+            scene.add(moonLight);
+
+            // Ground
+            const gTex = createGrassCanvas();
+            gTex.wrapS = THREE.RepeatWrapping; gTex.wrapT = THREE.RepeatWrapping;
+            gTex.repeat.set(30, 30);
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(450, 450), new THREE.MeshStandardMaterial({ map: gTex, roughness: 0.9 }));
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
             scene.add(ground);
@@ -298,12 +429,13 @@
             buildKidsAndGuardians();
             spawnForestEnvironment();
             spawnWildlife();
+            buildCampfireEmbers();
         }
 
         function buildCamp() {
-            // Campfire Pit & Flame
+            // Logs & Stones
             for (let i = 0; i < 6; i++) {
-                const log = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.35, 3.8, 6), new THREE.MeshLambertMaterial({ color: 0x5c3a21 }));
+                const log = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 3.8, 8), new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.9 }));
                 log.position.set(0, 0.7, 0);
                 log.rotation.z = 0.55;
                 log.rotation.y = (i * Math.PI * 2) / 6;
@@ -311,280 +443,178 @@
                 scene.add(log);
             }
 
-            // Stone circle
             for (let i = 0; i < 10; i++) {
-                const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.65), new THREE.MeshLambertMaterial({ color: 0x64748b }));
-                let angle = (i * Math.PI * 2) / 10;
-                rock.position.set(Math.cos(angle) * 2.8, 0.35, Math.sin(angle) * 2.8);
+                const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.65), new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 }));
+                let ang = (i * Math.PI * 2) / 10;
+                rock.position.set(Math.cos(ang) * 2.8, 0.35, Math.sin(ang) * 2.8);
                 scene.add(rock);
             }
 
-            // Dynamic Campfire Light
-            campfireLight = new THREE.PointLight(0xff7700, 3.5, 45);
+            // Campfire Point Light
+            campfireLight = new THREE.PointLight(0xff7700, 3.8, 50, 1.2);
             campfireLight.position.set(0, 2, 0);
             campfireLight.castShadow = true;
             scene.add(campfireLight);
 
-            // Light Barrier Perimeter Ring (Visual safe circle)
-            const ringGeo = new THREE.RingGeometry(safeRadius - 0.3, safeRadius + 0.3, 48);
-            const ringMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+            // Light Barrier Safety Ring
+            const ringGeo = new THREE.RingGeometry(safeRadius - 0.4, safeRadius + 0.4, 48);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
             lightBarrierRing = new THREE.Mesh(ringGeo, ringMat);
             lightBarrierRing.rotation.x = -Math.PI / 2;
             lightBarrierRing.position.y = 0.08;
             scene.add(lightBarrierRing);
 
-            // Crafting Bench & Scrap Grinder
-            const bench = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.4, 2.2), new THREE.MeshLambertMaterial({ color: 0x78350f }));
-            bench.position.set(-6.5, 0.7, -4);
-            bench.castShadow = true;
-            scene.add(bench);
+            // Crafting Bench, Grinder, Map Board
+            const bench = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.4, 2.2), new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 }));
+            bench.position.set(-6.5, 0.7, -4); bench.castShadow = true; scene.add(bench);
 
-            const grinder = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 2, 8), new THREE.MeshLambertMaterial({ color: 0x475569 }));
-            grinder.position.set(6.5, 1, -4);
-            scene.add(grinder);
+            const grinder = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 2, 12), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.5, roughness: 0.5 }));
+            grinder.position.set(6.5, 1, -4); grinder.castShadow = true; scene.add(grinder);
 
-            // Map Progress Board
-            const mapBoard = new THREE.Mesh(new THREE.BoxGeometry(5.5, 4, 0.2), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
-            mapBoard.position.set(0, 3, -6.5);
-            scene.add(mapBoard);
+            const mapBoard = new THREE.Mesh(new THREE.BoxGeometry(5.5, 4, 0.2), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 }));
+            mapBoard.position.set(0, 3, -6.5); scene.add(mapBoard);
 
-            // Pelt Trader NPC (Near Campfire)
-            buildPeltTrader();
+            // Pelt Trader
+            const trader = createArticulatedHumanoid({ skin: 0xd4a373, shirt: 0x713f12, pants: 0x3f200c });
+            trader.root.position.set(-7, 0, 5);
+            scene.add(trader.root);
         }
 
-        function buildPeltTrader() {
-            const trader = createHumanoidMesh({ skin: 0xd4a373, shirt: 0x713f12, pants: 0x3f200c });
-            // Fur backpack
-            const pack = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.4, 0.8), new THREE.MeshLambertMaterial({ color: 0x451a03 }));
-            pack.position.set(0, 1.2, -0.6);
-            trader.add(pack);
-            trader.position.set(-7, 0, 5);
-            scene.add(trader);
-        }
-
-        function createHumanoidMesh(c) {
-            const g = new THREE.Group();
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), new THREE.MeshLambertMaterial({ color: c.skin }));
-            head.position.y = 2.2; head.castShadow = true; g.add(head);
-
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.4, 0.8), new THREE.MeshLambertMaterial({ color: c.shirt }));
-            torso.position.y = 1.1; torso.castShadow = true; g.add(torso);
-
-            const armGeo = new THREE.BoxGeometry(0.5, 1.3, 0.5);
-            const armL = new THREE.Mesh(armGeo, new THREE.MeshLambertMaterial({ color: c.arms || c.shirt }));
-            armL.position.set(-1.05, 1.1, 0); g.add(armL);
-            const armR = new THREE.Mesh(armGeo, new THREE.MeshLambertMaterial({ color: c.arms || c.shirt }));
-            armR.position.set(1.05, 1.1, 0); g.add(armR);
-
-            const legGeo = new THREE.BoxGeometry(0.65, 1.3, 0.65);
-            const legL = new THREE.Mesh(legGeo, new THREE.MeshLambertMaterial({ color: c.pants }));
-            legL.position.set(-0.38, -0.2, 0); g.add(legL);
-            const legR = new THREE.Mesh(legGeo, new THREE.MeshLambertMaterial({ color: c.pants }));
-            legR.position.set(0.38, -0.2, 0); g.add(legR);
-
-            return g;
+        function buildCampfireEmbers() {
+            const emberGeo = new THREE.BufferGeometry();
+            const count = 30;
+            const positions = new Float32Array(count * 3);
+            for (let i = 0; i < count * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 1.5;
+                positions[i + 1] = Math.random() * 3;
+                positions[i + 2] = (Math.random() - 0.5) * 1.5;
+            }
+            emberGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const emberMat = new THREE.PointsMaterial({ color: 0xfacc15, size: 0.25, transparent: true, opacity: 0.85 });
+            campfireEmbers = new THREE.Points(emberGeo, emberMat);
+            scene.add(campfireEmbers);
         }
 
         function buildPlayer() {
-            playerGroup = createHumanoidMesh({ skin: 0xffe0bd, shirt: 0x00bcd4, pants: 0xffffff });
+            playerRig = createArticulatedHumanoid({ skin: 0xffe0bd, shirt: 0x00bcd4, pants: 0xffffff });
             
             // Flashlight Attachment
-            flashlight = new THREE.SpotLight(0xffffff, 0, 45, Math.PI / 6, 0.3);
+            flashlight = new THREE.SpotLight(0xffffff, 0, 50, Math.PI / 5, 0.3, 1.2);
             flashlight.position.set(0, 1.8, 0);
             flashlight.target.position.set(0, 1.8, -10);
-            playerGroup.add(flashlight);
-            playerGroup.add(flashlight.target);
+            playerRig.root.add(flashlight);
+            playerRig.root.add(flashlight.target);
 
-            playerGroup.position.set(player.x, 0, player.z);
-            scene.add(playerGroup);
+            playerRig.root.position.set(player.x, 0, player.z);
+            scene.add(playerRig.root);
         }
 
         function buildTheDeer() {
-            deerGroup = new THREE.Group();
-            
-            // Slender body
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 4.5, 1.6), new THREE.MeshLambertMaterial({ color: 0x5c3317 }));
-            body.position.y = 3.8; body.castShadow = true; deerGroup.add(body);
+            const root = new THREE.Group();
+            const deerMat = new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.9 });
 
-            // Tall Head with Gaping Scream Mouth
-            const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2.2, 1.6), new THREE.MeshLambertMaterial({ color: 0x78350f }));
-            head.position.set(0, 6.8, 0.4); deerGroup.add(head);
+            // Slender Torso
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.8, 4.5, 1.6), deerMat);
+            torso.position.y = 3.8; torso.castShadow = true; root.add(torso);
+
+            // Tall Screaming Head
+            const head = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2.2, 1.6), deerMat);
+            head.position.set(0, 6.8, 0.4); root.add(head);
 
             const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.2, 0.2), new THREE.MeshBasicMaterial({ color: 0x000000 }));
-            mouth.position.set(0, 6.4, 1.25); deerGroup.add(mouth);
+            mouth.position.set(0, 6.4, 1.25); root.add(mouth);
 
-            // Staring Wide Eyes
+            // Wide Eyes
             [-0.42, 0.42].forEach(x => {
                 const eyeW = new THREE.Mesh(new THREE.CircleGeometry(0.32, 12), new THREE.MeshBasicMaterial({ color: 0xffffff }));
                 eyeW.position.set(x, 7.2, 1.22);
                 const eyeP = new THREE.Mesh(new THREE.CircleGeometry(0.16, 8), new THREE.MeshBasicMaterial({ color: 0x000000 }));
                 eyeP.position.set(x, 7.2, 1.23);
-                deerGroup.add(eyeW); deerGroup.add(eyeP);
+                root.add(eyeW); root.add(eyeP);
             });
 
-            // Branching Antlers
-            const antlerMat = new THREE.MeshLambertMaterial({ color: 0x3e200c });
+            // Antlers
+            const antlerMat = new THREE.MeshStandardMaterial({ color: 0x3e200c, roughness: 0.9 });
             [-1, 1].forEach((dir, idx) => {
-                const mainBeam = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 3.4), antlerMat);
-                mainBeam.position.set(dir * 1.1, 9.2, 0.2);
-                mainBeam.rotation.z = (idx === 0 ? 0.35 : -0.35);
-                deerGroup.add(mainBeam);
-
-                const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 1.8), antlerMat);
-                branch.position.set(dir * 1.7, 9.8, 0.4);
-                branch.rotation.z = (idx === 0 ? 0.8 : -0.8);
-                deerGroup.add(branch);
+                const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 3.4), antlerMat);
+                beam.position.set(dir * 1.1, 9.2, 0.2); beam.rotation.z = (idx === 0 ? 0.35 : -0.35); root.add(beam);
+                const br = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 1.8), antlerMat);
+                br.position.set(dir * 1.7, 9.8, 0.4); br.rotation.z = (idx === 0 ? 0.8 : -0.8); root.add(br);
             });
 
-            deerGroup.position.set(0, 0, -100);
-            deerGroup.visible = false;
-            scene.add(deerGroup);
-        }
+            root.position.set(0, 0, -100);
+            root.visible = false;
+            scene.add(root);
 
-        // Voxel Animal Models (Bunnies, Wolves, Bears, Mammoths)
-        function createVoxelBunny(x, z) {
-            const g = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.6, 1.1), new THREE.MeshLambertMaterial({ color: 0xf8fafc }));
-            body.position.y = 0.35; g.add(body);
-
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshLambertMaterial({ color: 0xf8fafc }));
-            head.position.set(0, 0.65, 0.5); g.add(head);
-
-            // Long Ears
-            [-0.15, 0.15].forEach(ex => {
-                const ear = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.5, 0.18), new THREE.MeshLambertMaterial({ color: 0xfbcfe8 }));
-                ear.position.set(ex, 1.0, 0.4);
-                ear.rotation.x = -0.2; g.add(ear);
-            });
-
-            g.position.set(x, 0, z);
-            scene.add(g);
-            return { mesh: g, type: 'BUNNY', hp: 2, maxHp: 2, speed: 0.12, alive: true };
-        }
-
-        function createVoxelWolf(x, z, isAlpha=false) {
-            const g = new THREE.Group();
-            const color = isAlpha ? 0x0f172a : 0x64748b;
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.1, 2.4), new THREE.MeshLambertMaterial({ color }));
-            body.position.y = 0.9; body.castShadow = true; g.add(body);
-
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 1.0), new THREE.MeshLambertMaterial({ color }));
-            head.position.set(0, 1.4, 1.2); g.add(head);
-
-            const snout = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.35, 0.6), new THREE.MeshLambertMaterial({ color: 0x334155 }));
-            snout.position.set(0, 1.2, 1.8); g.add(snout);
-
-            // Glowing Eyes (Red for Alpha Wolf)
-            const eyeColor = isAlpha ? 0xff0000 : 0xfacc15;
-            [-0.25, 0.25].forEach(ex => {
-                const eye = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: eyeColor }));
-                eye.position.set(ex, 1.5, 1.7); g.add(eye);
-            });
-
-            g.position.set(x, 0, z);
-            scene.add(g);
-            return { mesh: g, type: isAlpha ? 'ALPHA_WOLF' : 'WOLF', hp: isAlpha ? 8 : 4, maxHp: isAlpha ? 8 : 4, speed: isAlpha ? 0.20 : 0.15, alive: true };
-        }
-
-        function createVoxelBear(x, z) {
-            const g = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.8, 3.2), new THREE.MeshLambertMaterial({ color: 0x451a03 }));
-            body.position.y = 1.3; body.castShadow = true; g.add(body);
-
-            // Shoulder Hump
-            const hump = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.8, 1.4), new THREE.MeshLambertMaterial({ color: 0x3b1502 }));
-            hump.position.set(0, 2.2, 0.4); g.add(hump);
-
-            const head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.1, 1.2), new THREE.MeshLambertMaterial({ color: 0x451a03 }));
-            head.position.set(0, 1.8, 1.8); g.add(head);
-
-            g.position.set(x, 0, z);
-            scene.add(g);
-            return { mesh: g, type: 'BEAR', hp: 12, maxHp: 12, speed: 0.14, alive: true };
-        }
-
-        function createVoxelMammoth(x, z) {
-            const g = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.6, 4.2), new THREE.MeshLambertMaterial({ color: 0x292524 }));
-            body.position.y = 2.0; body.castShadow = true; g.add(body);
-
-            const head = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.8, 1.8), new THREE.MeshLambertMaterial({ color: 0x292524 }));
-            head.position.set(0, 2.8, 2.2); g.add(head);
-
-            // Curved Tusks
-            [-1.1, 1.1].forEach((tx, idx) => {
-                const tusk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.22, 2.8), new THREE.MeshLambertMaterial({ color: 0xfef08a }));
-                tusk.position.set(tx, 1.8, 3.2);
-                tusk.rotation.x = -Math.PI / 3;
-                tusk.rotation.z = (idx === 0 ? 0.3 : -0.3);
-                g.add(tusk);
-            });
-
-            g.position.set(x, 0, z);
-            scene.add(g);
-            return { mesh: g, type: 'MAMMOTH', hp: 20, maxHp: 20, speed: 0.10, alive: true };
+            deerRig = {
+                root, torso, head,
+                updateAnim: function(time) {
+                    this.head.rotation.x = Math.sin(time * 3) * 0.1;
+                    this.torso.position.y = 3.8 + Math.sin(time * 4) * 0.15;
+                }
+            };
         }
 
         function buildKidsAndGuardians() {
             const kidsData = [
-                { name: "Dino Kid", x: -75, z: -70, hoodColor: 0xef4444, shirt: 0xffffff, pants: 0x1d4ed8, guardian: 'WOLF' },
-                { name: "Kraken Kid", x: 75, z: -75, hoodColor: 0x06b6d4, shirt: 0x0284c7, pants: 0x0284c7, guardian: 'ALPHA_WOLF' },
-                { name: "Squid Kid", x: -80, z: 75, hoodColor: 0xfacc15, shirt: 0xfacc15, pants: 0x1e3a8a, guardian: 'BEAR' },
-                { name: "Koala Kid", x: 80, z: 80, hoodColor: 0x94a3b8, shirt: 0x18181b, pants: 0x18181b, guardian: 'MAMMOTH' }
+                { name: "Dino Kid", x: -75, z: -70, hood: 0xef4444, shirt: 0xffffff, pants: 0x1d4ed8, gType: 'WOLF', gColor: 0x64748b, gHp: 4, bw: 1.2, bh: 1.1, bl: 2.4, hw: 0.8, hh: 0.8, hl: 1.0, legW: 0.35, legH: 0.9, spd: 0.15 },
+                { name: "Kraken Kid", x: 75, z: -75, hood: 0x06b6d4, shirt: 0x0284c7, pants: 0x0284c7, gType: 'ALPHA_WOLF', gColor: 0x0f172a, gHp: 8, bw: 1.4, bh: 1.2, bl: 2.6, hw: 0.9, hh: 0.9, hl: 1.1, legW: 0.4, legH: 1.0, spd: 0.20 },
+                { name: "Squid Kid", x: -80, z: 75, hood: 0xfacc15, shirt: 0xfacc15, pants: 0x1e3a8a, gType: 'BEAR', gColor: 0x451a03, gHp: 12, bw: 2.0, bh: 1.8, bl: 3.2, hw: 1.2, hh: 1.1, hl: 1.2, legW: 0.6, legH: 1.2, spd: 0.14 },
+                { name: "Koala Kid", x: 80, z: 80, hood: 0x94a3b8, shirt: 0x18181b, pants: 0x18181b, gType: 'MAMMOTH', gColor: 0x292524, gHp: 20, bw: 2.8, bh: 2.6, bl: 4.2, hw: 1.8, hh: 1.8, hl: 1.8, legW: 0.8, legH: 1.8, spd: 0.10 }
             ];
 
             kidsData.forEach(kd => {
-                const kid = createHumanoidMesh({ skin: 0xfacc15, shirt: kd.shirt, pants: kd.pants });
-                kid.scale.set(0.65, 0.65, 0.65);
-                const hood = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.65, 0.9), new THREE.MeshLambertMaterial({ color: kd.hoodColor }));
-                hood.position.y = 2.6; kid.add(hood);
-                kid.position.set(kd.x, 0, kd.z);
-                scene.add(kid);
+                const kid = createArticulatedHumanoid({ skin: 0xfacc15, shirt: kd.shirt, pants: kd.pants });
+                kid.root.scale.set(0.65, 0.65, 0.65);
+                const hood = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.65, 0.9), new THREE.MeshStandardMaterial({ color: kd.hood, roughness: 0.7 }));
+                hood.position.y = 1.6; kid.torso.add(hood);
+                kid.root.position.set(kd.x, 0, kd.z);
+                scene.add(kid.root);
 
-                let guardObj;
-                if (kd.guardian === 'WOLF') guardObj = createVoxelWolf(kd.x + 5, kd.z);
-                else if (kd.guardian === 'ALPHA_WOLF') guardObj = createVoxelWolf(kd.x + 5, kd.z, true);
-                else if (kd.guardian === 'BEAR') guardObj = createVoxelBear(kd.x + 5, kd.z);
-                else if (kd.guardian === 'MAMMOTH') guardObj = createVoxelMammoth(kd.x + 6, kd.z);
+                const guard = createArticulatedQuadruped({
+                    x: kd.x + 6, z: kd.z, type: kd.gType, color: kd.gColor, hp: kd.gHp, speed: kd.spd,
+                    bw: kd.bw, bh: kd.bh, bl: kd.bl, hw: kd.hw, hh: kd.hh, hl: kd.hl, legW: kd.legW, legH: kd.legH
+                });
+                guard.assignedKid = kd.name;
+                animals.push(guard);
 
-                guardObj.assignedKid = kd.name;
-                animals.push(guardObj);
-
-                missingKids.push({ name: kd.name, mesh: kid, x: kd.x, z: kd.z, rescued: false, inSack: false, guardian: guardObj });
+                missingKids.push({ name: kd.name, rig: kid, x: kd.x, z: kd.z, rescued: false, inSack: false, guardian: guard });
             });
         }
 
         function spawnWildlife() {
-            // Free roaming bunnies and wolves
             for (let i = 0; i < 6; i++) {
                 let x = (Math.random() - 0.5) * 220;
                 let z = (Math.random() - 0.5) * 220;
                 if (Math.hypot(x, z) < 25) continue;
-                animals.push(createVoxelBunny(x, z));
+                animals.push(createArticulatedQuadruped({
+                    x, z, type: 'BUNNY', color: 0xf8fafc, hp: 2, speed: 0.12,
+                    bw: 0.8, bh: 0.6, bl: 1.1, hw: 0.5, hh: 0.5, hl: 0.5, legW: 0.2, legH: 0.35
+                }));
             }
         }
 
         function spawnForestEnvironment() {
-            // Procedural Trees (Pine & Broadleaf)
-            for (let i = 0; i < 85; i++) {
+            // Procedural Segmented Pine Trees
+            for (let i = 0; i < 90; i++) {
                 let x = (Math.random() - 0.5) * 280;
                 let z = (Math.random() - 0.5) * 280;
-                if (Math.hypot(x, z) < 22) continue; // Camp clearing
+                if (Math.hypot(x, z) < 24) continue;
 
-                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.65, 4.5, 6), new THREE.MeshLambertMaterial({ color: 0x452210 }));
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.65, 4.5, 8), new THREE.MeshStandardMaterial({ color: 0x452210, roughness: 0.9 }));
                 trunk.position.set(x, 2.25, z); trunk.castShadow = true;
-                const foliage = new THREE.Mesh(new THREE.ConeGeometry(3.2, 7.5, 6), new THREE.MeshLambertMaterial({ color: 0x14532d }));
+                const foliage = new THREE.Mesh(new THREE.ConeGeometry(3.2, 7.5, 8), new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.8 }));
                 foliage.position.set(x, 7.0, z); foliage.castShadow = true;
                 scene.add(trunk); scene.add(foliage);
                 trees.push({ trunk, foliage, x, z, hp: playerClass === 'Lumberjack' ? 2 : 4 });
             }
 
-            // Scrap Piles
+            // Scrap Metal Piles
             for (let i = 0; i < 22; i++) {
                 let x = (Math.random() - 0.5) * 250;
                 let z = (Math.random() - 0.5) * 250;
                 if (Math.hypot(x, z) < 20) continue;
-                const scrapM = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.9, 1.4), new THREE.MeshLambertMaterial({ color: 0x94a3b8 }));
+                const scrapM = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.9, 1.4), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.7, roughness: 0.4 }));
                 scrapM.position.set(x, 0.45, z); scrapM.castShadow = true;
                 scene.add(scrapM);
                 scrapPiles.push({ mesh: scrapM, x, z, active: true });
@@ -595,9 +625,9 @@
                 let x = (Math.random() - 0.5) * 250;
                 let z = (Math.random() - 0.5) * 250;
                 if (Math.hypot(x, z) < 20) continue;
-                const bush = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8), new THREE.MeshLambertMaterial({ color: 0x15803d }));
+                const bush = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8), new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8 }));
                 bush.position.set(x, 0.6, z);
-                const berry = new THREE.Mesh(new THREE.SphereGeometry(0.35, 6, 6), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+                const berry = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.3 }));
                 berry.position.set(x, 1.1, z);
                 scene.add(bush); scene.add(berry);
                 berryBushes.push({ bush, berry, x, z, active: true });
@@ -613,16 +643,13 @@
         function eatBestFood() {
             if (stews > 0 && hunger < 100) {
                 stews--; hunger = Math.min(100, hunger + 70); hp = Math.min(100, hp + 40);
-                showDialogue("🍲 Ate Hearty Stew! (+70 Hunger, +40 HP)");
-                playTone(550, 'sine', 0.15);
+                showDialogue("🍲 Ate Hearty Stew! (+70 Hunger, +40 HP)"); playTone(550, 'sine', 0.15);
             } else if (meat > 0 && hunger < 100) {
                 meat--; hunger = Math.min(100, hunger + 35); hp = Math.min(100, hp + 15);
-                showDialogue("🥩 Ate Roasted Meat! (+35 Hunger, +15 HP)");
-                playTone(500, 'sine', 0.15);
+                showDialogue("🥩 Ate Roasted Meat! (+35 Hunger, +15 HP)"); playTone(500, 'sine', 0.15);
             } else if (berries > 0 && hunger < 100) {
                 berries--; hunger = Math.min(100, hunger + 15); hp = Math.min(100, hp + 5);
-                showDialogue("🫐 Ate Wild Berry! (+15 Hunger, +5 HP)");
-                playTone(600, 'sine', 0.1);
+                showDialogue("🫐 Ate Wild Berry! (+15 Hunger, +5 HP)"); playTone(600, 'sine', 0.1);
             }
             updateInventoryUI();
         }
@@ -630,21 +657,16 @@
         function craftItem(type) {
             if (type === 'spear' && wood >= 3 && scrap >= 2) {
                 wood -= 3; scrap -= 2; hasSpear = true;
-                showDialogue("🗡️ Crafted Spear! Attack damage increased by 2.5x!");
-                playTone(400, 'triangle', 0.2);
+                showDialogue("🗡️ Crafted Spear! Attack damage increased by 2.5x!"); playTone(400, 'triangle', 0.2);
             } else if (type === 'bed' && wood >= 8 && scrap >= 4) {
                 wood -= 8; scrap -= 4; hasBed = true; dayMultiplier = 2;
-                showDialogue("🛏️ Crafted Bed! You can now Sleep to skip the dangerous night!");
-                playTone(450, 'triangle', 0.2);
+                showDialogue("🛏️ Crafted Bed! You can now Sleep at camp to skip the dangerous night!"); playTone(450, 'triangle', 0.2);
             } else if (type === 'crockpot' && scrap >= 6 && wood >= 4) {
                 scrap -= 6; wood -= 4; hasCrockpot = true;
-                showDialogue("🍲 Crafted Crockpot! Combine meat & berries at camp to make hearty stews!");
-                playTone(500, 'triangle', 0.2);
+                showDialogue("🍲 Crafted Crockpot! Cook stews with meat & berries at camp!"); playTone(500, 'triangle', 0.2);
             } else if (type === 'biofuel' && berries >= 4 && scrap >= 2) {
-                berries -= 4; scrap -= 2;
-                fireFuel = Math.min(100, fireFuel + 50);
-                showDialogue("🧪 Crafted High-Grade Biofuel! Restored 50% Fire Fuel!");
-                playTone(650, 'sine', 0.25);
+                berries -= 4; scrap -= 2; fireFuel = Math.min(100, fireFuel + 50);
+                showDialogue("🧪 Crafted High-Grade Biofuel! Restored 50% Fire Fuel!"); playTone(650, 'sine', 0.25);
             } else {
                 showDialogue("⚠️ Not enough resources to craft this item!");
             }
@@ -655,71 +677,59 @@
         function handleInteraction() {
             const pPos = new THREE.Vector2(player.x, player.z);
 
-            // 1. Bed / Sleep (Skip Night)
-            if (hasBed && pPos.distanceTo(new THREE.Vector2(0, 0)) < 6 && cycleTimer >= DAY_LENGTH) {
-                cycleTimer = 0; // Skip straight to dawn!
-                night += dayMultiplier;
-                addCoins(20 * dayMultiplier);
+            // Bed / Sleep
+            if (hasBed && pPos.distanceTo(new THREE.Vector2(0, 0)) < 6 && cycleTimer >= DAY_LEN) {
+                cycleTimer = 0; night += dayMultiplier; addCoins(20 * dayMultiplier);
                 document.getElementById('night-count').innerText = night;
                 showDialogue(`😴 Slept through the night in bed! (${dayMultiplier}x Multiplier Applied, +${20*dayMultiplier} Gold)`);
                 playTone(300, 'sine', 0.5);
                 return;
             }
 
-            // 2. Feed Campfire
+            // Feed Campfire
             if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 5.5) {
                 if (wood > 0) {
                     wood--;
                     let fuelGain = fireTier === 1 ? 25 : (fireTier === 2 ? 15 : 8);
                     fireFuel = Math.min(100, fireFuel + fuelGain);
                     if (fireFuel >= 100 && fireTier < 5) {
-                        fireTier++;
-                        safeRadius += 6;
-                        // Resize Safe Radius Ring
+                        fireTier++; safeRadius += 6;
                         scene.remove(lightBarrierRing);
-                        const ringGeo = new THREE.RingGeometry(safeRadius - 0.3, safeRadius + 0.3, 48);
-                        const ringMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+                        const ringGeo = new THREE.RingGeometry(safeRadius - 0.4, safeRadius + 0.4, 48);
+                        const ringMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
                         lightBarrierRing = new THREE.Mesh(ringGeo, ringMat);
                         lightBarrierRing.rotation.x = -Math.PI / 2;
                         lightBarrierRing.position.y = 0.08;
                         scene.add(lightBarrierRing);
-                        showDialogue(`🔥 UPGRADED CAMPFIRE TO TIER ${fireTier}! Safe Radius expanded to ${safeRadius}m!`);
+                        showDialogue(`🔥 UPGRADED CAMPFIRE TO TIER ${fireTier}! Safe Light Radius expanded to ${safeRadius}m!`);
                     } else {
                         showDialogue("🔥 Added Wood to Campfire! Safe light maintained.");
                     }
-                    playTone(250, 'sine', 0.1);
-                    updateInventoryUI();
-                    return;
+                    playTone(250, 'sine', 0.1); updateInventoryUI(); return;
                 }
             }
 
-            // 3. Shredder Grinder
+            // Shredder
             if (pPos.distanceTo(new THREE.Vector2(6.5, -4)) < 4.5 && scrap > 0) {
-                let earned = scrap * 8;
-                addCoins(earned);
+                let earned = scrap * 8; addCoins(earned);
                 showDialogue(`⚙️ Ground ${scrap} Scrap into +${earned} Gold Coins!`);
-                scrap = 0;
-                playTone(350, 'sawtooth', 0.2);
-                updateInventoryUI();
-                return;
+                scrap = 0; playTone(350, 'sawtooth', 0.2); updateInventoryUI(); return;
             }
 
-            // 4. Crockpot Cooking (At Camp)
+            // Crockpot
             if (hasCrockpot && pPos.distanceTo(new THREE.Vector2(-6.5, -4)) < 4.5) {
                 if (meat >= 1 && berries >= 2) {
                     meat--; berries -= 2; stews++;
                     showDialogue("🍲 Cooked a nutrient-rich Stew in the Crockpot!");
-                    playTone(520, 'sine', 0.2);
-                    updateInventoryUI();
-                    return;
+                    playTone(520, 'sine', 0.2); updateInventoryUI(); return;
                 }
             }
 
-            // 5. Pelt Trader (Trade Pelts for Gear/Flashlight)
+            // Pelt Trader
             if (pPos.distanceTo(new THREE.Vector2(-7, 5)) < 4.5) {
                 if (pelts >= 2 && !hasFlashlight) {
                     pelts -= 2; hasFlashlight = true;
-                    showDialogue("🐺 Pelt Trader: 'Here is a Heavy-Duty Flashlight! Press [L] to use at night!'");
+                    showDialogue("🐺 Pelt Trader: 'Here is a Heavy-Duty Flashlight! Press [L] at night!'");
                     playTone(600, 'triangle', 0.3);
                 } else if (pelts >= 1) {
                     pelts--; addCoins(25);
@@ -728,19 +738,17 @@
                 } else {
                     showDialogue("🐺 Pelt Trader: 'Bring me 2 Wolf Pelts and I will give you a Flashlight!'");
                 }
-                updateInventoryUI();
-                return;
+                updateInventoryUI(); return;
             }
 
-            // 6. Attack Wildlife / Guardians
+            // Attack Animals / Guardians
             let attackDmg = hasSpear ? (playerClass === 'Hunter' ? 6 : 4) : (playerClass === 'Hunter' ? 3 : 2);
             for (let a of animals) {
-                if (a.alive && pPos.distanceTo(new THREE.Vector2(a.mesh.position.x, a.mesh.position.z)) < 4.5) {
-                    a.hp -= attackDmg;
-                    playTone(180, 'sawtooth', 0.15);
+                if (a.alive && pPos.distanceTo(new THREE.Vector2(a.root.position.x, a.root.position.z)) < 4.5) {
+                    a.hp -= attackDmg; playTone(180, 'sawtooth', 0.15);
                     showDialogue(`⚔️ Hit ${a.type}! (HP: ${Math.max(0, a.hp)}/${a.maxHp})`);
                     if (a.hp <= 0) {
-                        a.alive = false; scene.remove(a.mesh);
+                        a.alive = false; scene.remove(a.root);
                         if (a.type === 'BUNNY') meat += 1;
                         else if (a.type === 'WOLF') { meat += 2; pelts += 1; }
                         else if (a.type === 'ALPHA_WOLF') { meat += 4; pelts += 2; addCoins(30); }
@@ -748,18 +756,17 @@
                         else if (a.type === 'MAMMOTH') { meat += 10; pelts += 5; addCoins(100); }
                         showDialogue(`🏆 Defeated ${a.type}! Harvested valuable meat & pelts!`);
                     }
-                    updateInventoryUI();
-                    return;
+                    updateInventoryUI(); return;
                 }
             }
 
-            // 7. Rescue Missing Kids
+            // Rescue Missing Kids
             for (let k of missingKids) {
                 if (!k.rescued && !k.inSack && pPos.distanceTo(new THREE.Vector2(k.x, k.z)) < 4.5) {
                     if (k.guardian && k.guardian.alive) {
                         showDialogue(`⚠️ Defeat the ${k.guardian.type} Guardian first to free ${k.name}!`);
                     } else {
-                        k.inSack = true; k.mesh.visible = false;
+                        k.inSack = true; k.rig.root.visible = false;
                         showDialogue(`🎒 Placed ${k.name} in your sack! Escort them safely to Campfire!`);
                         playTone(580, 'sine', 0.3);
                     }
@@ -771,8 +778,7 @@
             if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 6) {
                 missingKids.forEach(k => {
                     if (k.inSack && !k.rescued) {
-                        k.inSack = false; k.rescued = true;
-                        addCoins(75);
+                        k.inSack = false; k.rescued = true; addCoins(75);
                         let total = missingKids.filter(x => x.rescued).length;
                         document.getElementById('kids-count').innerText = `${total}/4`;
                         showDialogue(`🎉 ${k.name} Rescued to Campfire! Received +75 Gold Coins!`);
@@ -781,38 +787,32 @@
                 });
             }
 
-            // 8. Harvest Trees, Scrap, Berries
+            // Harvest Trees & Scrap
             for (let i = 0; i < trees.length; i++) {
                 let t = trees[i];
                 if (pPos.distanceTo(new THREE.Vector2(t.x, t.z)) < 4.0) {
-                    t.hp--;
-                    playTone(220, 'square', 0.08);
+                    t.hp--; playTone(220, 'square', 0.08);
                     if (t.hp <= 0) {
                         scene.remove(t.trunk); scene.remove(t.foliage);
                         trees.splice(i, 1);
                         wood += (playerClass === 'Lumberjack' ? 4 : 2);
                         showDialogue(`🪵 Chopped Pine Tree! (+${playerClass === 'Lumberjack' ? 4 : 2} Wood)`);
                     }
-                    updateInventoryUI();
-                    return;
+                    updateInventoryUI(); return;
                 }
             }
 
             scrapPiles.forEach(s => {
                 if (s.active && pPos.distanceTo(new THREE.Vector2(s.x, s.z)) < 3.5) {
                     s.active = false; scene.remove(s.mesh); scrap += 2;
-                    showDialogue("⚙️ Scavenged Scrap Metal (+2 Scrap)");
-                    playTone(420, 'sawtooth', 0.1);
-                    updateInventoryUI();
+                    showDialogue("⚙️ Scavenged Scrap Metal (+2 Scrap)"); playTone(420, 'sawtooth', 0.1); updateInventoryUI();
                 }
             });
 
             berryBushes.forEach(b => {
                 if (b.active && pPos.distanceTo(new THREE.Vector2(b.x, b.z)) < 3.5) {
                     b.active = false; scene.remove(b.berry); berries += 2;
-                    showDialogue("🫐 Foraged Wild Berries (+2 Berries)");
-                    playTone(620, 'sine', 0.08);
-                    updateInventoryUI();
+                    showDialogue("🫐 Foraged Wild Berries (+2 Berries)"); playTone(620, 'sine', 0.08); updateInventoryUI();
                 }
             });
         }
@@ -832,28 +832,29 @@
         function updateTimeAndEnvironment() {
             cycleTimer += 0.05;
 
-            // Sundial Rotation & Tracking
+            // Sundial
             const progress = (cycleTimer / TOTAL_CYCLE);
             document.getElementById("sundial-hand").style.transform = `rotate(${progress * 360}deg)`;
 
             const cycleTitle = document.getElementById("cycle-title");
             const cycleTimerText = document.getElementById("cycle-timer");
 
-            if (cycleTimer < DAY_LENGTH) {
-                // Day Phase (~2m 30s)
-                let rem = Math.round(DAY_LENGTH - cycleTimer);
+            if (cycleTimer < DAY_LEN) {
+                // Day Phase
+                let rem = Math.round(DAY_LEN - cycleTimer);
                 cycleTitle.innerText = "☀️ DAY PHASE";
                 cycleTitle.style.color = "var(--gold)";
                 cycleTimerText.innerText = `Night in: ${Math.floor(rem/60)}m ${rem%60}s`;
 
-                scene.background.setHex(0x132613);
-                scene.fog.color.setHex(0x132613);
-                sunLight.intensity = 0.9;
-                deerGroup.visible = false;
+                scene.background.setHex(0x112211);
+                scene.fog.color.setHex(0x112211);
+                sunLight.intensity = 0.95;
+                moonLight.intensity = 0.0;
+                deerRig.root.visible = false;
             } 
-            else if (cycleTimer < DAY_LENGTH + DUSK_LENGTH) {
-                // Dusk Phase (20s)
-                let rem = Math.round(DAY_LENGTH + DUSK_LENGTH - cycleTimer);
+            else if (cycleTimer < DAY_LEN + DUSK_LEN) {
+                // Dusk Phase
+                let rem = Math.round(DAY_LEN + DUSK_LEN - cycleTimer);
                 cycleTitle.innerText = "🌅 DUSK (Return to Camp!)";
                 cycleTitle.style.color = "#fb923c";
                 cycleTimerText.innerText = `Night in: ${rem}s`;
@@ -861,25 +862,25 @@
                 scene.background.setHex(0x2d1808);
                 scene.fog.color.setHex(0x2d1808);
                 sunLight.intensity = 0.3;
-                deerGroup.visible = false;
+                moonLight.intensity = 0.1;
+                deerRig.root.visible = false;
             } 
             else if (cycleTimer < TOTAL_CYCLE) {
-                // Night Phase (50s) - The Deer Awakens
+                // Night Phase
                 let rem = Math.round(TOTAL_CYCLE - cycleTimer);
                 cycleTitle.innerText = "🦌 THE DEER IS HUNTING";
                 cycleTitle.style.color = "var(--accent)";
                 cycleTimerText.innerText = `Dawn in: ${rem}s`;
 
-                scene.background.setHex(0x020509);
-                scene.fog.color.setHex(0x020509);
-                sunLight.intensity = 0.02;
-                deerGroup.visible = true;
+                scene.background.setHex(0x040810);
+                scene.fog.color.setHex(0x040810);
+                sunLight.intensity = 0.0;
+                moonLight.intensity = 0.35; // Soft blue moonlight prevents pitch-black unplayability
+                deerRig.root.visible = true;
             } 
             else {
-                // New Dawn!
-                cycleTimer = 0;
-                night += dayMultiplier;
-                addCoins(15 * dayMultiplier);
+                // Dawn!
+                cycleTimer = 0; night += dayMultiplier; addCoins(15 * dayMultiplier);
                 document.getElementById('night-count').innerText = night;
                 showDialogue(`🌅 Dawn breaks! Survived Night ${night}! (+${15*dayMultiplier} Gold)`);
                 playTone(440, 'triangle', 0.4);
@@ -890,25 +891,34 @@
                 }
             }
 
-            // Campfire Fuel Burn (Slow & Steady)
+            // Campfire Fuel Burn & Healing
             if (fireFuel > 0) fireFuel -= 0.018;
-            campfireLight.intensity = (fireFuel / 100) * 3.8;
+            campfireLight.intensity = (fireFuel / 100) * 3.8 + Math.sin(walkClock * 12) * 0.3; // Realistic flame flicker
             document.getElementById("fuel-text").innerText = `${Math.round(fireFuel)}%`;
 
-            // Hunger depletion & Campfire Healing
             hunger -= 0.008;
             if (hunger <= 0) { hunger = 0; hp -= 0.05; }
 
             const distToFire = Math.hypot(player.x, player.z);
             if (distToFire < safeRadius && fireFuel > 5) {
-                if (hp < 100) hp += 0.04; // Passive Campfire Health Regen!
+                if (hp < 100) hp += 0.04;
             }
 
-            // Stamina Handling
+            // Stamina
             if (keys.shift && (keys.w || keys.s || keys.a || keys.d) && stamina > 0) {
                 stamina -= 0.35;
             } else if (stamina < 100) {
                 stamina += 0.2;
+            }
+
+            // Animate Campfire Embers
+            if (campfireEmbers) {
+                const pos = campfireEmbers.geometry.attributes.position.array;
+                for (let i = 1; i < pos.length; i += 3) {
+                    pos[i] += 0.04;
+                    if (pos[i] > 3.5) pos[i] = 0.5;
+                }
+                campfireEmbers.geometry.attributes.position.needsUpdate = true;
             }
 
             document.getElementById("hp-fill").style.width = `${Math.max(0, hp)}%`;
@@ -923,41 +933,45 @@
         }
 
         function updateTheDeerStalker() {
-            if (cycleTimer < DAY_LENGTH + DUSK_LENGTH) return; // Only stalks at night
+            if (cycleTimer < DAY_LEN + DUSK_LEN) return;
 
             const pPos = new THREE.Vector3(player.x, 0, player.z);
             const distToFire = Math.hypot(player.x, player.z);
 
-            // Stalking Logic: Cannot enter light barrier radius!
-            if (distToFire > safeRadius || fireFuel <= 0) {
-                deerGroup.lookAt(pPos);
-                deerGroup.translateZ(0.18); // Balanced, tense stalking speed
+            deerRig.updateAnim(walkClock);
 
-                let distToDeer = deerGroup.position.distanceTo(pPos);
-                if (distToDeer < 3.2) {
+            // Physical Light Barrier: Deer is strictly repelled inside safe light!
+            if (distToFire > safeRadius || fireFuel <= 0) {
+                deerRig.root.lookAt(pPos);
+                deerRig.root.translateZ(0.18); // Tense stalking speed
+
+                let dist = deerRig.root.position.distanceTo(pPos);
+                if (dist < 3.2) {
                     hp -= 0.8;
                     showDialogue("⚠️ THE DEER IS ATTACKING! SPRINT TO THE CAMPFIRE LIGHT!");
                     playTone(120, 'sawtooth', 0.2);
                 }
             } else {
-                // Repelled by Campfire Light Barrier
-                deerGroup.lookAt(new THREE.Vector3(0, 0, 0));
-                deerGroup.translateZ(-0.25);
+                deerRig.root.lookAt(new THREE.Vector3(0, 0, 0));
+                deerRig.root.translateZ(-0.25);
             }
         }
 
         function updateWildlifeAI() {
             const pPos = new THREE.Vector3(player.x, 0, player.z);
             animals.forEach(a => {
-                if (a.alive && a.type !== 'BUNNY') {
-                    let dist = a.mesh.position.distanceTo(pPos);
-                    if (dist < 18) {
-                        a.mesh.lookAt(pPos);
-                        a.mesh.translateZ(a.speed);
+                if (a.alive) {
+                    let dist = a.root.position.distanceTo(pPos);
+                    let isMoving = false;
+                    if (a.type !== 'BUNNY' && dist < 18) {
+                        a.root.lookAt(pPos);
+                        a.root.translateZ(a.speed);
+                        isMoving = true;
                         if (dist < 2.2) {
                             hp -= (a.type === 'MAMMOTH' ? 0.6 : (a.type === 'BEAR' ? 0.4 : 0.25));
                         }
                     }
+                    a.updateAnim(isMoving, walkClock);
                 }
             });
         }
@@ -965,31 +979,37 @@
         function update() {
             if (!gameActive) return;
 
-            // Movement & Rotation
+            let isMoving = false;
+            let curSpeed = (keys.shift && stamina > 0) ? player.sprintSpeed : player.baseSpeed;
+
             if (keys.a) player.rot += 0.038;
             if (keys.d) player.rot -= 0.038;
-
-            let curSpeed = (keys.shift && stamina > 0) ? player.sprintSpeed : player.baseSpeed;
 
             if (keys.w) {
                 player.x -= Math.sin(player.rot) * curSpeed;
                 player.z -= Math.cos(player.rot) * curSpeed;
+                isMoving = true;
             }
             if (keys.s) {
                 player.x += Math.sin(player.rot) * (curSpeed * 0.6);
                 player.z += Math.cos(player.rot) * (curSpeed * 0.6);
+                isMoving = true;
             }
 
-            playerGroup.position.set(player.x, 0, player.z);
-            playerGroup.rotation.y = player.rot;
+            if (isMoving) walkClock += 0.05;
 
-            // Camera Tracking
+            // Player Avatar Updates
+            playerRig.root.position.set(player.x, 0, player.z);
+            playerRig.root.rotation.y = player.rot;
+            playerRig.updateAnim(isMoving, walkClock);
+
+            // Smooth Third-Person Camera Follow
             camera.position.x = player.x + Math.sin(player.rot) * 9.5;
             camera.position.y = 6.0;
             camera.position.z = player.z + Math.cos(player.rot) * 9.5;
             camera.lookAt(player.x, 1.8, player.z);
 
-            // Interaction Prompt Detector
+            // Prompts
             const pVec = new THREE.Vector2(player.x, player.z);
             let prompt = document.getElementById("action-prompt");
             let near = false;
@@ -1002,7 +1022,7 @@
                 prompt.innerText = "[E] Trade Pelts with Trader"; near = true;
             } else {
                 for (let a of animals) {
-                    if (a.alive && pVec.distanceTo(new THREE.Vector2(a.mesh.position.x, a.mesh.position.z)) < 4.5) {
+                    if (a.alive && pVec.distanceTo(new THREE.Vector2(a.root.position.x, a.root.position.z)) < 4.5) {
                         prompt.innerText = `[E] Attack ${a.type}!`; near = true; break;
                     }
                 }
