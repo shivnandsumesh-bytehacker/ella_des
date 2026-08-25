@@ -121,7 +121,6 @@
             pointer-events: auto;
         }
 
-        /* Survival Stats Bars (Hearts & Hunger) */
         .stat-row {
             display: flex;
             align-items: center;
@@ -129,7 +128,7 @@
             font-size: 0.9rem;
         }
 
-        /* Hotbar */
+        /* 9-Slot Hotbar */
         #hotbar-wrap {
             position: absolute;
             bottom: 12px;
@@ -190,7 +189,7 @@
             font-family: monospace;
         }
 
-        /* Dual-Thumb iPad & Touchscreen Overlay */
+        /* Touchscreen Overlay Controls */
         .touch-zone {
             position: absolute;
             bottom: 75px;
@@ -225,7 +224,7 @@
         .ctrl-btn.place { border-color: var(--emerald); color: var(--emerald); }
         .ctrl-btn.place:active { background: var(--emerald); color: #000; }
 
-        /* Crafting Table & Inventory Modal */
+        /* Crafting Table 3x3 Modal */
         .modal {
             position: absolute;
             inset: 0;
@@ -353,7 +352,7 @@
                     <button class="ctrl-btn" style="width:auto; height:32px; padding:0 10px; border-radius:6px;" onclick="quickCraft('planks')">Wood Planks</button>
                     <button class="ctrl-btn" style="width:auto; height:32px; padding:0 10px; border-radius:6px;" onclick="quickCraft('sticks')">Sticks</button>
                     <button class="ctrl-btn" style="width:auto; height:32px; padding:0 10px; border-radius:6px;" onclick="quickCraft('pickaxe')">Diamond Pickaxe</button>
-                    <button class="ctrl-btn" style="width:auto; height:32px; padding:0 10px; border-radius:6px;" onclick="quickCraft('sword')">Iron Sword</button>
+                    <button class="ctrl-btn" style="width:auto; height:32px; padding:0 10px; border-radius:6px;" onclick="quickCraft('sword')">Diamond Sword</button>
                     <button class="ctrl-btn" style="width:auto; height:32px; padding:0 10px; border-radius:6px;" onclick="quickCraft('torch')">Torches</button>
                     <button class="ctrl-btn" style="width:auto; height:32px; padding:0 10px; border-radius:6px;" onclick="quickCraft('tnt')">TNT Block</button>
                 </div>
@@ -454,6 +453,21 @@
                     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
                     noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
                     noise.start();
+                } else if (type === 'hiss') {
+                    const bufferSize = ctx.sampleRate * 0.4;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'highpass';
+                    filter.frequency.value = 3200;
+                    const gain = ctx.createGain();
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                    noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+                    noise.start();
                 } else if (type === 'pop') {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
@@ -465,15 +479,15 @@
                     osc.connect(gain); gain.connect(ctx.destination);
                     osc.start(); osc.stop(ctx.currentTime + 0.08);
                 } else if (type === 'explode') {
-                    const bufferSize = ctx.sampleRate * 0.5;
+                    const bufferSize = ctx.sampleRate * 0.6;
                     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
                     const data = buffer.getChannelData(0);
                     for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
                     const noise = ctx.createBufferSource();
                     noise.buffer = buffer;
                     const gain = ctx.createGain();
-                    gain.gain.setValueAtTime(0.5, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                    gain.gain.setValueAtTime(0.6, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
                     noise.connect(gain); gain.connect(ctx.destination);
                     noise.start();
                 } else if (type === 'hurt') {
@@ -499,6 +513,7 @@
         let minedBlocksCount = 0;
         let gold = 0;
         let worldTime = 0.25; // 0 to 1 day/night cycle
+        let walkClock = 0;
 
         // Player Survival State
         const player = {
@@ -521,7 +536,7 @@
         let particles = [];
         let mobs = [];
 
-        // 16x16 Pixel Texture Generation Engine
+        // 16x16 Pixel Texture Generator
         function generatePixelTexture(type) {
             const canvas = document.createElement('canvas');
             canvas.width = 16;
@@ -556,10 +571,6 @@
             }
             else if (type === 'leaves') fillRandomNoise(45, 125, 35, 50);
             else if (type === 'sand') fillRandomNoise(220, 205, 140, 30);
-            else if (type === 'water') {
-                ctx.fillStyle = 'rgba(2, 132, 199, 0.7)'; ctx.fillRect(0, 0, 16, 16);
-                ctx.fillStyle = '#38bdf8'; ctx.fillRect(2, 4, 12, 2); ctx.fillRect(4, 10, 8, 2);
-            }
             else if (type === 'glass') {
                 ctx.fillStyle = 'rgba(2, 132, 199, 0.35)'; ctx.fillRect(0, 0, 16, 16);
                 ctx.strokeStyle = '#ffffff'; ctx.strokeRect(0, 0, 16, 16);
@@ -574,7 +585,32 @@
                 ctx.fillStyle = '#00f3ff';
                 ctx.fillRect(4, 4, 3, 3); ctx.fillRect(10, 8, 3, 3); ctx.fillRect(6, 11, 3, 3);
             }
-            else if (type === 'glowstone') fillRandomNoise(250, 204, 21, 60);
+            else if (type === 'creeper_skin') {
+                fillRandomNoise(45, 160, 45, 45);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(3, 3, 3, 3); ctx.fillRect(10, 3, 3, 3);
+                ctx.fillRect(6, 6, 4, 5);
+                ctx.fillRect(4, 8, 2, 6); ctx.fillRect(10, 8, 2, 6);
+            }
+            else if (type === 'zombie_skin') {
+                fillRandomNoise(55, 135, 65, 35);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(3, 4, 3, 2); ctx.fillRect(10, 4, 3, 2);
+                ctx.fillStyle = '#1e3a8a';
+                ctx.fillRect(0, 10, 16, 6);
+            }
+            else if (type === 'skeleton_skin') {
+                fillRandomNoise(210, 210, 210, 25);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(3, 4, 3, 3); ctx.fillRect(10, 4, 3, 3);
+                ctx.fillRect(6, 9, 4, 2);
+            }
+            else if (type === 'pig_skin') {
+                fillRandomNoise(244, 114, 182, 25);
+                ctx.fillStyle = '#be185d';
+                ctx.fillRect(5, 7, 6, 4);
+                ctx.fillStyle = '#000'; ctx.fillRect(6, 8, 1, 2); ctx.fillRect(9, 8, 1, 2);
+            }
 
             const tex = new THREE.CanvasTexture(canvas);
             tex.magFilter = THREE.NearestFilter;
@@ -582,7 +618,6 @@
             return { texture: tex, canvas };
         }
 
-        // Full Voxel Item Registry
         const blockRegistry = {
             1: { name: 'Grass Block', tex: 'grass_top' },
             2: { name: 'Dirt', tex: 'dirt' },
@@ -610,8 +645,7 @@
                 const targetCanvas = document.getElementById(`icon-${id}`);
                 if (targetCanvas) {
                     const tCtx = targetCanvas.getContext('2d');
-                    targetCanvas.width = 24;
-                    targetCanvas.height = 24;
+                    targetCanvas.width = 24; targetCanvas.height = 24;
                     tCtx.imageSmoothingEnabled = false;
                     tCtx.drawImage(res.canvas, 0, 0, 24, 24);
                 }
@@ -675,29 +709,12 @@
         }
 
         function quickCraft(recipeType) {
-            if (recipeType === 'planks') {
-                selectSlot(5);
-                showBanner("🛠️ Crafted 4x Oak Planks!");
-                playVoxelSound('pop');
-            } else if (recipeType === 'sticks') {
-                showBanner("🛠️ Crafted 4x Sticks!");
-                playVoxelSound('pop');
-            } else if (recipeType === 'pickaxe') {
-                showBanner("💎 Crafted Diamond Pickaxe!");
-                playVoxelSound('pop');
-                addCoins(10);
-            } else if (recipeType === 'sword') {
-                showBanner("⚔️ Crafted Iron Sword!");
-                playVoxelSound('pop');
-            } else if (recipeType === 'torch') {
-                selectSlot(8);
-                showBanner("🔥 Crafted 4x Torches!");
-                playVoxelSound('pop');
-            } else if (recipeType === 'tnt') {
-                selectSlot(9);
-                showBanner("🧨 Crafted TNT Block!");
-                playVoxelSound('pop');
-            }
+            if (recipeType === 'planks') { selectSlot(5); showBanner("🛠️ Crafted 4x Oak Planks!"); playVoxelSound('pop'); }
+            else if (recipeType === 'sticks') { showBanner("🛠️ Crafted 4x Sticks!"); playVoxelSound('pop'); }
+            else if (recipeType === 'pickaxe') { showBanner("💎 Crafted Diamond Pickaxe!"); playVoxelSound('pop'); addCoins(15); }
+            else if (recipeType === 'sword') { showBanner("⚔️ Crafted Diamond Sword!"); playVoxelSound('pop'); }
+            else if (recipeType === 'torch') { selectSlot(8); showBanner("🔥 Crafted 4x Torches!"); playVoxelSound('pop'); }
+            else if (recipeType === 'tnt') { selectSlot(9); showBanner("🧨 Crafted TNT Block!"); playVoxelSound('pop'); }
             toggleCrafting(false);
         }
 
@@ -724,7 +741,7 @@
             }
         }
 
-        // Voxel World Engine
+        // Voxel Grid Helpers
         const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 
         function getVoxelKey(x, y, z) {
@@ -755,7 +772,6 @@
                 voxels.delete(key);
                 createVoxelDebris(x, y, z);
 
-                // TNT Detonation
                 if (typeId === 9) {
                     explodeTNT(x, y, z);
                 }
@@ -765,15 +781,20 @@
         function explodeTNT(cx, cy, cz) {
             playVoxelSound('explode');
             showBanner("💥 TNT DETONATED!");
-            const RADIUS = 3;
-            for (let x = cx - RADIUS; x <= cx + RADIUS; x++) {
-                for (let y = cy - RADIUS; y <= cy + RADIUS; y++) {
-                    for (let z = cz - RADIUS; z <= cz + RADIUS; z++) {
+            const RADIUS = 3.5;
+            for (let x = cx - 4; x <= cx + 4; x++) {
+                for (let y = cy - 4; y <= cy + 4; y++) {
+                    for (let z = cz - 4; z <= cz + 4; z++) {
                         if (Math.hypot(x - cx, y - cy, z - cz) <= RADIUS) {
                             removeBlock(x, y, z);
                         }
                     }
                 }
+            }
+            const dist = player.pos.distanceTo(new THREE.Vector3(cx, cy, cz));
+            if (dist < 6) {
+                player.health = Math.max(0, player.health - Math.round((6 - dist) * 3));
+                playVoxelSound('hurt');
             }
         }
 
@@ -792,7 +813,7 @@
             }
         }
 
-        // Procedural Infinite World Generation
+        // Procedural World Generation
         function generateProceduralTerrain() {
             const WORLD_RADIUS = 20;
 
@@ -815,7 +836,6 @@
 
                     addBlock(x, height, z, 1);
 
-                    // Oak Trees
                     if (x % 7 === 0 && z % 7 === 0 && Math.random() < 0.7 && Math.abs(x) > 2) {
                         spawnOakTree(x, height + 1, z);
                     }
@@ -837,20 +857,121 @@
             }
         }
 
-        // Mob Spawner (Creeper, Zombie, Pig, Sheep)
+        // Accurate Minecraft Mob Models & Articulation Rigs
+        function createAccurateMobMesh(type) {
+            const root = new THREE.Group();
+            let limbs = { legs: [], arms: [], head: null, body: null };
+
+            if (type === 'CREEPER') {
+                const skin = generatePixelTexture('creeper_skin').texture;
+                const mat = new THREE.MeshStandardMaterial({ map: skin, roughness: 0.6 });
+
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.5), mat);
+                body.position.y = 1.0; root.add(body); limbs.body = body;
+
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), mat);
+                head.position.y = 1.9; root.add(head); limbs.head = head;
+
+                const legOffsets = [[-0.25, 0.25], [0.25, 0.25], [-0.25, -0.25], [0.25, -0.25]];
+                legOffsets.forEach(lo => {
+                    const lp = new THREE.Group();
+                    lp.position.set(lo[0], 0.45, lo[1]);
+                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.35), mat);
+                    leg.position.y = -0.25; lp.add(leg);
+                    root.add(lp); limbs.legs.push(lp);
+                });
+            } else if (type === 'ZOMBIE') {
+                const skin = generatePixelTexture('zombie_skin').texture;
+                const mat = new THREE.MeshStandardMaterial({ map: skin, roughness: 0.6 });
+                const pantsMat = new THREE.MeshStandardMaterial({ color: 0x4338ca, roughness: 0.7 });
+
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.2, 0.45), mat);
+                body.position.y = 1.2; root.add(body); limbs.body = body;
+
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), mat);
+                head.position.y = 2.1; root.add(head); limbs.head = head;
+
+                [-0.55, 0.55].forEach(ax => {
+                    const armP = new THREE.Group();
+                    armP.position.set(ax, 1.7, 0);
+                    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.1, 0.4), mat);
+                    arm.position.set(0, 0, -0.55);
+                    arm.rotation.x = -Math.PI / 2;
+                    armP.add(arm); root.add(armP); limbs.arms.push(armP);
+                });
+
+                [-0.22, 0.22].forEach(lx => {
+                    const legP = new THREE.Group();
+                    legP.position.set(lx, 0.6, 0);
+                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 0.4), pantsMat);
+                    leg.position.y = -0.6; legP.add(leg);
+                    root.add(legP); limbs.legs.push(legP);
+                });
+            } else if (type === 'SKELETON') {
+                const skin = generatePixelTexture('skeleton_skin').texture;
+                const mat = new THREE.MeshStandardMaterial({ map: skin, roughness: 0.6 });
+
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.2, 0.35), mat);
+                body.position.y = 1.2; root.add(body); limbs.body = body;
+
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), mat);
+                head.position.y = 2.1; root.add(head); limbs.head = head;
+
+                [-0.45, 0.45].forEach(ax => {
+                    const armP = new THREE.Group();
+                    armP.position.set(ax, 1.7, 0);
+                    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.1, 0.25), mat);
+                    arm.position.set(0, 0, -0.55);
+                    arm.rotation.x = -Math.PI / 2;
+                    armP.add(arm); root.add(armP); limbs.arms.push(armP);
+                });
+
+                [-0.2, 0.2].forEach(lx => {
+                    const legP = new THREE.Group();
+                    legP.position.set(lx, 0.6, 0);
+                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.2, 0.25), mat);
+                    leg.position.y = -0.6; legP.add(leg);
+                    root.add(legP); limbs.legs.push(legP);
+                });
+            } else if (type === 'PIG') {
+                const skin = generatePixelTexture('pig_skin').texture;
+                const mat = new THREE.MeshStandardMaterial({ map: skin, roughness: 0.6 });
+
+                const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 1.6), mat);
+                body.position.y = 0.9; root.add(body); limbs.body = body;
+
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), mat);
+                head.position.set(0, 1.1, 0.95); root.add(head); limbs.head = head;
+
+                [[-0.35, 0.4], [0.35, 0.4], [-0.35, -0.4], [0.35, -0.4]].forEach(lo => {
+                    const lp = new THREE.Group();
+                    lp.position.set(lo[0], 0.45, lo[1]);
+                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.35), mat);
+                    leg.position.y = -0.25; lp.add(leg);
+                    root.add(lp); limbs.legs.push(lp);
+                });
+            }
+
+            return { root, limbs };
+        }
+
         function spawnMob(type, x, y, z) {
-            const group = new THREE.Group();
-            let bodyMat = new THREE.MeshStandardMaterial({ color: type === 'CREEPER' ? 0x22c55e : (type === 'ZOMBIE' ? 0x0284c7 : 0xf472b6) });
+            const mobRig = createAccurateMobMesh(type);
+            mobRig.root.position.set(x, y, z);
+            scene.add(mobRig.root);
 
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.6), bodyMat);
-            body.position.y = 1.0; group.add(body);
-
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), new THREE.MeshStandardMaterial({ color: type === 'CREEPER' ? 0x16a34a : (type === 'ZOMBIE' ? 0x15803d : 0xfbcfe8) }));
-            head.position.y = 1.8; group.add(head);
-
-            group.position.set(x, y, z);
-            scene.add(group);
-            mobs.push({ group, type, hp: type === 'CREEPER' ? 12 : 20, vx: 0, vz: 0 });
+            mobs.push({
+                type,
+                root: mobRig.root,
+                limbs: mobRig.limbs,
+                hp: type === 'CREEPER' ? 16 : (type === 'PIG' ? 10 : 20),
+                alive: true,
+                fuseTimer: 0,
+                isFusing: false,
+                onFire: false,
+                fireTimer: 0,
+                speed: type === 'PIG' ? 1.4 : 2.6
+            });
         }
 
         function init3D() {
@@ -881,8 +1002,12 @@
 
             initBlockMaterials();
             generateProceduralTerrain();
+
             spawnMob('CREEPER', 8, 14, 8);
             spawnMob('ZOMBIE', -8, 14, -8);
+            spawnMob('SKELETON', 12, 14, -10);
+            spawnMob('PIG', -5, 14, 6);
+
             setupControls();
 
             window.addEventListener('resize', () => {
@@ -955,7 +1080,7 @@
                 if (code === "Space") keys.space = false;
             });
 
-            // Touch Look for iPad / Mobile
+            // Touch Screen Handling
             wrapper.addEventListener("touchstart", e => {
                 if (e.touches.length === 1) {
                     touchLook.active = true;
@@ -995,6 +1120,26 @@
 
         function performVoxelAction(action) {
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+
+            const mobRoots = mobs.map(m => m.root);
+            const mobHits = raycaster.intersectObjects(mobRoots, true);
+            if (mobHits.length > 0 && mobHits[0].distance < 4.5 && action === 'break') {
+                const targetMob = mobs.find(m => m.root === mobHits[0].object.parent || m.root === mobHits[0].object.parent.parent);
+                if (targetMob && targetMob.alive) {
+                    targetMob.hp -= 6;
+                    playVoxelSound('hurt');
+                    createVoxelDebris(mobHits[0].point.x, mobHits[0].point.y, mobHits[0].point.z);
+
+                    if (targetMob.hp <= 0) {
+                        targetMob.alive = false;
+                        scene.remove(targetMob.root);
+                        addCoins(5);
+                        showBanner(`⚔️ Defeated ${targetMob.type}!`);
+                    }
+                    return;
+                }
+            }
+
             const meshes = Array.from(voxels.values());
             const intersects = raycaster.intersectObjects(meshes);
 
@@ -1077,41 +1222,107 @@
             document.getElementById('pos-display').innerText = `XYZ: ${Math.round(player.pos.x)}, ${Math.round(player.pos.y)}, ${Math.round(player.pos.z)}`;
 
             // Day / Night Atmosphere
-            worldTime = (worldTime + dt * 0.005) % 1;
+            worldTime = (worldTime + dt * 0.004) % 1;
             const sunAngle = worldTime * Math.PI * 2;
             sunLight.position.set(Math.cos(sunAngle) * 80, Math.sin(sunAngle) * 80, 40);
+            const isDay = Math.sin(sunAngle) > 0;
 
-            if (Math.sin(sunAngle) > 0) {
+            if (isDay) {
                 scene.background.setHex(0x78a7ff);
                 scene.fog.color.setHex(0x78a7ff);
-                ambientLight.intensity = 0.65;
+                ambientLight.intensity = 0.7;
+                document.getElementById('time-display').innerText = "☀️ DAY";
             } else {
                 scene.background.setHex(0x050b18);
                 scene.fog.color.setHex(0x050b18);
                 ambientLight.intensity = 0.2;
+                document.getElementById('time-display').innerText = "🌙 NIGHT";
             }
 
-            // AI Mobs
+            // Mobs AI, Articulated Limb Movements & Behaviors
+            walkClock += dt * 6.5;
+
             mobs.forEach(m => {
-                const distToPlayer = m.group.position.distanceTo(player.pos);
-                if (distToPlayer < 14) {
-                    m.group.lookAt(player.pos.x, m.group.position.y, player.pos.z);
-                    m.group.translateZ(2.2 * dt);
-                    if (distToPlayer < 1.4 && m.type === 'CREEPER') {
-                        explodeTNT(m.group.position.x, m.group.position.y, m.group.position.z);
-                        m.hp = 0;
-                        scene.remove(m.group);
+                if (!m.alive) return;
+
+                const distToPlayer = m.root.position.distanceTo(player.pos);
+                let moving = false;
+
+                if (m.type !== 'PIG' && distToPlayer < 18) {
+                    m.root.lookAt(player.pos.x, m.root.position.y, player.pos.z);
+                    m.root.translateZ(m.speed * dt);
+                    moving = true;
+
+                    if (m.type === 'CREEPER') {
+                        if (distToPlayer < 4.2) {
+                            m.isFusing = true;
+                            m.fuseTimer += dt;
+                            if (m.fuseTimer < 0.2) playVoxelSound('hiss');
+
+                            const scale = 1.0 + Math.sin(m.fuseTimer * 18) * 0.25;
+                            m.root.scale.set(scale, scale, scale);
+
+                            if (m.fuseTimer > 1.6) {
+                                explodeTNT(m.root.position.x, m.root.position.y, m.root.position.z);
+                                m.alive = false;
+                                scene.remove(m.root);
+                                return;
+                            }
+                        } else {
+                            m.isFusing = false;
+                            m.fuseTimer = Math.max(0, m.fuseTimer - dt);
+                            m.root.scale.set(1, 1, 1);
+                        }
                     }
+                }
+
+                if (isDay && (m.type === 'ZOMBIE' || m.type === 'SKELETON')) {
+                    const mx = Math.round(m.root.position.x);
+                    const my = Math.round(m.root.position.y);
+                    const mz = Math.round(m.root.position.z);
+                    let sheltered = false;
+                    for (let sy = my + 2; sy <= my + 8; sy++) {
+                        if (hasVoxel(mx, sy, mz)) { sheltered = true; break; }
+                    }
+
+                    if (!sheltered) {
+                        m.onFire = true;
+                        m.hp -= dt * 3.5;
+                        particles.push({
+                            mesh: new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: 0xf97316 })),
+                            vx: (Math.random() - 0.5) * 1.5,
+                            vy: Math.random() * 3 + 1,
+                            vz: (Math.random() - 0.5) * 1.5,
+                            life: 0.4
+                        });
+                        particles[particles.length - 1].mesh.position.set(m.root.position.x, m.root.position.y + 1.2, m.root.position.z);
+                        scene.add(particles[particles.length - 1].mesh);
+
+                        if (m.hp <= 0) {
+                            m.alive = false;
+                            scene.remove(m.root);
+                            showBanner(`🔥 ${m.type} Burned in Daylight!`);
+                            return;
+                        }
+                    } else {
+                        m.onFire = false;
+                    }
+                }
+
+                if (m.limbs && m.limbs.legs) {
+                    const legAngle = moving ? Math.sin(walkClock) * 0.6 : 0;
+                    m.limbs.legs.forEach((l, idx) => {
+                        l.rotation.x = (idx % 2 === 0 ? legAngle : -legAngle);
+                    });
                 }
             });
 
-            // Particles
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.mesh.position.x += p.vx * dt;
                 p.mesh.position.y += p.vy * dt;
                 p.mesh.position.z += p.vz * dt;
-                p.vy -= 18 * dt;
+                p.vy -= 16 * dt;
                 p.life -= 1.8 * dt;
 
                 if (p.life <= 0) {
