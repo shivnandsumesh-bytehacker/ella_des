@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Flight World 3D - Master Flight Simulator</title>
+    <title>Flight World 3D - Ultimate Flight Simulator</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -65,7 +65,7 @@
         }
         #webgl-canvas { width: 100% !important; height: 100% !important; display: block; touch-action: none; }
 
-        /* Tactical Top HUD */
+        /* Top HUD */
         .hud-top-left {
             position: absolute;
             top: 10px;
@@ -132,7 +132,7 @@
             box-shadow: 0 0 10px rgba(0,243,255,0.3);
         }
 
-        /* Dual-Thumb iPad & Touchscreen Overlay */
+        /* iPad & Touchscreen Overlay Controls */
         .touch-zone {
             position: absolute;
             bottom: 65px;
@@ -203,7 +203,7 @@
         }
         .ctrl-btn:active { background: var(--primary); color: #000; }
 
-        /* Flight Dock Hotbar */
+        /* Flight Control Dock */
         .hud-bottom {
             position: absolute;
             bottom: 8px;
@@ -333,70 +333,83 @@
     <header>
         <a href="index.html" class="nav">← Hub</a>
         <div>✈️ <strong>FLIGHT WORLD 3D</strong> | Pilot Lvl: <span id="pilot-lvl" style="color:var(--primary); font-weight:bold;">1</span> (XP: <span id="pilot-xp">0</span>/500)</div>
-        <div class="stats">🪙 Cash: $<span id="cash-count">25,000</span> | 🛫 Aircraft: <span id="active-plane-name" style="color:var(--accent);">Boeing 777-300ER</span></div>
+        <div class="stats">🪙 Cash: $<span id="cash-count">25,000</span> | 🛫 Aircraft: <span id="active-plane-name" style="color:var(--accent);">King Air 350</span></div>
     </header>
 
     <div id="game-wrapper">
-        <!-- Hangar Fleet Modal -->
+        <!-- Hangar Fleet Modal[cite: 2] -->
         <div id="hangar-modal" class="modal" style="display: none;">
             <div class="modal-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h2 style="color:var(--primary); margin:0;">🛫 AIRCRAFT HANGAR FLEET</h2>
+                    <h2 style="color:var(--primary); margin:0;">🛫 FLIGHT WORLD HANGAR FLEET</h2>
                     <button class="btn" style="padding:4px 10px;" onclick="toggleHangar(false)">✕ Close</button>
                 </div>
-                <p style="color:#94a3b8; font-size:0.85rem; margin-top:4px;">Select or purchase heavy airliners, turboprops, and supersonic jets:</p>
+                <p style="color:#94a3b8; font-size:0.85rem; margin-top:4px;">Spawn and purchase aircraft from the official Flight World lineup[cite: 2]:</p>
                 <div class="btn-grid">
-                    <button class="btn" onclick="selectAircraft('B777')">✈️ Boeing 777-300ER<br><small>Wide-Body Heavy Jet | FREE</small></button>
-                    <button class="btn" id="btn-buy-a350" onclick="buyOrSelect('A350', 50000)">✈️ Airbus A350-900<br><small>Flagship Jetliner | $50,000</small></button>
-                    <button class="btn" id="btn-buy-kingair" onclick="buyOrSelect('KingAir', 25000)">🛩️ Beechcraft King Air<br><small>Twin Turboprop | $25,000</small></button>
-                    <button class="btn" id="btn-buy-b747" onclick="buyOrSelect('B747', 120000)">👑 Boeing 747-8 Intercontinental<br><small>Queen of the Skies | $120,000</small></button>
-                    <button class="btn" id="btn-buy-f18" onclick="buyOrSelect('F18', 180000)">⚡ F/A-18 Super Hornet<br><small>Mach 1.8 Fighter Jet | $180,000</small></button>
+                    <button class="btn" onclick="selectAircraft('KingAir')">🛩️ King Air 350<br><small>Twin Turboprop | FREE[cite: 2]</small></button>
+                    <button class="btn" id="btn-buy-a320" onclick="buyOrSelect('A320', 45000)">✈️ Airbus A320 Neo<br><small>Commercial Jetliner | $45,000[cite: 2]</small></button>
+                    <button class="btn" id="btn-buy-q400" onclick="buyOrSelect('Q400', 35000)">🛩️ Dash 8 Q400<br><small>Regional Airliner | $35,000[cite: 2]</small></button>
+                    <button class="btn" id="btn-buy-p51" onclick="buyOrSelect('P51', 65000)">🪖 P-51 Mustang<br><small>Fighter Plane | $65,000[cite: 2]</small></button>
+                    <button class="btn" id="btn-buy-f22" onclick="buyOrSelect('F22', 120000)">⚡ F-22 Raptor Jet<br><small>Supersonic Fighter | $120,000[cite: 2]</small></button>
                 </div>
             </div>
         </div>
 
-        <!-- Flight Dispatch Jobs Modal -->
+        <!-- Flight Dispatch Jobs Modal[cite: 2] -->
         <div id="jobs-modal" class="modal" style="display: none;">
             <div class="modal-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h2 style="color:var(--gold); margin:0;">💼 AIRLINE FLIGHT DISPATCH</h2>
+                    <h2 style="color:var(--gold); margin:0;">💼 FLIGHT DISPATCH & AIRLINE JOBS</h2>
                     <button class="btn" style="padding:4px 10px;" onclick="toggleJobs(false)">✕ Close</button>
                 </div>
-                <p style="color:#94a3b8; font-size:0.85rem; margin-top:4px;">Accept a scheduled commercial passenger or cargo flight route:</p>
+                <p style="color:#94a3b8; font-size:0.85rem; margin-top:4px;">Accept a passenger or cargo flight route[cite: 2]:</p>
                 <div class="btn-grid">
-                    <button class="btn" onclick="startJob('SXM_Pax')">🏖️ Princess Juliana (SXM)<br><small>Famous Beach Approach | Reward: $15,000</small></button>
-                    <button class="btn" onclick="startJob('Canyon_Cargo')">🏔️ Canyon High Airfield<br><small>Mountain Valley Landing | Reward: $22,500</small></button>
-                    <button class="btn" onclick="startJob('Atoll_VIP')">🌴 South Atoll Oceanic<br><small>Tropical Island Run | Reward: $30,000</small></button>
+                    <button class="btn" onclick="startJob('SXM_Pax')">🏖️ Princess Juliana (St. Maarten)<br><small>10 Passengers | Reward: $15,000[cite: 2]</small></button>
+                    <button class="btn" onclick="startJob('Canyon_Cargo')">🏔️ Canyon High Airfield<br><small>Heavy Cargo Freight | Reward: $22,500[cite: 2]</small></button>
+                    <button class="btn" onclick="startJob('Atoll_VIP')">🌴 South Atoll Oceanic<br><small>VIP Charter Flight | Reward: $30,000[cite: 2]</small></button>
                 </div>
             </div>
         </div>
 
-        <!-- Glass Cockpit PFD Display -->
+        <!-- Promo Code Modal[cite: 2] -->
+        <div id="code-modal" class="modal" style="display: none;">
+            <div class="modal-card" style="max-width: 440px; text-align: center;">
+                <h2 style="color:var(--emerald); margin-top:0;">🎁 REDEEM FLIGHT CODE</h2>
+                <p style="color:#94a3b8; font-size:0.85rem;">Enter code <strong style="color:var(--gold);">FLIGHTWORLD</strong> for a $25,000 bonus cash reward[cite: 2]:</p>
+                <input type="text" id="code-input" placeholder="ENTER CODE..." style="width: 80%; padding: 8px; text-align: center; font-weight: bold; border-radius: 6px; border: 2px solid var(--primary); background: #0f172a; color: #fff; margin-bottom: 12px; text-transform: uppercase;">
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                    <button class="btn" onclick="redeemPromoCode()">Redeem</button>
+                    <button class="btn" style="background:#334155; color:#fff;" onclick="toggleCodes(false)">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Glass Cockpit PFD Display[cite: 2] -->
         <div id="pfd-hud">
-            <div class="pfd-item"><div class="pfd-val" id="pfd-spd">0</div><div class="pfd-lbl">IAS (KTS)</div></div>
+            <div class="pfd-item"><div class="pfd-val" id="pfd-spd">0</div><div class="pfd-lbl">IAS (KTS)[cite: 2]</div></div>
             <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
-            <div class="pfd-item"><div class="pfd-val" id="pfd-alt">25</div><div class="pfd-lbl">ALT (FT)</div></div>
+            <div class="pfd-item"><div class="pfd-val" id="pfd-alt">25</div><div class="pfd-lbl">ALT (FT)[cite: 2]</div></div>
             <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
-            <div class="pfd-item"><div class="pfd-val" id="pfd-hdg">360°</div><div class="pfd-lbl">HDG</div></div>
+            <div class="pfd-item"><div class="pfd-val" id="pfd-hdg">360°</div><div class="pfd-lbl">HDG[cite: 2]</div></div>
             <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
-            <div class="pfd-item"><div class="pfd-val" id="pfd-thr">0%</div><div class="pfd-lbl">THR</div></div>
+            <div class="pfd-item"><div class="pfd-val" id="pfd-thr">0%</div><div class="pfd-lbl">THR[cite: 2]</div></div>
             <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
-            <div class="pfd-item"><div class="pfd-val" id="pfd-vsi">+0</div><div class="pfd-lbl">VSI (FPM)</div></div>
+            <div class="pfd-item"><div class="pfd-val" id="pfd-vsi">+0</div><div class="pfd-lbl">VSI (FPM)[cite: 2]</div></div>
         </div>
 
         <!-- HUD Top Left -->
         <div class="hud-top-left">
             <div class="hud-panel">
-                <div style="font-weight:bold; color:var(--primary);">🎯 ACTIVE FLIGHT:</div>
-                <div id="route-status" style="color:#facc15; margin-top:2px;">No Active Route (Open Jobs)</div>
-                <div id="waypoint-dist" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Distance: -- nm</div>
+                <div style="font-weight:bold; color:var(--primary);">🎯 ACTIVE FLIGHT[cite: 2]:</div>
+                <div id="route-status" style="color:#facc15; margin-top:2px;">No Active Route (Open Jobs)[cite: 2]</div>
+                <div id="waypoint-dist" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Distance: -- nm[cite: 2]</div>
             </div>
         </div>
 
-        <!-- HUD Top Right (Radar & Controls) -->
+        <!-- HUD Top Right -->
         <div class="hud-top-right">
             <div class="hud-panel" style="display: flex; flex-direction: column; align-items: flex-end;">
-                <div style="font-size:0.75rem; color:#38bdf8;">CAM: <span id="cam-mode-text">CHASE VIEW</span></div>
+                <div style="font-size:0.75rem; color:#38bdf8;">CAM: <span id="cam-mode-text">CHASE VIEW</span>[cite: 2]</div>
                 <div style="font-size:0.72rem; color:#94a3b8;">ZOOM: <span id="zoom-text" style="color:var(--gold);">36m</span></div>
                 <canvas id="minimap-canvas" width="78" height="78"></canvas>
             </div>
@@ -404,16 +417,16 @@
 
         <div id="dialogue-box"></div>
         <div id="action-prompt"></div>
-        <div id="landing-banner">🧈 BUTTER TOUCHDOWN!</div>
+        <div id="landing-banner">🧈 BUTTER TOUCHDOWN![cite: 2]</div>
 
-        <!-- Dual-Thumb iPad & Touchscreen Overlay -->
+        <!-- Dual-Thumb iPad & Touchscreen Overlay Controls -->
         <div class="touch-zone" id="touch-left">
             <div class="throttle-track" id="throttle-track">
                 <div class="throttle-thumb" id="throttle-thumb"></div>
             </div>
             <div style="display:flex; flex-direction:column; gap:6px;">
-                <div class="ctrl-btn" id="btn-rudder-l">◀ Q</div>
-                <div class="ctrl-btn" id="btn-rudder-r">E ▶</div>
+                <div class="ctrl-btn" id="btn-rudder-l">◀ Q[cite: 2]</div>
+                <div class="ctrl-btn" id="btn-rudder-r">E ▶[cite: 2]</div>
             </div>
         </div>
 
@@ -427,26 +440,27 @@
             </div>
         </div>
 
-        <!-- Flight Dock Hotbar -->
+        <!-- Flight Dock Hotbar[cite: 2] -->
         <div class="hud-bottom">
-            <div class="slot" id="slot-eng" onclick="toggleEngine()"><div class="slot-val" id="val-eng">OFF</div>[E] Eng</div>
-            <div class="slot" id="slot-push" onclick="togglePushback()"><div class="slot-val" id="val-push">OFF</div>[P] Push</div>
-            <div class="slot" id="slot-gear" onclick="toggleGear()"><div class="slot-val" id="val-gear">DOWN</div>[G] Gear</div>
-            <div class="slot" id="slot-flaps" onclick="cycleFlaps()"><div class="slot-val" id="val-flaps">0°</div>[F] Flaps</div>
-            <div class="slot" id="slot-spoil" onclick="toggleSpoilers()"><div class="slot-val" id="val-spoil">RET</div>[B] Spoil</div>
-            <div class="slot" id="slot-rev" onclick="toggleReverseThrust()"><div class="slot-val" id="val-rev">OFF</div>[R] Rev</div>
-            <div class="slot" onclick="cycleCameraMode()"><div class="slot-val" id="val-cam">CHASE</div>[C] Cam</div>
-            <div class="slot" onclick="toggleJobs()"><div class="slot-val" style="color:var(--gold);">📋</div>[J] Jobs</div>
-            <div class="slot" onclick="toggleHangar()"><div class="slot-val" style="color:var(--primary);">🏢</div>[H] Fleet</div>
+            <div class="slot" id="slot-eng" onclick="toggleEngine()"><div class="slot-val" id="val-eng">OFF</div>[E] Eng[cite: 2]</div>
+            <div class="slot" id="slot-push" onclick="togglePushback()"><div class="slot-val" id="val-push">OFF</div>[P] Push[cite: 2]</div>
+            <div class="slot" id="slot-gear" onclick="toggleGear()"><div class="slot-val" id="val-gear">DOWN</div>[G] Gear[cite: 2]</div>
+            <div class="slot" id="slot-flaps" onclick="cycleFlaps()"><div class="slot-val" id="val-flaps">0°</div>[F] Flaps[cite: 2]</div>
+            <div class="slot" id="slot-spoil" onclick="toggleSpoilers()"><div class="slot-val" id="val-spoil">RET</div>[B] Spoil[cite: 2]</div>
+            <div class="slot" id="slot-rev" onclick="toggleReverseThrust()"><div class="slot-val" id="val-rev">OFF</div>[R] Rev[cite: 2]</div>
+            <div class="slot" onclick="cycleCameraMode()"><div class="slot-val" id="val-cam">CHASE</div>[C] Cam[cite: 2]</div>
+            <div class="slot" onclick="toggleJobs()"><div class="slot-val" style="color:var(--gold);">📋</div>[J] Jobs[cite: 2]</div>
+            <div class="slot" onclick="toggleHangar()"><div class="slot-val" style="color:var(--primary);">🏢</div>[H] Fleet[cite: 2]</div>
+            <div class="slot" onclick="toggleCodes(true)"><div class="slot-val" style="color:var(--emerald);">🎁</div>Code[cite: 2]</div>
         </div>
     </div>
 
     <div class="controls-info">
-        <strong>Climb / Pull Up:</strong> Pull Stick Down / Press [S] or [↓] | <strong>Descend / Dive:</strong> Push Stick Up / Press [W] or [↑] | <strong>Zoom:</strong> [I] / [O] or Screen Buttons | <strong>Brakes:</strong> [Space]
+        <strong>Climb / Pull Up:</strong> Pull Stick Down / Press [S] or [↓] | <strong>Descend / Dive:</strong> Push Stick Up / Press [W] or [↑] | <strong>Roll / Bank:</strong> Left/Right Stick or [A]/[D] | <strong>Brakes:</strong> [Space][cite: 2]
     </div>
 
     <script>
-        // Web Audio Synthesizer Engine
+        // Web Audio Synthesizer Engine for Turboprop & Turbofan Simulation
         let audioCtx = null;
         let engineOsc1 = null, engineOsc2 = null, engineGain = null;
 
@@ -540,16 +554,17 @@
             }
         }
 
-        // Global State & Camera Settings
+        // Global State & Settings
         let scene, camera, renderer, activePlaneMesh = null, propMeshes = [];
         let pilotCash = 25000, pilotXP = 0, pilotLvl = 1;
-        let activePlaneType = 'B777';
-        let ownedPlanes = ['B777'];
-        let cameraMode = 0; // 0: Chase, 1: Cockpit, 2: Orbit
-        let cameraZoom = 36.0; // Interactive Zoom
+        let activePlaneType = 'KingAir';
+        let ownedPlanes = ['KingAir'];
+        let redeemedCodes = [];
+        let cameraMode = 0; // 0: Chase, 1: Cockpit, 2: Orbit[cite: 2]
+        let cameraZoom = 36.0;
         let activeJob = null, jobStage = 'NONE', boardedCount = 0;
 
-        // Uncapped Infinite Altitude Flight Physics
+        // Uncapped Infinite Altitude Flight Dynamics[cite: 2]
         const aircraft = {
             pos: new THREE.Vector3(0, 3.2, -450),
             rot: new THREE.Euler(0, 0, 0, 'YXZ'),
@@ -561,9 +576,9 @@
             pitch: 0,
             roll: 0,
             yaw: 0,
-            airspeed: 0, // Knots
-            altitude: 25, // Feet
-            vsi: 0, // FPM
+            airspeed: 0, // Knots[cite: 2]
+            altitude: 25, // Feet[cite: 2]
+            vsi: 0, // FPM[cite: 2]
             gearDown: true,
             flapsStage: 0,
             spoilers: false,
@@ -572,10 +587,10 @@
             engineOn: false,
             brakes: false,
             onGround: true,
-            weight: 35000,
-            maxThrust: 350000,
-            rotationSpeed: 105,
-            stallSpeed: 95
+            weight: 6500,
+            maxThrust: 220000,
+            rotationSpeed: 80,
+            stallSpeed: 55
         };
 
         const keys = { w: false, s: false, a: false, d: false, q: false, e: false, up: false, down: false };
@@ -597,7 +612,7 @@
 
         function showLandingButterBanner(fpm, xp) {
             const b = document.getElementById("landing-banner");
-            b.innerText = `🧈 BUTTER TOUCHDOWN! ${Math.round(fpm)} FPM (+${xp} XP & Cash)`;
+            b.innerText = `🧈 BUTTER TOUCHDOWN! ${Math.round(fpm)} FPM (+${xp} XP & Cash)[cite: 2]`;
             b.style.display = "block";
             setTimeout(() => { b.style.display = "none"; }, 4500);
         }
@@ -617,26 +632,47 @@
             m.style.display = force !== undefined ? (force ? 'flex' : 'none') : (m.style.display === 'none' ? 'flex' : 'none');
         }
 
+        function toggleCodes(force) {
+            const m = document.getElementById("code-modal");
+            m.style.display = force !== undefined ? (force ? 'flex' : 'none') : (m.style.display === 'none' ? 'flex' : 'none');
+        }
+
+        function redeemPromoCode() {
+            const val = document.getElementById("code-input").value.trim().toUpperCase();
+            if (val === "FLIGHTWORLD" && !redeemedCodes.includes("FLIGHTWORLD")) {
+                redeemedCodes.push("FLIGHTWORLD");
+                pilotCash += 25000;
+                updateWallet();
+                playDingChime();
+                toggleCodes(false);
+                showDialogue("🎉 Code Redeemed! +$25,000 Cash added to your account![cite: 2]");
+            } else if (redeemedCodes.includes(val)) {
+                showDialogue("⚠️ Code has already been redeemed!");
+            } else {
+                showDialogue("❌ Invalid promo code! Enter FLIGHTWORLD.");
+            }
+        }
+
         function selectAircraft(type) {
             activePlaneType = type;
             const names = {
-                'B777': 'Boeing 777-300ER',
-                'A350': 'Airbus A350-900',
-                'KingAir': 'Beechcraft King Air',
-                'B747': 'Boeing 747-8 Queen of the Skies',
-                'F18': 'F/A-18 Super Hornet'
+                'KingAir': 'Beechcraft King Air 350',
+                'A320': 'Airbus A320 Neo',
+                'Q400': 'Dash 8 Q400',
+                'P51': 'P-51 Mustang',
+                'F22': 'F-22 Raptor Jet'
             };
             document.getElementById("active-plane-name").innerText = names[type] || type;
 
-            if (type === 'B777') { aircraft.maxThrust = 380000; aircraft.weight = 38000; aircraft.rotationSpeed = 110; aircraft.stallSpeed = 95; }
-            else if (type === 'A350') { aircraft.maxThrust = 360000; aircraft.weight = 35000; aircraft.rotationSpeed = 105; aircraft.stallSpeed = 90; }
-            else if (type === 'KingAir') { aircraft.maxThrust = 160000; aircraft.weight = 6500; aircraft.rotationSpeed = 70; aircraft.stallSpeed = 50; }
-            else if (type === 'B747') { aircraft.maxThrust = 620000; aircraft.weight = 68000; aircraft.rotationSpeed = 125; aircraft.stallSpeed = 110; }
-            else if (type === 'F18') { aircraft.maxThrust = 480000; aircraft.weight = 16000; aircraft.rotationSpeed = 80; aircraft.stallSpeed = 70; }
+            if (type === 'KingAir') { aircraft.maxThrust = 160000; aircraft.weight = 6500; aircraft.rotationSpeed = 70; aircraft.stallSpeed = 50; }
+            else if (type === 'A320') { aircraft.maxThrust = 380000; aircraft.weight = 38000; aircraft.rotationSpeed = 110; aircraft.stallSpeed = 95; }
+            else if (type === 'Q400') { aircraft.maxThrust = 240000; aircraft.weight = 19000; aircraft.rotationSpeed = 90; aircraft.stallSpeed = 75; }
+            else if (type === 'P51') { aircraft.maxThrust = 180000; aircraft.weight = 4200; aircraft.rotationSpeed = 75; aircraft.stallSpeed = 65; }
+            else if (type === 'F22') { aircraft.maxThrust = 480000; aircraft.weight = 16000; aircraft.rotationSpeed = 80; aircraft.stallSpeed = 70; }
 
             buildAircraftModel();
             toggleHangar(false);
-            showDialogue(`🛫 Loaded ${names[type]}! Advance throttle to max and pull back on stick to climb!`);
+            showDialogue(`🛫 Loaded ${names[type]}! Advance throttle to max and pull back on stick to climb![cite: 2]`);
         }
 
         function buyOrSelect(type, price) {
@@ -645,12 +681,12 @@
             } else if (pilotCash >= price) {
                 pilotCash -= price;
                 ownedPlanes.push(type);
-                document.getElementById(`btn-buy-${type.toLowerCase()}`).innerText = `✈️ ${type} (OWNED)`;
+                document.getElementById(`btn-buy-${type.toLowerCase()}`).innerText = `✈️ ${type} (OWNED)[cite: 2]`;
                 updateWallet();
                 selectAircraft(type);
                 playDingChime();
             } else {
-                showDialogue("⚠️ Not enough cash! Complete flight routes to earn money.");
+                showDialogue("⚠️ Not enough cash! Complete flight routes to earn money.[cite: 2]");
             }
         }
 
@@ -660,9 +696,9 @@
             activeJob = { id: jobId, target: targetAirport, reward };
             jobStage = 'BOARDING';
             boardedCount = 0;
-            document.getElementById("route-status").innerText = `Boarding (0/10) at Gate`;
+            document.getElementById("route-status").innerText = `Boarding (0/10) at Gate[cite: 2]`;
             toggleJobs(false);
-            showDialogue(`📋 Route Accepted: ${targetAirport.name}! Taxi to the green gate ring.`);
+            showDialogue(`📋 Route Accepted: ${targetAirport.name}! Taxi to the green gate ring.[cite: 2]`);
             buildRouteWaypoints(targetAirport);
         }
 
@@ -675,7 +711,7 @@
             for (let i = 1; i <= 5; i++) {
                 const frac = i / 6;
                 const wpPos = new THREE.Vector3().lerpVectors(start, end, frac);
-                wpPos.y = 260 + Math.sin(i) * 120; // High cruising altitude
+                wpPos.y = 260 + Math.sin(i) * 120;
                 waypoints.push(wpPos);
 
                 const ring = new THREE.Mesh(
@@ -689,60 +725,33 @@
             }
         }
 
+        // Procedural 3D Model Generator for Flight World Aircraft Fleet[cite: 2]
         function buildAircraftModel() {
             if (activePlaneMesh) scene.remove(activePlaneMesh);
             propMeshes = [];
 
             const planeGroup = new THREE.Group();
-            const boeingWhite = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.25, metalness: 0.2 });
-            const boeingBlue = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.35, metalness: 0.3 });
+            const bodyWhite = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.25, metalness: 0.2 });
+            const airlineBlue = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.35, metalness: 0.3 });
             const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
             const glassMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, metalness: 0.9 });
             const engineChrome = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.2 });
 
-            if (activePlaneType === 'B777') {
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 2.6, 46, 20), boeingWhite);
-                body.rotation.x = Math.PI / 2; body.position.y = 3.6; planeGroup.add(body);
-
-                const nose = new THREE.Mesh(new THREE.ConeGeometry(2.8, 8, 20), boeingWhite);
-                nose.rotation.x = -Math.PI / 2; nose.position.set(0, 3.6, -27); planeGroup.add(nose);
-
-                const cockpit = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.3, 4.2), glassMat);
-                cockpit.position.set(0, 4.8, -22); planeGroup.add(cockpit);
-
-                const wingL = new THREE.Mesh(new THREE.BoxGeometry(24, 0.5, 7), boeingBlue);
-                wingL.position.set(-14, 3.2, -2); wingL.rotation.y = -0.32; planeGroup.add(wingL);
-
-                const wingR = new THREE.Mesh(new THREE.BoxGeometry(24, 0.5, 7), boeingBlue);
-                wingR.position.set(14, 3.2, -2); wingR.rotation.y = 0.32; planeGroup.add(wingR);
-
-                [-7.5, 7.5].forEach(x => {
-                    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.5, 7.5, 16), engineChrome);
-                    nacelle.rotation.x = Math.PI / 2; nacelle.position.set(x, 1.8, -3); planeGroup.add(nacelle);
-
-                    const fanBlades = new THREE.Mesh(new THREE.CircleGeometry(1.4, 12), darkMat);
-                    fanBlades.position.set(x, 1.8, -6.8); planeGroup.add(fanBlades);
-                });
-
-                const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.5, 9, 7), boeingBlue);
-                vTail.position.set(0, 9, 20); vTail.rotation.x = -0.42; planeGroup.add(vTail);
-
-                const hTail = new THREE.Mesh(new THREE.BoxGeometry(16, 0.4, 4), boeingBlue);
-                hTail.position.set(0, 4.5, 21); planeGroup.add(hTail);
-            } else if (activePlaneType === 'A350') {
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.5, 42, 18), boeingWhite);
+            if (activePlaneType === 'A320') {
+                // Airbus A320 Neo Jetliner[cite: 2]
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.5, 42, 18), bodyWhite);
                 body.rotation.x = Math.PI / 2; body.position.y = 3.5; planeGroup.add(body);
 
-                const nose = new THREE.Mesh(new THREE.ConeGeometry(2.6, 7.5, 18), boeingWhite);
+                const nose = new THREE.Mesh(new THREE.ConeGeometry(2.6, 7.5, 18), bodyWhite);
                 nose.rotation.x = -Math.PI / 2; nose.position.set(0, 3.5, -24.5); planeGroup.add(nose);
 
                 const mask = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.2, 4), new THREE.MeshBasicMaterial({ color: 0x000000 }));
                 mask.position.set(0, 4.6, -20); planeGroup.add(mask);
 
-                const wingL = new THREE.Mesh(new THREE.BoxGeometry(22, 0.45, 6.5), boeingBlue);
+                const wingL = new THREE.Mesh(new THREE.BoxGeometry(22, 0.45, 6.5), airlineBlue);
                 wingL.position.set(-13, 3.2, -1); wingL.rotation.y = -0.3; planeGroup.add(wingL);
 
-                const wingR = new THREE.Mesh(new THREE.BoxGeometry(22, 0.45, 6.5), boeingBlue);
+                const wingR = new THREE.Mesh(new THREE.BoxGeometry(22, 0.45, 6.5), airlineBlue);
                 wingR.position.set(13, 3.2, -1); wingR.rotation.y = 0.3; planeGroup.add(wingR);
 
                 [-6.8, 6.8].forEach(x => {
@@ -750,32 +759,48 @@
                     nacelle.rotation.x = Math.PI / 2; nacelle.position.set(x, 1.9, -2); planeGroup.add(nacelle);
                 });
 
-                const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.4, 8.5, 6), boeingBlue);
+                const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.4, 8.5, 6), airlineBlue);
                 vTail.position.set(0, 8.5, 18); vTail.rotation.x = -0.4; planeGroup.add(vTail);
-            } else if (activePlaneType === 'B747') {
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.0, 56, 20), boeingWhite);
-                body.rotation.x = Math.PI / 2; body.position.y = 4.2; planeGroup.add(body);
+            } else if (activePlaneType === 'Q400') {
+                // Dash 8 Q400 Regional Airliner[cite: 2]
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.5, 36, 14), bodyWhite);
+                body.rotation.x = Math.PI / 2; body.position.y = 3.0; planeGroup.add(body);
 
-                const hump = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.8, 22, 16), boeingWhite);
-                hump.rotation.x = Math.PI / 2; hump.position.set(0, 6.2, -16); planeGroup.add(hump);
+                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.6, 5, 14), bodyWhite);
+                nose.rotation.x = -Math.PI / 2; nose.position.set(0, 3.0, -20.5); planeGroup.add(nose);
 
-                const nose = new THREE.Mesh(new THREE.ConeGeometry(3.2, 9, 20), boeingWhite);
-                nose.rotation.x = -Math.PI / 2; nose.position.set(0, 4.5, -32); planeGroup.add(nose);
+                // High-Mounted Wing
+                const wing = new THREE.Mesh(new THREE.BoxGeometry(26, 0.4, 4), airlineBlue);
+                wing.position.set(0, 4.5, -2); planeGroup.add(wing);
 
-                const wingL = new THREE.Mesh(new THREE.BoxGeometry(32, 0.6, 9), boeingBlue);
-                wingL.position.set(-18, 3.8, -2); wingL.rotation.y = -0.38; planeGroup.add(wingL);
+                // Twin Turboprop Engines
+                [-5.5, 5.5].forEach(x => {
+                    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.8, 5.5, 10), darkMat);
+                    nacelle.rotation.x = Math.PI / 2; nacelle.position.set(x, 3.8, -3.5); planeGroup.add(nacelle);
 
-                const wingR = new THREE.Mesh(new THREE.BoxGeometry(32, 0.6, 9), boeingBlue);
-                wingR.position.set(18, 3.8, -2); wingR.rotation.y = 0.38; planeGroup.add(wingR);
-
-                [-14, -7.5, 7.5, 14].forEach(x => {
-                    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.2, 6, 12), engineChrome);
-                    nacelle.rotation.x = Math.PI / 2; nacelle.position.set(x, 1.9, -1); planeGroup.add(nacelle);
+                    const prop = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.2, 0.2), darkMat);
+                    prop.position.set(x, 3.8, -6.5); planeGroup.add(prop);
+                    propMeshes.push(prop);
                 });
 
-                const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.6, 12, 9), boeingBlue);
-                vTail.position.set(0, 11, 24); vTail.rotation.x = -0.45; planeGroup.add(vTail);
-            } else if (activePlaneType === 'F18') {
+                const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.35, 6.5, 4), airlineBlue);
+                vTail.position.set(0, 6.5, 15); vTail.rotation.x = -0.3; planeGroup.add(vTail);
+            } else if (activePlaneType === 'P51') {
+                // P-51 Mustang Fighter Plane[cite: 2]
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.0, 16, 12), darkMat);
+                body.rotation.x = Math.PI / 2; body.position.y = 2.0; planeGroup.add(body);
+
+                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3.5, 12), darkMat);
+                nose.rotation.x = -Math.PI / 2; nose.position.set(0, 2.0, -9.5); planeGroup.add(nose);
+
+                const wing = new THREE.Mesh(new THREE.BoxGeometry(16, 0.25, 3.2), airlineBlue);
+                wing.position.set(0, 1.8, -1.0); planeGroup.add(wing);
+
+                const prop = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.2, 0.2), darkMat);
+                prop.position.set(0, 2.0, -11.5); planeGroup.add(prop);
+                propMeshes.push(prop);
+            } else if (activePlaneType === 'F22') {
+                // F-22 Raptor Supersonic Fighter[cite: 2]
                 const body = new THREE.Mesh(new THREE.ConeGeometry(1.6, 22, 12), darkMat);
                 body.rotation.x = -Math.PI / 2; body.position.set(0, 2.2, -4); planeGroup.add(body);
 
@@ -787,13 +812,14 @@
                     fin.position.set(x, 4.2, 5); fin.rotation.z = idx === 0 ? 0.3 : -0.3; planeGroup.add(fin);
                 });
             } else {
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.3, 17, 14), boeingWhite);
+                // Beechcraft King Air 350[cite: 2]
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.3, 17, 14), bodyWhite);
                 body.rotation.x = Math.PI / 2; body.position.y = 2.4; planeGroup.add(body);
 
-                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.4, 4, 14), boeingWhite);
+                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.4, 4, 14), bodyWhite);
                 nose.rotation.x = -Math.PI / 2; nose.position.set(0, 2.4, -10); planeGroup.add(nose);
 
-                const wing = new THREE.Mesh(new THREE.BoxGeometry(20, 0.35, 3.4), boeingBlue);
+                const wing = new THREE.Mesh(new THREE.BoxGeometry(20, 0.35, 3.4), airlineBlue);
                 wing.position.set(0, 2.4, -1.5); planeGroup.add(wing);
 
                 [-4.4, 4.4].forEach(x => {
@@ -805,13 +831,14 @@
                     propMeshes.push(prop);
                 });
 
-                const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 4.5, 2.8), boeingBlue);
+                const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 4.5, 2.8), airlineBlue);
                 vTail.position.set(0, 4.6, 7.8); vTail.rotation.x = -0.32; planeGroup.add(vTail);
 
-                const hTail = new THREE.Mesh(new THREE.BoxGeometry(7, 0.25, 2.0), boeingBlue);
+                const hTail = new THREE.Mesh(new THREE.BoxGeometry(7, 0.25, 2.0), airlineBlue);
                 hTail.position.set(0, 6.8, 7.8); planeGroup.add(hTail);
             }
 
+            // Landing Gear Struts
             const gearL = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2.4), darkMat);
             gearL.position.set(-3.5, 1.2, 1); planeGroup.add(gearL);
 
@@ -825,6 +852,7 @@
             scene.add(activePlaneMesh);
         }
 
+        // Build International Airfields
         function buildWorldAirports() {
             airports.forEach(apt => {
                 const aptGroup = new THREE.Group();
@@ -872,6 +900,7 @@
             });
         }
 
+        // Floating 3D Cloud Layers
         function spawnVolumetricClouds() {
             const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, transparent: true, opacity: 0.85 });
             for (let i = 0; i < 70; i++) {
@@ -911,7 +940,6 @@
             const ocean = new THREE.Mesh(new THREE.PlaneGeometry(24000, 24000), new THREE.MeshStandardMaterial({ color: 0x0369a1, roughness: 0.15 }));
             ocean.rotation.x = -Math.PI / 2; ocean.position.y = -1; scene.add(ocean);
 
-            // Relocated Distant Mountain Rings (Far outside flight corridors)
             for (let i = 0; i < 40; i++) {
                 const angle = (i / 40) * Math.PI * 2;
                 const dist = 5500 + Math.random() * 2000;
@@ -977,7 +1005,7 @@
                 joyStick.style.top = `${38 + dy}px`;
 
                 aircraft.rollInput = -(dx / maxR);
-                aircraft.pitchInput = -(dy / maxR); // Pull down = climb (+), Push up = dive (-)
+                aircraft.pitchInput = -(dy / maxR);
             }
 
             joyBase.addEventListener("touchstart", e => { isJoyActive = true; getAudioContext(); updateJoyTouch(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
@@ -990,7 +1018,6 @@
                 aircraft.pitchInput = 0;
             });
 
-            // Rudder Touch
             const btnRL = document.getElementById("btn-rudder-l");
             const btnRR = document.getElementById("btn-rudder-r");
             btnRL.addEventListener("touchstart", e => { e.preventDefault(); aircraft.yawInput = 1; });
@@ -998,7 +1025,6 @@
             btnRR.addEventListener("touchstart", e => { e.preventDefault(); aircraft.yawInput = -1; });
             btnRR.addEventListener("touchend", () => { aircraft.yawInput = 0; });
 
-            // Onscreen Zoom In & Out Touch Handlers
             const btnZIn = document.getElementById("btn-zoom-in");
             const btnZOut = document.getElementById("btn-zoom-out");
             btnZIn.addEventListener("click", () => adjustZoom(-6));
@@ -1016,7 +1042,7 @@
             aircraft.engineOn = !aircraft.engineOn;
             document.getElementById("val-eng").innerText = aircraft.engineOn ? "ON" : "OFF";
             document.getElementById("slot-eng").classList.toggle("active", aircraft.engineOn);
-            showDialogue(aircraft.engineOn ? "⚡ Heavy Engines Spooled Up! Push throttle to full." : "🛑 Engines Off.");
+            showDialogue(aircraft.engineOn ? "⚡ Engines Started! Push throttle up to takeoff.[cite: 2]" : "🛑 Engines Off.[cite: 2]");
             playTone(aircraft.engineOn ? 450 : 220, 'sine', 0.25);
         }
 
@@ -1061,7 +1087,7 @@
             document.getElementById("val-cam").innerText = names[cameraMode].split(" ")[0];
         }
 
-        // Keyboard Controls with Zoom [I] & [O]
+        // Keyboard Controls
         window.addEventListener("keydown", e => {
             const code = e.code;
             if (["KeyW","KeyS","KeyA","KeyD","KeyQ","KeyE","KeyG","KeyF","KeyB","KeyR","KeyP","KeyC","KeyJ","KeyH","KeyI","KeyO","Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(code)) {
@@ -1084,8 +1110,8 @@
             if (code === "KeyC") cycleCameraMode();
             if (code === "KeyJ") toggleJobs();
             if (code === "KeyH") toggleHangar();
-            if (code === "KeyI") adjustZoom(-5); // Zoom In
-            if (code === "KeyO") adjustZoom(5);  // Zoom Out
+            if (code === "KeyI") adjustZoom(-5);
+            if (code === "KeyO") adjustZoom(5);
         }, { passive: false });
 
         window.addEventListener("keyup", e => {
@@ -1101,11 +1127,10 @@
             if (code === "Space") { aircraft.brakes = false; }
         });
 
-        // Uncapped 6DOF Flight Aerodynamics Engine
+        // 6DOF Flight Aerodynamics Loop[cite: 2]
         function updateFlightPhysics(dt) {
             if (!activePlaneMesh) return;
 
-            // Throttle & Engine Output
             if (aircraft.engineOn) {
                 if (keys.w && !keys.s) aircraft.throttle = Math.min(1.0, aircraft.throttle + dt * 0.4);
                 if (keys.s && !keys.w && aircraft.onGround && aircraft.airspeed < 45) aircraft.throttle = Math.max(0.0, aircraft.throttle - dt * 0.4);
@@ -1124,32 +1149,26 @@
             let dragFactor = 0.035 + (aircraft.gearDown ? 0.025 : 0) + (aircraft.flapsStage * 0.035) + (aircraft.spoilers ? 0.16 : 0);
             if (aircraft.brakes && aircraft.onGround) dragFactor += 0.5;
 
-            // Speed in Knots
             const targetSpd = Math.max(0, (netThrust * 4.8) - (aircraft.airspeed * dragFactor));
             aircraft.airspeed += (targetSpd - aircraft.airspeed) * dt * 0.95;
 
             const controlAuth = Math.min(1.0, aircraft.airspeed / 60);
 
-            // Pitch Input (Keyboard + Joystick)
             let pIn = aircraft.pitchInput;
-            if (keys.down || (keys.s && aircraft.airspeed > 55)) pIn = 1.0;  // Pull Back -> Climb
-            if (keys.up || (keys.w && !aircraft.onGround)) pIn = -1.0;      // Push Forward -> Dive
+            if (keys.down || (keys.s && aircraft.airspeed > 55)) pIn = 1.0;
+            if (keys.up || (keys.w && !aircraft.onGround)) pIn = -1.0;
 
-            // Roll Input
             let rIn = aircraft.rollInput;
             if (keys.a) rIn = 1.0;
             if (keys.d) rIn = -1.0;
 
-            // Yaw Input
             let yIn = aircraft.yawInput;
             if (keys.q) yIn = 1.0;
             if (keys.e && !keys.w) yIn = -1.0;
 
-            // Sustained Pitch Rate
             aircraft.pitch += pIn * 1.35 * controlAuth * dt;
             aircraft.pitch *= 0.96;
 
-            // Roll & Yaw
             if (!aircraft.onGround) {
                 aircraft.roll += rIn * 1.7 * controlAuth * dt;
                 aircraft.roll *= 0.93;
@@ -1161,14 +1180,12 @@
             aircraft.yaw *= 0.88;
 
             aircraft.rot.y += aircraft.yaw * dt - (aircraft.roll * 0.4 * controlAuth * dt);
-            aircraft.rot.x = Math.max(-0.65, Math.min(0.75, aircraft.pitch)); // Up to 45° sustained climb
+            aircraft.rot.x = Math.max(-0.65, Math.min(0.75, aircraft.pitch));
             aircraft.rot.z = -aircraft.roll;
 
-            // True Lift Formula with Altitude Climb
             const forwardAirspeedMPS = aircraft.airspeed * 0.5144;
             const climbComponent = Math.sin(aircraft.pitch) * forwardAirspeedMPS;
 
-            // Lift coefficient
             const angleOfAttack = aircraft.pitch + (aircraft.flapsStage * 0.15) + 0.04;
             const liftCoeff = Math.sin(Math.max(-0.3, Math.min(0.65, angleOfAttack))) * 3.2;
             const liftAccel = (aircraft.airspeed * aircraft.airspeed) * 0.0048 * liftCoeff;
@@ -1176,13 +1193,11 @@
 
             aircraft.vel.y += vertAccel * dt;
 
-            // Forward Translation Vector
             const fwd = new THREE.Vector3(0, 0, -forwardAirspeedMPS).applyEuler(aircraft.rot);
             aircraft.pos.x += fwd.x * dt;
             aircraft.pos.z += fwd.z * dt;
             aircraft.pos.y += (climbComponent + aircraft.vel.y * 0.35) * dt;
 
-            // Runway Collision & Touchdown
             if (aircraft.pos.y <= 3.2) {
                 const touchdownFPM = (aircraft.vel.y + climbComponent) * 60 * 3.28;
                 if (!aircraft.onGround && touchdownFPM < -40) {
@@ -1200,7 +1215,6 @@
                 aircraft.onGround = false;
             }
 
-            // Real-Time Feet Altitude & VSI
             aircraft.altitude = Math.max(0, Math.round(aircraft.pos.y * 3.28));
             aircraft.vsi = Math.round((climbComponent + aircraft.vel.y * 0.35) * 60 * 3.28);
 
@@ -1211,7 +1225,7 @@
                 if (aircraft.engineOn) p.rotation.z += aircraft.throttle * 50 + 15;
             });
 
-            updateEngineAudio(aircraft.throttle, activePlaneType !== 'KingAir');
+            updateEngineAudio(aircraft.throttle, activePlaneType === 'A320' || activePlaneType === 'F22');
             updateHUDDisplay();
         }
 
@@ -1233,14 +1247,14 @@
 
                     if ((distToGate < 28 || distToHubGate < 28) && aircraft.airspeed < 5) {
                         boardedCount += 0.05;
-                        document.getElementById("action-prompt").innerText = `Boarding Passengers: ${Math.min(10, Math.floor(boardedCount))}/10...`;
+                        document.getElementById("action-prompt").innerText = `Boarding Passengers: ${Math.min(10, Math.floor(boardedCount))}/10...[cite: 2]`;
                         document.getElementById("action-prompt").style.display = "block";
                         if (boardedCount >= 10) {
                             jobStage = 'ENROUTE';
                             playDingChime();
-                            document.getElementById("route-status").innerText = `Enroute to ${activeJob.target.name}`;
+                            document.getElementById("route-status").innerText = `Enroute to ${activeJob.target.name}[cite: 2]`;
                             document.getElementById("action-prompt").style.display = "none";
-                            showDialogue("🚪 Boarding Complete! Taxi onto runway and advance throttle to takeoff!");
+                            showDialogue("🚪 Boarding Complete! Taxi onto runway and advance throttle to takeoff![cite: 2]");
                         }
                     } else {
                         document.getElementById("action-prompt").style.display = "none";
@@ -1254,29 +1268,25 @@
                     if (pilotXP >= 500) { pilotLvl++; pilotXP = 0; }
                     updateWallet();
                     playDingChime();
-                    showDialogue(`🎉 Flight Complete! Passengers deboarded. Earned $${activeJob.reward.toLocaleString()}!`);
-                    document.getElementById("route-status").innerText = `Route Complete! Select New Job [J]`;
+                    showDialogue(`🎉 Flight Complete! Passengers deboarded. Earned $${activeJob.reward.toLocaleString()}![cite: 2]`);
+                    document.getElementById("route-status").innerText = `Route Complete! Select New Job [J][cite: 2]`;
                     activeJob = null;
                 }
             }
         }
 
-        // Camera Update with Smooth Interactive Zoom
         function updateCamera() {
             if (!activePlaneMesh) return;
 
             if (cameraMode === 0) {
-                // Chase Cam with Zoom Distance Support
                 const offset = new THREE.Vector3(0, cameraZoom * 0.25, cameraZoom).applyEuler(aircraft.rot);
                 camera.position.lerp(aircraft.pos.clone().add(offset), 0.15);
                 camera.lookAt(aircraft.pos.clone().add(new THREE.Vector3(0, 2, -15).applyEuler(aircraft.rot)));
             } else if (cameraMode === 1) {
-                // Cockpit View
                 const cockpitOffset = new THREE.Vector3(0, 4.2, -16).applyEuler(aircraft.rot);
                 camera.position.copy(aircraft.pos.clone().add(cockpitOffset));
                 camera.lookAt(aircraft.pos.clone().add(new THREE.Vector3(0, 3.8, -140).applyEuler(aircraft.rot)));
             } else {
-                // Orbit Flyby View
                 camera.lookAt(aircraft.pos);
             }
         }
