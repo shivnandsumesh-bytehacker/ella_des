@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minecraft 3D - Optimized Edition</title>
+    <title>Minecraft 3D - Complete Engine Edition</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -343,7 +343,7 @@
         <div class="hud-top-left">
             <div class="hud-panel">
                 <div id="pos-display" style="color:#facc15; font-family:monospace;">XYZ: 0, 18, 0</div>
-                <div id="biome-display" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Biome: Plains | FPS: 60</div>
+                <div id="biome-display" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Biome: Plains Valley | Surface Loaded</div>
             </div>
         </div>
 
@@ -475,7 +475,6 @@
             } catch(e){}
         }
 
-        // Global Scene & Voxel Map
         let scene, camera, renderer, raycaster;
         let ambientLight, sunLight;
         let voxels = new Map();
@@ -489,7 +488,6 @@
 
         let handGroup = null, isSwinging = false, swingTimer = 0;
 
-        // Player AABB Physics
         const player = {
             pos: new THREE.Vector3(0, 18, 0),
             vel: new THREE.Vector3(0, 0, 0),
@@ -515,7 +513,6 @@
         let mobs = [];
         let bossEntity = null;
 
-        // Shared Box Geometry
         const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 
         function generatePixelTexture(type) {
@@ -540,19 +537,22 @@
                 ctx.fillRect(11, 2, 3, 3); ctx.fillRect(9, 4, 3, 3); ctx.fillRect(7, 6, 3, 3); ctx.fillRect(5, 8, 3, 3);
                 ctx.fillStyle = '#1e293b'; ctx.fillRect(3, 10, 3, 3);
                 ctx.fillStyle = '#78350f'; ctx.fillRect(2, 12, 2, 2); ctx.fillRect(1, 13, 2, 2);
-            } else if (type === 'grass_top') fillRandomNoise(76, 165, 48, 40);
-            else if (type === 'grass_side') {
+            } else if (type === 'grass_top') {
+                fillRandomNoise(76, 165, 48, 40);
+            } else if (type === 'grass_side') {
                 fillRandomNoise(134, 96, 67, 35);
                 for (let x = 0; x < 16; x++) {
                     const fringeLen = Math.floor(Math.random() * 3) + 2;
                     for (let y = 0; y < fringeLen; y++) {
-                        ctx.fillStyle = `rgb(76, 165, 48)`;
+                        ctx.fillStyle = `rgb(76, ${165 + Math.random() * 30}, 48)`;
                         ctx.fillRect(x, y, 1, 1);
                     }
                 }
-            } else if (type === 'dirt') fillRandomNoise(134, 96, 67, 35);
-            else if (type === 'stone') fillRandomNoise(128, 128, 128, 30);
-            else if (type === 'cobblestone') {
+            } else if (type === 'dirt') {
+                fillRandomNoise(134, 96, 67, 35);
+            } else if (type === 'stone') {
+                fillRandomNoise(128, 128, 128, 30);
+            } else if (type === 'cobblestone') {
                 fillRandomNoise(110, 110, 110, 45); ctx.strokeStyle = '#475569'; ctx.strokeRect(1, 1, 14, 14);
             } else if (type === 'oak_planks') {
                 fillRandomNoise(165, 125, 75, 25); ctx.fillStyle = '#78350f';
@@ -562,8 +562,9 @@
             } else if (type === 'oak_log_top') {
                 fillRandomNoise(180, 140, 85, 25); ctx.fillStyle = '#78350f';
                 ctx.beginPath(); ctx.arc(8, 8, 5, 0, Math.PI * 2); ctx.stroke();
-            } else if (type === 'leaves') fillRandomNoise(45, 125, 35, 50);
-            else if (type === 'diamond_ore') {
+            } else if (type === 'leaves') {
+                fillRandomNoise(45, 125, 35, 50);
+            } else if (type === 'diamond_ore') {
                 fillRandomNoise(128, 128, 128, 30); ctx.fillStyle = '#00f3ff';
                 ctx.fillRect(4, 4, 3, 3); ctx.fillRect(10, 8, 3, 3); ctx.fillRect(6, 11, 3, 3);
             } else if (type === 'tnt_side') {
@@ -571,16 +572,12 @@
                 ctx.fillStyle = '#000000'; ctx.font = 'bold 5px sans-serif'; ctx.fillText('TNT', 3, 10);
             } else if (type === 'tnt_top') {
                 fillRandomNoise(220, 38, 38, 20); ctx.fillStyle = '#334155'; ctx.fillRect(6, 6, 4, 4);
-            } else if (type === 'netherrack') fillRandomNoise(136, 19, 19, 45);
-            else if (type === 'end_stone') fillRandomNoise(228, 230, 168, 30);
-            else if (type === 'obsidian') fillRandomNoise(24, 16, 42, 25);
-            else if (type === 'creeper_skin') {
-                fillRandomNoise(45, 160, 45, 45); ctx.fillStyle = '#000000';
-                ctx.fillRect(3, 3, 3, 3); ctx.fillRect(10, 3, 3, 3);
-                ctx.fillRect(6, 6, 4, 5); ctx.fillRect(4, 8, 2, 6); ctx.fillRect(10, 8, 2, 6);
-            } else if (type === 'zombie_skin') {
-                fillRandomNoise(55, 135, 65, 35); ctx.fillStyle = '#000000';
-                ctx.fillRect(3, 4, 3, 2); ctx.fillRect(10, 4, 3, 2);
+            } else if (type === 'netherrack') {
+                fillRandomNoise(136, 19, 19, 45);
+            } else if (type === 'end_stone') {
+                fillRandomNoise(228, 230, 168, 30);
+            } else if (type === 'obsidian') {
+                fillRandomNoise(24, 16, 42, 25);
             }
 
             const tex = new THREE.CanvasTexture(canvas);
@@ -661,7 +658,8 @@
 
         function updateWallet() {
             gold = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            document.getElementById('coin-count').innerText = gold.toLocaleString();
+            const el = document.getElementById('coin-count');
+            if (el) el.innerText = gold.toLocaleString();
         }
         function addCoins(amt) {
             gold += amt;
@@ -671,6 +669,7 @@
 
         function showBanner(txt) {
             const b = document.getElementById('banner-msg');
+            if (!b) return;
             b.innerText = txt;
             b.style.display = 'block';
             setTimeout(() => { b.style.display = 'none'; }, 2200);
@@ -681,14 +680,15 @@
             document.querySelectorAll('.hotbar-slot').forEach(s => s.classList.remove('active'));
             const slotEl = document.querySelectorAll('.hotbar-slot')[id - 1];
             if (slotEl) slotEl.classList.add('active');
-            document.getElementById('active-block-name').innerText = blockRegistry[id].name;
+            const nameEl = document.getElementById('active-block-name');
+            if (nameEl) nameEl.innerText = blockRegistry[id].name;
             buildHandTool();
             playVoxelSound('pop');
         }
 
         function toggleCrafting(force) {
             const modal = document.getElementById('craft-modal');
-            modal.style.display = force !== undefined ? (force ? 'flex' : 'none') : (modal.style.display === 'none' ? 'flex' : 'none');
+            if (modal) modal.style.display = force !== undefined ? (force ? 'flex' : 'none') : (modal.style.display === 'none' ? 'flex' : 'none');
         }
 
         function quickCraft(type) {
@@ -709,28 +709,28 @@
             mobs.forEach(m => scene.remove(m.root));
             mobs = [];
 
+            const dimEl = document.getElementById('dim-text');
+            const bioEl = document.getElementById('biome-display');
+
             if (dim === 'NETHER') {
-                document.getElementById('dim-text').innerText = "The Nether";
-                document.getElementById('dim-text').style.color = "var(--accent)";
-                document.getElementById('biome-display').innerText = "Biome: Nether Wastes";
+                if (dimEl) { dimEl.innerText = "The Nether"; dimEl.style.color = "var(--accent)"; }
+                if (bioEl) bioEl.innerText = "Biome: Nether Wastes";
                 scene.background.setHex(0x330000);
                 scene.fog.color.setHex(0x330000);
                 generateNetherWorld();
                 spawnMob('ZOMBIE', -8, -8);
                 showBanner("🌋 ENTERED THE NETHER!");
             } else if (dim === 'THE_END') {
-                document.getElementById('dim-text').innerText = "The End";
-                document.getElementById('dim-text').style.color = "#a855f7";
-                document.getElementById('biome-display').innerText = "Biome: End Island";
+                if (dimEl) { dimEl.innerText = "The End"; dimEl.style.color = "#a855f7"; }
+                if (bioEl) bioEl.innerText = "Biome: End Island";
                 scene.background.setHex(0x0a0518);
                 scene.fog.color.setHex(0x0a0518);
                 generateEndWorld();
                 spawnEnderDragon();
                 showBanner("🌌 ENTERED THE END - SLAY THE DRAGON!");
             } else {
-                document.getElementById('dim-text').innerText = "Overworld";
-                document.getElementById('dim-text').style.color = "var(--primary)";
-                document.getElementById('biome-display').innerText = "Biome: Plains Valley";
+                if (dimEl) { dimEl.innerText = "Overworld"; dimEl.style.color = "var(--primary)"; }
+                if (bioEl) bioEl.innerText = "Biome: Plains Valley";
                 scene.background.setHex(0x78a7ff);
                 scene.fog.color.setHex(0x78a7ff);
                 generateProceduralTerrain();
@@ -769,7 +769,6 @@
                 voxels.delete(key);
                 createVoxelDebris(x, y, z);
 
-                // Reveal underlying dirt block if mined on surface
                 if (!hasVoxel(x, y - 1, z) && y > 1) {
                     addBlock(x, y - 1, z, 3);
                 }
@@ -818,13 +817,15 @@
             const fullHearts = Math.max(0, Math.floor(player.health / 2));
             let heartsStr = "❤️".repeat(fullHearts);
             if (player.health % 2 === 1) heartsStr += "💔";
-            document.getElementById('hearts-display').innerText = heartsStr || "💀";
+            const hEl = document.getElementById('hearts-display');
+            if (hEl) hEl.innerText = heartsStr || "💀";
 
-            document.getElementById('xp-bar-fill').style.width = `${(player.xp % 100)}%`;
-            document.getElementById('xp-level-text').innerText = player.level;
+            const xpFill = document.getElementById('xp-bar-fill');
+            if (xpFill) xpFill.style.width = `${(player.xp % 100)}%`;
+            const xpLvl = document.getElementById('xp-level-text');
+            if (xpLvl) xpLvl.innerText = player.level;
         }
 
-        // Fast Surface-Only Generation (Massive FPS Gain)
         function generateProceduralTerrain() {
             const R = 18;
             for (let x = -R; x <= R; x++) {
@@ -834,7 +835,6 @@
                         Math.cos(z * 0.2) * 2.5 + 8
                     );
 
-                    // Only generate the top surface and 1 subsurface block
                     addBlock(x, height, z, 2);
                     addBlock(x, height - 1, z, 3);
 
@@ -843,8 +843,8 @@
                     }
                 }
             }
-            document.getElementById('block-count').innerText = voxels.size;
-            document.getElementById('chunk-block-count').innerText = voxels.size;
+            const bCount = document.getElementById('block-count');
+            if (bCount) bCount.innerText = voxels.size;
         }
 
         function spawnOakTree(baseX, baseY, baseZ) {
@@ -870,7 +870,8 @@
                     addBlock(x, height - 1, z, 'netherrack');
                 }
             }
-            document.getElementById('block-count').innerText = voxels.size;
+            const bCount = document.getElementById('block-count');
+            if (bCount) bCount.innerText = voxels.size;
         }
 
         function generateEndWorld() {
@@ -888,7 +889,8 @@
             [[-8, -8], [8, -8], [-8, 8], [8, 8]].forEach(p => {
                 for (let py = 8; py <= 18; py++) addBlock(p[0], py, p[1], 'obsidian');
             });
-            document.getElementById('block-count').innerText = voxels.size;
+            const bCount = document.getElementById('block-count');
+            if (bCount) bCount.innerText = voxels.size;
         }
 
         function spawnEnderDragon() {
@@ -917,7 +919,8 @@
             scene.add(root);
 
             bossEntity = { root, wingL, wingR, hp: 200, maxHp: 200, angle: 0, alive: true };
-            document.getElementById('boss-hud').style.display = 'flex';
+            const bHud = document.getElementById('boss-hud');
+            if (bHud) bHud.style.display = 'flex';
         }
 
         function createAccurateMobMesh(type) {
@@ -956,7 +959,7 @@
                 [-0.22, 0.22].forEach(lx => {
                     const legP = new THREE.Group(); legP.position.set(lx, 0.6, 0);
                     const leg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 0.4), pantsMat);
-                    leg.position.y = -0.6; legP.add(leg); root.add(legP); limbs.legs.push(legP);
+                    leg.position.y = -0.6; lp.add(leg); root.add(legP); limbs.legs.push(legP);
                 });
             } else if (type === 'PIG') {
                 const mat = new THREE.MeshLambertMaterial({ color: 0xf472b6 });
@@ -1013,7 +1016,7 @@
 
             renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
             renderer.setSize(w, h);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25)); // Performance clamp
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
             renderer.domElement.id = "webgl-canvas";
             container.appendChild(renderer.domElement);
 
@@ -1089,7 +1092,8 @@
                 if (code === "KeyF") {
                     player.isFlying = !player.isFlying;
                     player.vel.y = 0;
-                    document.getElementById('fly-status').innerText = `FLY: ${player.isFlying ? 'ON' : 'OFF'} [F]`;
+                    const fEl = document.getElementById('fly-status');
+                    if (fEl) fEl.innerText = `FLY: ${player.isFlying ? 'ON' : 'OFF'} [F]`;
                     showBanner(player.isFlying ? "🚀 Flight Mode Active!" : "Survival Mode Restored.");
                 }
 
@@ -1107,7 +1111,6 @@
                 if (code === "Space") keys.space = false;
             });
 
-            // Touch Screen
             wrapper.addEventListener("touchstart", e => {
                 if (e.touches.length === 1) {
                     touchLook.active = true;
@@ -1132,6 +1135,7 @@
 
             const bindTouch = (id, onStart, onEnd) => {
                 const el = document.getElementById(id);
+                if (!el) return;
                 el.addEventListener("touchstart", e => { e.preventDefault(); getAudioContext(); onStart(); }, { passive: false });
                 if (onEnd) el.addEventListener("touchend", e => { e.preventDefault(); onEnd(); }, { passive: false });
             };
@@ -1150,17 +1154,18 @@
             isSwinging = true;
             swingTimer = 0.2;
 
-            // Attack Boss
             if (bossEntity && bossEntity.alive && action === 'attack_mine') {
                 const bossHits = raycaster.intersectObject(bossEntity.root, true);
                 if (bossHits.length > 0 && bossHits[0].distance < 8.0) {
                     bossEntity.hp -= 15;
                     playVoxelSound('slash');
-                    document.getElementById('boss-bar-fill').style.width = `${(bossEntity.hp / bossEntity.maxHp) * 100}%`;
+                    const bFill = document.getElementById('boss-bar-fill');
+                    if (bFill) bFill.style.width = `${(bossEntity.hp / bossEntity.maxHp) * 100}%`;
                     if (bossEntity.hp <= 0) {
                         bossEntity.alive = false;
                         scene.remove(bossEntity.root);
-                        document.getElementById('boss-hud').style.display = 'none';
+                        const bHud = document.getElementById('boss-hud');
+                        if (bHud) bHud.style.display = 'none';
                         showBanner("🏆 VICTORY! DEFEATED THE ENDER DRAGON (+500 XP)");
                         player.xp += 500; player.level += 5;
                         updateVitalsHUD();
@@ -1170,7 +1175,6 @@
                 }
             }
 
-            // Attack Mobs
             const mobRoots = mobs.map(m => m.root);
             const mobHits = raycaster.intersectObjects(mobRoots, true);
 
@@ -1201,7 +1205,6 @@
                 }
             }
 
-            // Mine or Place
             const meshes = Array.from(voxels.values());
             const intersects = raycaster.intersectObjects(meshes);
 
@@ -1216,7 +1219,8 @@
                     playVoxelSound('break');
                     minedBlocksCount++;
                     addCoins(1);
-                    document.getElementById('block-count').innerText = voxels.size;
+                    const bCount = document.getElementById('block-count');
+                    if (bCount) bCount.innerText = voxels.size;
                 } else if (action === 'place') {
                     if (selectedBlockId === 1) return;
 
@@ -1233,12 +1237,12 @@
 
                     addBlock(placeX, placeY, placeZ, selectedBlockId);
                     playVoxelSound('place');
-                    document.getElementById('block-count').innerText = voxels.size;
+                    const bCount = document.getElementById('block-count');
+                    if (bCount) bCount.innerText = voxels.size;
                 }
             }
         }
 
-        // Fast Box Collider
         function checkCollisionAt(box) {
             const minX = Math.floor(box.minX);
             const maxX = Math.floor(box.maxX);
@@ -1266,7 +1270,6 @@
             };
         }
 
-        // Smooth Movement (No Snapping / No Teleport Jitter)
         function updatePhysics(dt) {
             const moveVec = new THREE.Vector3(0, 0, 0);
             if (keys.w) moveVec.z -= 1;
@@ -1289,7 +1292,6 @@
                 const dx = moveDir.x * player.speed * dt;
                 const dz = moveDir.z * player.speed * dt;
 
-                // 1. Horizontal X Movement
                 if (dx !== 0) {
                     const targetBoxX = getPlayerBox(player.pos.x + dx, player.pos.y, player.pos.z);
                     if (!checkCollisionAt(targetBoxX)) {
@@ -1297,7 +1299,6 @@
                     }
                 }
 
-                // 2. Horizontal Z Movement
                 if (dz !== 0) {
                     const targetBoxZ = getPlayerBox(player.pos.x, player.pos.y, player.pos.z + dz);
                     if (!checkCollisionAt(targetBoxZ)) {
@@ -1305,7 +1306,6 @@
                     }
                 }
 
-                // 3. Vertical Y Gravity & Ground Collision
                 player.vel.y -= player.gravity * dt;
                 const dy = player.vel.y * dt;
                 const targetBoxY = getPlayerBox(player.pos.x, player.pos.y + dy, player.pos.z);
@@ -1327,7 +1327,6 @@
                     }
                 }
 
-                // Jump
                 if (keys.space && player.onGround) {
                     player.vel.y = player.jumpForce;
                     player.onGround = false;
@@ -1339,9 +1338,9 @@
             camera.rotation.y = player.yaw;
             camera.rotation.x = player.pitch;
 
-            document.getElementById('pos-display').innerText = `XYZ: ${Math.round(player.pos.x)}, ${Math.round(player.pos.y)}, ${Math.round(player.pos.z)}`;
+            const posEl = document.getElementById('pos-display');
+            if (posEl) posEl.innerText = `XYZ: ${Math.round(player.pos.x)}, ${Math.round(player.pos.y)}, ${Math.round(player.pos.z)}`;
 
-            // Hand Swing
             if (isSwinging && handGroup) {
                 swingTimer -= dt;
                 handGroup.rotation.x = 0.2 + Math.sin(swingTimer * 30) * 0.8;
@@ -1353,27 +1352,26 @@
                 }
             }
 
-            // Atmosphere
             worldTime = (worldTime + dt * 0.0035) % 1;
             const sunAngle = worldTime * Math.PI * 2;
             sunLight.position.set(Math.cos(sunAngle) * 80, Math.sin(sunAngle) * 80, 40);
             const isDay = Math.sin(sunAngle) > 0;
 
             if (currentDimension === 'OVERWORLD') {
+                const tEl = document.getElementById('time-display');
                 if (isDay) {
                     scene.background.setHex(0x78a7ff);
                     scene.fog.color.setHex(0x78a7ff);
                     ambientLight.intensity = 0.8;
-                    document.getElementById('time-display').innerText = "☀️ DAY";
+                    if (tEl) tEl.innerText = "☀️ DAY";
                 } else {
                     scene.background.setHex(0x050b18);
                     scene.fog.color.setHex(0x050b18);
                     ambientLight.intensity = 0.2;
-                    document.getElementById('time-display').innerText = "🌙 NIGHT";
+                    if (tEl) tEl.innerText = "🌙 NIGHT";
                 }
             }
 
-            // Boss Dragon Flight
             if (bossEntity && bossEntity.alive) {
                 bossEntity.angle += dt * 0.6;
                 bossEntity.root.position.set(Math.cos(bossEntity.angle) * 14, 18 + Math.sin(bossEntity.angle * 2) * 2, Math.sin(bossEntity.angle) * 14);
@@ -1382,7 +1380,6 @@
                 bossEntity.wingR.rotation.z = -Math.sin(Date.now() * 0.008) * 0.6;
             }
 
-            // Mobs AI
             walkClock += dt * 6.0;
 
             mobs.forEach(m => {
@@ -1437,7 +1434,6 @@
                 }
             });
 
-            // Particles Update
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.mesh.position.x += p.vx * dt;
