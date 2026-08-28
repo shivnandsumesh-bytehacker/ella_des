@@ -485,7 +485,7 @@
     </div>
 
     <div class="controls-info">
-        <strong>Pitch:</strong> [S] / [↓] Climb | [W] / [↑] Dive &nbsp;|&nbsp; <strong>Roll:</strong> [A] / [←] Left | [D] / [→] Right &nbsp;|&nbsp; <strong>Rudder:</strong> [Q] / [E] &nbsp;|&nbsp; <strong>Brakes:</strong> [Space]
+        <strong>Pitch:</strong> [S] / [↓] Climb (Pull Up) | [W] / [↑] Dive (Push Down) &nbsp;|&nbsp; <strong>Roll:</strong> [A] / [←] Left | [D] / [→] Right &nbsp;|&nbsp; <strong>Rudder:</strong> [Q] / [E] &nbsp;|&nbsp; <strong>Brakes:</strong> [Space]
     </div>
 
     <script>
@@ -605,9 +605,9 @@
             pitch: 0,
             roll: 0,
             yaw: 0,
-            airspeed: 0, // Knots
-            altitude: 25, // Feet
-            vsi: 0, // FPM
+            airspeed: 0,
+            altitude: 25,
+            vsi: 0,
             gearDown: true,
             flapsStage: 0,
             spoilers: false,
@@ -635,12 +635,14 @@
 
         function showDialogue(txt) {
             const d = document.getElementById("dialogue-box");
+            if (!d) return;
             d.innerText = txt; d.style.display = "block";
             setTimeout(() => { d.style.display = "none"; }, 4000);
         }
 
         function showLandingButterBanner(fpm, xp) {
             const b = document.getElementById("landing-banner");
+            if (!b) return;
             b.innerText = `🧈 BUTTER TOUCHDOWN! ${Math.round(fpm)} FPM (+${xp} XP & Cash)`;
             b.style.display = "block";
             setTimeout(() => { b.style.display = "none"; }, 4500);
@@ -648,7 +650,8 @@
 
         function updateWallet() {
             pilotCash = parseInt(localStorage.getItem('arcade_coins')) || pilotCash;
-            document.getElementById('cash-count').innerText = pilotCash.toLocaleString();
+            const el = document.getElementById('cash-count');
+            if (el) el.innerText = pilotCash.toLocaleString();
         }
 
         function addCash(amount) {
@@ -659,21 +662,23 @@
 
         function toggleHangar(force) {
             const m = document.getElementById("hangar-modal");
-            m.style.display = force !== undefined ? (force ? 'flex' : 'none') : (m.style.display === 'none' ? 'flex' : 'none');
+            if (m) m.style.display = force !== undefined ? (force ? 'flex' : 'none') : (m.style.display === 'none' ? 'flex' : 'none');
         }
 
         function toggleJobs(force) {
             const m = document.getElementById("jobs-modal");
-            m.style.display = force !== undefined ? (force ? 'flex' : 'none') : (m.style.display === 'none' ? 'flex' : 'none');
+            if (m) m.style.display = force !== undefined ? (force ? 'flex' : 'none') : (m.style.display === 'none' ? 'flex' : 'none');
         }
 
         function toggleCodes(force) {
             const m = document.getElementById("code-modal");
-            m.style.display = force !== undefined ? (force ? 'flex' : 'none') : (m.style.display === 'none' ? 'flex' : 'none');
+            if (m) m.style.display = force !== undefined ? (force ? 'flex' : 'none') : (m.style.display === 'none' ? 'flex' : 'none');
         }
 
         function redeemPromoCode() {
-            const val = document.getElementById("code-input").value.trim().toUpperCase();
+            const inp = document.getElementById("code-input");
+            if (!inp) return;
+            const val = inp.value.trim().toUpperCase();
             if (val === "FLIGHTWORLD" && !redeemedCodes.includes("FLIGHTWORLD")) {
                 redeemedCodes.push("FLIGHTWORLD");
                 addCash(25000);
@@ -696,7 +701,8 @@
                 'P51': 'P-51 Mustang',
                 'F22': 'F-22 Raptor Jet'
             };
-            document.getElementById("active-plane-name").innerText = names[type] || type;
+            const nameEl = document.getElementById("active-plane-name");
+            if (nameEl) nameEl.innerText = names[type] || type;
 
             if (type === 'KingAir') { aircraft.maxThrust = 160000; aircraft.weight = 6500; aircraft.rotationSpeed = 70; aircraft.stallSpeed = 50; }
             else if (type === 'A320') { aircraft.maxThrust = 380000; aircraft.weight = 38000; aircraft.rotationSpeed = 110; aircraft.stallSpeed = 95; }
@@ -706,7 +712,7 @@
 
             buildAircraftModel();
             toggleHangar(false);
-            showDialogue(`🛫 Loaded ${names[type]}! Advance throttle to max and pull back [S / Down Arrow] to climb!`);
+            showDialogue(`🛫 Loaded ${names[type]}! Advance throttle and pull [S / ↓] to climb.`);
         }
 
         function buyOrSelect(type, price) {
@@ -715,7 +721,8 @@
             } else if (pilotCash >= price) {
                 addCash(-price);
                 ownedPlanes.push(type);
-                document.getElementById(`btn-buy-${type.toLowerCase()}`).innerText = `✈️ ${type} (OWNED)`;
+                const btn = document.getElementById(`btn-buy-${type.toLowerCase()}`);
+                if (btn) btn.innerText = `✈️ ${type} (OWNED)`;
                 selectAircraft(type);
                 playDingChime();
             } else {
@@ -729,7 +736,8 @@
             activeJob = { id: jobId, target: targetAirport, reward };
             jobStage = 'BOARDING';
             boardedCount = 0;
-            document.getElementById("route-status").innerText = `Boarding (0/10) at Gate`;
+            const rEl = document.getElementById("route-status");
+            if (rEl) rEl.innerText = `Boarding (0/10) at Gate`;
             toggleJobs(false);
             showDialogue(`📋 Route Accepted: ${targetAirport.name}! Taxi to the green gate ring.`);
             buildRouteWaypoints(targetAirport);
@@ -757,7 +765,7 @@
             }
         }
 
-        // Procedural 3D Plane Generator
+        // Procedural 3D Plane Models
         function buildAircraftModel() {
             if (activePlaneMesh) scene.remove(activePlaneMesh);
             propMeshes = [];
@@ -911,7 +919,6 @@
             });
         }
 
-        // Optimized Cloud Layer
         function spawnVolumetricClouds() {
             const cloudGeo = new THREE.DodecahedronGeometry(45);
             const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
@@ -937,7 +944,7 @@
             scene.background = new THREE.Color(0x0284c7);
             scene.fog = new THREE.Fog(0x0284c7, 1000, 9500);
 
-            camera = new THREE.PerspectiveCamera(60, width / height, 0.5, 10000);
+            camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 10000);
 
             renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
             renderer.setSize(width, height);
@@ -1044,7 +1051,8 @@
 
         function adjustZoom(delta) {
             cameraZoom = Math.max(14, Math.min(120, cameraZoom + delta));
-            document.getElementById("zoom-text").innerText = `${Math.round(cameraZoom)}m`;
+            const zEl = document.getElementById("zoom-text");
+            if (zEl) zEl.innerText = `${Math.round(cameraZoom)}m`;
             showDialogue(`🔍 Camera Distance: ${Math.round(cameraZoom)}m`);
         }
 
@@ -1053,7 +1061,7 @@
             aircraft.engineOn = !aircraft.engineOn;
             document.getElementById("val-eng").innerText = aircraft.engineOn ? "ON" : "OFF";
             document.getElementById("slot-eng").classList.toggle("active", aircraft.engineOn);
-            showDialogue(aircraft.engineOn ? "⚡ Engines Started! Push throttle up to takeoff." : "🛑 Engines Off.");
+            showDialogue(aircraft.engineOn ? "⚡ Engines Started! Advance throttle to takeoff." : "🛑 Engines Off.");
             playTone(aircraft.engineOn ? 450 : 220, 'sine', 0.25);
         }
 
@@ -1096,6 +1104,7 @@
             const names = ["CHASE VIEW", "COCKPIT VIEW", "ORBIT FLYBY"];
             document.getElementById("cam-mode-text").innerText = names[cameraMode];
             document.getElementById("val-cam").innerText = names[cameraMode].split(" ")[0];
+            showDialogue(`🎥 Camera: ${names[cameraMode]}`);
         }
 
         // Keyboard Controls
@@ -1142,7 +1151,7 @@
             if (code === "Space") { aircraft.brakes = false; }
         });
 
-        // 60FPS Flight Physics
+        // 60FPS Flight Aerodynamics
         function updateFlightPhysics(dt) {
             if (!activePlaneMesh) return;
 
@@ -1173,14 +1182,17 @@
 
             const controlAuth = Math.min(1.0, Math.max(0.15, aircraft.airspeed / 55));
 
+            // Pitch control: S / Down = Pull up (Climb: +pitch), W / Up = Push down (Dive: -pitch)
             let pIn = aircraft.pitchInput;
             if (keys.down || keys.s) pIn = 1.0;
             if (keys.up || keys.w) pIn = -1.0;
 
+            // Roll control: A / Left = Bank Left (-roll), D / Right = Bank Right (+roll)
             let rIn = aircraft.rollInput;
             if (keys.a || keys.left) rIn = -1.0;
             if (keys.d || keys.right) rIn = 1.0;
 
+            // Yaw control: Q = Left (-yaw), E = Right (+yaw)
             let yIn = aircraft.yawInput;
             if (keys.q) yIn = -1.0;
             if (keys.e && !keys.w) yIn = 1.0;
@@ -1219,10 +1231,10 @@
 
             const stallWarnEl = document.getElementById("stall-warning");
             if (!aircraft.onGround && aircraft.airspeed < aircraft.stallSpeed && aircraft.altitude > 40) {
-                stallWarnEl.style.display = "block";
+                if (stallWarnEl) stallWarnEl.style.display = "block";
                 if (Math.random() < 0.1) playTone(340, 'square', 0.1, 0.08);
             } else {
-                stallWarnEl.style.display = "none";
+                if (stallWarnEl) stallWarnEl.style.display = "none";
             }
 
             if (aircraft.pos.y <= 3.2) {
@@ -1277,14 +1289,15 @@
 
                     if ((distToGate < 28 || distToHubGate < 28) && aircraft.airspeed < 5) {
                         boardedCount += 0.05;
-                        document.getElementById("action-prompt").innerText = `Boarding Passengers: ${Math.min(10, Math.floor(boardedCount))}/10...`;
-                        document.getElementById("action-prompt").style.display = "block";
+                        const pr = document.getElementById("action-prompt");
+                        pr.innerText = `Boarding Passengers: ${Math.min(10, Math.floor(boardedCount))}/10...`;
+                        pr.style.display = "block";
                         if (boardedCount >= 10) {
                             jobStage = 'ENROUTE';
                             playDingChime();
                             document.getElementById("route-status").innerText = `Enroute to ${activeJob.target.name}`;
-                            document.getElementById("action-prompt").style.display = "none";
-                            showDialogue("🚪 Boarding Complete! Taxi onto runway and advance throttle to takeoff!");
+                            pr.style.display = "none";
+                            showDialogue("🚪 Boarding Complete! Advance throttle to takeoff.");
                         }
                     } else {
                         document.getElementById("action-prompt").style.display = "none";
@@ -1304,18 +1317,33 @@
             }
         }
 
+        // Camera Views with Zero Interior Clipping
         function updateCamera() {
             if (!activePlaneMesh) return;
 
             if (cameraMode === 0) {
-                const offset = new THREE.Vector3(0, cameraZoom * 0.25, cameraZoom).applyEuler(aircraft.rot);
+                // Chase View (Follow behind and above)
+                const offset = new THREE.Vector3(0, cameraZoom * 0.28, cameraZoom).applyEuler(aircraft.rot);
                 camera.position.lerp(aircraft.pos.clone().add(offset), 0.15);
-                camera.lookAt(aircraft.pos.clone().add(new THREE.Vector3(0, 2, -15).applyEuler(aircraft.rot)));
+                camera.lookAt(aircraft.pos.clone().add(new THREE.Vector3(0, 2.5, -20).applyEuler(aircraft.rot)));
             } else if (cameraMode === 1) {
-                const cockpitOffset = new THREE.Vector3(0, 4.2, -16).applyEuler(aircraft.rot);
-                camera.position.copy(aircraft.pos.clone().add(cockpitOffset));
-                camera.lookAt(aircraft.pos.clone().add(new THREE.Vector3(0, 3.8, -140).applyEuler(aircraft.rot)));
+                // Cockpit View (Placed right at the front windshield looking forward out the nose)
+                let forwardZ = -10.5;
+                if (activePlaneType === 'A320') forwardZ = -22.5;
+                else if (activePlaneType === 'Q400') forwardZ = -18.5;
+                else if (activePlaneType === 'P51') forwardZ = -8.5;
+                else if (activePlaneType === 'F22') forwardZ = -12.5;
+
+                const cockpitPos = new THREE.Vector3(0, 3.5, forwardZ).applyEuler(aircraft.rot);
+                camera.position.copy(aircraft.pos.clone().add(cockpitPos));
+                
+                const lookForward = new THREE.Vector3(0, 3.2, forwardZ - 200).applyEuler(aircraft.rot);
+                camera.lookAt(aircraft.pos.clone().add(lookForward));
             } else {
+                // Orbit / Flyby View
+                const sideAngle = Date.now() * 0.0003;
+                const orbitOffset = new THREE.Vector3(Math.cos(sideAngle) * 45, 12, Math.sin(sideAngle) * 45);
+                camera.position.lerp(aircraft.pos.clone().add(orbitOffset), 0.08);
                 camera.lookAt(aircraft.pos);
             }
         }
