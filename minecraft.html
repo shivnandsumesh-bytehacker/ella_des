@@ -66,7 +66,6 @@
         }
         #webgl-canvas { width: 100% !important; height: 100% !important; display: block; }
 
-        /* Crosshair */
         #crosshair {
             position: absolute;
             top: 50%;
@@ -80,13 +79,12 @@
         #crosshair::before, #crosshair::after {
             content: '';
             position: absolute;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             box-shadow: 0 0 4px #000;
         }
         #crosshair::before { top: 8px; left: 0; width: 18px; height: 2px; }
         #crosshair::after { top: 0; left: 8px; width: 2px; height: 18px; }
 
-        /* HUD Panels */
         .hud-top-left {
             position: absolute;
             top: 10px;
@@ -121,7 +119,6 @@
             pointer-events: auto;
         }
 
-        /* Boss Health Bar */
         #boss-hud {
             position: absolute;
             top: 12px;
@@ -138,7 +135,6 @@
         .boss-bar-bg { width: 100%; height: 10px; background: #1e1b4b; border: 2px solid #a855f7; border-radius: 4px; overflow: hidden; }
         .boss-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ec4899, #a855f7); transition: width 0.15s; }
 
-        /* Vitals HUD */
         #vitals-hud {
             position: absolute;
             bottom: 70px;
@@ -187,7 +183,6 @@
             text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
 
-        /* 9-Slot Hotbar */
         #hotbar-wrap {
             position: absolute;
             bottom: 12px;
@@ -228,7 +223,6 @@
         .slot-icon { width: 24px; height: 24px; border-radius: 3px; margin-top: 4px; }
         .slot-qty { position: absolute; bottom: 1px; right: 3px; font-size: 0.65rem; color: #fff; font-weight: bold; font-family: monospace; }
 
-        /* Touch Controls */
         .touch-zone {
             position: absolute;
             bottom: 85px;
@@ -261,7 +255,6 @@
         .ctrl-btn.attack { border-color: var(--accent); color: var(--accent); }
         .ctrl-btn.place { border-color: var(--emerald); color: var(--emerald); }
 
-        /* Modal */
         .modal {
             position: absolute;
             inset: 0;
@@ -343,7 +336,7 @@
         <div class="hud-top-left">
             <div class="hud-panel">
                 <div id="pos-display" style="color:#facc15; font-family:monospace;">XYZ: 0, 18, 0</div>
-                <div id="biome-display" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Biome: Plains Valley | Surface Loaded</div>
+                <div id="biome-display" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Biome: Plains Valley</div>
             </div>
         </div>
 
@@ -398,7 +391,7 @@
     </div>
 
     <div class="controls-info">
-        <strong>Mouse:</strong> Click to Lock | <strong>WASD:</strong> Move | <strong>Left Click:</strong> Attack / Mine | <strong>Right Click:</strong> Place Block | <strong>Space:</strong> Jump | <strong>E:</strong> Crafting | <strong>F:</strong> Flight Mode
+        <strong>Mouse:</strong> Click Canvas to Lock | <strong>WASD:</strong> Move | <strong>Left Click:</strong> Attack / Mine | <strong>Right Click:</strong> Place Block | <strong>Space:</strong> Jump | <strong>E:</strong> Crafting | <strong>F:</strong> Flight Mode
     </div>
 
     <script>
@@ -476,7 +469,7 @@
         }
 
         let scene, camera, renderer, raycaster;
-        let ambientLight, sunLight;
+        let ambientLight, hemiLight, sunLight;
         let voxels = new Map();
         let blockMaterials = {};
         let selectedBlockId = 1;
@@ -537,9 +530,8 @@
                 ctx.fillRect(11, 2, 3, 3); ctx.fillRect(9, 4, 3, 3); ctx.fillRect(7, 6, 3, 3); ctx.fillRect(5, 8, 3, 3);
                 ctx.fillStyle = '#1e293b'; ctx.fillRect(3, 10, 3, 3);
                 ctx.fillStyle = '#78350f'; ctx.fillRect(2, 12, 2, 2); ctx.fillRect(1, 13, 2, 2);
-            } else if (type === 'grass_top') {
-                fillRandomNoise(76, 165, 48, 40);
-            } else if (type === 'grass_side') {
+            } else if (type === 'grass_top') fillRandomNoise(76, 165, 48, 40);
+            else if (type === 'grass_side') {
                 fillRandomNoise(134, 96, 67, 35);
                 for (let x = 0; x < 16; x++) {
                     const fringeLen = Math.floor(Math.random() * 3) + 2;
@@ -548,11 +540,9 @@
                         ctx.fillRect(x, y, 1, 1);
                     }
                 }
-            } else if (type === 'dirt') {
-                fillRandomNoise(134, 96, 67, 35);
-            } else if (type === 'stone') {
-                fillRandomNoise(128, 128, 128, 30);
-            } else if (type === 'cobblestone') {
+            } else if (type === 'dirt') fillRandomNoise(134, 96, 67, 35);
+            else if (type === 'stone') fillRandomNoise(128, 128, 128, 30);
+            else if (type === 'cobblestone') {
                 fillRandomNoise(110, 110, 110, 45); ctx.strokeStyle = '#475569'; ctx.strokeRect(1, 1, 14, 14);
             } else if (type === 'oak_planks') {
                 fillRandomNoise(165, 125, 75, 25); ctx.fillStyle = '#78350f';
@@ -562,9 +552,8 @@
             } else if (type === 'oak_log_top') {
                 fillRandomNoise(180, 140, 85, 25); ctx.fillStyle = '#78350f';
                 ctx.beginPath(); ctx.arc(8, 8, 5, 0, Math.PI * 2); ctx.stroke();
-            } else if (type === 'leaves') {
-                fillRandomNoise(45, 125, 35, 50);
-            } else if (type === 'diamond_ore') {
+            } else if (type === 'leaves') fillRandomNoise(45, 125, 35, 50);
+            else if (type === 'diamond_ore') {
                 fillRandomNoise(128, 128, 128, 30); ctx.fillStyle = '#00f3ff';
                 ctx.fillRect(4, 4, 3, 3); ctx.fillRect(10, 8, 3, 3); ctx.fillRect(6, 11, 3, 3);
             } else if (type === 'tnt_side') {
@@ -572,12 +561,16 @@
                 ctx.fillStyle = '#000000'; ctx.font = 'bold 5px sans-serif'; ctx.fillText('TNT', 3, 10);
             } else if (type === 'tnt_top') {
                 fillRandomNoise(220, 38, 38, 20); ctx.fillStyle = '#334155'; ctx.fillRect(6, 6, 4, 4);
-            } else if (type === 'netherrack') {
-                fillRandomNoise(136, 19, 19, 45);
-            } else if (type === 'end_stone') {
-                fillRandomNoise(228, 230, 168, 30);
-            } else if (type === 'obsidian') {
-                fillRandomNoise(24, 16, 42, 25);
+            } else if (type === 'netherrack') fillRandomNoise(136, 19, 19, 45);
+            else if (type === 'end_stone') fillRandomNoise(228, 230, 168, 30);
+            else if (type === 'obsidian') fillRandomNoise(24, 16, 42, 25);
+            else if (type === 'creeper_skin') {
+                fillRandomNoise(45, 160, 45, 45); ctx.fillStyle = '#000000';
+                ctx.fillRect(3, 3, 3, 3); ctx.fillRect(10, 3, 3, 3);
+                ctx.fillRect(6, 6, 4, 5); ctx.fillRect(4, 8, 2, 6); ctx.fillRect(10, 8, 2, 6);
+            } else if (type === 'zombie_skin') {
+                fillRandomNoise(55, 135, 65, 35); ctx.fillStyle = '#000000';
+                ctx.fillRect(3, 4, 3, 2); ctx.fillRect(10, 4, 3, 2);
             }
 
             const tex = new THREE.CanvasTexture(canvas);
@@ -692,7 +685,7 @@
         }
 
         function quickCraft(type) {
-            if (type === 'sword') { selectSlot(1); showBanner("⚔️ Diamond Sword Equipped (8 Melee DMG)!"); playVoxelSound('pop'); }
+            if (type === 'sword') { selectSlot(1); showBanner("⚔️ Diamond Sword Equipped (8 DMG)!"); playVoxelSound('pop'); }
             else if (type === 'pickaxe') { showBanner("⛏️ Diamond Pickaxe Crafted!"); playVoxelSound('pop'); addCoins(15); }
             else if (type === 'planks') { selectSlot(6); showBanner("🪵 4x Oak Planks Crafted!"); playVoxelSound('pop'); }
             else if (type === 'tnt') { selectSlot(9); showBanner("🧨 TNT Explosive Crafted!"); playVoxelSound('pop'); }
@@ -736,7 +729,7 @@
                 generateProceduralTerrain();
                 showBanner("🌍 RETURNED TO OVERWORLD.");
             }
-            player.pos.set(0, 20, 0);
+            player.pos.set(0, 18, 0);
             player.vel.set(0, 0, 0);
         }
 
@@ -838,11 +831,21 @@
                     addBlock(x, height, z, 2);
                     addBlock(x, height - 1, z, 3);
 
-                    if (x % 7 === 0 && z % 7 === 0 && Math.random() < 0.6 && Math.abs(x) > 3) {
+                    // Avoid spawning trees right on the spawn block (0, 0)
+                    if (x % 7 === 0 && z % 7 === 0 && Math.random() < 0.6 && (Math.abs(x) > 3 || Math.abs(z) > 3)) {
                         spawnOakTree(x, height + 1, z);
                     }
                 }
             }
+
+            // Set player securely on the highest ground block at (0, 0)
+            let highestGroundY = 10;
+            for (let y = 25; y >= 0; y--) {
+                if (hasVoxel(0, y, 0)) { highestGroundY = y + 1.0 + player.eyeHeight; break; }
+            }
+            player.pos.set(0, highestGroundY, 0);
+            player.vel.set(0, 0, 0);
+
             const bCount = document.getElementById('block-count');
             if (bCount) bCount.innerText = voxels.size;
         }
@@ -959,7 +962,7 @@
                 [-0.22, 0.22].forEach(lx => {
                     const legP = new THREE.Group(); legP.position.set(lx, 0.6, 0);
                     const leg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 0.4), pantsMat);
-                    leg.position.y = -0.6; lp.add(leg); root.add(legP); limbs.legs.push(legP);
+                    leg.position.y = -0.6; legP.add(leg); root.add(legP); limbs.legs.push(legP);
                 });
             } else if (type === 'PIG') {
                 const mat = new THREE.MeshLambertMaterial({ color: 0xf472b6 });
@@ -1009,10 +1012,11 @@
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x78a7ff);
-            scene.fog = new THREE.Fog(0x78a7ff, 28, 48);
+            scene.fog = new THREE.Fog(0x78a7ff, 28, 55);
 
-            camera = new THREE.PerspectiveCamera(70, w / h, 0.1, 200);
+            camera = new THREE.PerspectiveCamera(70, w / h, 0.1, 300);
             camera.rotation.order = 'YXZ';
+            scene.add(camera);
 
             renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
             renderer.setSize(w, h);
@@ -1022,10 +1026,13 @@
 
             raycaster = new THREE.Raycaster();
 
-            ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
             scene.add(ambientLight);
 
-            sunLight = new THREE.DirectionalLight(0xfffaed, 0.9);
+            hemiLight = new THREE.HemisphereLight(0x78a7ff, 0x166534, 0.4);
+            scene.add(hemiLight);
+
+            sunLight = new THREE.DirectionalLight(0xfffaed, 0.95);
             sunLight.position.set(40, 80, 40);
             scene.add(sunLight);
 
@@ -1294,16 +1301,12 @@
 
                 if (dx !== 0) {
                     const targetBoxX = getPlayerBox(player.pos.x + dx, player.pos.y, player.pos.z);
-                    if (!checkCollisionAt(targetBoxX)) {
-                        player.pos.x += dx;
-                    }
+                    if (!checkCollisionAt(targetBoxX)) player.pos.x += dx;
                 }
 
                 if (dz !== 0) {
                     const targetBoxZ = getPlayerBox(player.pos.x, player.pos.y, player.pos.z + dz);
-                    if (!checkCollisionAt(targetBoxZ)) {
-                        player.pos.z += dz;
-                    }
+                    if (!checkCollisionAt(targetBoxZ)) player.pos.z += dz;
                 }
 
                 player.vel.y -= player.gravity * dt;
@@ -1362,12 +1365,12 @@
                 if (isDay) {
                     scene.background.setHex(0x78a7ff);
                     scene.fog.color.setHex(0x78a7ff);
-                    ambientLight.intensity = 0.8;
+                    ambientLight.intensity = 0.85;
                     if (tEl) tEl.innerText = "☀️ DAY";
                 } else {
                     scene.background.setHex(0x050b18);
                     scene.fog.color.setHex(0x050b18);
-                    ambientLight.intensity = 0.2;
+                    ambientLight.intensity = 0.25;
                     if (tEl) tEl.innerText = "🌙 NIGHT";
                 }
             }
@@ -1449,9 +1452,13 @@
             }
         }
 
-        function animate() {
+        let lastFrameTime = performance.now();
+        function animate(now) {
             requestAnimationFrame(animate);
-            updatePhysics(0.016);
+            const dt = Math.min((now - lastFrameTime) / 1000, 0.033);
+            lastFrameTime = now;
+
+            updatePhysics(dt);
             if (renderer && scene && camera) {
                 renderer.render(scene, camera);
             }
@@ -1460,7 +1467,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             init3D();
             updateWallet();
-            animate();
+            requestAnimationFrame(animate);
         });
     </script>
 </body>
