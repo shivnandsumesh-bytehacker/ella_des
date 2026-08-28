@@ -103,7 +103,7 @@
             pointer-events: auto;
         }
 
-        /* Train Driver DMI (Driver Machine Interface / Speedometer Display) */
+        /* Train Driver DMI Speedometer Display */
         #dmi-hud {
             position: absolute;
             top: 10px;
@@ -211,6 +211,7 @@
             justify-content: center;
             font-size: 0.72rem;
             touch-action: none;
+            cursor: pointer;
         }
         .ctrl-btn:active { background: var(--primary); color: #000; }
         .ctrl-btn.horn { border-color: var(--gold); color: var(--gold); }
@@ -352,7 +353,7 @@
     </header>
 
     <div id="game-wrapper">
-        <!-- Depot / Train Fleet Modal -->
+        <!-- Depot Modal -->
         <div id="depot-modal" class="modal" style="display: none;">
             <div class="modal-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -370,7 +371,7 @@
             </div>
         </div>
 
-        <!-- Timetable & Route Select Modal -->
+        <!-- Timetable Modal -->
         <div id="timetable-modal" class="modal" style="display: none;">
             <div class="modal-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -386,7 +387,7 @@
             </div>
         </div>
 
-        <!-- Train Driver DMI (Driver Machine Interface / Speedometer Display) -->
+        <!-- DMI HUD -->
         <div id="dmi-hud">
             <div class="dmi-item"><div class="dmi-val" id="dmi-spd">0</div><div class="dmi-lbl">SPEED (MPH)</div></div>
             <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
@@ -423,8 +424,8 @@
         <!-- HUD Top Right -->
         <div class="hud-top-right">
             <div class="hud-panel" style="display: flex; flex-direction: column; align-items: flex-end;">
-                <div style="font-size:0.75rem; color:#38bdf8;">CAM: <span id="cam-mode-text">CAB VIEW</span></div>
-                <div style="font-size:0.72rem; color:#94a3b8;">DOORS: <span id="doors-status" style="color:var(--emerald); font-weight:bold;">CLOSED</span></div>
+                <div style="font-size:0.75rem; color:#38bdf8;">CAM: <span id="cam-mode-text">CAPTAIN VIEW</span></div>
+                <div style="font-size:0.72rem; color:#94a3b8;">DOORS: <span id="doors-status" style="color:var(--emerald); font-weight:bold;">CLOSED</span> | PAX: <span id="pax-count" style="color:var(--gold); font-weight:bold;">24</span></div>
                 <canvas id="minimap-canvas" width="80" height="80"></canvas>
             </div>
         </div>
@@ -433,7 +434,7 @@
         <div id="action-prompt"></div>
         <div id="stop-banner">🧈 BUTTER STOP! Stopped 0.12m from stop board (+150 XP)</div>
 
-        <!-- Dual-Thumb iPad & Touchscreen Overlay -->
+        <!-- Touch Controls -->
         <div class="touch-zone" id="touch-left">
             <div class="throttle-track" id="throttle-track">
                 <div class="throttle-thumb" id="throttle-thumb"></div>
@@ -455,7 +456,7 @@
             </div>
         </div>
 
-        <!-- Train Driver Control Desk Hotbar -->
+        <!-- Train Driver Desk Hotbar -->
         <div class="hud-bottom">
             <div class="slot" id="slot-key" onclick="toggleMasterKey()"><div class="slot-val" id="val-key">OFF</div>[K] Master</div>
             <div class="slot" id="slot-rev" onclick="cycleReverser()"><div class="slot-val" id="val-rev">FWD</div>[R] Rev</div>
@@ -463,18 +464,18 @@
             <div class="slot" id="slot-doors" onclick="toggleDoors()"><div class="slot-val" id="val-doors">CLOSED</div>[T] Doors</div>
             <div class="slot" id="slot-horn" onclick="soundHorn()"><div class="slot-val" style="color:var(--gold);">[H]</div>Horn</div>
             <div class="slot" id="slot-aws" onclick="acknowledgeAWS()"><div class="slot-val" style="color:var(--accent);">[Q]</div>AWS Reset</div>
-            <div class="slot" onclick="cycleCameraMode()"><div class="slot-val" id="val-cam">CAB</div>[C] Cam</div>
+            <div class="slot" onclick="cycleCameraMode()"><div class="slot-val" id="val-cam">CAPTAIN</div>[C] Cam</div>
             <div class="slot" onclick="toggleTimetable()"><div class="slot-val" style="color:var(--gold);">📋</div>[J] Routes</div>
             <div class="slot" onclick="toggleDepot()"><div class="slot-val" style="color:var(--primary);">🏢</div>[D] Fleet</div>
         </div>
     </div>
 
     <div class="controls-info">
-        <strong>Accelerate:</strong> [W] / [↑] / Left Slider | <strong>Brake:</strong> [S] / [↓] | <strong>Horn:</strong> [H] / Space | <strong>Acknowledge AWS:</strong> [Q] | <strong>Doors:</strong> [T] | <strong>Camera:</strong> [C] (Cab / Chase / Passenger Window / Trackside)
+        <strong>Accelerate:</strong> [W] / [↑] / Left Slider | <strong>Brake:</strong> [S] / [↓] | <strong>Horn:</strong> [H] / Space | <strong>Acknowledge AWS:</strong> [Q] | <strong>Doors:</strong> [T] | <strong>Camera:</strong> [C] (Captain Cab / Chase / Passenger Window / Trackside)
     </div>
 
     <script>
-        // Web Audio Synthesizer Engine for Diesel/Electric Traction, Air Brakes & Horns
+        // Web Audio Synthesizer Engine
         let audioCtx = null;
         let tractionOsc1 = null, tractionOsc2 = null, tractionGain = null;
 
@@ -502,8 +503,7 @@
             try {
                 const ctx = getAudioContext();
                 if (!ctx) return;
-                // British Two-Tone Train Horn (High/Low)
-                [311.13, 370.00].forEach((freq, idx) => {
+                [311.13, 370.00].forEach(freq => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     osc.type = 'sawtooth';
@@ -531,19 +531,14 @@
             } catch(e){}
         }
 
-        function playAWSBell() {
-            playTone(1046.5, 'sine', 0.6, 0.25); // Clear chime
-        }
-
         function playGuardBuzzer() {
-            // Guard two-buzzer dispatch (BEEP BEEP)
             playTone(880, 'sine', 0.12, 0.2);
             setTimeout(() => playTone(880, 'sine', 0.12, 0.2), 160);
         }
 
         function playDoorChime() {
-            playTone(659.25, 'sine', 0.2, 0.15); // E5
-            setTimeout(() => playTone(523.25, 'sine', 0.35, 0.15), 180); // C5
+            playTone(659.25, 'sine', 0.2, 0.15);
+            setTimeout(() => playTone(523.25, 'sine', 0.35, 0.15), 180);
         }
 
         function initTractionAudio() {
@@ -588,33 +583,32 @@
         let driverCash = 1500, driverXP = 0, driverLvl = 1;
         let activeTrainType = 'Class43';
         let ownedTrains = ['Class43'];
-        let cameraMode = 0; // 0: Cab View, 1: Chase Follow, 2: Window View, 3: Flyby
-        let activeRoute = null, routeStage = 'RUNNING';
+        let cameraMode = 0; // 0: Captain / Front View, 1: Chase Follow, 2: Window View, 3: Flyby
+        let activeRoute = null;
+        let totalBoardedPax = 24;
 
-        // High-Speed Train Dynamics Model
         const train = {
-            distance: 0, // Metres along track
-            speed: 0,    // Metres per second
-            speedMPH: 0, // MPH
+            distance: 0,
+            speed: 0,
+            speedMPH: 0,
             speedLimitMPH: 75,
-            powerNotch: 0.0, // 0 to 1
-            brakeNotch: 0.0, // 0 to 1
-            reverser: 1,     // 1: FWD, 0: NEUTRAL, -1: REV
+            powerNotch: 0.0,
+            brakeNotch: 0.0,
+            reverser: 1,
             masterKeyOn: false,
             pantographUp: false,
             doorsOpen: false,
             awsSunflower: false,
             awsWarningActive: false,
             emergencyBrake: false,
-            currentSignalAspect: 'GREEN', // 'GREEN', 'DOUBLE_YELLOW', 'YELLOW', 'RED'
-            weight: 320000,  // kg (8-coach HST)
-            maxTractionKW: 3350, // 4,500 hp
+            currentSignalAspect: 'GREEN',
+            weight: 320000,
+            maxTractionKW: 3350,
             maxSpeedMPH: 125
         };
 
         const keys = { w: false, s: false, up: false, down: false };
 
-        // British Railway Stations along 12km Mainline Track
         const stations = [
             { id: 'PEN', name: 'Penkarn Central', trackDist: 450, platformSide: 'LEFT', stopBoardDist: 450 },
             { id: 'MIL', name: 'Millbridge Station', trackDist: 2800, platformSide: 'LEFT', stopBoardDist: 2800 },
@@ -625,7 +619,7 @@
         ];
 
         let signals = [];
-        let sceneryObjects = [];
+        const NPC_COLORS = [0xef4444, 0x3b82f6, 0x10b981, 0xf59e0b, 0x8b5cf6, 0xec4899];
 
         function showDialogue(txt) {
             const d = document.getElementById("dialogue-box");
@@ -642,6 +636,9 @@
 
         function updateWallet() {
             document.getElementById('cash-count').innerText = driverCash.toLocaleString();
+            document.getElementById('driver-lvl').innerText = driverLvl;
+            document.getElementById('driver-xp').innerText = driverXP;
+            document.getElementById('pax-count').innerText = totalBoardedPax;
         }
 
         function toggleDepot(force) {
@@ -699,7 +696,44 @@
             showDialogue(`📋 Timetable Activated: ${routeId}! Insert Master Key, close doors, and depart.`);
         }
 
-        // Procedural 3D Model Generator for British Railway Rolling Stock
+        // Create 3D Train Captain and NPC Model
+        function createPersonMesh(isCaptain = false, clothColor = 0x1e3a8a) {
+            const pGroup = new THREE.Group();
+            const skinMat = new THREE.MeshLambertMaterial({ color: 0xffdbac });
+            const clothMat = new THREE.MeshLambertMaterial({ color: isCaptain ? 0x0f172a : clothColor });
+
+            // Torso
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.3), clothMat);
+            torso.position.y = 0.6;
+            pGroup.add(torso);
+
+            // Head
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), skinMat);
+            head.position.y = 1.05;
+            pGroup.add(head);
+
+            if (isCaptain) {
+                // Captain's Hat
+                const cap = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.1, 0.36), new THREE.MeshLambertMaterial({ color: 0xfacc15 }));
+                cap.position.y = 1.25;
+                pGroup.add(cap);
+
+                // Driver arms on controls
+                const armL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.4, 0.12), clothMat);
+                armL.position.set(-0.3, 0.6, 0.2);
+                armL.rotation.x = -Math.PI / 4;
+                pGroup.add(armL);
+
+                const armR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.4, 0.12), clothMat);
+                armR.position.set(0.3, 0.6, 0.2);
+                armR.rotation.x = -Math.PI / 4;
+                pGroup.add(armR);
+            }
+
+            return pGroup;
+        }
+
+        // Procedural 3D Model Generator for Train & NPC Passengers
         function buildTrainModel() {
             if (trainGroup) scene.remove(trainGroup);
 
@@ -710,38 +744,54 @@
             const darkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
             const glassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.75 });
 
-            // Lead Power Car (Class 43 / 800 Wedge Nose)
+            // 1. Lead Locomotive / Cab
             const powerCar = new THREE.Group();
 
-            // Aerodynamic Wedge Cab Nose
+            // Nose
             const nose = new THREE.Mesh(new THREE.ConeGeometry(1.6, 5.5, 12), icYellow);
             nose.rotation.x = -Math.PI / 2;
             nose.position.set(0, 2.0, -11);
             powerCar.add(nose);
 
-            // Cab Windscreen Glass
+            // Windshield
             const windshield = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.9, 1.8), glassMat);
             windshield.position.set(0, 2.7, -9);
             powerCar.add(windshield);
 
-            // Main Car Body
+            // Cab Desk Interior
+            const desk = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.7, 1.2), metalGrey);
+            desk.position.set(0, 2.0, -8.2);
+            powerCar.add(desk);
+
+            // DMI Gauges in 3D Cab
+            const dmiScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.3), new THREE.MeshBasicMaterial({ color: 0x00f3ff }));
+            dmiScreen.position.set(0.4, 2.45, -8.0);
+            dmiScreen.rotation.x = -0.3;
+            powerCar.add(dmiScreen);
+
+            // Train Captain in Driver Seat
+            const captain = createPersonMesh(true);
+            captain.position.set(0.4, 1.4, -7.2);
+            powerCar.add(captain);
+
+            // Body
             const body = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.2, 22), brBlue);
             body.position.set(0, 2.3, 0);
             powerCar.add(body);
 
-            // Roof Air Horns & Exhaust Grilles
+            // Roof
             const roof = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 21), metalGrey);
             roof.position.set(0, 4.1, 0);
             powerCar.add(roof);
 
-            // Bogies & Steel Flanged Wheels
+            // Bogies
             [-6.5, 6.5].forEach(z => {
                 const bogie = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.6, 4.5), darkMat);
                 bogie.position.set(0, 0.5, z);
                 powerCar.add(bogie);
 
                 [-1.5, 1.5].forEach(wz => {
-                    const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 3.0, 12), metalGrey);
+                    const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 3.0, 10), metalGrey);
                     axle.rotation.z = Math.PI / 2;
                     axle.position.set(0, 0.5, z + wz);
                     powerCar.add(axle);
@@ -750,14 +800,14 @@
 
             trainGroup.add(powerCar);
 
-            // 3 Trailing Passenger Coaches (Mark 3 Coaches)
+            // 2. Trailing Passenger Coaches with Seated NPC Passengers
             for (let c = 1; c <= 3; c++) {
                 const coach = new THREE.Group();
                 const cBody = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.2, 22), brBlue);
                 cBody.position.set(0, 2.3, c * 23.5);
                 coach.add(cBody);
 
-                // Tinted Passenger Windows
+                // Windows & Seated NPC Passengers
                 for (let w = -8; w <= 8; w += 3.2) {
                     const winL = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.0), glassMat);
                     winL.position.set(-1.52, 2.5, c * 23.5 + w);
@@ -768,6 +818,22 @@
                     winR.position.set(1.52, 2.5, c * 23.5 + w);
                     winR.rotation.y = Math.PI / 2;
                     coach.add(winR);
+
+                    // Left & Right Seated NPC Passengers
+                    if (Math.random() > 0.25) {
+                        const colorL = NPC_COLORS[Math.floor(Math.random() * NPC_COLORS.length)];
+                        const paxL = createPersonMesh(false, colorL);
+                        paxL.position.set(-1.1, 1.3, c * 23.5 + w);
+                        paxL.scale.set(0.75, 0.75, 0.75);
+                        coach.add(paxL);
+                    }
+                    if (Math.random() > 0.25) {
+                        const colorR = NPC_COLORS[Math.floor(Math.random() * NPC_COLORS.length)];
+                        const paxR = createPersonMesh(false, colorR);
+                        paxR.position.set(1.1, 1.3, c * 23.5 + w);
+                        paxR.scale.set(0.75, 0.75, 0.75);
+                        coach.add(paxR);
+                    }
                 }
 
                 // Coach Bogies
@@ -783,27 +849,24 @@
             scene.add(trainGroup);
         }
 
-        // Build 12km Scenic Railway Infrastructure (Track, Overhead OLE Catenary, Stations, Bridges)
+        // Build 12km Scenic Railway Infrastructure with Platform NPC Crowd
         function buildRailwayWorld() {
             const trackMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9, roughness: 0.2 });
             const ballastMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.95 });
             const sleeperMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.9 });
 
-            // 1. Continuous Ballast Bed & Steel Rails
             for (let seg = 0; seg < 25; seg++) {
                 const zPos = seg * 500;
                 const ballast = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 520), ballastMat);
                 ballast.position.set(0, 0.2, zPos);
                 scene.add(ballast);
 
-                // Left & Right Running Rails (Standard Gauge 1435mm)
                 [-0.75, 0.75].forEach(rx => {
                     const rail = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.25, 520), trackMat);
                     rail.position.set(rx, 0.5, zPos);
                     scene.add(rail);
                 });
 
-                // Wooden Sleepers / Ties
                 for (let sl = -250; sl < 250; sl += 8) {
                     const sleeper = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.2, 1.2), sleeperMat);
                     sleeper.position.set(0, 0.35, zPos + sl);
@@ -811,7 +874,7 @@
                 }
             }
 
-            // 2. Overhead Line Equipment (OLE Catenary Mast Structures)
+            // OLE Catenary Mast Structures
             const mastMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.7 });
             for (let z = 0; z <= 12500; z += 120) {
                 const mastL = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 7, 6), mastMat);
@@ -827,11 +890,11 @@
                 scene.add(crossbeam);
             }
 
-            // 3. Multi-Aspect Colour Light Signals along Line
+            // Multi-Aspect Colour Light Signals
             const signalPositions = [350, 1800, 2600, 4200, 5200, 6800, 7600, 9400, 11600];
             signalPositions.forEach(sp => {
                 const sigGroup = new THREE.Group();
-                const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 6, 8), mastMat);
+                const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 6, 6), mastMat);
                 mast.position.y = 3;
                 sigGroup.add(mast);
 
@@ -839,7 +902,7 @@
                 head.position.set(0, 5.5, 0);
                 sigGroup.add(head);
 
-                const bulb = new THREE.Mesh(new THREE.CircleGeometry(0.2, 12), new THREE.MeshBasicMaterial({ color: 0x10b981 }));
+                const bulb = new THREE.Mesh(new THREE.CircleGeometry(0.2, 10), new THREE.MeshBasicMaterial({ color: 0x10b981 }));
                 bulb.position.set(0, 5.5, 0.26);
                 sigGroup.add(bulb);
 
@@ -848,40 +911,45 @@
                 signals.push({ group: sigGroup, bulb, dist: sp, aspect: 'GREEN' });
             });
 
-            // 4. Stations & Platforms with Stop Board Markers
+            // Stations & Platform Waiting Passengers
             const platMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
             const canopyMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4 });
 
             stations.forEach(st => {
                 const stGroup = new THREE.Group();
 
-                // Concrete High Platform (British Platform Height)
                 const platform = new THREE.Mesh(new THREE.BoxGeometry(6.0, 1.3, 240), platMat);
                 platform.position.set(-5.5, 0.65, 0);
                 stGroup.add(platform);
 
-                // Tactile Yellow Platform Edge Warning Line
                 const yellowEdge = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 240), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
                 yellowEdge.rotation.x = -Math.PI / 2;
                 yellowEdge.position.set(-2.7, 1.32, 0);
                 stGroup.add(yellowEdge);
 
-                // Canopy Roof Structure
                 const canopy = new THREE.Mesh(new THREE.BoxGeometry(7.0, 0.4, 160), canopyMat);
                 canopy.position.set(-5.5, 4.5, 0);
                 stGroup.add(canopy);
 
-                // Stop Board (3 / 8-Car Marker Board)
                 const stopBoard = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.1), new THREE.MeshBasicMaterial({ color: 0xffffff }));
                 stopBoard.position.set(-2.2, 1.8, 110);
                 stGroup.add(stopBoard);
+
+                // Waiting Platform Passengers
+                for (let p = -70; p <= 70; p += 18) {
+                    const color = NPC_COLORS[Math.floor(Math.random() * NPC_COLORS.length)];
+                    const platPax = createPersonMesh(false, color);
+                    platPax.position.set(-5.0 + (Math.random() - 0.5) * 1.5, 1.3, p);
+                    platPax.rotation.y = Math.PI / 2 + (Math.random() - 0.5) * 0.4;
+                    stGroup.add(platPax);
+                }
 
                 stGroup.position.set(0, 0, st.trackDist);
                 scene.add(stGroup);
             });
 
-            // 5. Brimmouth Landmark Suspension Rail Bridge (Z = 5100 to 5700)
-            const bridgeMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, metalness: 0.7, roughness: 0.3 }); // Iconic Red Steel
+            // Brimmouth Landmark Suspension Rail Bridge
+            const bridgeMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, metalness: 0.7, roughness: 0.3 });
             const pylonL = new THREE.Mesh(new THREE.BoxGeometry(4, 75, 4), bridgeMat);
             pylonL.position.set(-18, 35, 5400);
             scene.add(pylonL);
@@ -906,21 +974,19 @@
 
             camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 8000);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
             renderer.setSize(width, height);
-            renderer.shadowMap.enabled = true;
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
             renderer.domElement.id = "webgl-canvas";
             container.appendChild(renderer.domElement);
 
-            // Atmospheric Lighting
-            const ambient = new THREE.AmbientLight(0xffffff, 0.75);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.8);
             scene.add(ambient);
 
             const sun = new THREE.DirectionalLight(0xfffaed, 1.2);
             sun.position.set(500, 1000, 500);
             scene.add(sun);
 
-            // Rolling Countryside Terrain
             const grass = new THREE.Mesh(new THREE.PlaneGeometry(16000, 16000), new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.9 }));
             grass.rotation.x = -Math.PI / 2;
             grass.position.y = -0.1;
@@ -939,7 +1005,6 @@
             });
         }
 
-        // Setup Touch Controls for iPad & Mobile
         function setupTouchControls() {
             const track = document.getElementById("throttle-track");
             const thumb = document.getElementById("throttle-thumb");
@@ -950,7 +1015,6 @@
                 let ratio = 1 - ((clientY - rect.top) / rect.height);
                 ratio = Math.max(0, Math.min(1, ratio));
 
-                // Center Notch: 0.5 is Neutral, >0.5 is Power, <0.5 is Brake
                 if (ratio > 0.55) {
                     train.powerNotch = (ratio - 0.55) / 0.45;
                     train.brakeNotch = 0;
@@ -1018,6 +1082,16 @@
             if (train.doorsOpen) {
                 playDoorChime();
                 showDialogue("🚪 Passenger Doors Open! Passengers boarding/alighting.");
+
+                // Check if stopped at platform for passenger exchange
+                const currentStation = stations.find(s => Math.abs(s.stopBoardDist - train.distance) < 80);
+                if (currentStation) {
+                    const newBoarders = Math.floor(Math.random() * 12) + 8;
+                    totalBoardedPax += newBoarders;
+                    driverCash += newBoarders * 25;
+                    updateWallet();
+                    showDialogue(`👥 ${newBoarders} passengers boarded at ${currentStation.name}! (+£${newBoarders * 25})`);
+                }
             } else {
                 playDoorChime();
                 showDialogue("🚪 Doors Interlocked & Closed! Ready for guard buzz.");
@@ -1040,7 +1114,7 @@
 
         function cycleCameraMode() {
             cameraMode = (cameraMode + 1) % 4;
-            const names = ["CAB VIEW", "CHASE VIEW", "WINDOW VIEW", "FLYBY VIEW"];
+            const names = ["CAPTAIN VIEW", "CHASE VIEW", "WINDOW VIEW", "FLYBY VIEW"];
             document.getElementById("cam-mode-text").innerText = names[cameraMode];
             document.getElementById("val-cam").innerText = names[cameraMode].split(" ")[0];
             showDialogue(`🎥 Switched to ${names[cameraMode]}`);
@@ -1070,11 +1144,9 @@
             if (code === "KeyS" || code === "ArrowDown") keys.s = false;
         });
 
-        // Train Acceleration, Braking & Signal Physics Loop
         function updateTrainPhysics(dt) {
             if (!trainGroup) return;
 
-            // 1. Controls Adjustment
             if (train.masterKeyOn && !train.doorsOpen) {
                 if (keys.w) {
                     train.powerNotch = Math.min(1.0, train.powerNotch + dt * 0.45);
@@ -1086,7 +1158,6 @@
                 }
             }
 
-            // 2. Traction Force vs Braking & Resistances (Davis Formula: R = A + BV + CV^2)
             const speedMPS = train.speed;
             const tractiveForce = train.powerNotch * (train.maxTractionKW * 1000 / Math.max(8.0, speedMPS));
             const brakeForce = train.brakeNotch * (train.weight * 1.8);
@@ -1103,18 +1174,15 @@
             train.distance += train.speed * dt;
             train.speedMPH = Math.round(train.speed * 2.23694);
 
-            // 3. Signal & Station Assessment
             signals.forEach(sig => {
                 const distToSig = sig.dist - train.distance;
                 if (distToSig > 0 && distToSig < 80 && !train.awsSunflower && sig.aspect !== 'GREEN') {
-                    // Trigger AWS Sunflower & Warning Horn
                     train.awsSunflower = true;
                     train.awsWarningActive = true;
                     document.getElementById("hud-aws").style.display = "block";
                     playAWSBuzzer();
                 }
 
-                // SPAD Check (Signal Passed at Danger)
                 if (distToSig < 0 && distToSig > -15 && sig.aspect === 'RED') {
                     train.emergencyBrake = true;
                     train.powerNotch = 0;
@@ -1124,7 +1192,6 @@
                 }
             });
 
-            // Station Stops & Evaluation
             stations.forEach(st => {
                 const distToStop = st.stopBoardDist - train.distance;
                 if (Math.abs(distToStop) < 8.0 && train.speedMPH < 1 && train.speed > 0) {
@@ -1138,7 +1205,6 @@
                 }
             });
 
-            // Update 3D Train Position along Track
             trainGroup.position.set(0, 0, train.distance);
 
             updateTractionAudio(train.powerNotch, train.speed / 50, activeTrainType === 'Class755' || activeTrainType === 'Class800');
@@ -1150,27 +1216,26 @@
             document.getElementById("dmi-power").innerText = `${Math.round(train.powerNotch * 100)}%`;
             document.getElementById("dmi-brake").innerText = `${Math.round(train.brakeNotch * 100)}%`;
 
-            // Next station distance
             const nextSt = stations.find(s => s.trackDist > train.distance - 20) || stations[stations.length - 1];
             const distToNext = Math.max(0, Math.round(nextSt.trackDist - train.distance));
             document.getElementById("route-status").innerText = `${nextSt.name}`;
             document.getElementById("station-dist").innerText = `Distance: ${distToNext} m | Speed Limit: ${train.speedLimitMPH} MPH`;
         }
 
-        // Camera Update Logic
+        // Camera Logic including Front / Captain Cab POV
         function updateCamera() {
             if (!trainGroup) return;
 
             if (cameraMode === 0) {
-                // Cab Driver View
-                camera.position.set(0.65, 2.7, train.distance - 8.5);
-                camera.lookAt(0.65, 2.5, train.distance + 400);
+                // Front / Captain Driver View (Looking directly out windshield over desk)
+                camera.position.set(0.4, 2.7, train.distance - 7.5);
+                camera.lookAt(0.4, 2.3, train.distance + 350);
             } else if (cameraMode === 1) {
                 // Chase Follow Cam
                 camera.position.set(0, 7.5, train.distance - 38);
                 camera.lookAt(0, 2.8, train.distance + 20);
             } else if (cameraMode === 2) {
-                // Passenger Window View
+                // Passenger Carriage Window View
                 camera.position.set(-1.45, 2.4, train.distance + 28);
                 camera.lookAt(-45, 2.0, train.distance + 40);
             } else {
@@ -1187,23 +1252,19 @@
             const ctx = canvas.getContext("2d");
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Radar Disc
             ctx.fillStyle = "#09101d";
             ctx.beginPath(); ctx.arc(40, 40, 36, 0, Math.PI * 2); ctx.fill();
 
-            // Track Line
             ctx.strokeStyle = "#334155";
             ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(40, 6); ctx.lineTo(40, 74); ctx.stroke();
 
-            // Stations
             stations.forEach(st => {
                 const sy = 6 + (st.trackDist / 12000) * 68;
                 ctx.fillStyle = "#10b981";
                 ctx.fillRect(36, sy - 2, 8, 4);
             });
 
-            // Train Indicator
             const ty = 6 + (train.distance / 12000) * 68;
             ctx.fillStyle = "#00f3ff";
             ctx.beginPath(); ctx.arc(40, Math.min(74, ty), 3.5, 0, Math.PI * 2); ctx.fill();
