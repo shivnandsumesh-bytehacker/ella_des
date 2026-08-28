@@ -493,9 +493,9 @@
             vel: new THREE.Vector3(0, 0, 0),
             yaw: 0,
             pitch: 0,
-            speed: 7.2,
-            jumpForce: 9.2,
-            gravity: 24.0,
+            speed: 6.8,
+            jumpForce: 8.8,
+            gravity: 22.0,
             onGround: false,
             isFlying: false,
             width: 0.6,
@@ -749,8 +749,6 @@
                 generateProceduralTerrain();
                 showBanner("🌍 RETURNED TO OVERWORLD.");
             }
-            player.pos.set(0, 18, 0);
-            player.vel.set(0, 0, 0);
         }
 
         function getVoxelKey(x, y, z) {
@@ -857,11 +855,12 @@
                 }
             }
 
-            let highestGroundY = 10;
+            // Spawn player safely on top of block
+            let spawnGroundY = 10;
             for (let y = 25; y >= 0; y--) {
-                if (hasVoxel(0, y, 0)) { highestGroundY = y + 1.0 + player.eyeHeight; break; }
+                if (hasVoxel(0, y, 0)) { spawnGroundY = y; break; }
             }
-            player.pos.set(0, highestGroundY, 0);
+            player.pos.set(0, spawnGroundY + 0.5 + player.eyeHeight, 0);
             player.vel.set(0, 0, 0);
 
             const bCount = document.getElementById('block-count');
@@ -891,6 +890,7 @@
                     addBlock(x, height - 1, z, 'netherrack');
                 }
             }
+            player.pos.set(0, 15, 0);
             const bCount = document.getElementById('block-count');
             if (bCount) bCount.innerText = voxels.size;
         }
@@ -910,6 +910,7 @@
             [[-8, -8], [8, -8], [-8, 8], [8, 8]].forEach(p => {
                 for (let py = 8; py <= 18; py++) addBlock(p[0], py, p[1], 'obsidian');
             });
+            player.pos.set(0, 15, 0);
             const bCount = document.getElementById('block-count');
             if (bCount) bCount.innerText = voxels.size;
         }
@@ -1003,11 +1004,11 @@
         function spawnMob(type, x, z) {
             let groundY = 14;
             for (let y = 25; y >= 0; y--) {
-                if (hasVoxel(x, y, z)) { groundY = y + 1; break; }
+                if (hasVoxel(x, y, z)) { groundY = y; break; }
             }
 
             const mobRig = createAccurateMobMesh(type);
-            mobRig.root.position.set(x, groundY, z);
+            mobRig.root.position.set(x, groundY + 0.5, z);
             scene.add(mobRig.root);
 
             mobs.push({
@@ -1025,12 +1026,12 @@
 
         function init3D() {
             const container = document.getElementById("game-wrapper");
-            const w = container.clientWidth || window.innerWidth || 1280;
-            const h = container.clientHeight || window.innerHeight || 680;
+            const w = container.clientWidth || 1280;
+            const h = container.clientHeight || 680;
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x78a7ff);
-            scene.fog = new THREE.Fog(0x78a7ff, 28, 55);
+            scene.fog = new THREE.Fog(0x78a7ff, 28, 60);
 
             camera = new THREE.PerspectiveCamera(70, w / h, 0.1, 400);
             camera.rotation.order = 'YXZ';
@@ -1047,7 +1048,7 @@
             ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
             scene.add(ambientLight);
 
-            hemiLight = new THREE.HemisphereLight(0x78a7ff, 0x166534, 0.4);
+            hemiLight = new THREE.HemisphereLight(0x78a7ff, 0x166534, 0.45);
             scene.add(hemiLight);
 
             sunLight = new THREE.DirectionalLight(0xfffaed, 0.95);
@@ -1066,8 +1067,8 @@
             updateVitalsHUD();
 
             window.addEventListener('resize', () => {
-                const nw = container.clientWidth || window.innerWidth || 1280;
-                const nh = container.clientHeight || window.innerHeight || 680;
+                const nw = container.clientWidth || 1280;
+                const nh = container.clientHeight || 680;
                 camera.aspect = nw / nh;
                 camera.updateProjectionMatrix();
                 renderer.setSize(nw, nh);
@@ -1254,11 +1255,19 @@
                     const placeY = vy + Math.round(norm.y);
                     const placeZ = vz + Math.round(norm.z);
 
-                    const distToPlayer = Math.hypot(player.pos.x - placeX, player.pos.z - placeZ);
-                    const playerFeet = Math.floor(player.pos.y - player.eyeHeight);
-                    const playerHead = Math.floor(player.pos.y);
+                    // Prevent block placement inside player bounding box
+                    const minX = player.pos.x - player.width / 2;
+                    const maxX = player.pos.x + player.width / 2;
+                    const minY = player.pos.y - player.eyeHeight;
+                    const maxY = player.pos.y - player.eyeHeight + player.height;
+                    const minZ = player.pos.z - player.width / 2;
+                    const maxZ = player.pos.z + player.width / 2;
 
-                    if (distToPlayer < 0.75 && (placeY === playerFeet || placeY === playerHead)) return;
+                    if (placeX + 0.5 > minX && placeX - 0.5 < maxX &&
+                        placeY + 0.5 > minY && placeY - 0.5 < maxY &&
+                        placeZ + 0.5 > minZ && placeZ - 0.5 < maxZ) {
+                        return;
+                    }
 
                     addBlock(placeX, placeY, placeZ, selectedBlockId);
                     playVoxelSound('place');
@@ -1268,31 +1277,37 @@
             }
         }
 
-        function checkCollisionAt(box) {
-            const minX = Math.floor(box.minX);
-            const maxX = Math.floor(box.maxX);
-            const minY = Math.floor(box.minY);
-            const maxY = Math.floor(box.maxY);
-            const minZ = Math.floor(box.minZ);
-            const maxZ = Math.floor(box.maxZ);
+        // Exact Voxel AABB Intersection Math
+        function checkVoxelCollision(px, py, pz) {
+            const minX = px - player.width / 2;
+            const maxX = px + player.width / 2;
+            const minY = py - player.eyeHeight;
+            const maxY = py - player.eyeHeight + player.height;
+            const minZ = pz - player.width / 2;
+            const maxZ = pz + player.width / 2;
 
-            for (let x = minX; x <= maxX; x++) {
-                for (let y = minY; y <= maxY; y++) {
-                    for (let z = minZ; z <= maxZ; z++) {
-                        if (hasVoxel(x, y, z)) return true;
+            const bxMin = Math.floor(minX + 0.5);
+            const bxMax = Math.floor(maxX + 0.5);
+            const byMin = Math.floor(minY + 0.5);
+            const byMax = Math.floor(maxY + 0.5);
+            const bzMin = Math.floor(minZ + 0.5);
+            const bzMax = Math.floor(maxZ + 0.5);
+
+            for (let x = bxMin; x <= bxMax; x++) {
+                for (let y = byMin; y <= byMax; y++) {
+                    for (let z = bzMin; z <= bzMax; z++) {
+                        if (hasVoxel(x, y, z)) {
+                            // Exact box bounds test against [x - 0.5, x + 0.5]
+                            if (maxX > x - 0.5 && minX < x + 0.5 &&
+                                maxY > y - 0.5 && minY < y + 0.5 &&
+                                maxZ > z - 0.5 && minZ < z + 0.5) {
+                                return { hit: true, blockY: y };
+                            }
+                        }
                     }
                 }
             }
-            return false;
-        }
-
-        function getPlayerBox(x, y, z) {
-            const r = player.width / 2;
-            return {
-                minX: x - r, maxX: x + r,
-                minY: y - player.eyeHeight, maxY: y - player.eyeHeight + player.height - 0.05,
-                minZ: z - r, maxZ: z + r
-            };
+            return { hit: false };
         }
 
         function updatePhysics(dt) {
@@ -1317,37 +1332,43 @@
                 const dx = moveDir.x * player.speed * dt;
                 const dz = moveDir.z * player.speed * dt;
 
+                // Horizontal X Motion & Slide Collision
                 if (dx !== 0) {
-                    const targetBoxX = getPlayerBox(player.pos.x + dx, player.pos.y, player.pos.z);
-                    if (!checkCollisionAt(targetBoxX)) player.pos.x += dx;
+                    const hitX = checkVoxelCollision(player.pos.x + dx, player.pos.y, player.pos.z);
+                    if (!hitX.hit) player.pos.x += dx;
                 }
 
+                // Horizontal Z Motion & Slide Collision
                 if (dz !== 0) {
-                    const targetBoxZ = getPlayerBox(player.pos.x, player.pos.y, player.pos.z + dz);
-                    if (!checkCollisionAt(targetBoxZ)) player.pos.z += dz;
+                    const hitZ = checkVoxelCollision(player.pos.x, player.pos.y, player.pos.z + dz);
+                    if (!hitZ.hit) player.pos.z += dz;
                 }
 
+                // Gravity & Vertical Ground Collision
                 player.vel.y -= player.gravity * dt;
-                const dy = player.vel.y * dt;
-                const targetBoxY = getPlayerBox(player.pos.x, player.pos.y + dy, player.pos.z);
+                const newY = player.pos.y + player.vel.y * dt;
 
-                if (dy < 0) {
-                    if (checkCollisionAt(targetBoxY)) {
+                if (player.vel.y < 0) {
+                    const hitDown = checkVoxelCollision(player.pos.x, newY, player.pos.z);
+                    if (hitDown.hit) {
                         player.vel.y = 0;
                         player.onGround = true;
+                        player.pos.y = hitDown.blockY + 0.5 + player.eyeHeight;
                     } else {
-                        player.pos.y += dy;
+                        player.pos.y = newY;
                         player.onGround = false;
                     }
-                } else if (dy > 0) {
-                    if (checkCollisionAt(targetBoxY)) {
+                } else if (player.vel.y > 0) {
+                    const hitUp = checkVoxelCollision(player.pos.x, newY, player.pos.z);
+                    if (hitUp.hit) {
                         player.vel.y = 0;
                     } else {
-                        player.pos.y += dy;
+                        player.pos.y = newY;
                         player.onGround = false;
                     }
                 }
 
+                // Jump
                 if (keys.space && player.onGround) {
                     player.vel.y = player.jumpForce;
                     player.onGround = false;
@@ -1362,6 +1383,7 @@
             const posEl = document.getElementById('pos-display');
             if (posEl) posEl.innerText = `XYZ: ${Math.round(player.pos.x)}, ${Math.round(player.pos.y)}, ${Math.round(player.pos.z)}`;
 
+            // Hand Swing
             if (isSwinging && handGroup) {
                 swingTimer -= dt;
                 handGroup.rotation.x = 0.2 + Math.sin(swingTimer * 30) * 0.8;
@@ -1373,6 +1395,7 @@
                 }
             }
 
+            // Atmosphere
             worldTime = (worldTime + dt * 0.0035) % 1;
             const sunAngle = worldTime * Math.PI * 2;
             sunLight.position.set(Math.cos(sunAngle) * 80, Math.sin(sunAngle) * 80, 40);
@@ -1393,6 +1416,7 @@
                 }
             }
 
+            // Boss Dragon Flight
             if (bossEntity && bossEntity.alive) {
                 bossEntity.angle += dt * 0.6;
                 bossEntity.root.position.set(Math.cos(bossEntity.angle) * 14, 18 + Math.sin(bossEntity.angle * 2) * 2, Math.sin(bossEntity.angle) * 14);
@@ -1401,12 +1425,13 @@
                 bossEntity.wingR.rotation.z = -Math.sin(Date.now() * 0.008) * 0.6;
             }
 
+            // Mobs AI
             walkClock += dt * 6.0;
 
             mobs.forEach(m => {
                 if (!m.alive) return;
 
-                m.velY -= 24.0 * dt;
+                m.velY -= 22.0 * dt;
                 m.pos.y += m.velY * dt;
 
                 const mobFootY = Math.floor(m.pos.y);
@@ -1414,7 +1439,7 @@
                 const mobZ = Math.round(m.pos.z);
 
                 if (hasVoxel(mobX, mobFootY - 1, mobZ) || hasVoxel(mobX, mobFootY, mobZ)) {
-                    m.pos.y = mobFootY + 1;
+                    m.pos.y = mobFootY + 0.5;
                     m.velY = 0;
                 }
 
@@ -1455,6 +1480,7 @@
                 }
             });
 
+            // Particles Update
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.mesh.position.x += p.vx * dt;
