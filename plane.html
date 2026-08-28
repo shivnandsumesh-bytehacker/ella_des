@@ -485,7 +485,7 @@
     </div>
 
     <div class="controls-info">
-        <strong>Pitch / Elevator:</strong> [S] / [↓] Pull Up (Climb) | [W] / [↑] Push Down (Dive) &nbsp;|&nbsp; <strong>Roll / Turn:</strong> [A] / [←] Left | [D] / [→] Right &nbsp;|&nbsp; <strong>Rudder:</strong> [Q] / [E] &nbsp;|&nbsp; <strong>Brakes:</strong> [Space]
+        <strong>Pitch:</strong> [S] / [↓] Climb | [W] / [↑] Dive &nbsp;|&nbsp; <strong>Roll:</strong> [A] / [←] Left | [D] / [→] Right &nbsp;|&nbsp; <strong>Rudder:</strong> [Q] / [E] &nbsp;|&nbsp; <strong>Brakes:</strong> [Space]
     </div>
 
     <script>
@@ -522,7 +522,7 @@
             try {
                 const ctx = getAudioContext();
                 if (!ctx) return;
-                const bufferSize = ctx.sampleRate * 0.35;
+                const bufferSize = ctx.sampleRate * 0.25;
                 const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
@@ -536,8 +536,8 @@
                 filter.Q.value = 3;
 
                 const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.35, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
 
                 noise.connect(filter);
                 filter.connect(gain);
@@ -592,7 +592,6 @@
         let cameraMode = 0; // 0: Chase, 1: Cockpit, 2: Orbit
         let cameraZoom = 36.0;
         let activeJob = null, jobStage = 'NONE', boardedCount = 0;
-        let particles = [];
 
         // Flight Dynamics
         const aircraft = {
@@ -632,7 +631,7 @@
             { id: 'ISL', name: 'South Atoll Oceanic Island', x: -1800, z: 3500, rwyHdg: Math.PI / 2, rwyLen: 1250, gateX: -1800, gateZ: 3400 }
         ];
 
-        let waypoints = [], waypointMeshes = [], clouds = [];
+        let waypointMeshes = [];
 
         function showDialogue(txt) {
             const d = document.getElementById("dialogue-box");
@@ -738,7 +737,7 @@
 
         function buildRouteWaypoints(target) {
             waypointMeshes.forEach(w => scene.remove(w));
-            waypointMeshes = []; waypoints = [];
+            waypointMeshes = [];
             const start = aircraft.pos.clone();
             const end = new THREE.Vector3(target.x, 120, target.z);
 
@@ -746,10 +745,9 @@
                 const frac = i / 6;
                 const wpPos = new THREE.Vector3().lerpVectors(start, end, frac);
                 wpPos.y = 260 + Math.sin(i) * 120;
-                waypoints.push(wpPos);
 
                 const ring = new THREE.Mesh(
-                    new THREE.TorusGeometry(38, 2.5, 8, 24),
+                    new THREE.TorusGeometry(38, 2.5, 6, 16),
                     new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true })
                 );
                 ring.position.copy(wpPos);
@@ -759,23 +757,22 @@
             }
         }
 
-        // Procedural 3D Model Generator
+        // Procedural 3D Plane Generator
         function buildAircraftModel() {
             if (activePlaneMesh) scene.remove(activePlaneMesh);
             propMeshes = [];
 
             const planeGroup = new THREE.Group();
-            const bodyWhite = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.25, metalness: 0.2 });
-            const airlineBlue = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.35, metalness: 0.3 });
-            const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
-            const glassMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, metalness: 0.9 });
-            const engineChrome = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.2 });
+            const bodyWhite = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
+            const airlineBlue = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
+            const darkMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+            const engineChrome = new THREE.MeshLambertMaterial({ color: 0x94a3b8 });
 
             if (activePlaneType === 'A320') {
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.5, 42, 18), bodyWhite);
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.5, 42, 12), bodyWhite);
                 body.rotation.x = Math.PI / 2; body.position.y = 3.5; planeGroup.add(body);
 
-                const nose = new THREE.Mesh(new THREE.ConeGeometry(2.6, 7.5, 18), bodyWhite);
+                const nose = new THREE.Mesh(new THREE.ConeGeometry(2.6, 7.5, 12), bodyWhite);
                 nose.rotation.x = -Math.PI / 2; nose.position.set(0, 3.5, -24.5); planeGroup.add(nose);
 
                 const mask = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.2, 4), new THREE.MeshBasicMaterial({ color: 0x000000 }));
@@ -788,24 +785,24 @@
                 wingR.position.set(13, 3.2, -1); wingR.rotation.y = 0.3; planeGroup.add(wingR);
 
                 [-6.8, 6.8].forEach(x => {
-                    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.3, 7, 14), engineChrome);
+                    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.3, 7, 10), engineChrome);
                     nacelle.rotation.x = Math.PI / 2; nacelle.position.set(x, 1.9, -2); planeGroup.add(nacelle);
                 });
 
                 const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.4, 8.5, 6), airlineBlue);
                 vTail.position.set(0, 8.5, 18); vTail.rotation.x = -0.4; planeGroup.add(vTail);
             } else if (activePlaneType === 'Q400') {
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.5, 36, 14), bodyWhite);
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.5, 36, 10), bodyWhite);
                 body.rotation.x = Math.PI / 2; body.position.y = 3.0; planeGroup.add(body);
 
-                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.6, 5, 14), bodyWhite);
+                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.6, 5, 10), bodyWhite);
                 nose.rotation.x = -Math.PI / 2; nose.position.set(0, 3.0, -20.5); planeGroup.add(nose);
 
                 const wing = new THREE.Mesh(new THREE.BoxGeometry(26, 0.4, 4), airlineBlue);
                 wing.position.set(0, 4.5, -2); planeGroup.add(wing);
 
                 [-5.5, 5.5].forEach(x => {
-                    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.8, 5.5, 10), darkMat);
+                    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.8, 5.5, 8), darkMat);
                     nacelle.rotation.x = Math.PI / 2; nacelle.position.set(x, 3.8, -3.5); planeGroup.add(nacelle);
 
                     const prop = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.2, 0.2), darkMat);
@@ -816,10 +813,10 @@
                 const vTail = new THREE.Mesh(new THREE.BoxGeometry(0.35, 6.5, 4), airlineBlue);
                 vTail.position.set(0, 6.5, 15); vTail.rotation.x = -0.3; planeGroup.add(vTail);
             } else if (activePlaneType === 'P51') {
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.0, 16, 12), darkMat);
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.0, 16, 10), darkMat);
                 body.rotation.x = Math.PI / 2; body.position.y = 2.0; planeGroup.add(body);
 
-                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3.5, 12), darkMat);
+                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3.5, 10), darkMat);
                 nose.rotation.x = -Math.PI / 2; nose.position.set(0, 2.0, -9.5); planeGroup.add(nose);
 
                 const wing = new THREE.Mesh(new THREE.BoxGeometry(16, 0.25, 3.2), airlineBlue);
@@ -829,7 +826,7 @@
                 prop.position.set(0, 2.0, -11.5); planeGroup.add(prop);
                 propMeshes.push(prop);
             } else if (activePlaneType === 'F22') {
-                const body = new THREE.Mesh(new THREE.ConeGeometry(1.6, 22, 12), darkMat);
+                const body = new THREE.Mesh(new THREE.ConeGeometry(1.6, 22, 8), darkMat);
                 body.rotation.x = -Math.PI / 2; body.position.set(0, 2.2, -4); planeGroup.add(body);
 
                 const wings = new THREE.Mesh(new THREE.BoxGeometry(14, 0.25, 6), darkMat);
@@ -840,17 +837,17 @@
                     fin.position.set(x, 4.2, 5); fin.rotation.z = idx === 0 ? 0.3 : -0.3; planeGroup.add(fin);
                 });
             } else {
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.3, 17, 14), bodyWhite);
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.3, 17, 10), bodyWhite);
                 body.rotation.x = Math.PI / 2; body.position.y = 2.4; planeGroup.add(body);
 
-                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.4, 4, 14), bodyWhite);
+                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.4, 4, 10), bodyWhite);
                 nose.rotation.x = -Math.PI / 2; nose.position.set(0, 2.4, -10); planeGroup.add(nose);
 
                 const wing = new THREE.Mesh(new THREE.BoxGeometry(20, 0.35, 3.4), airlineBlue);
                 wing.position.set(0, 2.4, -1.5); planeGroup.add(wing);
 
                 [-4.4, 4.4].forEach(x => {
-                    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.65, 3.5, 10), darkMat);
+                    const nacelle = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.65, 3.5, 8), darkMat);
                     nacelle.rotation.x = Math.PI / 2; nacelle.position.set(x, 2.4, -2.5); planeGroup.add(nacelle);
 
                     const prop = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.18, 0.2), darkMat);
@@ -865,27 +862,26 @@
                 hTail.position.set(0, 6.8, 7.8); planeGroup.add(hTail);
             }
 
-            const gearL = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2.4), darkMat);
+            const gearL = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2.4, 6), darkMat);
             gearL.position.set(-3.5, 1.2, 1); planeGroup.add(gearL);
 
-            const gearR = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2.4), darkMat);
+            const gearR = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2.4, 6), darkMat);
             gearR.position.set(3.5, 1.2, 1); planeGroup.add(gearR);
 
-            const gearNose = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 2.4), darkMat);
+            const gearNose = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 2.4, 6), darkMat);
             gearNose.position.set(0, 1.2, -14); planeGroup.add(gearNose);
 
             activePlaneMesh = planeGroup;
             scene.add(activePlaneMesh);
         }
 
-        // Build International Airfields
         function buildWorldAirports() {
             airports.forEach(apt => {
                 const aptGroup = new THREE.Group();
 
                 const runway = new THREE.Mesh(
                     new THREE.BoxGeometry(75, 0.4, apt.rwyLen),
-                    new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 })
+                    new THREE.MeshLambertMaterial({ color: 0x1e293b })
                 );
                 aptGroup.add(runway);
 
@@ -894,26 +890,15 @@
                     stripe.rotation.x = -Math.PI / 2; stripe.position.set(0, 0.25, s); aptGroup.add(stripe);
                 }
 
-                for (let l = -apt.rwyLen / 2; l <= apt.rwyLen / 2; l += 50) {
-                    const lightL = new THREE.Mesh(new THREE.SphereGeometry(0.45, 6, 6), new THREE.MeshBasicMaterial({ color: 0xfffaed }));
-                    lightL.position.set(-39, 0.6, l); aptGroup.add(lightL);
-
-                    const lightR = new THREE.Mesh(new THREE.SphereGeometry(0.45, 6, 6), new THREE.MeshBasicMaterial({ color: 0xfffaed }));
-                    lightR.position.set(39, 0.6, l); aptGroup.add(lightR);
-                }
-
-                const termMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.7 });
+                const termMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
                 const terminal = new THREE.Mesh(new THREE.BoxGeometry(110, 14, 55), termMat);
                 terminal.position.set(105, 7, -60); aptGroup.add(terminal);
 
-                const tower = new THREE.Mesh(new THREE.CylinderGeometry(5, 7, 36, 12), termMat);
+                const tower = new THREE.Mesh(new THREE.CylinderGeometry(5, 7, 36, 8), termMat);
                 tower.position.set(145, 18, 30); aptGroup.add(tower);
 
-                const towerCab = new THREE.Mesh(new THREE.CylinderGeometry(8, 6, 9, 12), new THREE.MeshBasicMaterial({ color: 0x00f3ff }));
-                towerCab.position.set(145, 36, 30); aptGroup.add(towerCab);
-
                 const gateZone = new THREE.Mesh(
-                    new THREE.RingGeometry(14, 16, 24),
+                    new THREE.RingGeometry(14, 16, 16),
                     new THREE.MeshBasicMaterial({ color: 0x10b981, side: THREE.DoubleSide })
                 );
                 gateZone.rotation.x = -Math.PI / 2;
@@ -926,19 +911,20 @@
             });
         }
 
-        // Floating 3D Cloud Layers
+        // Optimized Cloud Layer
         function spawnVolumetricClouds() {
-            const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, transparent: true, opacity: 0.85 });
-            for (let i = 0; i < 70; i++) {
+            const cloudGeo = new THREE.DodecahedronGeometry(45);
+            const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+
+            for (let i = 0; i < 20; i++) {
                 const cloudGroup = new THREE.Group();
-                for (let b = 0; b < 5; b++) {
-                    const puff = new THREE.Mesh(new THREE.DodecahedronGeometry(50 + Math.random() * 60), cloudMat);
-                    puff.position.set((b - 2) * 45, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 35);
+                for (let b = 0; b < 3; b++) {
+                    const puff = new THREE.Mesh(cloudGeo, cloudMat);
+                    puff.position.set((b - 1) * 40, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 30);
                     cloudGroup.add(puff);
                 }
-                cloudGroup.position.set((Math.random() - 0.5) * 12000, 600 + Math.random() * 800, (Math.random() - 0.5) * 12000);
+                cloudGroup.position.set((Math.random() - 0.5) * 10000, 550 + Math.random() * 500, (Math.random() - 0.5) * 10000);
                 scene.add(cloudGroup);
-                clouds.push(cloudGroup);
             }
         }
 
@@ -949,29 +935,29 @@
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0284c7);
-            scene.fog = new THREE.FogExp2(0x0284c7, 0.00018);
+            scene.fog = new THREE.Fog(0x0284c7, 1000, 9500);
 
-            camera = new THREE.PerspectiveCamera(60, width / height, 0.5, 30000);
+            camera = new THREE.PerspectiveCamera(60, width / height, 0.5, 10000);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
             renderer.setSize(width, height);
-            renderer.shadowMap.enabled = true;
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
             renderer.domElement.id = "webgl-canvas";
             container.appendChild(renderer.domElement);
 
-            ambientLight = new THREE.AmbientLight(0xffffff, 0.75); scene.add(ambientLight);
-            hemiLight = new THREE.HemisphereLight(0xbae6fd, 0x1e3a1e, 0.6); scene.add(hemiLight);
-            sunLight = new THREE.DirectionalLight(0xfffaed, 1.3); sunLight.position.set(1200, 2400, 800); scene.add(sunLight);
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.85); scene.add(ambientLight);
+            sunLight = new THREE.DirectionalLight(0xfffaed, 1.1); sunLight.position.set(800, 1600, 600); scene.add(sunLight);
 
-            const ocean = new THREE.Mesh(new THREE.PlaneGeometry(24000, 24000), new THREE.MeshStandardMaterial({ color: 0x0369a1, roughness: 0.15 }));
+            const ocean = new THREE.Mesh(new THREE.PlaneGeometry(18000, 18000), new THREE.MeshLambertMaterial({ color: 0x0369a1 }));
             ocean.rotation.x = -Math.PI / 2; ocean.position.y = -1; scene.add(ocean);
 
-            for (let i = 0; i < 40; i++) {
-                const angle = (i / 40) * Math.PI * 2;
-                const dist = 5500 + Math.random() * 2000;
+            const islandMat = new THREE.MeshLambertMaterial({ color: 0x15803d });
+            for (let i = 0; i < 24; i++) {
+                const angle = (i / 24) * Math.PI * 2;
+                const dist = 5000 + Math.random() * 1500;
                 const island = new THREE.Mesh(
-                    new THREE.ConeGeometry(250 + Math.random() * 350, 450 + Math.random() * 600, 8),
-                    new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.9 })
+                    new THREE.ConeGeometry(250 + Math.random() * 300, 450 + Math.random() * 400, 6),
+                    islandMat
                 );
                 island.position.set(Math.cos(angle) * dist, 120, Math.sin(angle) * dist);
                 scene.add(island);
@@ -991,7 +977,6 @@
             });
         }
 
-        // Touch & Zoom Controls Setup (iPad & Laptop optimized)
         function setupTouchControls() {
             const track = document.getElementById("throttle-track");
             const thumb = document.getElementById("throttle-thumb");
@@ -1030,11 +1015,6 @@
                 joyStick.style.left = `${41 + dx}px`;
                 joyStick.style.top = `${41 + dy}px`;
 
-                // Non-inverted controls:
-                // Drag Left (dx < 0) -> Turn Left (-1)
-                // Drag Right (dx > 0) -> Turn Right (+1)
-                // Drag Down (dy > 0) -> Pull Stick Down (Climb Up: +1)
-                // Drag Up (dy < 0) -> Push Stick Up (Dive Down: -1)
                 aircraft.rollInput = (dx / maxR);
                 aircraft.pitchInput = (dy / maxR);
             }
@@ -1049,7 +1029,6 @@
                 aircraft.pitchInput = 0;
             });
 
-            // Rudder buttons
             const btnRL = document.getElementById("btn-rudder-l");
             const btnRR = document.getElementById("btn-rudder-r");
             btnRL.addEventListener("touchstart", e => { e.preventDefault(); aircraft.yawInput = -1; });
@@ -1163,11 +1142,10 @@
             if (code === "Space") { aircraft.brakes = false; }
         });
 
-        // Flight Aerodynamics Loop
+        // 60FPS Flight Physics
         function updateFlightPhysics(dt) {
             if (!activePlaneMesh) return;
 
-            // Throttle handling
             if (aircraft.engineOn) {
                 if ((keys.w || keys.up) && aircraft.onGround && aircraft.airspeed < 45) {
                     aircraft.throttle = Math.min(1.0, aircraft.throttle + dt * 0.45);
@@ -1195,26 +1173,21 @@
 
             const controlAuth = Math.min(1.0, Math.max(0.15, aircraft.airspeed / 55));
 
-            // Pitch input: S / Down = Climb (pull up, +pitch), W / Up = Dive (push down, -pitch)
-            let pIn = aircraft.pitchInput; // Touch joystick (+1 climb, -1 dive)
+            let pIn = aircraft.pitchInput;
             if (keys.down || keys.s) pIn = 1.0;
             if (keys.up || keys.w) pIn = -1.0;
 
-            // Roll input: A / Left = Bank Left (-roll), D / Right = Bank Right (+roll)
-            let rIn = aircraft.rollInput; // Touch joystick (-1 left, +1 right)
+            let rIn = aircraft.rollInput;
             if (keys.a || keys.left) rIn = -1.0;
             if (keys.d || keys.right) rIn = 1.0;
 
-            // Yaw input: Q = Left (-yaw), E = Right (+yaw)
             let yIn = aircraft.yawInput;
             if (keys.q) yIn = -1.0;
             if (keys.e && !keys.w) yIn = 1.0;
 
-            // Pitch physics
             aircraft.pitch += pIn * 1.35 * controlAuth * dt;
             aircraft.pitch *= 0.96;
 
-            // Roll physics (Bank left tilts left, Bank right tilts right)
             if (!aircraft.onGround) {
                 aircraft.roll += rIn * 1.8 * controlAuth * dt;
                 aircraft.roll *= 0.92;
@@ -1222,13 +1195,9 @@
                 aircraft.roll *= 0.75;
             }
 
-            // Yaw physics (Turns left/right directly in yaw)
             aircraft.yaw += yIn * (aircraft.onGround ? 1.2 : 0.6) * dt;
             aircraft.yaw *= 0.88;
 
-            // Euler Rotation: In Three.js forward = -Z.
-            // Bank Left (rIn < 0) -> roll < 0 -> rot.z should dip left wing (+Z in 3js coordinates).
-            // Turning Left adds +rot.y so nose heads Left towards -X.
             aircraft.rot.y += (-aircraft.yaw * dt) - (aircraft.roll * 0.5 * controlAuth * dt);
             aircraft.rot.x = Math.max(-0.65, Math.min(0.75, aircraft.pitch));
             aircraft.rot.z = -aircraft.roll;
@@ -1248,7 +1217,6 @@
             aircraft.pos.z += fwd.z * dt;
             aircraft.pos.y += (climbComponent + aircraft.vel.y * 0.35) * dt;
 
-            // Stall detection
             const stallWarnEl = document.getElementById("stall-warning");
             if (!aircraft.onGround && aircraft.airspeed < aircraft.stallSpeed && aircraft.altitude > 40) {
                 stallWarnEl.style.display = "block";
@@ -1257,7 +1225,6 @@
                 stallWarnEl.style.display = "none";
             }
 
-            // Ground collision
             if (aircraft.pos.y <= 3.2) {
                 const touchdownFPM = (aircraft.vel.y + climbComponent) * 60 * 3.28;
                 if (!aircraft.onGround && touchdownFPM < -40) {
