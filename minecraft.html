@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minecraft 3D - High-Definition Voxel Edition</title>
+    <title>Minecraft 3D - Expanded World & Mob Edition</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -343,7 +343,7 @@
         <div class="hud-top-left">
             <div class="hud-panel">
                 <div id="pos-display" style="color:#facc15; font-family:monospace;">XYZ: 0, 18, 0</div>
-                <div id="biome-display" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Biome: Plains Valley</div>
+                <div id="biome-display" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Biome: Plains Valley (Expanded World)</div>
             </div>
         </div>
 
@@ -517,7 +517,7 @@
 
         const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 
-        // High-Quality Procedural Texture Generator with Nearest-Neighbor Filtering
+        // Minecraft 16x16 Pixel Texture Generators
         function generatePixelTexture(type) {
             const canvas = document.createElement('canvas');
             canvas.width = 16;
@@ -591,6 +591,26 @@
                 fillRandomNoise(228, 230, 168, 30);
             } else if (type === 'obsidian') {
                 fillRandomNoise(24, 16, 42, 25);
+            } else if (type === 'portal') {
+                fillRandomNoise(147, 51, 234, 40);
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillRect(4, 4, 8, 8);
+            } else if (type === 'creeper_face') {
+                fillRandomNoise(55, 175, 55, 35);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(2, 3, 3, 3); ctx.fillRect(11, 3, 3, 3);
+                ctx.fillRect(6, 6, 4, 5); ctx.fillRect(4, 8, 2, 6); ctx.fillRect(10, 8, 2, 6);
+            } else if (type === 'zombie_face') {
+                fillRandomNoise(65, 135, 65, 25);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(3, 4, 3, 2); ctx.fillRect(10, 4, 3, 2);
+                ctx.fillStyle = '#1e293b'; ctx.fillRect(5, 10, 6, 2);
+            } else if (type === 'pig_skin') {
+                fillRandomNoise(244, 114, 182, 25);
+            } else if (type === 'pig_face') {
+                fillRandomNoise(244, 114, 182, 20);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(2, 5, 2, 2); ctx.fillRect(12, 5, 2, 2);
             }
 
             const tex = new THREE.CanvasTexture(canvas);
@@ -647,30 +667,31 @@
             blockMaterials['netherrack'] = createCubeMaterial('netherrack');
             blockMaterials['end_stone'] = createCubeMaterial('end_stone');
             blockMaterials['obsidian'] = createCubeMaterial('obsidian');
+            blockMaterials['portal'] = createCubeMaterial('portal', true, 0.75);
         }
 
         function buildSkyElements() {
-            sunMesh = new THREE.Mesh(new THREE.BoxGeometry(16, 16, 1), new THREE.MeshBasicMaterial({ color: 0xfffaed }));
+            sunMesh = new THREE.Mesh(new THREE.BoxGeometry(18, 18, 1), new THREE.MeshBasicMaterial({ color: 0xfffaed }));
             scene.add(sunMesh);
 
-            moonMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 14, 1), new THREE.MeshBasicMaterial({ color: 0xf8fafc }));
+            moonMesh = new THREE.Mesh(new THREE.BoxGeometry(15, 15, 1), new THREE.MeshBasicMaterial({ color: 0xf8fafc }));
             scene.add(moonMesh);
 
             const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
-            const cloudGeo = new THREE.BoxGeometry(8, 2.5, 8);
-            for (let c = 0; c < 24; c++) {
+            const cloudGeo = new THREE.BoxGeometry(10, 2.5, 10);
+            for (let c = 0; c < 36; c++) {
                 const cloudGroup = new THREE.Group();
                 for (let b = 0; b < 4; b++) {
                     const puff = new THREE.Mesh(cloudGeo, cloudMat);
-                    puff.position.set((b - 1.5) * 6, (Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 6);
+                    puff.position.set((b - 1.5) * 8, (Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 8);
                     cloudGroup.add(puff);
                 }
-                cloudGroup.position.set((Math.random() - 0.5) * 160, 28 + Math.random() * 4, (Math.random() - 0.5) * 160);
+                cloudGroup.position.set((Math.random() - 0.5) * 240, 32 + Math.random() * 4, (Math.random() - 0.5) * 240);
                 scene.add(cloudGroup);
             }
 
             const outlineGeo = new THREE.BoxGeometry(1.002, 1.002, 1.002);
-            const outlineMat = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true, transparent: true, opacity: 0.6 });
+            const outlineMat = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true, transparent: true, opacity: 0.65 });
             blockOutline = new THREE.Mesh(outlineGeo, outlineMat);
             blockOutline.visible = false;
             scene.add(blockOutline);
@@ -756,10 +777,11 @@
 
             if (dim === 'NETHER') {
                 if (dimEl) { dimEl.innerText = "The Nether"; dimEl.style.color = "var(--accent)"; }
-                if (bioEl) bioEl.innerText = "Biome: Nether Wastes";
+                if (bioEl) bioEl.innerText = "Biome: Nether Wastes & Fortresses";
                 scene.background.setHex(0x330000);
                 scene.fog.color.setHex(0x330000);
                 generateNetherWorld();
+                spawnMob('BLAZE', 6, 6);
                 spawnMob('ZOMBIE', -8, -8);
                 showBanner("🌋 ENTERED THE NETHER!");
             } else if (dim === 'THE_END') {
@@ -769,10 +791,12 @@
                 scene.fog.color.setHex(0x0a0518);
                 generateEndWorld();
                 spawnEnderDragon();
+                spawnMob('ENDERMAN', 6, 6);
+                spawnMob('ENDERMAN', -6, -6);
                 showBanner("🌌 ENTERED THE END - SLAY THE DRAGON!");
             } else {
                 if (dimEl) { dimEl.innerText = "Overworld"; dimEl.style.color = "var(--primary)"; }
-                if (bioEl) bioEl.innerText = "Biome: Plains Valley";
+                if (bioEl) bioEl.innerText = "Biome: Plains Valley (Expanded World)";
                 scene.background.setHex(0x78a7ff);
                 scene.fog.color.setHex(0x78a7ff);
                 generateProceduralTerrain();
@@ -820,7 +844,7 @@
         function explodeTNT(cx, cy, cz) {
             playVoxelSound('explode');
             showBanner("💥 TNT EXPLODED!");
-            const RADIUS = 3.5;
+            const RADIUS = 3.8;
             for (let x = cx - 4; x <= cx + 4; x++) {
                 for (let y = cy - 4; y <= cy + 4; y++) {
                     for (let z = cz - 4; z <= cz + 4; z++) {
@@ -831,8 +855,8 @@
                 }
             }
             const dist = player.pos.distanceTo(new THREE.Vector3(cx, cy, cz));
-            if (dist < 6) {
-                player.health = Math.max(0, player.health - Math.round((6 - dist) * 3.5));
+            if (dist < 6.5) {
+                player.health = Math.max(0, player.health - Math.round((6.5 - dist) * 3.8));
                 updateVitalsHUD();
                 playVoxelSound('hurt');
             }
@@ -866,23 +890,32 @@
             if (xpLvl) xpLvl.innerText = player.level;
         }
 
+        // Expanded 36x36 Voxel Terrain Generator
         function generateProceduralTerrain() {
-            const R = 18;
+            const R = 32;
             for (let x = -R; x <= R; x++) {
                 for (let z = -R; z <= R; z++) {
                     const height = Math.floor(
-                        Math.sin(x * 0.2) * 2.5 +
-                        Math.cos(z * 0.2) * 2.5 + 8
+                        Math.sin(x * 0.15) * 3.2 +
+                        Math.cos(z * 0.15) * 3.2 +
+                        Math.sin(x * 0.05 + z * 0.05) * 4.0 + 8
                     );
 
                     addBlock(x, height, z, 2);
                     addBlock(x, height - 1, z, 3);
 
-                    if (x % 7 === 0 && z % 7 === 0 && Math.random() < 0.6 && (Math.abs(x) > 3 || Math.abs(z) > 3)) {
+                    if (x % 8 === 0 && z % 8 === 0 && Math.random() < 0.65 && (Math.abs(x) > 3 || Math.abs(z) > 3)) {
                         spawnOakTree(x, height + 1, z);
                     }
                 }
             }
+
+            // Construct 4x5 Physical Nether Portal at (8, y, 8)
+            let portalGroundY = 10;
+            for (let y = 25; y >= 0; y--) {
+                if (hasVoxel(8, y, 8)) { portalGroundY = y + 1; break; }
+            }
+            buildNetherPortalFrame(8, portalGroundY, 8);
 
             let spawnGroundY = 10;
             for (let y = 25; y >= 0; y--) {
@@ -895,12 +928,25 @@
             if (bCount) bCount.innerText = voxels.size;
         }
 
+        function buildNetherPortalFrame(px, py, pz) {
+            for (let x = -1; x <= 2; x++) {
+                addBlock(px + x, py, pz, 'obsidian');
+                addBlock(px + x, py + 4, pz, 'obsidian');
+            }
+            for (let y = 1; y <= 3; y++) {
+                addBlock(px - 1, py + y, pz, 'obsidian');
+                addBlock(px + 2, py + y, pz, 'obsidian');
+                addBlock(px, py + y, pz, 'portal');
+                addBlock(px + 1, py + y, pz, 'portal');
+            }
+        }
+
         function spawnOakTree(baseX, baseY, baseZ) {
-            for (let ty = 0; ty < 4; ty++) addBlock(baseX, baseY + ty, baseZ, 7);
+            for (let ty = 0; ty < 5; ty++) addBlock(baseX, baseY + ty, baseZ, 7);
             for (let lx = -2; lx <= 2; lx++) {
                 for (let lz = -2; lz <= 2; lz++) {
-                    for (let ly = 3; ly <= 4; ly++) {
-                        if (Math.abs(lx) === 2 && Math.abs(lz) === 2) continue;
+                    for (let ly = 3; ly <= 5; ly++) {
+                        if (Math.abs(lx) === 2 && Math.abs(lz) === 2 && ly === 5) continue;
                         if (!hasVoxel(baseX + lx, baseY + ly, baseZ + lz)) {
                             addBlock(baseX + lx, baseY + ly, baseZ + lz, 'leaves');
                         }
@@ -910,10 +956,10 @@
         }
 
         function generateNetherWorld() {
-            const R = 16;
+            const R = 24;
             for (let x = -R; x <= R; x++) {
                 for (let z = -R; z <= R; z++) {
-                    const height = Math.floor(Math.sin(x * 0.2) * 3.0 + 6);
+                    const height = Math.floor(Math.sin(x * 0.18) * 3.5 + 6);
                     addBlock(x, height, z, 'netherrack');
                     addBlock(x, height - 1, z, 'netherrack');
                 }
@@ -924,46 +970,173 @@
         }
 
         function generateEndWorld() {
-            const R = 16;
+            const R = 22;
             for (let x = -R; x <= R; x++) {
                 for (let z = -R; z <= R; z++) {
                     const dist = Math.hypot(x, z);
-                    if (dist < 15) {
-                        const height = Math.floor(8 - (dist * 0.3));
+                    if (dist < 18) {
+                        const height = Math.floor(9 - (dist * 0.28));
                         addBlock(x, height, z, 'end_stone');
                         addBlock(x, height - 1, z, 'end_stone');
                     }
                 }
             }
-            [[-8, -8], [8, -8], [-8, 8], [8, 8]].forEach(p => {
-                for (let py = 8; py <= 18; py++) addBlock(p[0], py, p[1], 'obsidian');
+            [[-10, -10], [10, -10], [-10, 10], [10, 10]].forEach(p => {
+                for (let py = 8; py <= 20; py++) addBlock(p[0], py, p[1], 'obsidian');
             });
             player.pos.set(0, 15, 0);
             const bCount = document.getElementById('block-count');
             if (bCount) bCount.innerText = voxels.size;
         }
 
+        // Authentic Mob Mesh Rigs
+        function createAccurateMobMesh(type) {
+            const root = new THREE.Group();
+            let limbs = { legs: [], arms: [], rods: [], head: null };
+
+            if (type === 'CREEPER') {
+                const headMat = new THREE.MeshLambertMaterial({ map: generatePixelTexture('creeper_face').texture });
+                const bodyMat = new THREE.MeshLambertMaterial({ map: generatePixelTexture('grass_top').texture });
+
+                // Head
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), headMat);
+                head.position.y = 1.65; root.add(head);
+
+                // Body
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.0, 0.4), bodyMat);
+                body.position.y = 0.85; root.add(body);
+
+                // 4 Legs
+                [[-0.22, 0.22], [0.22, 0.22], [-0.22, -0.22], [0.22, -0.22]].forEach(lo => {
+                    const lp = new THREE.Group(); lp.position.set(lo[0], 0.35, lo[1]);
+                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.3), bodyMat);
+                    leg.position.y = -0.2; lp.add(leg); root.add(lp); limbs.legs.push(lp);
+                });
+            } else if (type === 'ZOMBIE') {
+                const headMat = new THREE.MeshLambertMaterial({ map: generatePixelTexture('zombie_face').texture });
+                const skinMat = new THREE.MeshLambertMaterial({ color: 0x3b7a3b });
+                const shirtMat = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
+                const pantsMat = new THREE.MeshLambertMaterial({ color: 0x3730a3 });
+
+                // Head
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), headMat);
+                head.position.y = 1.95; root.add(head);
+
+                // Body
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.75, 1.05, 0.4), shirtMat);
+                body.position.y = 1.15; root.add(body);
+
+                // Outstretched Arms
+                [-0.5, 0.5].forEach(ax => {
+                    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.0, 0.35), skinMat);
+                    arm.position.set(ax, 1.6, -0.5); arm.rotation.x = -Math.PI / 2; root.add(arm);
+                });
+
+                // Legs
+                [-0.2, 0.2].forEach(lx => {
+                    const lp = new THREE.Group(); lp.position.set(lx, 0.6, 0);
+                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.1, 0.35), pantsMat);
+                    leg.position.y = -0.55; lp.add(leg); root.add(lp); limbs.legs.push(lp);
+                });
+            } else if (type === 'PIG') {
+                const skinMat = new THREE.MeshLambertMaterial({ map: generatePixelTexture('pig_skin').texture });
+                const headMat = new THREE.MeshLambertMaterial({ map: generatePixelTexture('pig_face').texture });
+
+                // Body
+                const body = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.8, 1.4), skinMat);
+                body.position.y = 0.8; root.add(body);
+
+                // Head
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), headMat);
+                head.position.set(0, 1.0, 0.8); root.add(head);
+
+                // Protruding 3D Snout
+                const snout = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.25, 0.18), skinMat);
+                snout.position.set(0, 0.9, 1.22); root.add(snout);
+
+                // 4 Corner Legs
+                [[-0.32, 0.4], [0.32, 0.4], [-0.32, -0.4], [0.32, -0.4]].forEach(lo => {
+                    const lp = new THREE.Group(); lp.position.set(lo[0], 0.4, lo[1]);
+                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 0.3), skinMat);
+                    leg.position.y = -0.25; lp.add(leg); root.add(lp); limbs.legs.push(lp);
+                });
+            } else if (type === 'ENDERMAN') {
+                const darkMat = new THREE.MeshLambertMaterial({ color: 0x09090b });
+                const eyeMat = new THREE.MeshBasicMaterial({ color: 0xa855f7 });
+
+                // Head
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), darkMat);
+                head.position.y = 2.8; root.add(head);
+
+                // Purple Eyes
+                [-0.12, 0.12].forEach(ex => {
+                    const eye = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.05, 0.02), eyeMat);
+                    eye.position.set(ex, 2.82, 0.26); root.add(eye);
+                });
+
+                // Slender Body
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 0.25), darkMat);
+                body.position.y = 1.95; root.add(body);
+
+                // Long Spindly Arms
+                [-0.32, 0.32].forEach(ax => {
+                    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.4, 0.15), darkMat);
+                    arm.position.set(ax, 1.6, 0); root.add(arm);
+                });
+
+                // Long Spindly Legs
+                [-0.12, 0.12].forEach(lx => {
+                    const lp = new THREE.Group(); lp.position.set(lx, 1.4, 0);
+                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.8, 0.15), darkMat);
+                    leg.position.y = -1.4; lp.add(leg); root.add(lp); limbs.legs.push(lp);
+                });
+            } else if (type === 'BLAZE') {
+                const blazeMat = new THREE.MeshLambertMaterial({ color: 0xf59e0b });
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.65, 0.65), blazeMat);
+                head.position.y = 1.7; root.add(head);
+
+                // 8 Orbiting Rods
+                for (let r = 0; r < 8; r++) {
+                    const rod = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.75, 0.16), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+                    root.add(rod);
+                    limbs.rods.push(rod);
+                }
+            }
+
+            return { root, limbs };
+        }
+
         function spawnEnderDragon() {
             const root = new THREE.Group();
             const darkMat = new THREE.MeshLambertMaterial({ color: 0x18181b });
             const eyeMat = new THREE.MeshBasicMaterial({ color: 0xa855f7 });
+            const hornMat = new THREE.MeshLambertMaterial({ color: 0x3f3f46 });
 
+            // Body
             const body = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 5.0), darkMat);
             root.add(body);
 
+            // Neck & Horned Head
+            const neck = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.8), darkMat);
+            neck.position.set(0, 0.4, 2.6); root.add(neck);
+
             const head = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.4, 2.0), darkMat);
-            head.position.set(0, 0.4, 3.2); root.add(head);
+            head.position.set(0, 0.6, 4.0); root.add(head);
 
             [-0.4, 0.4].forEach(ex => {
                 const eye = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.1), eyeMat);
-                eye.position.set(ex, 0.6, 4.2); root.add(eye);
+                eye.position.set(ex, 0.8, 4.9); root.add(eye);
+
+                const horn = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.8, 0.25), hornMat);
+                horn.position.set(ex, 1.4, 3.8); horn.rotation.x = -0.4; root.add(horn);
             });
 
-            const wingL = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.1, 2.0), darkMat);
-            wingL.position.set(-3.2, 0.5, 0); root.add(wingL);
+            // Articulated Wings
+            const wingL = new THREE.Mesh(new THREE.BoxGeometry(6.0, 0.1, 2.4), darkMat);
+            wingL.position.set(-3.6, 0.6, 0); root.add(wingL);
 
-            const wingR = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.1, 2.0), darkMat);
-            wingR.position.set(3.2, 0.5, 0); root.add(wingR);
+            const wingR = new THREE.Mesh(new THREE.BoxGeometry(6.0, 0.1, 2.4), darkMat);
+            wingR.position.set(3.6, 0.6, 0); root.add(wingR);
 
             root.position.set(0, 20, 0);
             scene.add(root);
@@ -973,65 +1146,9 @@
             if (bHud) bHud.style.display = 'flex';
         }
 
-        function createAccurateMobMesh(type) {
-            const root = new THREE.Group();
-            let limbs = { legs: [], arms: [] };
-
-            if (type === 'CREEPER') {
-                const mat = new THREE.MeshLambertMaterial({ color: 0x16a34a });
-                const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.5), mat);
-                body.position.y = 1.0; root.add(body);
-
-                const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), mat);
-                head.position.y = 1.9; root.add(head);
-
-                [[-0.25, 0.25], [0.25, 0.25], [-0.25, -0.25], [0.25, -0.25]].forEach(lo => {
-                    const lp = new THREE.Group(); lp.position.set(lo[0], 0.45, lo[1]);
-                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.35), mat);
-                    leg.position.y = -0.25; lp.add(leg); root.add(lp); limbs.legs.push(lp);
-                });
-            } else if (type === 'ZOMBIE') {
-                const mat = new THREE.MeshLambertMaterial({ color: 0x15803d });
-                const shirtMat = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
-                const pantsMat = new THREE.MeshLambertMaterial({ color: 0x4338ca });
-
-                const body = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.2, 0.45), shirtMat);
-                body.position.y = 1.2; root.add(body);
-
-                const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), mat);
-                head.position.y = 2.1; root.add(head);
-
-                [-0.55, 0.55].forEach(ax => {
-                    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.1, 0.4), mat);
-                    arm.position.set(ax, 1.7, -0.55); arm.rotation.x = -Math.PI / 2; root.add(arm);
-                });
-
-                [-0.22, 0.22].forEach(lx => {
-                    const legP = new THREE.Group(); legP.position.set(lx, 0.6, 0);
-                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 0.4), pantsMat);
-                    leg.position.y = -0.6; legP.add(leg); root.add(legP); limbs.legs.push(legP);
-                });
-            } else if (type === 'PIG') {
-                const mat = new THREE.MeshLambertMaterial({ color: 0xf472b6 });
-                const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 1.6), mat);
-                body.position.y = 0.9; root.add(body);
-
-                const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), mat);
-                head.position.set(0, 1.1, 0.95); root.add(head);
-
-                [[-0.35, 0.4], [0.35, 0.4], [-0.35, -0.4], [0.35, -0.4]].forEach(lo => {
-                    const lp = new THREE.Group(); lp.position.set(lo[0], 0.45, lo[1]);
-                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.5, 0.35), mat);
-                    leg.position.y = -0.25; lp.add(leg); root.add(lp); limbs.legs.push(lp);
-                });
-            }
-
-            return { root, limbs };
-        }
-
         function spawnMob(type, x, z) {
             let groundY = 14;
-            for (let y = 25; y >= 0; y--) {
+            for (let y = 30; y >= 0; y--) {
                 if (hasVoxel(x, y, z)) { groundY = y; break; }
             }
 
@@ -1045,47 +1162,27 @@
                 limbs: mobRig.limbs,
                 pos: mobRig.root.position,
                 velY: 0,
-                hp: type === 'CREEPER' ? 16 : (type === 'PIG' ? 10 : 20),
+                hp: type === 'CREEPER' ? 16 : (type === 'ENDERMAN' ? 40 : (type === 'PIG' ? 10 : 20)),
                 alive: true,
                 fuseTimer: 0,
-                speed: type === 'PIG' ? 1.6 : 2.8
+                speed: type === 'PIG' ? 1.6 : (type === 'ENDERMAN' ? 3.8 : 2.8)
             });
         }
 
         function init3D() {
             const container = document.getElementById("game-wrapper");
-
-            if (typeof THREE === "undefined") {
-                container.innerHTML = `
-                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-                                background:#050b18;color:#fff;font-family:system-ui;text-align:center;padding:30px;z-index:100;">
-                        <div>
-                            <h2 style="color:#00f3ff;margin-bottom:10px;">3D Engine Loading Error</h2>
-                            <p style="color:#cbd5e1;">Three.js could not be loaded from CDN. Please verify your connection and refresh.</p>
-                        </div>
-                    </div>`;
-                return false;
-            }
             const w = container.clientWidth || 1280;
             const h = container.clientHeight || 680;
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x78a7ff);
-            scene.fog = new THREE.Fog(0x78a7ff, 30, 75);
+            scene.fog = new THREE.Fog(0x78a7ff, 32, 85);
 
             camera = new THREE.PerspectiveCamera(70, w / h, 0.1, 400);
             camera.rotation.order = 'YXZ';
             scene.add(camera);
 
-            try {
-                renderer = new THREE.WebGLRenderer({
-                    antialias: false,
-                    powerPreference: "high-performance"
-                });
-            } catch (err) {
-                console.error("WebGL initialization failed:", err);
-                return false;
-            }
+            renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
             renderer.setSize(w, h);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
             renderer.domElement.id = "webgl-canvas";
@@ -1108,9 +1205,10 @@
             buildSkyElements();
             buildHandTool();
 
-            spawnMob('CREEPER', 8, 8);
-            spawnMob('ZOMBIE', -8, -8);
-            spawnMob('PIG', -6, 6);
+            spawnMob('CREEPER', 10, 10);
+            spawnMob('ZOMBIE', -10, -10);
+            spawnMob('PIG', -8, 8);
+            spawnMob('PIG', 6, -6);
 
             setupControls();
             updateVitalsHUD();
@@ -1256,7 +1354,7 @@
             const mobHits = raycaster.intersectObjects(mobRoots, true);
 
             if (mobHits.length > 0 && mobHits[0].distance < 4.8 && action === 'attack_mine') {
-                const targetMob = mobs.find(m => m.root === mobHits[0].object.parent || m.root === mobHits[0].object.parent.parent);
+                const targetMob = mobs.find(m => m.root === mobHits[0].object.parent || m.root === mobHits[0].object.parent.parent || m.root === mobHits[0].object.parent.parent.parent);
                 if (targetMob && targetMob.alive) {
                     const dmg = selectedBlockId === 1 ? 8 : 3;
                     targetMob.hp -= dmg;
@@ -1345,7 +1443,15 @@
             for (let x = bxMin; x <= bxMax; x++) {
                 for (let y = byMin; y <= byMax; y++) {
                     for (let z = bzMin; z <= bzMax; z++) {
-                        if (hasVoxel(x, y, z)) {
+                        const key = getVoxelKey(x, y, z);
+                        const vMesh = voxels.get(key);
+                        if (vMesh) {
+                            // Touch portal warp trigger
+                            if (vMesh.userData.typeId === 'portal') {
+                                warpDimension(currentDimension === 'OVERWORLD' ? 'NETHER' : 'OVERWORLD');
+                                return { hit: false };
+                            }
+
                             if (maxX > x - 0.5 && minX < x + 0.5 &&
                                 maxY > y - 0.5 && minY < y + 0.5 &&
                                 maxZ > z - 0.5 && minZ < z + 0.5) {
@@ -1493,7 +1599,7 @@
                 bossEntity.wingR.rotation.z = -Math.sin(Date.now() * 0.008) * 0.6;
             }
 
-            // Mobs AI
+            // Mobs AI & Animation
             mobs.forEach(m => {
                 if (!m.alive) return;
 
@@ -1512,7 +1618,28 @@
                 const distToPlayer = m.pos.distanceTo(player.pos);
                 let moving = false;
 
-                if (m.type !== 'PIG' && distToPlayer < 16) {
+                // Enderman Crosshair Aggro & Teleport
+                if (m.type === 'ENDERMAN' && distToPlayer < 24) {
+                    const dir = new THREE.Vector3();
+                    camera.getWorldDirection(dir);
+                    const toMob = new THREE.Vector3().subVectors(m.pos, player.pos).normalize();
+                    if (dir.dot(toMob) > 0.96) {
+                        m.pos.x += (Math.random() - 0.5) * 12;
+                        m.pos.z += (Math.random() - 0.5) * 12;
+                        playVoxelSound('slash');
+                    }
+                }
+
+                // Blaze Orbiting Rods Animation
+                if (m.type === 'BLAZE' && m.limbs && m.limbs.rods) {
+                    const rodTime = Date.now() * 0.005;
+                    m.limbs.rods.forEach((r, idx) => {
+                        const ang = rodTime + (idx * Math.PI / 4);
+                        r.position.set(Math.cos(ang) * 0.65, 1.2 + (idx % 2 === 0 ? 0.4 : -0.2), Math.sin(ang) * 0.65);
+                    });
+                }
+
+                if (m.type !== 'PIG' && distToPlayer < 18) {
                     m.root.lookAt(player.pos.x, m.pos.y, player.pos.z);
                     m.root.translateZ(m.speed * dt);
                     moving = true;
@@ -1531,14 +1658,15 @@
                         }
                     }
 
-                    if (m.type === 'ZOMBIE' && distToPlayer < 1.6) {
-                        player.health = Math.max(0, player.health - 2);
+                    if ((m.type === 'ZOMBIE' || m.type === 'ENDERMAN') && distToPlayer < 1.6) {
+                        player.health = Math.max(0, player.health - (m.type === 'ENDERMAN' ? 4 : 2));
                         updateVitalsHUD();
                         playVoxelSound('hurt');
                     }
                 }
 
-                if (m.limbs && m.limbs.legs) {
+                // Quadruped & Bipedal Leg Walking Swing
+                if (m.limbs && m.limbs.legs && m.limbs.legs.length > 0) {
                     const legAngle = moving ? Math.sin(walkClock) * 0.6 : 0;
                     m.limbs.legs.forEach((l, idx) => {
                         l.rotation.x = (idx % 2 === 0 ? legAngle : -legAngle);
@@ -1575,9 +1703,14 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            init3D();
-            updateWallet();
-            requestAnimationFrame(animate);
+            try {
+                const started = init3D();
+                if (!started) return;
+                updateWallet();
+                requestAnimationFrame(animate);
+            } catch (err) {
+                console.error("Minecraft 3D startup error:", err);
+            }
         });
     </script>
 </body>
