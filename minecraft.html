@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minecraft 3D - Complete Engine Edition</title>
+    <title>Minecraft 3D - High-Definition Voxel Edition</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -79,8 +79,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             pointer-events: none;
             z-index: 20;
         }
@@ -88,10 +88,10 @@
             content: '';
             position: absolute;
             background: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 0 4px #000;
+            box-shadow: 0 0 3px #000;
         }
-        #crosshair::before { top: 8px; left: 0; width: 18px; height: 2px; }
-        #crosshair::after { top: 0; left: 8px; width: 2px; height: 18px; }
+        #crosshair::before { top: 9px; left: 0; width: 20px; height: 2px; }
+        #crosshair::after { top: 0; left: 9px; width: 2px; height: 20px; }
 
         .hud-top-left {
             position: absolute;
@@ -487,6 +487,8 @@
         let currentDimension = 'OVERWORLD';
 
         let handGroup = null, isSwinging = false, swingTimer = 0;
+        let blockOutline = null;
+        let sunMesh = null, moonMesh = null;
 
         const player = {
             pos: new THREE.Vector3(0, 18, 0),
@@ -515,7 +517,7 @@
 
         const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 
-        // Safe integer pixel texture generator
+        // High-Quality Procedural Texture Generator with Nearest-Neighbor Filtering
         function generatePixelTexture(type) {
             const canvas = document.createElement('canvas');
             canvas.width = 16;
@@ -542,38 +544,38 @@
                 ctx.fillStyle = '#1e293b'; ctx.fillRect(3, 10, 3, 3);
                 ctx.fillStyle = '#78350f'; ctx.fillRect(2, 12, 2, 2); ctx.fillRect(1, 13, 2, 2);
             } else if (type === 'grass_top') {
-                fillRandomNoise(76, 165, 48, 40);
+                fillRandomNoise(85, 175, 45, 30);
             } else if (type === 'grass_side') {
                 fillRandomNoise(134, 96, 67, 35);
                 for (let x = 0; x < 16; x++) {
                     const fringeLen = Math.floor(Math.random() * 3) + 2;
                     for (let y = 0; y < fringeLen; y++) {
-                        ctx.fillStyle = `rgb(76,165,48)`;
+                        ctx.fillStyle = `rgb(85,175,45)`;
                         ctx.fillRect(x, y, 1, 1);
                     }
                 }
             } else if (type === 'dirt') {
                 fillRandomNoise(134, 96, 67, 35);
             } else if (type === 'stone') {
-                fillRandomNoise(128, 128, 128, 30);
+                fillRandomNoise(128, 128, 128, 25);
             } else if (type === 'cobblestone') {
-                fillRandomNoise(110, 110, 110, 45);
-                ctx.strokeStyle = '#475569'; ctx.strokeRect(1, 1, 14, 14);
+                fillRandomNoise(110, 110, 110, 40);
+                ctx.strokeStyle = '#334155'; ctx.strokeRect(1, 1, 14, 14);
             } else if (type === 'oak_planks') {
-                fillRandomNoise(165, 125, 75, 25);
+                fillRandomNoise(175, 135, 85, 20);
                 ctx.fillStyle = '#78350f';
                 ctx.fillRect(0, 4, 16, 1); ctx.fillRect(0, 8, 16, 1); ctx.fillRect(0, 12, 16, 1);
             } else if (type === 'oak_log_side') {
-                fillRandomNoise(140, 105, 60, 25);
+                fillRandomNoise(130, 95, 55, 25);
                 ctx.fillStyle = '#451a03'; ctx.fillRect(3, 0, 2, 16); ctx.fillRect(9, 0, 2, 16);
             } else if (type === 'oak_log_top') {
-                fillRandomNoise(180, 140, 85, 25);
+                fillRandomNoise(185, 145, 90, 20);
                 ctx.fillStyle = '#78350f';
                 ctx.beginPath(); ctx.arc(8, 8, 5, 0, Math.PI * 2); ctx.stroke();
             } else if (type === 'leaves') {
                 fillRandomNoise(45, 125, 35, 50);
             } else if (type === 'diamond_ore') {
-                fillRandomNoise(128, 128, 128, 30);
+                fillRandomNoise(128, 128, 128, 25);
                 ctx.fillStyle = '#00f3ff';
                 ctx.fillRect(4, 4, 3, 3); ctx.fillRect(10, 8, 3, 3); ctx.fillRect(6, 11, 3, 3);
             } else if (type === 'tnt_side') {
@@ -645,6 +647,38 @@
             blockMaterials['netherrack'] = createCubeMaterial('netherrack');
             blockMaterials['end_stone'] = createCubeMaterial('end_stone');
             blockMaterials['obsidian'] = createCubeMaterial('obsidian');
+        }
+
+        // Build 3D Fluffy Clouds & Celestial Sun/Moon
+        function buildSkyElements() {
+            // Cubic Sun
+            sunMesh = new THREE.Mesh(new THREE.BoxGeometry(16, 16, 1), new THREE.MeshBasicMaterial({ color: 0xfffaed }));
+            scene.add(sunMesh);
+
+            // Cubic Moon
+            moonMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 14, 1), new THREE.MeshBasicMaterial({ color: 0xf8fafc }));
+            scene.add(moonMesh);
+
+            // Floating Fluffy 3D Cloud Clusters
+            const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+            const cloudGeo = new THREE.BoxGeometry(8, 2.5, 8);
+            for (let c = 0; c < 24; c++) {
+                const cloudGroup = new THREE.Group();
+                for (let b = 0; b < 4; b++) {
+                    const puff = new THREE.Mesh(cloudGeo, cloudMat);
+                    puff.position.set((b - 1.5) * 6, (Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 6);
+                    cloudGroup.add(puff);
+                }
+                cloudGroup.position.set((Math.random() - 0.5) * 160, 28 + Math.random() * 4, (Math.random() - 0.5) * 160);
+                scene.add(cloudGroup);
+            }
+
+            // Hovered Block Selection Wireframe
+            const outlineGeo = new THREE.BoxGeometry(1.002, 1.002, 1.002);
+            const outlineMat = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true, transparent: true, opacity: 0.6 });
+            blockOutline = new THREE.Mesh(outlineGeo, outlineMat);
+            blockOutline.visible = false;
+            scene.add(blockOutline);
         }
 
         function buildHandTool() {
@@ -855,7 +889,6 @@
                 }
             }
 
-            // Spawn player safely on top of block
             let spawnGroundY = 10;
             for (let y = 25; y >= 0; y--) {
                 if (hasVoxel(0, y, 0)) { spawnGroundY = y; break; }
@@ -1026,47 +1059,18 @@
 
         function init3D() {
             const container = document.getElementById("game-wrapper");
-
-            // Give a useful message if Three.js failed to load.
-            if (typeof THREE === "undefined") {
-                container.innerHTML = `
-                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-                                background:#050b18;color:#fff;font-family:system-ui;text-align:center;padding:30px;z-index:100;">
-                        <div>
-                            <h2 style="color:#00f3ff;margin-bottom:10px;">3D engine failed to load</h2>
-                            <p style="color:#cbd5e1;">Three.js could not be loaded. Check your internet connection or CDN access, then reload the page.</p>
-                        </div>
-                    </div>`;
-                return false;
-            }
-            const w = container.clientWidth || 1280;
-            const h = container.clientHeight || 680;
+            const w = container.clientWidth || window.innerWidth || 1280;
+            const h = container.clientHeight || window.innerHeight || 680;
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x78a7ff);
-            scene.fog = new THREE.Fog(0x78a7ff, 28, 60);
+            scene.fog = new THREE.Fog(0x78a7ff, 30, 75);
 
             camera = new THREE.PerspectiveCamera(70, w / h, 0.1, 400);
             camera.rotation.order = 'YXZ';
             scene.add(camera);
 
-            try {
-                renderer = new THREE.WebGLRenderer({
-                    antialias: false,
-                    powerPreference: "high-performance"
-                });
-            } catch (err) {
-                console.error("WebGL initialization failed:", err);
-                container.innerHTML = `
-                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-                                background:#050b18;color:#fff;font-family:system-ui;text-align:center;padding:30px;z-index:100;">
-                        <div>
-                            <h2 style="color:#00f3ff;margin-bottom:10px;">WebGL is unavailable</h2>
-                            <p style="color:#cbd5e1;">Your browser/device could not create a WebGL renderer. Try enabling hardware acceleration or opening the game in a modern browser.</p>
-                        </div>
-                    </div>`;
-                return false;
-            }
+            renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
             renderer.setSize(w, h);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
             renderer.domElement.id = "webgl-canvas";
@@ -1086,6 +1090,7 @@
 
             initBlockMaterials();
             generateProceduralTerrain();
+            buildSkyElements();
             buildHandTool();
 
             spawnMob('CREEPER', 8, 8);
@@ -1096,8 +1101,8 @@
             updateVitalsHUD();
 
             window.addEventListener('resize', () => {
-                const nw = container.clientWidth || 1280;
-                const nh = container.clientHeight || 680;
+                const nw = container.clientWidth || window.innerWidth || 1280;
+                const nh = container.clientHeight || window.innerHeight || 680;
                 camera.aspect = nw / nh;
                 camera.updateProjectionMatrix();
                 renderer.setSize(nw, nh);
@@ -1286,7 +1291,6 @@
                     const placeY = vy + Math.round(norm.y);
                     const placeZ = vz + Math.round(norm.z);
 
-                    // Prevent block placement inside player bounding box
                     const minX = player.pos.x - player.width / 2;
                     const maxX = player.pos.x + player.width / 2;
                     const minY = player.pos.y - player.eyeHeight;
@@ -1308,7 +1312,7 @@
             }
         }
 
-        // Exact Voxel AABB Intersection Math
+        // Exact Voxel AABB Collision Math
         function checkVoxelCollision(px, py, pz) {
             const minX = px - player.width / 2;
             const maxX = px + player.width / 2;
@@ -1328,7 +1332,6 @@
                 for (let y = byMin; y <= byMax; y++) {
                     for (let z = bzMin; z <= bzMax; z++) {
                         if (hasVoxel(x, y, z)) {
-                            // Exact box bounds test against [x - 0.5, x + 0.5]
                             if (maxX > x - 0.5 && minX < x + 0.5 &&
                                 maxY > y - 0.5 && minY < y + 0.5 &&
                                 maxZ > z - 0.5 && minZ < z + 0.5) {
@@ -1414,7 +1417,19 @@
             const posEl = document.getElementById('pos-display');
             if (posEl) posEl.innerText = `XYZ: ${Math.round(player.pos.x)}, ${Math.round(player.pos.y)}, ${Math.round(player.pos.z)}`;
 
-            // Hand Swing
+            // Raycast Block Outline Target
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const meshes = Array.from(voxels.values());
+            const intersects = raycaster.intersectObjects(meshes);
+            if (intersects.length > 0 && intersects[0].distance < 6.0 && blockOutline) {
+                const targetMesh = intersects[0].object;
+                blockOutline.position.set(targetMesh.userData.x, targetMesh.userData.y, targetMesh.userData.z);
+                blockOutline.visible = true;
+            } else if (blockOutline) {
+                blockOutline.visible = false;
+            }
+
+            // Hand Swing & Walking Bobbing
             if (isSwinging && handGroup) {
                 swingTimer -= dt;
                 handGroup.rotation.x = 0.2 + Math.sin(swingTimer * 30) * 0.8;
@@ -1424,12 +1439,24 @@
                     handGroup.rotation.set(0.2, -0.3, 0);
                     handGroup.position.set(0.45, -0.45, -0.75);
                 }
+            } else if (handGroup && moveVec.length() > 0 && player.onGround) {
+                walkClock += dt * 9.0;
+                handGroup.position.y = -0.45 + Math.sin(walkClock) * 0.04;
+                handGroup.position.x = 0.45 + Math.cos(walkClock * 0.5) * 0.02;
             }
 
-            // Atmosphere
+            // Atmosphere & Sun/Moon Orbit
             worldTime = (worldTime + dt * 0.0035) % 1;
             const sunAngle = worldTime * Math.PI * 2;
-            sunLight.position.set(Math.cos(sunAngle) * 80, Math.sin(sunAngle) * 80, 40);
+            sunLight.position.set(Math.cos(sunAngle) * 90, Math.sin(sunAngle) * 90, 40);
+
+            if (sunMesh && moonMesh) {
+                sunMesh.position.set(player.pos.x + Math.cos(sunAngle) * 110, player.pos.y + Math.sin(sunAngle) * 110, player.pos.z + 40);
+                sunMesh.lookAt(player.pos);
+                moonMesh.position.set(player.pos.x - Math.cos(sunAngle) * 110, player.pos.y - Math.sin(sunAngle) * 110, player.pos.z - 40);
+                moonMesh.lookAt(player.pos);
+            }
+
             const isDay = Math.sin(sunAngle) > 0;
 
             if (currentDimension === 'OVERWORLD') {
@@ -1457,8 +1484,6 @@
             }
 
             // Mobs AI
-            walkClock += dt * 6.0;
-
             mobs.forEach(m => {
                 if (!m.alive) return;
 
@@ -1540,25 +1565,9 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            try {
-                const started = init3D();
-                if (!started) return;
-                updateWallet();
-                requestAnimationFrame(animate);
-            } catch (err) {
-                console.error("Minecraft 3D startup error:", err);
-                const container = document.getElementById("game-wrapper");
-                if (container) {
-                    container.innerHTML = `
-                        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-                                    background:#050b18;color:#fff;font-family:system-ui;text-align:center;padding:30px;z-index:100;">
-                            <div>
-                                <h2 style="color:#ff007f;margin-bottom:10px;">Game startup error</h2>
-                                <p style="color:#cbd5e1;">Open the browser console (F12 → Console) for the exact error.</p>
-                            </div>
-                        </div>`;
-                }
-            }
+            init3D();
+            updateWallet();
+            requestAnimationFrame(animate);
         });
     </script>
 </body>
