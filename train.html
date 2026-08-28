@@ -252,7 +252,7 @@
         }
         .slot-val { font-weight: bold; color: var(--gold); font-size: 0.88rem; }
 
-        /* Notification Banners & Modals */
+        /* Banners & Modals */
         #action-prompt {
             position: absolute;
             bottom: 80px;
@@ -496,7 +496,10 @@
     </div>
 
     <script>
+        // Web Audio Synthesizer Engine
         let audioCtx = null;
+        let tractionOsc1 = null, tractionOsc2 = null, tractionGain = null;
+
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
@@ -598,6 +601,7 @@
 
         // Global State & Train Dynamics
         let scene, camera, renderer, trainGroup = null;
+        let cabInteriorGroup = null;
         let driverCash = 1500, driverXP = 0, driverLvl = 1;
         let activeTrainType = 'Class43';
         let ownedTrains = ['Class43'];
@@ -830,6 +834,7 @@
         // 3D Train Rig
         function buildTrainModel() {
             if (trainGroup) scene.remove(trainGroup);
+            if (cabInteriorGroup) camera.remove(cabInteriorGroup);
 
             trainGroup = new THREE.Group();
             const brBlue = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.35 });
@@ -849,10 +854,6 @@
             const windshield = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.9, 1.8), glassMat);
             windshield.position.set(0, 2.7, -9);
             powerCar.add(windshield);
-
-            const desk = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.7, 1.2), metalGrey);
-            desk.position.set(0, 2.0, -8.2);
-            powerCar.add(desk);
 
             const captain = createPersonMesh(true);
             captain.position.set(0.4, 1.4, -7.2);
@@ -926,6 +927,25 @@
             }
 
             scene.add(trainGroup);
+
+            // Dedicated First-Person Cab Cockpit Frame (Zero Obstruction)
+            cabInteriorGroup = new THREE.Group();
+            const dashMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+            const deskMesh = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.6, 1.0), dashMat);
+            deskMesh.position.set(0, -0.6, -1.2);
+            cabInteriorGroup.add(deskMesh);
+
+            const pillarL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.4, 0.1), dashMat);
+            pillarL.position.set(-1.1, 0, -1.2);
+            pillarL.rotation.z = -0.15;
+            cabInteriorGroup.add(pillarL);
+
+            const pillarR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.4, 0.1), dashMat);
+            pillarR.position.set(1.1, 0, -1.2);
+            pillarR.rotation.z = 0.15;
+            cabInteriorGroup.add(pillarR);
+
+            camera.add(cabInteriorGroup);
         }
 
         // Build Curved Track, Speed Restriction Signs, Signals & World
@@ -1007,19 +1027,19 @@
 
                     // Front Face Circle
                     const signTex = createSpeedSignTexture(sz.limit);
-                    const signMat = new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide });
+                    const signMat = new THREE.MeshBasicMaterial({ map: signTex, transparent: true });
                     const signCircle = new THREE.Mesh(new THREE.CircleGeometry(1.0, 24), signMat);
-                    signCircle.position.set(0, 3.2, 0.02);
+                    signCircle.position.set(0, 3.2, 0);
+                    // Turn face to point directly along oncoming path
+                    signCircle.rotation.y = Math.PI;
                     signGroup.add(signCircle);
 
                     // Back Plate
                     const backPlate = new THREE.Mesh(new THREE.CircleGeometry(1.0, 16), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 }));
-                    backPlate.position.set(0, 3.2, -0.02);
-                    backPlate.rotation.y = Math.PI;
+                    backPlate.position.set(0, 3.2, 0.02);
                     signGroup.add(backPlate);
 
                     signGroup.position.copy(pos).addScaledVector(normal, 3.2);
-                    // Point front face (+Z) towards oncoming train (pos - tangent)
                     signGroup.lookAt(pos.clone().sub(tangent).addScaledVector(normal, 3.2));
                     scene.add(signGroup);
                 }
@@ -1124,6 +1144,7 @@
             scene.fog = new THREE.FogExp2(0x0f172a, 0.00035);
 
             camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 8000);
+            scene.add(camera);
 
             renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
             renderer.setSize(width, height);
@@ -1386,10 +1407,9 @@
             // Position Train onto 3D Spline Path
             const u = Math.min(1.0, Math.max(0.0, train.distance / TOTAL_TRACK_LENGTH));
             const trainPos = trackSpline.getPointAt(u);
-            const trainTangent = trackSpline.getTangentAt(u);
+            const trainTangent = trackSpline.getTangentAt(u).normalize();
 
             trainGroup.position.copy(trainPos);
-            // Orient train along track direction
             trainGroup.lookAt(trainPos.clone().add(trainTangent));
 
             updateTractionAudio(train.powerNotch, train.speed / 50, activeTrainType === 'Class755' || activeTrainType === 'Class800');
@@ -1408,45 +1428,42 @@
             document.getElementById("station-dist").innerText = `Distance: ${distToNext} m | Speed Limit: ${train.speedLimitMPH} MPH`;
         }
 
-        // Camera Logic (Zero Blockage in Captain View via Local-to-World Transform)
+        // Camera Logic (Zero Obstruction via Front-Mount Placement)
         function updateCamera() {
             if (!trainGroup) return;
 
-            trainGroup.updateMatrixWorld(true);
+            const u = Math.min(1.0, Math.max(0.0, train.distance / TOTAL_TRACK_LENGTH));
+            const trainPos = trackSpline.getPointAt(u);
+            const trainTangent = trackSpline.getTangentAt(u).normalize();
+            const normal = new THREE.Vector3(-trainTangent.z, 0, tangentOffset(u)).normalize();
+
+            function tangentOffset(val) { return trainTangent.x; }
 
             if (cameraMode === 0) {
-                // Captain View: positioned right at the windshield looking forward down the track
-                const localCabEye = new THREE.Vector3(0.4, 2.6, -14.2);
-                const worldCabEye = trainGroup.localToWorld(localCabEye.clone());
-                camera.position.copy(worldCabEye);
-
-                const localLook = new THREE.Vector3(0.4, 2.4, -250);
-                const worldLook = trainGroup.localToWorld(localLook.clone());
-                camera.lookAt(worldLook);
+                // Captain View: Mounted ahead of nose cone looking directly down track
+                if (cabInteriorGroup) cabInteriorGroup.visible = true;
+                const cabEye = trainPos.clone().add(new THREE.Vector3(0, 2.7, 0)).addScaledVector(trainTangent, 14.5).addScaledVector(normal, 0.4);
+                camera.position.copy(cabEye);
+                camera.lookAt(cabEye.clone().addScaledVector(trainTangent, 120));
             } else if (cameraMode === 1) {
-                // Chase View: following smoothly above & behind
-                const localChase = new THREE.Vector3(0, 7.5, 36);
-                const worldChase = trainGroup.localToWorld(localChase.clone());
-                camera.position.lerp(worldChase, 0.2);
-
-                const localLook = new THREE.Vector3(0, 2.5, -15);
-                const worldLook = trainGroup.localToWorld(localLook.clone());
-                camera.lookAt(worldLook);
+                // Chase View: Following behind and above
+                if (cabInteriorGroup) cabInteriorGroup.visible = false;
+                const chasePos = trainPos.clone().add(new THREE.Vector3(0, 7.5, 0)).addScaledVector(trainTangent, -36);
+                camera.position.copy(chasePos);
+                camera.lookAt(trainPos.clone().add(new THREE.Vector3(0, 2.5, 0)).addScaledVector(trainTangent, 15));
             } else if (cameraMode === 2) {
-                // Passenger Window View
-                const localWin = new THREE.Vector3(-1.6, 2.4, 23.5);
-                const worldWin = trainGroup.localToWorld(localWin.clone());
-                camera.position.copy(worldWin);
-
-                const localWinLook = new THREE.Vector3(-30, 2.0, 35);
-                const worldWinLook = trainGroup.localToWorld(localWinLook.clone());
-                camera.lookAt(worldWinLook);
+                // Window View
+                if (cabInteriorGroup) cabInteriorGroup.visible = false;
+                const winPos = trainPos.clone().add(new THREE.Vector3(0, 2.4, 0)).addScaledVector(trainTangent, -22).addScaledVector(normal, -1.5);
+                camera.position.copy(winPos);
+                camera.lookAt(winPos.clone().addScaledVector(normal, -30).addScaledVector(trainTangent, 15));
             } else {
                 // Trackside Flyby Cam
+                if (cabInteriorGroup) cabInteriorGroup.visible = false;
                 const flybyU = Math.min(1.0, (Math.floor(train.distance / 350) * 350 + 120) / TOTAL_TRACK_LENGTH);
                 const flybyPos = trackSpline.getPointAt(flybyU).add(new THREE.Vector3(8.5, 2.2, 0));
                 camera.position.copy(flybyPos);
-                camera.lookAt(trainGroup.position);
+                camera.lookAt(trainPos);
             }
         }
 
