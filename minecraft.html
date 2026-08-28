@@ -64,7 +64,15 @@
             touch-action: none;
             cursor: crosshair;
         }
-        #webgl-canvas { width: 100% !important; height: 100% !important; display: block; }
+        #webgl-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+            z-index: 1;
+        }
 
         #crosshair {
             position: absolute;
@@ -313,7 +321,6 @@
             <div class="boss-bar-bg"><div class="boss-bar-fill" id="boss-bar-fill"></div></div>
         </div>
 
-        <!-- Crafting Modal -->
         <div id="craft-modal" class="modal" style="display: none;" onclick="event.stopPropagation()">
             <div class="modal-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -508,6 +515,7 @@
 
         const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 
+        // Safe integer pixel texture generator
         function generatePixelTexture(type) {
             const canvas = document.createElement('canvas');
             canvas.width = 16;
@@ -518,7 +526,10 @@
                 for (let x = 0; x < 16; x++) {
                     for (let y = 0; y < 16; y++) {
                         const n = (Math.random() - 0.5) * variance;
-                        ctx.fillStyle = `rgb(${Math.max(0, Math.min(255, baseR + n))}, ${Math.max(0, Math.min(255, baseG + n))}, ${Math.max(0, Math.min(255, baseB + n))})`;
+                        const r = Math.floor(Math.max(0, Math.min(255, baseR + n)));
+                        const g = Math.floor(Math.max(0, Math.min(255, baseG + n)));
+                        const b = Math.floor(Math.max(0, Math.min(255, baseB + n)));
+                        ctx.fillStyle = `rgb(${r},${g},${b})`;
                         ctx.fillRect(x, y, 1, 1);
                     }
                 }
@@ -530,52 +541,60 @@
                 ctx.fillRect(11, 2, 3, 3); ctx.fillRect(9, 4, 3, 3); ctx.fillRect(7, 6, 3, 3); ctx.fillRect(5, 8, 3, 3);
                 ctx.fillStyle = '#1e293b'; ctx.fillRect(3, 10, 3, 3);
                 ctx.fillStyle = '#78350f'; ctx.fillRect(2, 12, 2, 2); ctx.fillRect(1, 13, 2, 2);
-            } else if (type === 'grass_top') fillRandomNoise(76, 165, 48, 40);
-            else if (type === 'grass_side') {
+            } else if (type === 'grass_top') {
+                fillRandomNoise(76, 165, 48, 40);
+            } else if (type === 'grass_side') {
                 fillRandomNoise(134, 96, 67, 35);
                 for (let x = 0; x < 16; x++) {
                     const fringeLen = Math.floor(Math.random() * 3) + 2;
                     for (let y = 0; y < fringeLen; y++) {
-                        ctx.fillStyle = `rgb(76, ${165 + Math.random() * 30}, 48)`;
+                        ctx.fillStyle = `rgb(76,165,48)`;
                         ctx.fillRect(x, y, 1, 1);
                     }
                 }
-            } else if (type === 'dirt') fillRandomNoise(134, 96, 67, 35);
-            else if (type === 'stone') fillRandomNoise(128, 128, 128, 30);
-            else if (type === 'cobblestone') {
-                fillRandomNoise(110, 110, 110, 45); ctx.strokeStyle = '#475569'; ctx.strokeRect(1, 1, 14, 14);
+            } else if (type === 'dirt') {
+                fillRandomNoise(134, 96, 67, 35);
+            } else if (type === 'stone') {
+                fillRandomNoise(128, 128, 128, 30);
+            } else if (type === 'cobblestone') {
+                fillRandomNoise(110, 110, 110, 45);
+                ctx.strokeStyle = '#475569'; ctx.strokeRect(1, 1, 14, 14);
             } else if (type === 'oak_planks') {
-                fillRandomNoise(165, 125, 75, 25); ctx.fillStyle = '#78350f';
+                fillRandomNoise(165, 125, 75, 25);
+                ctx.fillStyle = '#78350f';
                 ctx.fillRect(0, 4, 16, 1); ctx.fillRect(0, 8, 16, 1); ctx.fillRect(0, 12, 16, 1);
             } else if (type === 'oak_log_side') {
-                fillRandomNoise(140, 105, 60, 25); ctx.fillStyle = '#451a03'; ctx.fillRect(3, 0, 2, 16); ctx.fillRect(9, 0, 2, 16);
+                fillRandomNoise(140, 105, 60, 25);
+                ctx.fillStyle = '#451a03'; ctx.fillRect(3, 0, 2, 16); ctx.fillRect(9, 0, 2, 16);
             } else if (type === 'oak_log_top') {
-                fillRandomNoise(180, 140, 85, 25); ctx.fillStyle = '#78350f';
+                fillRandomNoise(180, 140, 85, 25);
+                ctx.fillStyle = '#78350f';
                 ctx.beginPath(); ctx.arc(8, 8, 5, 0, Math.PI * 2); ctx.stroke();
-            } else if (type === 'leaves') fillRandomNoise(45, 125, 35, 50);
-            else if (type === 'diamond_ore') {
-                fillRandomNoise(128, 128, 128, 30); ctx.fillStyle = '#00f3ff';
+            } else if (type === 'leaves') {
+                fillRandomNoise(45, 125, 35, 50);
+            } else if (type === 'diamond_ore') {
+                fillRandomNoise(128, 128, 128, 30);
+                ctx.fillStyle = '#00f3ff';
                 ctx.fillRect(4, 4, 3, 3); ctx.fillRect(10, 8, 3, 3); ctx.fillRect(6, 11, 3, 3);
             } else if (type === 'tnt_side') {
-                fillRandomNoise(220, 38, 38, 20); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 5, 16, 6);
+                fillRandomNoise(220, 38, 38, 20);
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 5, 16, 6);
                 ctx.fillStyle = '#000000'; ctx.font = 'bold 5px sans-serif'; ctx.fillText('TNT', 3, 10);
             } else if (type === 'tnt_top') {
-                fillRandomNoise(220, 38, 38, 20); ctx.fillStyle = '#334155'; ctx.fillRect(6, 6, 4, 4);
-            } else if (type === 'netherrack') fillRandomNoise(136, 19, 19, 45);
-            else if (type === 'end_stone') fillRandomNoise(228, 230, 168, 30);
-            else if (type === 'obsidian') fillRandomNoise(24, 16, 42, 25);
-            else if (type === 'creeper_skin') {
-                fillRandomNoise(45, 160, 45, 45); ctx.fillStyle = '#000000';
-                ctx.fillRect(3, 3, 3, 3); ctx.fillRect(10, 3, 3, 3);
-                ctx.fillRect(6, 6, 4, 5); ctx.fillRect(4, 8, 2, 6); ctx.fillRect(10, 8, 2, 6);
-            } else if (type === 'zombie_skin') {
-                fillRandomNoise(55, 135, 65, 35); ctx.fillStyle = '#000000';
-                ctx.fillRect(3, 4, 3, 2); ctx.fillRect(10, 4, 3, 2);
+                fillRandomNoise(220, 38, 38, 20);
+                ctx.fillStyle = '#334155'; ctx.fillRect(6, 6, 4, 4);
+            } else if (type === 'netherrack') {
+                fillRandomNoise(136, 19, 19, 45);
+            } else if (type === 'end_stone') {
+                fillRandomNoise(228, 230, 168, 30);
+            } else if (type === 'obsidian') {
+                fillRandomNoise(24, 16, 42, 25);
             }
 
             const tex = new THREE.CanvasTexture(canvas);
             tex.magFilter = THREE.NearestFilter;
             tex.minFilter = THREE.NearestFilter;
+            tex.needsUpdate = true;
             return { texture: tex, canvas };
         }
 
@@ -597,24 +616,24 @@
 
         const blockRegistry = {
             1: { name: 'Diamond Sword', tex: 'sword', isWeapon: true, damage: 8 },
-            2: { name: 'Grass Block', isMulti: true, mats: () => createBlockMaterial('grass_top', 'grass_side', 'dirt') },
-            3: { name: 'Dirt Block', isMulti: false, mats: () => createCubeMaterial('dirt') },
-            4: { name: 'Stone Block', isMulti: false, mats: () => createCubeMaterial('stone') },
-            5: { name: 'Cobblestone', isMulti: false, mats: () => createCubeMaterial('cobblestone') },
-            6: { name: 'Oak Wood Planks', isMulti: false, mats: () => createCubeMaterial('oak_planks') },
-            7: { name: 'Oak Wood Log', isMulti: true, mats: () => createBlockMaterial('oak_log_top', 'oak_log_side', 'oak_log_top') },
-            8: { name: 'Diamond Ore', isMulti: false, mats: () => createCubeMaterial('diamond_ore') },
-            9: { name: 'TNT Explosive', isMulti: true, mats: () => createBlockMaterial('tnt_top', 'tnt_side', 'tnt_top') }
+            2: { name: 'Grass Block', tex: 'grass_top', isMulti: true, mats: () => createBlockMaterial('grass_top', 'grass_side', 'dirt') },
+            3: { name: 'Dirt Block', tex: 'dirt', isMulti: false, mats: () => createCubeMaterial('dirt') },
+            4: { name: 'Stone Block', tex: 'stone', isMulti: false, mats: () => createCubeMaterial('stone') },
+            5: { name: 'Cobblestone', tex: 'cobblestone', isMulti: false, mats: () => createCubeMaterial('cobblestone') },
+            6: { name: 'Oak Wood Planks', tex: 'oak_planks', isMulti: false, mats: () => createCubeMaterial('oak_planks') },
+            7: { name: 'Oak Wood Log', tex: 'oak_log_side', isMulti: true, mats: () => createBlockMaterial('oak_log_top', 'oak_log_side', 'oak_log_top') },
+            8: { name: 'Diamond Ore', tex: 'diamond_ore', isMulti: false, mats: () => createCubeMaterial('diamond_ore') },
+            9: { name: 'TNT Explosive', tex: 'tnt_side', isMulti: true, mats: () => createBlockMaterial('tnt_top', 'tnt_side', 'tnt_top') }
         };
 
         function initBlockMaterials() {
             Object.keys(blockRegistry).forEach(id => {
                 const def = blockRegistry[id];
                 if (def.mats) blockMaterials[id] = def.mats();
-                
+
                 const targetCanvas = document.getElementById(`icon-${id}`);
                 if (targetCanvas) {
-                    const res = generatePixelTexture(def.tex || (id === '2' ? 'grass_top' : (id === '7' ? 'oak_log_side' : 'tnt_side')));
+                    const res = generatePixelTexture(def.tex || 'dirt');
                     const tCtx = targetCanvas.getContext('2d');
                     targetCanvas.width = 24; targetCanvas.height = 24;
                     tCtx.imageSmoothingEnabled = false;
@@ -654,6 +673,7 @@
             const el = document.getElementById('coin-count');
             if (el) el.innerText = gold.toLocaleString();
         }
+
         function addCoins(amt) {
             gold += amt;
             localStorage.setItem('arcade_coins', gold);
@@ -831,14 +851,12 @@
                     addBlock(x, height, z, 2);
                     addBlock(x, height - 1, z, 3);
 
-                    // Avoid spawning trees right on the spawn block (0, 0)
                     if (x % 7 === 0 && z % 7 === 0 && Math.random() < 0.6 && (Math.abs(x) > 3 || Math.abs(z) > 3)) {
                         spawnOakTree(x, height + 1, z);
                     }
                 }
             }
 
-            // Set player securely on the highest ground block at (0, 0)
             let highestGroundY = 10;
             for (let y = 25; y >= 0; y--) {
                 if (hasVoxel(0, y, 0)) { highestGroundY = y + 1.0 + player.eyeHeight; break; }
@@ -962,7 +980,7 @@
                 [-0.22, 0.22].forEach(lx => {
                     const legP = new THREE.Group(); legP.position.set(lx, 0.6, 0);
                     const leg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 0.4), pantsMat);
-                    leg.position.y = -0.6; legP.add(leg); root.add(legP); limbs.legs.push(legP);
+                    leg.position.y = -0.6; lp.add(leg); root.add(legP); limbs.legs.push(legP);
                 });
             } else if (type === 'PIG') {
                 const mat = new THREE.MeshLambertMaterial({ color: 0xf472b6 });
@@ -1007,14 +1025,14 @@
 
         function init3D() {
             const container = document.getElementById("game-wrapper");
-            const w = container.clientWidth || 1320;
-            const h = container.clientHeight || 680;
+            const w = container.clientWidth || window.innerWidth || 1280;
+            const h = container.clientHeight || window.innerHeight || 680;
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x78a7ff);
             scene.fog = new THREE.Fog(0x78a7ff, 28, 55);
 
-            camera = new THREE.PerspectiveCamera(70, w / h, 0.1, 300);
+            camera = new THREE.PerspectiveCamera(70, w / h, 0.1, 400);
             camera.rotation.order = 'YXZ';
             scene.add(camera);
 
@@ -1048,8 +1066,8 @@
             updateVitalsHUD();
 
             window.addEventListener('resize', () => {
-                const nw = container.clientWidth || 1320;
-                const nh = container.clientHeight || 680;
+                const nw = container.clientWidth || window.innerWidth || 1280;
+                const nh = container.clientHeight || window.innerHeight || 680;
                 camera.aspect = nw / nh;
                 camera.updateProjectionMatrix();
                 renderer.setSize(nw, nh);
@@ -1455,7 +1473,7 @@
         let lastFrameTime = performance.now();
         function animate(now) {
             requestAnimationFrame(animate);
-            const dt = Math.min((now - lastFrameTime) / 1000, 0.033);
+            const dt = Math.min((now - lastFrameTime) / 1000, 0.02);
             lastFrameTime = now;
 
             updatePhysics(dt);
