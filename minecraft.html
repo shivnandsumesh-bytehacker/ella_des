@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minecraft 3D - High-Definition Voxel Edition</title>
+    <title>Minecraft 3D - Ultimate Web Edition</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -517,7 +517,6 @@
 
         const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 
-        // High-Quality Procedural Texture Generator with Nearest-Neighbor Filtering
         function generatePixelTexture(type) {
             const canvas = document.createElement('canvas');
             canvas.width = 16;
@@ -649,17 +648,13 @@
             blockMaterials['obsidian'] = createCubeMaterial('obsidian');
         }
 
-        // Build 3D Fluffy Clouds & Celestial Sun/Moon
         function buildSkyElements() {
-            // Cubic Sun
             sunMesh = new THREE.Mesh(new THREE.BoxGeometry(16, 16, 1), new THREE.MeshBasicMaterial({ color: 0xfffaed }));
             scene.add(sunMesh);
 
-            // Cubic Moon
             moonMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 14, 1), new THREE.MeshBasicMaterial({ color: 0xf8fafc }));
             scene.add(moonMesh);
 
-            // Floating Fluffy 3D Cloud Clusters
             const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
             const cloudGeo = new THREE.BoxGeometry(8, 2.5, 8);
             for (let c = 0; c < 24; c++) {
@@ -673,7 +668,6 @@
                 scene.add(cloudGroup);
             }
 
-            // Hovered Block Selection Wireframe
             const outlineGeo = new THREE.BoxGeometry(1.002, 1.002, 1.002);
             const outlineMat = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true, transparent: true, opacity: 0.6 });
             blockOutline = new THREE.Mesh(outlineGeo, outlineMat);
@@ -1014,7 +1008,7 @@
                 [-0.22, 0.22].forEach(lx => {
                     const legP = new THREE.Group(); legP.position.set(lx, 0.6, 0);
                     const leg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 0.4), pantsMat);
-                    leg.position.y = -0.6; legP.add(leg); root.add(legP); limbs.legs.push(legP);
+                    leg.position.y = -0.6; lp.add(leg); root.add(legP); limbs.legs.push(legP);
                 });
             } else if (type === 'PIG') {
                 const mat = new THREE.MeshLambertMaterial({ color: 0xf472b6 });
@@ -1059,8 +1053,20 @@
 
         function init3D() {
             const container = document.getElementById("game-wrapper");
-            const w = container.clientWidth || window.innerWidth || 1280;
-            const h = container.clientHeight || window.innerHeight || 680;
+
+            if (typeof THREE === "undefined") {
+                container.innerHTML = `
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+                                background:#050b18;color:#fff;font-family:system-ui;text-align:center;padding:30px;z-index:100;">
+                        <div>
+                            <h2 style="color:#00f3ff;margin-bottom:10px;">3D Engine Loading Error</h2>
+                            <p style="color:#cbd5e1;">Three.js could not be loaded from CDN. Please verify your connection and refresh.</p>
+                        </div>
+                    </div>`;
+                return false;
+            }
+            const w = container.clientWidth || 1280;
+            const h = container.clientHeight || 680;
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x78a7ff);
@@ -1070,7 +1076,15 @@
             camera.rotation.order = 'YXZ';
             scene.add(camera);
 
-            renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+            try {
+                renderer = new THREE.WebGLRenderer({
+                    antialias: false,
+                    powerPreference: "high-performance"
+                });
+            } catch (err) {
+                console.error("WebGL initialization failed:", err);
+                return false;
+            }
             renderer.setSize(w, h);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
             renderer.domElement.id = "webgl-canvas";
@@ -1101,8 +1115,8 @@
             updateVitalsHUD();
 
             window.addEventListener('resize', () => {
-                const nw = container.clientWidth || window.innerWidth || 1280;
-                const nh = container.clientHeight || window.innerHeight || 680;
+                const nw = container.clientWidth || 1280;
+                const nh = container.clientHeight || 680;
                 camera.aspect = nw / nh;
                 camera.updateProjectionMatrix();
                 renderer.setSize(nw, nh);
@@ -1312,7 +1326,6 @@
             }
         }
 
-        // Exact Voxel AABB Collision Math
         function checkVoxelCollision(px, py, pz) {
             const minX = px - player.width / 2;
             const maxX = px + player.width / 2;
@@ -1366,19 +1379,16 @@
                 const dx = moveDir.x * player.speed * dt;
                 const dz = moveDir.z * player.speed * dt;
 
-                // Horizontal X Motion & Slide Collision
                 if (dx !== 0) {
                     const hitX = checkVoxelCollision(player.pos.x + dx, player.pos.y, player.pos.z);
                     if (!hitX.hit) player.pos.x += dx;
                 }
 
-                // Horizontal Z Motion & Slide Collision
                 if (dz !== 0) {
                     const hitZ = checkVoxelCollision(player.pos.x, player.pos.y, player.pos.z + dz);
                     if (!hitZ.hit) player.pos.z += dz;
                 }
 
-                // Gravity & Vertical Ground Collision
                 player.vel.y -= player.gravity * dt;
                 const newY = player.pos.y + player.vel.y * dt;
 
@@ -1402,7 +1412,6 @@
                     }
                 }
 
-                // Jump
                 if (keys.space && player.onGround) {
                     player.vel.y = player.jumpForce;
                     player.onGround = false;
@@ -1445,7 +1454,7 @@
                 handGroup.position.x = 0.45 + Math.cos(walkClock * 0.5) * 0.02;
             }
 
-            // Atmosphere & Sun/Moon Orbit
+            // Celestial Sun & Moon Orbit
             worldTime = (worldTime + dt * 0.0035) % 1;
             const sunAngle = worldTime * Math.PI * 2;
             sunLight.position.set(Math.cos(sunAngle) * 90, Math.sin(sunAngle) * 90, 40);
@@ -1474,7 +1483,6 @@
                 }
             }
 
-            // Boss Dragon Flight
             if (bossEntity && bossEntity.alive) {
                 bossEntity.angle += dt * 0.6;
                 bossEntity.root.position.set(Math.cos(bossEntity.angle) * 14, 18 + Math.sin(bossEntity.angle * 2) * 2, Math.sin(bossEntity.angle) * 14);
@@ -1536,7 +1544,6 @@
                 }
             });
 
-            // Particles Update
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.mesh.position.x += p.vx * dt;
@@ -1565,9 +1572,14 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            init3D();
-            updateWallet();
-            requestAnimationFrame(animate);
+            try {
+                const started = init3D();
+                if (!started) return;
+                updateWallet();
+                requestAnimationFrame(animate);
+            } catch (err) {
+                console.error("Minecraft 3D startup error:", err);
+            }
         });
     </script>
 </body>
