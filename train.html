@@ -252,7 +252,7 @@
         }
         .slot-val { font-weight: bold; color: var(--gold); font-size: 0.88rem; }
 
-        /* Banners & Modals */
+        /* Notification Banners & Modals */
         #action-prompt {
             position: absolute;
             bottom: 80px;
@@ -496,10 +496,7 @@
     </div>
 
     <script>
-        // Web Audio Synthesizer Engine
         let audioCtx = null;
-        let tractionOsc1 = null, tractionOsc2 = null, tractionGain = null;
-
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
@@ -635,32 +632,32 @@
         const trackControlPoints = [
             new THREE.Vector3(0, 0, 0),
             new THREE.Vector3(0, 0, 1000),
-            new THREE.Vector3(60, 0, 2000),   // Curve Right
-            new THREE.Vector3(140, 0, 2800),  // Millbridge Station
+            new THREE.Vector3(60, 0, 2000),
+            new THREE.Vector3(140, 0, 2800),
             new THREE.Vector3(120, 0, 3600),
-            new THREE.Vector3(-140, 0, 4600), // Sharp Canyon Curve
-            new THREE.Vector3(-220, 0, 5400), // Brimmouth Viaduct
+            new THREE.Vector3(-140, 0, 4600),
+            new THREE.Vector3(-220, 0, 5400),
             new THREE.Vector3(-160, 0, 6400),
-            new THREE.Vector3(0, 0, 7200),    // Re-align
-            new THREE.Vector3(80, 0, 8000),   // Roseberry Park
-            new THREE.Vector3(160, 0, 9200),  // S-Bend Entry
-            new THREE.Vector3(0, 0, 10200),   // S-Bend Exit
+            new THREE.Vector3(0, 0, 7200),
+            new THREE.Vector3(80, 0, 8000),
+            new THREE.Vector3(160, 0, 9200),
+            new THREE.Vector3(0, 0, 10200),
             new THREE.Vector3(-40, 0, 11000),
-            new THREE.Vector3(0, 0, 12200)   // Aan Hill Terminus
+            new THREE.Vector3(0, 0, 12200)
         ];
         const trackSpline = new THREE.CatmullRomCurve3(trackControlPoints, false, 'catmullrom', 0.15);
         const TOTAL_TRACK_LENGTH = trackSpline.getLength();
 
         // Speed Limit & Derailment Zones
         const speedZones = [
-            { startDist: 0, endDist: 1400, limit: 75, warnDist: 0 },
-            { startDist: 1400, endDist: 2600, limit: 60, warnDist: 1100 },  // Curve Right
-            { startDist: 2600, endDist: 3400, limit: 75, warnDist: 2300 },  // Millbridge
-            { startDist: 3400, endDist: 5800, limit: 45, warnDist: 3000 },  // Sharp Curve into Viaduct
-            { startDist: 5800, endDist: 7400, limit: 80, warnDist: 5500 },  // Straight
-            { startDist: 7400, endDist: 8800, limit: 60, warnDist: 7000 },  // Roseberry
-            { startDist: 8800, endDist: 10600, limit: 50, warnDist: 8400 }, // S-Bend
-            { startDist: 10600, endDist: 12500, limit: 35, warnDist: 10200 } // Terminus Approach
+            { startDist: 0, endDist: 1400, limit: 75 },
+            { startDist: 1400, endDist: 2600, limit: 60 },
+            { startDist: 2600, endDist: 3400, limit: 75 },
+            { startDist: 3400, endDist: 5800, limit: 45 },
+            { startDist: 5800, endDist: 7400, limit: 80 },
+            { startDist: 7400, endDist: 8800, limit: 60 },
+            { startDist: 8800, endDist: 10600, limit: 50 },
+            { startDist: 10600, endDist: 12500, limit: 35 }
         ];
 
         const stations = [
@@ -673,7 +670,6 @@
         ];
 
         let signals = [];
-        let speedSigns = [];
         const NPC_COLORS = [0xef4444, 0x3b82f6, 0x10b981, 0xf59e0b, 0x8b5cf6, 0xec4899];
 
         function showDialogue(txt) {
@@ -686,7 +682,7 @@
         function showStopBanner(distDiff, xp) {
             const b = document.getElementById("stop-banner");
             if (!b) return;
-            b.innerText = `🧈 BUTTER STOP! Stopped ${Math.abs(distDiff).toFixed(2)}m from marker (+${xp} XP & Fares)`;
+            b.innerText = `🧈 BUTTER STOP! Stopped accurately (+${xp} XP & Fares)`;
             b.style.display = "block";
             setTimeout(() => { b.style.display = "none"; }, 4500);
         }
@@ -775,24 +771,24 @@
         // Texture for British Circular Speed Limit Board
         function createSpeedSignTexture(speedNumber) {
             const canvas = document.createElement('canvas');
-            canvas.width = 128;
-            canvas.height = 128;
+            canvas.width = 256;
+            canvas.height = 256;
             const ctx = canvas.getContext('2d');
 
             ctx.fillStyle = '#facc15';
             ctx.beginPath();
-            ctx.arc(64, 64, 60, 0, Math.PI * 2);
+            ctx.arc(128, 128, 120, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 10;
+            ctx.lineWidth = 16;
             ctx.stroke();
 
             ctx.fillStyle = '#000000';
-            ctx.font = 'bold 54px Arial';
+            ctx.font = '900 110px "Segoe UI", Arial, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(speedNumber.toString(), 64, 66);
+            ctx.fillText(speedNumber.toString(), 128, 130);
 
             const tex = new THREE.CanvasTexture(canvas);
             tex.needsUpdate = true;
@@ -842,7 +838,7 @@
             const darkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
             const glassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.75 });
 
-            // Lead Power Car
+            // Lead Locomotive
             const powerCar = new THREE.Group();
 
             const nose = new THREE.Mesh(new THREE.ConeGeometry(1.6, 5.5, 12), icYellow);
@@ -996,7 +992,7 @@
                 scene.add(crossbeam);
             }
 
-            // Speed Limit Warning Boards
+            // Upright Speed Limit Warning Signs Facing Approaching Driver
             speedZones.forEach(sz => {
                 if (sz.limit) {
                     const u = Math.min(1.0, sz.startDist / TOTAL_TRACK_LENGTH);
@@ -1005,21 +1001,26 @@
                     const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
 
                     const signGroup = new THREE.Group();
-                    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 3.5, 8), mastMat);
+                    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3.5, 8), mastMat);
                     post.position.y = 1.75;
                     signGroup.add(post);
 
-                    const signBoard = new THREE.Mesh(
-                        new THREE.CylinderGeometry(1.0, 1.0, 0.08, 24),
-                        new THREE.MeshBasicMaterial({ map: createSpeedSignTexture(sz.limit) })
-                    );
-                    signBoard.position.y = 3.2;
-                    signBoard.rotation.x = Math.PI / 2;
-                    signBoard.rotation.y = Math.PI / 2;
-                    signGroup.add(signBoard);
+                    // Front Face Circle
+                    const signTex = createSpeedSignTexture(sz.limit);
+                    const signMat = new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide });
+                    const signCircle = new THREE.Mesh(new THREE.CircleGeometry(1.0, 24), signMat);
+                    signCircle.position.set(0, 3.2, 0.02);
+                    signGroup.add(signCircle);
+
+                    // Back Plate
+                    const backPlate = new THREE.Mesh(new THREE.CircleGeometry(1.0, 16), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 }));
+                    backPlate.position.set(0, 3.2, -0.02);
+                    backPlate.rotation.y = Math.PI;
+                    signGroup.add(backPlate);
 
                     signGroup.position.copy(pos).addScaledVector(normal, 3.2);
-                    signGroup.lookAt(pos.clone().add(tangent).addScaledVector(normal, 3.2));
+                    // Point front face (+Z) towards oncoming train (pos - tangent)
+                    signGroup.lookAt(pos.clone().sub(tangent).addScaledVector(normal, 3.2));
                     scene.add(signGroup);
                 }
             });
@@ -1046,7 +1047,7 @@
                 sigGroup.add(bulb);
 
                 sigGroup.position.copy(pos).addScaledVector(normal, -3.2);
-                sigGroup.lookAt(pos.clone().add(tangent).addScaledVector(normal, -3.2));
+                sigGroup.lookAt(pos.clone().sub(tangent).addScaledVector(normal, -3.2));
                 scene.add(sigGroup);
                 signals.push({ group: sigGroup, bulb, dist: sp, aspect: 'GREEN' });
             });
@@ -1059,7 +1060,6 @@
                 const u = st.trackDist / TOTAL_TRACK_LENGTH;
                 const pos = trackSpline.getPointAt(u);
                 const tangent = trackSpline.getTangentAt(u);
-                const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
 
                 const stGroup = new THREE.Group();
 
@@ -1389,6 +1389,7 @@
             const trainTangent = trackSpline.getTangentAt(u);
 
             trainGroup.position.copy(trainPos);
+            // Orient train along track direction
             trainGroup.lookAt(trainPos.clone().add(trainTangent));
 
             updateTractionAudio(train.powerNotch, train.speed / 50, activeTrainType === 'Class755' || activeTrainType === 'Class800');
@@ -1407,36 +1408,45 @@
             document.getElementById("station-dist").innerText = `Distance: ${distToNext} m | Speed Limit: ${train.speedLimitMPH} MPH`;
         }
 
-        // Camera Logic (Zero Nose Clipping in Captain View)
+        // Camera Logic (Zero Blockage in Captain View via Local-to-World Transform)
         function updateCamera() {
             if (!trainGroup) return;
 
-            const u = Math.min(1.0, Math.max(0.0, train.distance / TOTAL_TRACK_LENGTH));
-            const trainPos = trackSpline.getPointAt(u);
-            const trainTangent = trackSpline.getTangentAt(u);
-            const normal = new THREE.Vector3(-trainTangent.z, 0, trainTangent.x).normalize();
+            trainGroup.updateMatrixWorld(true);
 
             if (cameraMode === 0) {
-                // Captain View: Placed right at front windshield looking straight forward
-                const cabEyePos = trainPos.clone().add(new THREE.Vector3(0, 2.7, 0)).addScaledVector(trainTangent, 8.5).addScaledVector(normal, 0.4);
-                camera.position.copy(cabEyePos);
-                camera.lookAt(cabEyePos.clone().addScaledVector(trainTangent, 200));
+                // Captain View: positioned right at the windshield looking forward down the track
+                const localCabEye = new THREE.Vector3(0.4, 2.6, -14.2);
+                const worldCabEye = trainGroup.localToWorld(localCabEye.clone());
+                camera.position.copy(worldCabEye);
+
+                const localLook = new THREE.Vector3(0.4, 2.4, -250);
+                const worldLook = trainGroup.localToWorld(localLook.clone());
+                camera.lookAt(worldLook);
             } else if (cameraMode === 1) {
-                // Chase View: Smoothly following behind and above train
-                const chasePos = trainPos.clone().add(new THREE.Vector3(0, 7.5, 0)).addScaledVector(trainTangent, -36);
-                camera.position.copy(chasePos);
-                camera.lookAt(trainPos.clone().add(new THREE.Vector3(0, 2.5, 0)).addScaledVector(trainTangent, 15));
+                // Chase View: following smoothly above & behind
+                const localChase = new THREE.Vector3(0, 7.5, 36);
+                const worldChase = trainGroup.localToWorld(localChase.clone());
+                camera.position.lerp(worldChase, 0.2);
+
+                const localLook = new THREE.Vector3(0, 2.5, -15);
+                const worldLook = trainGroup.localToWorld(localLook.clone());
+                camera.lookAt(worldLook);
             } else if (cameraMode === 2) {
-                // Window View
-                const winPos = trainPos.clone().add(new THREE.Vector3(0, 2.4, 0)).addScaledVector(trainTangent, -22).addScaledVector(normal, -1.5);
-                camera.position.copy(winPos);
-                camera.lookAt(winPos.clone().addScaledVector(normal, -30).addScaledVector(trainTangent, 15));
+                // Passenger Window View
+                const localWin = new THREE.Vector3(-1.6, 2.4, 23.5);
+                const worldWin = trainGroup.localToWorld(localWin.clone());
+                camera.position.copy(worldWin);
+
+                const localWinLook = new THREE.Vector3(-30, 2.0, 35);
+                const worldWinLook = trainGroup.localToWorld(localWinLook.clone());
+                camera.lookAt(worldWinLook);
             } else {
                 // Trackside Flyby Cam
-                const flybyU = Math.min(1.0, (Math.floor(train.distance / 400) * 400 + 120) / TOTAL_TRACK_LENGTH);
+                const flybyU = Math.min(1.0, (Math.floor(train.distance / 350) * 350 + 120) / TOTAL_TRACK_LENGTH);
                 const flybyPos = trackSpline.getPointAt(flybyU).add(new THREE.Vector3(8.5, 2.2, 0));
                 camera.position.copy(flybyPos);
-                camera.lookAt(trainPos);
+                camera.lookAt(trainGroup.position);
             }
         }
 
