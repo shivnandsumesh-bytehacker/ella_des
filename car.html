@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Drift Master 3D - Ultimate Street & Touge Championship</title>
+    <title>3D Drift Master - Touge & Street Championship</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -48,7 +48,7 @@
             margin-bottom: 4px;
             box-shadow: 0 0 18px var(--primary-glow);
         }
-        .stats { font-size: 1.05rem; font-weight: bold; color: var(--gold); }
+        .stats { font-size: 1.02rem; font-weight: bold; color: var(--gold); }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
         a.nav:hover { text-shadow: 0 0 8px var(--primary); }
 
@@ -67,7 +67,6 @@
         }
         #webgl-canvas { width: 100% !important; height: 100% !important; display: block; touch-action: none; }
 
-        /* HUD Panels */
         .hud-top-left {
             position: absolute;
             top: 10px;
@@ -102,7 +101,6 @@
             pointer-events: auto;
         }
 
-        /* Center Telemetry & Boost Gauge */
         #telemetry-hud {
             position: absolute;
             bottom: 68px;
@@ -124,7 +122,7 @@
         .tel-lbl { font-size: 0.6rem; color: #94a3b8; text-transform: uppercase; }
 
         #boost-bar-container {
-            width: 120px;
+            width: 130px;
             height: 10px;
             background: #1e293b;
             border: 1.5px solid #00f3ff;
@@ -137,7 +135,7 @@
             height: 100%;
             background: linear-gradient(90deg, #00f3ff, #ff007f);
             box-shadow: 0 0 10px #00f3ff;
-            transition: width 0.1s linear;
+            transition: width 0.08s linear;
         }
 
         #jump-warning-banner {
@@ -150,7 +148,7 @@
             font-weight: 900;
             padding: 8px 24px;
             border-radius: 20px;
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             display: none;
             pointer-events: none;
             box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
@@ -164,10 +162,10 @@
 
         #drift-score-banner {
             position: absolute;
-            top: 120px;
+            top: 115px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 1.5rem;
+            font-size: 1.55rem;
             font-weight: 900;
             color: var(--gold);
             text-shadow: 0 0 15px var(--accent);
@@ -188,7 +186,6 @@
             box-shadow: 0 0 10px rgba(0,243,255,0.3);
         }
 
-        /* Touch Controls Overlay */
         .touch-zone {
             position: absolute;
             bottom: 60px;
@@ -228,7 +225,6 @@
         .ctrl-btn.handbrake { border-color: var(--accent); color: var(--accent); }
         .ctrl-btn.handbrake:active { background: var(--accent); color: #fff; }
 
-        /* Action Dock */
         .hud-bottom {
             position: absolute;
             bottom: 8px;
@@ -270,7 +266,6 @@
             z-index: 20;
         }
 
-        /* Modals */
         .modal {
             position: absolute;
             inset: 0;
@@ -287,14 +282,14 @@
             border: 2px solid var(--primary);
             border-radius: 14px;
             padding: 24px;
-            max-width: 780px;
+            max-width: 820px;
             width: 95%;
             text-align: left;
             box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
         }
         .btn-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
             gap: 12px;
             margin-top: 14px;
         }
@@ -311,125 +306,84 @@
         }
         .btn:hover:not(:disabled) { filter: brightness(1.2); box-shadow: 0 0 15px var(--primary); }
 
-        /* Upgrades Layout */
-        .upgrade-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(11, 19, 41, 0.8);
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 8px 14px;
-            margin-top: 8px;
-        }
-        .upgrade-info { text-align: left; }
-        .upgrade-name { font-weight: bold; color: #fff; font-size: 0.9rem; }
-        .upgrade-stat { font-size: 0.75rem; color: var(--gold); }
-
         .controls-info { margin-top: 5px; font-size: 0.78rem; color: #94a3b8; max-width: 1320px; }
     </style>
 </head>
 <body>
     <header>
         <a href="index.html" class="nav">← Hub</a>
-        <div>🏎️ <strong>DRIFT MASTER 3D</strong> | Track: <span id="track-name" style="color:var(--primary); font-weight:bold;">Select Map</span></div>
-        <div class="stats">🪙 Gold: <span id="coin-count">0</span> | 🔥 Best Drift: <span id="best-drift">0</span></div>
+        <div>🏎️ <strong>3D DRIFT MASTER</strong> | Circuit: <span id="track-name" style="color:var(--primary); font-weight:bold;">Neon Metropolis</span></div>
+        <div class="stats">🪙 Gold: <span id="coin-count">0</span> | 🔥 High Score: <span id="best-drift">0</span></div>
     </header>
 
     <div id="game-wrapper">
-        <!-- Initial Loading / Map Select Modal -->
+        <!-- Map Selection Modal -->
         <div id="map-modal" class="modal">
             <div class="modal-card">
                 <div style="text-align:center;">
-                    <h2 style="color:var(--primary); margin:0 0 4px 0; font-size:1.6rem;">🏎️ CHOOSE YOUR RACING ENVIRONMENT</h2>
-                    <p style="color:#94a3b8; font-size:0.88rem; margin:0 0 14px 0;">Select a track to deploy. Higher difficulties feature moving traffic and death jumps!</p>
+                    <h2 style="color:var(--primary); margin:0 0 4px 0; font-size:1.6rem;">🗺️ SELECT DRIFT CIRCUIT & TOUGE</h2>
+                    <p style="color:#94a3b8; font-size:0.88rem; margin:0 0 14px 0;">Select your circuit to deploy. Features dynamic traffic, jumps, and rival drift AI.</p>
                 </div>
                 <div class="btn-grid">
-                    <button class="btn" onclick="startMap('HIGHWAY')">
-                        🛣️ Highway Expressway<br>
-                        <small style="color:#0f172a;">Difficulty: <strong>EASY</strong></small><br>
-                        <small style="font-size:0.68rem;">4-Lane Sprint | Smooth Traffic | No Jumps</small>
+                    <button class="btn" onclick="startMap('NEON_METROPOLIS')">
+                        🏙️ Neon Metropolis<br>
+                        <small style="color:#0f172a;">Urban Street Circuit</small><br>
+                        <small style="font-size:0.68rem;">Wet Asphalt | Rain | Subway Gap Jump</small>
                     </button>
-                    <button class="btn" onclick="startMap('BEACH')" style="background:var(--gold);">
-                        🏖️ Palm Beach Coast<br>
-                        <small style="color:#0f172a;">Difficulty: <strong>HARD</strong></small><br>
-                        <small style="font-size:0.68rem;">Boardwalk Jump (45+ MPH) | Beach Traffic</small>
+                    <button class="btn" onclick="startMap('MOUNT_SERPENT')" style="background:var(--accent); color:#fff;">
+                        🏔️ Mount Serpent<br>
+                        <small style="color:#fff;">Mountain Touge Pass</small><br>
+                        <small style="font-size:0.68rem;">14 Hairpins | Sunset | Broken Bridge (140+ km/h)</small>
                     </button>
-                    <button class="btn" onclick="startMap('MOUNTAINS')" style="background:var(--accent); color:#fff;">
-                        🏔️ Mountain Touge<br>
-                        <small style="color:#fff;">Difficulty: <strong>HARD</strong></small><br>
-                        <small style="font-size:0.68rem;">Ravine Gap Jump (58+ MPH) | Tight Hairpins</small>
-                    </button>
-                    <button class="btn" onclick="startMap('CITY')" style="background:#a855f7; color:#fff;">
-                        🏙️ Cyber Neon City<br>
-                        <small style="color:#fff;">Difficulty: <strong>INSANE</strong></small><br>
-                        <small style="font-size:0.68rem;">Skyline Jump (72+ MPH) | Dense Grid Traffic</small>
+                    <button class="btn" onclick="startMap('PORT_TITAN')" style="background:var(--gold);">
+                        ⚓ Port Titan<br>
+                        <small style="color:#0f172a;">Industrial Gymkhana</small><br>
+                        <small style="font-size:0.68rem;">Oil Slicks (-40% Grip) | Cargo Ship Ramp</small>
                     </button>
                 </div>
                 <div style="display:flex; justify-content:center; gap:12px; margin-top:18px;">
-                    <button class="btn" style="background:#334155; color:#fff; width:200px;" onclick="toggleGarage(true)">🚗 Garage & Upgrades</button>
+                    <button class="btn" style="background:#334155; color:#fff; width:220px;" onclick="toggleGarage(true)">🏎️ Vehicle Roster & Tuning</button>
                 </div>
             </div>
         </div>
 
-        <!-- Garage & Upgrades Modal -->
+        <!-- Garage Modal -->
         <div id="garage-modal" class="modal" style="display: none;">
             <div class="modal-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h2 style="color:var(--gold); margin:0;">🏎️ TOUGE GARAGE & PERFORMANCE SHOP</h2>
+                    <h2 style="color:var(--gold); margin:0;">🏎️ DRIFT MASTER GARAGE ROSTER</h2>
                     <button class="btn" style="padding:4px 10px;" onclick="toggleGarage(false)">✕ Close</button>
                 </div>
-                <p style="color:#94a3b8; font-size:0.82rem; margin:4px 0 10px 0;">Buy high-performance cars or tune your current engine, handling, and boost:</p>
-
-                <!-- Vehicle Lineup -->
-                <div class="btn-grid" style="margin-top:4px;">
-                    <button class="btn" onclick="selectCar('AE86')">🔰 Hachi-Roku AE86<br><small>FREE / Starter</small></button>
-                    <button class="btn" id="btn-buy-rx7" onclick="buyOrSelectCar('RX7', 3500)">⚡ Rotary RX-7 FD<br><small>🪙 3,500</small></button>
-                    <button class="btn" id="btn-buy-gtr" onclick="buyOrSelectCar('GTR', 8000)">🔥 Skyline GT-R R34<br><small>🪙 8,000</small></button>
-                    <button class="btn" id="btn-buy-supra" onclick="buyOrSelectCar('SUPRA', 14000)">🚀 Supra MK4 Twin-Turbo<br><small>🪙 14,000</small></button>
-                </div>
-
-                <!-- Car Stats Upgrades -->
-                <h3 style="color:var(--primary); margin:14px 0 4px 0; font-size:0.95rem;">⚡ PERFORMANCE UPGRADES (ACTIVE CAR)</h3>
-                
-                <div class="upgrade-row">
-                    <div class="upgrade-info">
-                        <div class="upgrade-name">🚀 Top Speed Engine Tuning</div>
-                        <div class="upgrade-stat" id="stat-speed">Lvl 1 (+0 MPH)</div>
-                    </div>
-                    <button class="btn" id="btn-up-speed" style="padding:6px 14px;" onclick="buyUpgrade('speed')">Upgrade 🪙 800</button>
-                </div>
-
-                <div class="upgrade-row">
-                    <div class="upgrade-info">
-                        <div class="upgrade-name">⚡ Turbo Acceleration</div>
-                        <div class="upgrade-stat" id="stat-accel">Lvl 1 (+0 Accel)</div>
-                    </div>
-                    <button class="btn" id="btn-up-accel" style="padding:6px 14px;" onclick="buyUpgrade('accel')">Upgrade 🪙 800</button>
-                </div>
-
-                <div class="upgrade-row">
-                    <div class="upgrade-info">
-                        <div class="upgrade-name">💨 Drift Handling & Steering Response</div>
-                        <div class="upgrade-stat" id="stat-handling">Lvl 1 (+0 Steering)</div>
-                    </div>
-                    <button class="btn" id="btn-up-handling" style="padding:6px 14px;" onclick="buyUpgrade('handling')">Upgrade 🪙 650</button>
-                </div>
-
-                <div class="upgrade-row">
-                    <div class="upgrade-info">
-                        <div class="upgrade-name">🧪 Nitro Boost Tank & Flow Rate</div>
-                        <div class="upgrade-stat" id="stat-nitro">Lvl 1 (+0 Boost)</div>
-                    </div>
-                    <button class="btn" id="btn-up-nitro" style="padding:6px 14px;" onclick="buyUpgrade('nitro')">Upgrade 🪙 750</button>
+                <p style="color:#94a3b8; font-size:0.82rem; margin:4px 0 10px 0;">Select from tuned drift chassis or purchase elite exotics:</p>
+                <div class="btn-grid">
+                    <button class="btn" onclick="selectCar('Kansei86')">
+                        🔰 Kansei Sprint '86<br>
+                        <small>Tuner (RWD) | 210 km/h | FREE</small><br>
+                        <small style="font-size:0.68rem;">Drift: 8.5/10 | Technical Turns</small>
+                    </button>
+                    <button class="btn" id="btn-buy-r34" onclick="buyOrSelectCar('ShadowR34', 4500)">
+                        🔥 Shadow R34<br>
+                        <small>AWD Sport | 260 km/h | 🪙 4,500</small><br>
+                        <small style="font-size:0.68rem;">Drift: 7.0/10 | High-Speed Slides</small>
+                    </button>
+                    <button class="btn" id="btn-buy-brawler" onclick="buyOrSelectCar('BrawlerV8', 8500)">
+                        💥 Brawler V8<br>
+                        <small>Muscle (RWD) | 240 km/h | 🪙 8,500</small><br>
+                        <small style="font-size:0.68rem;">Drift: 9.5/10 | Heavy Torque Sweepers</small>
+                    </button>
+                    <button class="btn" id="btn-buy-zenith" onclick="buyOrSelectCar('ZenithGT', 15000)">
+                        ⚡ Zenith Hyper-GT<br>
+                        <small>Exotic (RWD) | 320 km/h | 🪙 15,000</small><br>
+                        <small style="font-size:0.68rem;">Drift: 6.5/10 | Straightaway Bursts</small>
+                    </button>
                 </div>
             </div>
         </div>
 
         <div class="hud-top-left">
             <div class="hud-panel">
-                <div style="font-weight:bold; color:var(--primary);">🏁 TRACK TELEMETRY:</div>
-                <div id="lap-status" style="color:#facc15; margin-top:2px;">Waiting to Start...</div>
+                <div style="font-weight:bold; color:var(--primary);">🏁 RACE TELEMETRY:</div>
+                <div id="lap-status" style="color:#facc15; margin-top:2px;">Lap 1/3 | Sector 1</div>
                 <div id="lap-time" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Time: 00:00.00</div>
             </div>
         </div>
@@ -437,28 +391,28 @@
         <div class="hud-top-right">
             <div class="hud-panel" style="display: flex; flex-direction: column; align-items: flex-end;">
                 <div style="font-size:0.75rem; color:#38bdf8;">CAM: <span id="cam-mode-text">CHASE VIEW</span></div>
-                <div style="font-size:0.72rem; color:var(--emerald);">CAR: <span id="active-car-name">AE86</span></div>
+                <div style="font-size:0.72rem; color:var(--emerald);">CAR: <span id="active-car-name">Kansei Sprint '86</span></div>
                 <canvas id="minimap-canvas" width="80" height="80"></canvas>
             </div>
         </div>
 
-        <div id="jump-warning-banner">⚠️ SPEED JUMP AHEAD! MIN SPEED: 58 MPH!</div>
+        <div id="jump-warning-banner">⚠️ SPEED JUMP AHEAD! MIN SPEED: 140 KM/H!</div>
         <div id="drift-score-banner">DRIFT +500</div>
         <div id="dialogue-box"></div>
 
-        <!-- Telemetry HUD -->
         <div id="telemetry-hud">
-            <div class="tel-item"><div class="tel-val" id="tel-spd">0</div><div class="tel-lbl">MPH</div></div>
+            <div class="tel-item"><div class="tel-val" id="tel-spd">0</div><div class="tel-lbl">KM/H</div></div>
             <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
             <div class="tel-item"><div class="tel-val" id="tel-gear" style="color:var(--gold);">1</div><div class="tel-lbl">GEAR</div></div>
             <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
+            <div class="tel-item"><div class="tel-val" id="tel-angle" style="color:var(--accent);">0°</div><div class="tel-lbl">ANGLE</div></div>
+            <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
             <div class="tel-item">
                 <div id="boost-bar-container"><div id="boost-bar-fill"></div></div>
-                <div class="tel-lbl" style="margin-top:2px;">NITRO BOOST</div>
+                <div class="tel-lbl" style="margin-top:2px;">NITRO</div>
             </div>
         </div>
 
-        <!-- Touch Controls -->
         <div class="touch-zone" id="touch-left">
             <div class="ctrl-btn" id="btn-touch-left">◀</div>
             <div class="ctrl-btn" id="btn-touch-right">▶</div>
@@ -466,12 +420,11 @@
 
         <div class="touch-zone" id="touch-right">
             <div class="ctrl-btn handbrake" id="btn-touch-hb">💨<br><small>DRIFT</small></div>
-            <div class="ctrl-btn boost" id="btn-touch-boost">⚡<br><small>BOOST</small></div>
+            <div class="ctrl-btn boost" id="btn-touch-boost">⚡<br><small>NITRO</small></div>
             <div class="ctrl-btn brake" id="btn-touch-brake">🛑<br><small>BRAKE</small></div>
             <div class="ctrl-btn gas" id="btn-touch-gas">🏎️<br><small>GAS</small></div>
         </div>
 
-        <!-- Action Dock -->
         <div class="hud-bottom">
             <div class="slot" onclick="cycleCamera()"><div class="slot-val" id="val-cam">CHASE</div>[C] Cam</div>
             <div class="slot" onclick="resetCar()"><div class="slot-val" style="color:var(--accent);">[R]</div>Reset</div>
@@ -481,11 +434,10 @@
     </div>
 
     <div class="controls-info">
-        <strong>Accelerate:</strong> [W] / [↑] / Gas &nbsp;|&nbsp; <strong>Steer:</strong> [A]/[D] &nbsp;|&nbsp; <strong>Brake/Reverse:</strong> [S] / [↓] &nbsp;|&nbsp; <strong>Nitro Boost:</strong> [Shift] / [E] &nbsp;|&nbsp; <strong>Handbrake Drift:</strong> [Space]
+        <strong>Accelerate:</strong> [W] / [↑] / Gas &nbsp;|&nbsp; <strong>Steer:</strong> [A]/[D] &nbsp;|&nbsp; <strong>Brake/Reverse:</strong> [S] / [↓] &nbsp;|&nbsp; <strong>Nitro:</strong> [Shift] / [E] &nbsp;|&nbsp; <strong>Handbrake:</strong> [Space] &nbsp;|&nbsp; <strong>Camera:</strong> [C]
     </div>
 
     <script>
-        // Web Audio Synthesizer Engine
         let audioCtx = null;
         let engineOsc = null, engineGain = null;
 
@@ -515,7 +467,7 @@
         function updateEngineAudio(rpmNorm, isBoosting) {
             if (!engineGain || !engineOsc) return;
             const ctx = getAudioContext();
-            const freq = 55 + rpmNorm * (isBoosting ? 380 : 260);
+            const freq = 50 + rpmNorm * (isBoosting ? 380 : 250);
             engineOsc.frequency.setTargetAtTime(freq, ctx.currentTime, 0.05);
             engineGain.gain.setTargetAtTime(0.02 + rpmNorm * 0.07, ctx.currentTime, 0.05);
         }
@@ -533,7 +485,7 @@
                 noise.buffer = buffer;
                 const filter = ctx.createBiquadFilter();
                 filter.type = 'bandpass';
-                filter.frequency.value = 1200;
+                filter.frequency.value = 1300;
                 filter.Q.value = 4;
 
                 const gain = ctx.createGain();
@@ -566,6 +518,23 @@
             } catch(e){}
         }
 
+        function playHornSound() {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                [420, 520].forEach(f => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = f;
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(); osc.stop(ctx.currentTime + 0.4);
+                });
+            } catch(e){}
+        }
+
         function playBoostSound() {
             try {
                 const ctx = getAudioContext();
@@ -582,39 +551,71 @@
             } catch(e){}
         }
 
-        function playCoinChime() {
-            try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(987.77, ctx.currentTime);
-                osc.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.25, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.start(); osc.stop(ctx.currentTime + 0.25);
-            } catch(e){}
-        }
-
-        // Global State & 3D Scene
-        let scene, camera, renderer, carMesh = null, wheelMeshes = [];
+        // Global Scene & Gameplay State
+        let scene, camera, renderer, carMesh = null, wheelMeshes = [], steeringWheelMesh = null;
         let gold = 0, bestDrift = 0;
-        let activeCarType = 'AE86';
-        let currentMap = 'HIGHWAY';
-        let ownedCars = ['AE86'];
-        let cameraMode = 0; // 0: Chase, 1: Hood View
+        let activeCarType = 'Kansei86';
+        let currentMap = 'NEON_METROPOLIS';
+        let ownedCars = ['Kansei86'];
+        let cameraMode = 0; // 0: Third-Person Chase, 1: Hood/Bumper, 2: Cockpit, 3: Dynamic Drift Orbit
+
         let trackMeshes = [];
         let trafficCars = [];
-        let pickups = [];
+        let rivalAICar = null;
+        let particles = [];
+        let currentLapTime = 0;
+        let oilSlickZones = [];
 
-        // Upgrades Inventory State
-        const carUpgrades = {
-            speed: 1,
-            accel: 1,
-            handling: 1,
-            nitro: 1
+        // 4 Car Profiles & Dynamics
+        const carRoster = {
+            Kansei86: {
+                name: "Kansei Sprint '86",
+                cls: "Tuner (RWD)",
+                topSpeedKmh: 210,
+                nitroDuration: 4.0,
+                driftFactor: 0.85,
+                accel: 28.0,
+                bodyColor: 0xf8fafc,
+                underglowColor: 0x00f3ff,
+                suspensionFront: 1.2,
+                suspensionRear: 0.8
+            },
+            ShadowR34: {
+                name: "Shadow R34",
+                cls: "AWD Sport",
+                topSpeedKmh: 260,
+                nitroDuration: 5.5,
+                driftFactor: 0.70,
+                accel: 33.0,
+                bodyColor: 0x0284c7,
+                underglowColor: 0x3b82f6,
+                suspensionFront: 1.0,
+                suspensionRear: 1.0
+            },
+            BrawlerV8: {
+                name: "Brawler V8",
+                cls: "Muscle (RWD)",
+                topSpeedKmh: 240,
+                nitroDuration: 3.5,
+                driftFactor: 0.95,
+                accel: 31.0,
+                bodyColor: 0xef4444,
+                underglowColor: 0xff007f,
+                suspensionFront: 1.4,
+                suspensionRear: 0.6
+            },
+            ZenithGT: {
+                name: "Zenith Hyper-GT",
+                cls: "Exotic (RWD)",
+                topSpeedKmh: 320,
+                nitroDuration: 6.0,
+                driftFactor: 0.65,
+                accel: 38.0,
+                bodyColor: 0xf59e0b,
+                underglowColor: 0xfacc15,
+                suspensionFront: 0.9,
+                suspensionRear: 0.9
+            }
         };
 
         const car = {
@@ -622,122 +623,101 @@
             vel: new THREE.Vector3(0, 0, 0),
             heading: 0,
             speed: 0,
-            baseMaxSpeed: 40.0,
-            baseAccel: 26.0,
-            maxSpeed: 40.0,
-            accel: 26.0,
-            reverseSpeed: 12.0,
+            maxSpeed: 58.3, // m/s (210 km/h)
+            accel: 28.0,
+            reverseSpeed: 14.0,
             steerAngle: 0,
-            maxSteer: 0.58,
-            steerSpeed: 3.5,
-            steerReturn: 4.8,
-            driftFactor: 0,
+            maxSteer: 0.62,
+            steerSpeed: 3.8,
+            steerReturn: 5.0,
+            driftFactor: 0.85,
             isDrifting: false,
             isAirborne: false,
-            nitroAmount: 100,
+            nitroAmount: 100, // 0-100%
             isBoosting: false,
             driftPoints: 0,
             gear: 1,
-            bodyColor: 0xf8fafc
+            gripMultiplier: 1.0,
+            pitchAngle: 0,
+            rollAngle: 0
         };
 
         const keys = { w: false, s: false, a: false, d: false, space: false, shift: false };
 
-        // 4 Map Profiles & Track Coordinates
+        // 3 Distinct Tracks & Stunt Configurations
         const mapProfiles = {
-            HIGHWAY: {
-                name: 'Highway Expressway',
-                difficulty: 'Easy',
-                bgColor: 0x0284c7,
-                fogColor: 0x0284c7,
-                groundColor: 0x166534,
-                hasJump: false,
-                minJumpSpeed: 0,
-                lapReward: 200,
-                points: [
-                    new THREE.Vector3(0, 0, 0),
-                    new THREE.Vector3(20, 0, 200),
-                    new THREE.Vector3(60, 0, 450),
-                    new THREE.Vector3(120, 0, 750),
-                    new THREE.Vector3(80, 0, 1050),
-                    new THREE.Vector3(-40, 0, 1350),
-                    new THREE.Vector3(-100, 0, 1000),
-                    new THREE.Vector3(-80, 0, 600),
-                    new THREE.Vector3(-20, 0, 250),
-                    new THREE.Vector3(0, 0, 0)
-                ]
-            },
-            BEACH: {
-                name: 'Palm Beach Coast',
-                difficulty: 'Hard',
-                bgColor: 0x38bdf8,
-                fogColor: 0x38bdf8,
-                groundColor: 0xfacc15,
-                hasJump: true,
-                jumpGapDist: 400,
-                minJumpSpeed: 45, // MPH
-                lapReward: 400,
-                points: [
-                    new THREE.Vector3(0, 0, 0),
-                    new THREE.Vector3(80, 0, 180),
-                    new THREE.Vector3(160, 0, 360),
-                    new THREE.Vector3(240, 0, 520), // Boardwalk Gap Jump
-                    new THREE.Vector3(300, 0, 720),
-                    new THREE.Vector3(220, 0, 940),
-                    new THREE.Vector3(60, 0, 800),
-                    new THREE.Vector3(-60, 0, 550),
-                    new THREE.Vector3(-120, 0, 250),
-                    new THREE.Vector3(0, 0, 0)
-                ]
-            },
-            MOUNTAINS: {
-                name: 'Mountain Touge',
-                difficulty: 'Hard',
-                bgColor: 0x0f172a,
-                fogColor: 0x0f172a,
-                groundColor: 0x1e293b,
-                hasJump: true,
-                jumpGapDist: 500,
-                minJumpSpeed: 58, // MPH
-                lapReward: 500,
-                points: [
-                    new THREE.Vector3(0, 0, 0),
-                    new THREE.Vector3(60, 0, 160),
-                    new THREE.Vector3(160, 0, 260),
-                    new THREE.Vector3(240, 0, 180),
-                    new THREE.Vector3(220, 0, -20),
-                    new THREE.Vector3(100, 0, -120),
-                    new THREE.Vector3(-60, 0, -40),
-                    new THREE.Vector3(-180, 0, 120), // Canyon Ravine Jump
-                    new THREE.Vector3(-260, 0, 300),
-                    new THREE.Vector3(-180, 0, 450),
-                    new THREE.Vector3(-40, 0, 320),
-                    new THREE.Vector3(0, 0, 0)
-                ]
-            },
-            CITY: {
-                name: 'Cyber Neon City',
-                difficulty: 'Insane',
+            NEON_METROPOLIS: {
+                name: "Neon Metropolis",
+                desc: "Urban Street Circuit | Rain & Wet Asphalt",
                 bgColor: 0x030712,
                 fogColor: 0x030712,
                 groundColor: 0x090d16,
                 hasJump: true,
-                jumpGapDist: 620,
-                minJumpSpeed: 72, // MPH
-                lapReward: 800,
+                jumpGapDist: 480,
+                minJumpSpeedKmh: 120,
                 points: [
                     new THREE.Vector3(0, 0, 0),
-                    new THREE.Vector3(0, 0, 250),
-                    new THREE.Vector3(180, 0, 250),
-                    new THREE.Vector3(180, 0, 550),
-                    new THREE.Vector3(340, 0, 550), // Skyline Drawbridge Jump
-                    new THREE.Vector3(340, 0, 850),
-                    new THREE.Vector3(100, 0, 850),
-                    new THREE.Vector3(100, 0, 1100),
-                    new THREE.Vector3(-120, 0, 1100),
-                    new THREE.Vector3(-120, 0, 600),
-                    new THREE.Vector3(-220, 0, 600),
-                    new THREE.Vector3(-220, 0, 0),
+                    new THREE.Vector3(0, 0, 240),
+                    new THREE.Vector3(140, 0, 240),
+                    new THREE.Vector3(140, 0, 480), // Subway Ramp Jump
+                    new THREE.Vector3(280, 0, 480),
+                    new THREE.Vector3(280, 0, 760),
+                    new THREE.Vector3(100, 0, 760),
+                    new THREE.Vector3(100, 0, 1000),
+                    new THREE.Vector3(-140, 0, 1000),
+                    new THREE.Vector3(-140, 0, 520),
+                    new THREE.Vector3(-240, 0, 520),
+                    new THREE.Vector3(-240, 0, 0),
+                    new THREE.Vector3(0, 0, 0)
+                ]
+            },
+            MOUNT_SERPENT: {
+                name: "Mount Serpent",
+                desc: "Mountain Touge Pass | 14 Downhill Hairpins",
+                bgColor: 0x7c2d12,
+                fogColor: 0x7c2d12,
+                groundColor: 0x1c1917,
+                hasJump: true,
+                jumpGapDist: 560,
+                minJumpSpeedKmh: 140, // Broken wooden bridge
+                points: [
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(80, 0, 140),
+                    new THREE.Vector3(160, 0, 220),
+                    new THREE.Vector3(240, 0, 160),
+                    new THREE.Vector3(220, 0, -20),
+                    new THREE.Vector3(120, 0, -120),
+                    new THREE.Vector3(-40, 0, -60),
+                    new THREE.Vector3(-160, 0, 80),
+                    new THREE.Vector3(-260, 0, 240),
+                    new THREE.Vector3(-340, 0, 400),
+                    new THREE.Vector3(-220, 0, 560), // Broken Bridge Gap Jump
+                    new THREE.Vector3(-60, 0, 480),
+                    new THREE.Vector3(0, 0, 320),
+                    new THREE.Vector3(0, 0, 0)
+                ]
+            },
+            PORT_TITAN: {
+                name: "Port Titan",
+                desc: "Industrial Gymkhana | Oil Slicks & Cargo Ramp",
+                bgColor: 0x1e293b,
+                fogColor: 0x1e293b,
+                groundColor: 0x0f172a,
+                hasJump: true,
+                jumpGapDist: 420,
+                minJumpSpeedKmh: 110,
+                points: [
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(60, 0, 180),
+                    new THREE.Vector3(180, 0, 260),
+                    new THREE.Vector3(280, 0, 180),
+                    new THREE.Vector3(280, 0, -60),
+                    new THREE.Vector3(140, 0, -160),
+                    new THREE.Vector3(-80, 0, -100),
+                    new THREE.Vector3(-200, 0, 80),
+                    new THREE.Vector3(-260, 0, 280),
+                    new THREE.Vector3(-140, 0, 420), // Cargo Ship Drop Ramp
+                    new THREE.Vector3(40, 0, 340),
                     new THREE.Vector3(0, 0, 0)
                 ]
             }
@@ -745,15 +725,12 @@
 
         let currentSpline = null;
         let currentTrackLength = 0;
-        let particles = [];
-        let currentLapTime = 0;
 
         function updateWallet() {
             gold = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            bestDrift = parseInt(localStorage.getItem('touge_best_drift')) || 0;
+            bestDrift = parseInt(localStorage.getItem('drift_master_best')) || 0;
             document.getElementById('coin-count').innerText = gold.toLocaleString();
             document.getElementById('best-drift').innerText = bestDrift.toLocaleString();
-            updateUpgradeUI();
         }
 
         function addCoins(amt) {
@@ -779,48 +756,19 @@
             if (m) m.style.display = force !== undefined ? (force ? 'flex' : 'none') : (m.style.display === 'none' ? 'flex' : 'none');
         }
 
-        function applyCarStats() {
-            car.maxSpeed = car.baseMaxSpeed + (carUpgrades.speed - 1) * 4.0;
-            car.accel = car.baseAccel + (carUpgrades.accel - 1) * 3.0;
-            car.steerSpeed = 3.5 + (carUpgrades.handling - 1) * 0.4;
-        }
-
-        function updateUpgradeUI() {
-            document.getElementById("stat-speed").innerText = `Lvl ${carUpgrades.speed} (+${(carUpgrades.speed - 1) * 4} MPH Max)`;
-            document.getElementById("stat-accel").innerText = `Lvl ${carUpgrades.accel} (+${(carUpgrades.accel - 1) * 3} Accel)`;
-            document.getElementById("stat-handling").innerText = `Lvl ${carUpgrades.handling} (+${(carUpgrades.handling - 1) * 10}% Steer)`;
-            document.getElementById("stat-nitro").innerText = `Lvl ${carUpgrades.nitro} (+${(carUpgrades.nitro - 1) * 20}% Boost Duration)`;
-        }
-
-        function buyUpgrade(type) {
-            const prices = { speed: 800, accel: 800, handling: 650, nitro: 750 };
-            const cost = prices[type] * carUpgrades[type];
-
-            if (gold >= cost) {
-                addCoins(-cost);
-                carUpgrades[type]++;
-                applyCarStats();
-                updateUpgradeUI();
-                playCoinChime();
-                showDialogue(`⚡ Upgraded ${type.toUpperCase()} to Level ${carUpgrades[type]}!`);
-            } else {
-                showDialogue("⚠️ Not enough Gold to upgrade!");
-            }
-        }
-
         function selectCar(type) {
             activeCarType = type;
-            document.getElementById("active-car-name").innerText = type;
+            const spec = carRoster[type];
+            document.getElementById("active-car-name").innerText = spec.name;
 
-            if (type === 'AE86') { car.baseMaxSpeed = 40.0; car.baseAccel = 26.0; car.bodyColor = 0xf8fafc; }
-            else if (type === 'RX7') { car.baseMaxSpeed = 46.0; car.baseAccel = 30.0; car.bodyColor = 0xf59e0b; }
-            else if (type === 'GTR') { car.baseMaxSpeed = 52.0; car.baseAccel = 34.0; car.bodyColor = 0x0284c7; }
-            else if (type === 'SUPRA') { car.baseMaxSpeed = 60.0; car.baseAccel = 38.0; car.bodyColor = 0xff007f; }
+            car.maxSpeed = spec.topSpeedKmh / 3.6;
+            car.accel = spec.accel;
+            car.driftFactor = spec.driftFactor;
+            car.bodyColor = spec.bodyColor;
 
-            applyCarStats();
             buildCarModel();
             toggleGarage(false);
-            showDialogue(`🏎️ Equipped ${type}! Upgrades active.`);
+            showDialogue(`🏎️ Equipped ${spec.name} (${spec.cls})!`);
         }
 
         function buyOrSelectCar(type, price) {
@@ -830,11 +778,10 @@
                 addCoins(-price);
                 ownedCars.push(type);
                 const btn = document.getElementById(`btn-buy-${type.toLowerCase()}`);
-                if (btn) btn.innerText = `🏎️ ${type} (OWNED)`;
+                if (btn) btn.innerText = `🏎️ ${carRoster[type].name} (OWNED)`;
                 selectCar(type);
-                playCoinChime();
             } else {
-                showDialogue("⚠️ Not enough Gold! Win races and drift to earn coins.");
+                showDialogue("⚠️ Not enough Gold! Earn drift score and win races to unlock.");
             }
         }
 
@@ -842,16 +789,16 @@
             currentMap = mapId;
             const profile = mapProfiles[mapId];
             document.getElementById("track-name").innerText = profile.name;
-            document.getElementById("lap-status").innerText = `Lap 1/3 | ${profile.difficulty}`;
+            document.getElementById("lap-status").innerText = `Lap 1/3 | ${profile.desc.split('|')[0]}`;
             toggleMapModal(false);
             buildWorldForCurrentMap();
             resetCar();
-            showDialogue(`🏁 Map Loaded: ${profile.name}! ${profile.hasJump ? `Target Jump Speed: ${profile.minJumpSpeed}+ MPH` : 'Floor the gas!'}`);
+            showDialogue(`🏁 Deployed to ${profile.name}! Watch for gap jumps & rival AI.`);
         }
 
         function cycleCamera() {
-            cameraMode = (cameraMode + 1) % 2;
-            const names = ["CHASE VIEW", "HOOD VIEW"];
+            cameraMode = (cameraMode + 1) % 4;
+            const names = ["CHASE VIEW", "HOOD VIEW", "COCKPIT VIEW", "DRIFT ORBIT"];
             document.getElementById("cam-mode-text").innerText = names[cameraMode];
             document.getElementById("val-cam").innerText = names[cameraMode].split(" ")[0];
         }
@@ -866,23 +813,26 @@
             car.isDrifting = false;
             car.isAirborne = false;
             car.nitroAmount = 100;
+            car.gripMultiplier = 1.0;
             currentLapTime = 0;
         }
 
-        // Procedural 3D Car Model
+        // 3D Player Car Builder with Cockpit & Underglow
         function buildCarModel() {
             if (carMesh) scene.remove(carMesh);
             wheelMeshes = [];
 
             carMesh = new THREE.Group();
-            const bodyMat = new THREE.MeshStandardMaterial({ color: car.bodyColor, roughness: 0.3, metalness: 0.4 });
+            const spec = carRoster[activeCarType];
+            const bodyMat = new THREE.MeshStandardMaterial({ color: spec.bodyColor, roughness: 0.25, metalness: 0.5 });
             const darkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
             const glassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.75 });
             const lightMat = new THREE.MeshBasicMaterial({ color: 0xfffaed });
             const tailMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+            const underglowMat = new THREE.MeshBasicMaterial({ color: spec.underglowColor });
 
             // Chassis
-            const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.6, 4.4), bodyMat);
+            const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.55, 4.4), bodyMat);
             chassis.position.y = 0.5;
             carMesh.add(chassis);
 
@@ -891,7 +841,7 @@
             cabin.position.set(0, 1.05, -0.2);
             carMesh.add(cabin);
 
-            // Windows
+            // Windshield
             const winF = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.55, 0.2), glassMat);
             winF.position.set(0, 1.05, 0.9); winF.rotation.x = 0.35;
             carMesh.add(winF);
@@ -899,6 +849,21 @@
             const winR = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.55, 0.2), glassMat);
             winR.position.set(0, 1.05, -1.3); winR.rotation.x = -0.35;
             carMesh.add(winR);
+
+            // Cockpit Interior Steering Wheel (LHD offset)
+            const wheelGroup = new THREE.Group();
+            const steeringWheel = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 8, 16), darkMat);
+            wheelGroup.position.set(-0.4, 0.95, 0.2);
+            wheelGroup.rotation.x = 0.4;
+            wheelGroup.add(steeringWheel);
+            carMesh.add(wheelGroup);
+            steeringWheelMesh = wheelGroup;
+
+            // Underglow Light Strip
+            const underglow = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 3.8), underglowMat);
+            underglow.rotation.x = -Math.PI / 2;
+            underglow.position.y = 0.08;
+            carMesh.add(underglow);
 
             // Spoiler Wing
             const spoiler = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.08, 0.5), darkMat);
@@ -930,21 +895,21 @@
             wheelPositions.forEach((wp, idx) => {
                 const wheelPivot = new THREE.Group();
                 wheelPivot.position.set(wp[0], wp[1], wp[2]);
-                const wheelMesh = new THREE.Mesh(wheelGeo, wheelMat);
-                wheelPivot.add(wheelMesh);
+                const wMesh = new THREE.Mesh(wheelGeo, wheelMat);
+                wheelPivot.add(wMesh);
                 carMesh.add(wheelPivot);
-                wheelMeshes.push({ pivot: wheelPivot, mesh: wheelMesh, isFront: idx < 2 });
+                wheelMeshes.push({ pivot: wheelPivot, mesh: wMesh, isFront: idx < 2 });
             });
 
             scene.add(carMesh);
         }
 
-        // Build 3D Scenery, Moving Traffic, Pickups & Track for Active Map
+        // Build Active Track Environment, Scenery, Traffic, Rival AI & Oil Slicks
         function buildWorldForCurrentMap() {
             trackMeshes.forEach(m => scene.remove(m));
             trafficCars.forEach(tc => scene.remove(tc.mesh));
-            pickups.forEach(p => scene.remove(p.mesh));
-            trackMeshes = []; trafficCars = []; pickups = [];
+            if (rivalAICar) scene.remove(rivalAICar.mesh);
+            trackMeshes = []; trafficCars = []; oilSlickZones = [];
 
             const profile = mapProfiles[currentMap];
             currentSpline = new THREE.CatmullRomCurve3(profile.points, true, 'catmullrom', 0.15);
@@ -953,13 +918,13 @@
             scene.background.setHex(profile.bgColor);
             scene.fog.color.setHex(profile.fogColor);
 
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 });
             const kerbRedMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
             const kerbWhiteMat = new THREE.MeshBasicMaterial({ color: 0xf8fafc });
             const rampMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5 });
-            const roadWidth = currentMap === 'HIGHWAY' ? 18.0 : 14.0;
+            const roadWidth = 14.0;
 
-            const segs = 450;
+            const segs = 500;
             for (let i = 0; i < segs; i++) {
                 const u1 = i / segs;
                 const u2 = (i + 1) / segs;
@@ -971,9 +936,9 @@
                 const segLen = p1.distanceTo(p2);
                 const distAlong = u1 * currentTrackLength;
 
-                const isJumpArea = profile.hasJump && Math.abs(distAlong - profile.jumpGapDist) < 35;
+                const isJumpGap = profile.hasJump && Math.abs(distAlong - profile.jumpGapDist) < 32;
 
-                if (!isJumpArea) {
+                if (!isJumpGap) {
                     const road = new THREE.Mesh(new THREE.BoxGeometry(roadWidth, 0.2, segLen + 0.4), roadMat);
                     road.position.copy(mid); road.position.y = 0.1;
                     road.lookAt(p2);
@@ -990,6 +955,7 @@
                         trackMeshes.push(kerb);
                     });
                 } else if (Math.abs(distAlong - profile.jumpGapDist) < 8) {
+                    // Stunt Launch Ramp
                     const ramp = new THREE.Mesh(new THREE.BoxGeometry(roadWidth, 1.8, 12.0), rampMat);
                     ramp.position.copy(mid); ramp.position.y = 0.8;
                     ramp.lookAt(p2);
@@ -998,59 +964,75 @@
                     trackMeshes.push(ramp);
                 }
 
-                // Boost Pads on Track
-                if (i % 75 === 20) {
-                    const boostPad = new THREE.Mesh(new THREE.PlaneGeometry(6.0, 8.0), new THREE.MeshBasicMaterial({ color: 0x10b981 }));
-                    boostPad.rotation.x = -Math.PI / 2;
-                    boostPad.position.copy(mid); boostPad.position.y = 0.22;
-                    boostPad.lookAt(p2);
-                    scene.add(boostPad);
-                    trackMeshes.push(boostPad);
+                // Port Titan Oil Slicks (-40% Grip Hazard)
+                if (currentMap === 'PORT_TITAN' && i % 80 === 30) {
+                    const oil = new THREE.Mesh(new THREE.CircleGeometry(3.5, 12), new THREE.MeshBasicMaterial({ color: 0x09090b }));
+                    oil.rotation.x = -Math.PI / 2;
+                    oil.position.copy(mid); oil.position.y = 0.22;
+                    scene.add(oil);
+                    trackMeshes.push(oil);
+                    oilSlickZones.push(distAlong);
+                }
+
+                // Scenery details per map
+                if (currentMap === 'NEON_METROPOLIS' && i % 20 === 0) {
+                    const bldg = new THREE.Mesh(
+                        new THREE.BoxGeometry(18, 40 + Math.random() * 50, 18),
+                        new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.6 })
+                    );
+                    bldg.position.copy(p1).addScaledVector(norm, (i % 40 === 0 ? 25 : -25));
+                    bldg.position.y = 20;
+                    scene.add(bldg);
+                    trackMeshes.push(bldg);
                 }
             }
 
-            // Spawn Moving Traffic Cars
-            const trafficColors = [0xef4444, 0x3b82f6, 0x10b981, 0xfacc15, 0x94a3b8];
-            const numTraffic = currentMap === 'HIGHWAY' ? 14 : (currentMap === 'CITY' ? 18 : 8);
+            // Spawn Rival Drift AI Car (Aggressive Bodykit & Underglow)
+            const rivalGroup = new THREE.Group();
+            const rivalBodyMat = new THREE.MeshStandardMaterial({ color: 0x9333ea, roughness: 0.2 });
+            const rChassis = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.6, 4.4), rivalBodyMat);
+            rChassis.position.y = 0.5; rivalGroup.add(rChassis);
+            const rCabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.65, 2.2), rivalBodyMat);
+            rCabin.position.set(0, 1.05, -0.2); rivalGroup.add(rCabin);
+
+            const rUnderglow = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 3.8), new THREE.MeshBasicMaterial({ color: 0xa855f7 }));
+            rUnderglow.rotation.x = -Math.PI / 2; rUnderglow.position.y = 0.08; rivalGroup.add(rUnderglow);
+
+            scene.add(rivalGroup);
+            rivalAICar = {
+                mesh: rivalGroup,
+                u: 0.08,
+                speed: 40.0,
+                heading: 0,
+                steerAngle: 0,
+                isDrifting: false
+            };
+
+            // Spawn Civilian Traffic Vehicles
+            const numTraffic = currentMap === 'NEON_METROPOLIS' ? 14 : 8;
+            const trafficColors = [0x94a3b8, 0x475569, 0x64748b, 0x334155];
 
             for (let t = 0; t < numTraffic; t++) {
                 const tCar = new THREE.Group();
-                const tMat = new THREE.MeshStandardMaterial({ color: trafficColors[t % trafficColors.length], roughness: 0.4 });
+                const tMat = new THREE.MeshStandardMaterial({ color: trafficColors[t % trafficColors.length], roughness: 0.5 });
                 const body = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.6, 4.0), tMat);
                 body.position.y = 0.5; tCar.add(body);
                 const top = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.5, 2.0), tMat);
                 top.position.set(0, 0.95, -0.2); tCar.add(top);
 
-                const uSpawn = (t / numTraffic) + Math.random() * 0.05;
-                const laneOffset = (Math.random() - 0.5) * (roadWidth - 5.0);
+                const uSpawn = (t / numTraffic) + 0.05;
+                const laneOffset = (t % 2 === 0 ? 3.2 : -3.2);
 
                 scene.add(tCar);
                 trafficCars.push({
                     mesh: tCar,
                     u: uSpawn % 1.0,
                     laneOffset,
-                    speed: 12.0 + Math.random() * 8.0
+                    speed: 14.0,
+                    honked: false
                 });
             }
 
-            // Spawn Floating Gold Coin Pickups & Nitro Canisters
-            for (let p = 0; p < 12; p++) {
-                const u = (p / 12) + 0.04;
-                const pos = currentSpline.getPointAt(u % 1.0);
-                const isCoin = p % 2 === 0;
-
-                const itemMesh = isCoin ? 
-                    new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.12, 16), new THREE.MeshBasicMaterial({ color: 0xfacc15 })) :
-                    new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 1.2, 12), new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true }));
-
-                itemMesh.position.copy(pos);
-                itemMesh.position.y = isCoin ? 0.8 : 1.2;
-                if (isCoin) itemMesh.rotation.x = Math.PI / 2;
-                scene.add(itemMesh);
-                pickups.push({ mesh: itemMesh, isCoin, u: u % 1.0 });
-            }
-
-            // Ground Floor Plane
             const ground = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400), new THREE.MeshStandardMaterial({ color: profile.groundColor, roughness: 0.95 }));
             ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05;
             scene.add(ground);
@@ -1063,10 +1045,10 @@
             const h = container.clientHeight || 680;
 
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0284c7);
-            scene.fog = new THREE.FogExp2(0x0284c7, 0.0025);
+            scene.background = new THREE.Color(0x030712);
+            scene.fog = new THREE.FogExp2(0x030712, 0.0025);
 
-            camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 1000);
+            camera = new THREE.PerspectiveCamera(65, w / h, 0.1, 1000);
             scene.add(camera);
 
             renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
@@ -1135,13 +1117,18 @@
             bindBtn("btn-touch-hb", () => { keys.space = true; }, () => { keys.space = false; });
         }
 
-        // 60FPS Clamped Driving, Traffic & Jump Physics
+        // 60FPS Clamped Driving, AI & Physics
         function updateCarPhysics(dt) {
             if (!carMesh || !currentSpline) return;
 
             const profile = mapProfiles[currentMap];
+            const distOnTrack = (car.pos.length()) % currentTrackLength;
 
-            // 1. Steering & Return
+            // 1. Oil Slick Hazard Detection (-40% Grip)
+            const onOilSlick = oilSlickZones.some(od => Math.abs(distOnTrack - od) < 15);
+            car.gripMultiplier = onOilSlick ? 0.6 : 1.0;
+
+            // 2. Steering & Return
             if (keys.a) {
                 car.steerAngle = Math.max(-car.maxSteer, car.steerAngle - car.steerSpeed * dt);
             } else if (keys.d) {
@@ -1151,11 +1138,10 @@
                 else if (car.steerAngle < 0) car.steerAngle = Math.min(0, car.steerAngle + car.steerReturn * dt);
             }
 
-            // 2. Nitro Boost Handling
+            // 3. Nitro Boost System
             if (keys.shift && car.nitroAmount > 5 && car.speed > 8) {
                 car.isBoosting = true;
-                const drainRate = 35 / (1 + (carUpgrades.nitro - 1) * 0.2);
-                car.nitroAmount = Math.max(0, car.nitroAmount - drainRate * dt);
+                car.nitroAmount = Math.max(0, car.nitroAmount - 32 * dt);
                 car.speed = Math.min(car.maxSpeed * 1.35, car.speed + car.accel * 1.8 * dt);
                 playBoostSound();
 
@@ -1167,25 +1153,27 @@
                 }
             } else {
                 car.isBoosting = false;
-                car.nitroAmount = Math.min(100, car.nitroAmount + 6 * dt);
             }
 
-            // 3. Acceleration & Braking
+            // 4. Acceleration, Braking & Weight Transfer
             if (keys.w) {
                 car.speed = Math.min(car.maxSpeed, car.speed + car.accel * dt);
+                car.pitchAngle = THREE.MathUtils.lerp(car.pitchAngle, 0.05, 0.1); // Squat on accel
             } else if (keys.s) {
                 car.speed = Math.max(-car.reverseSpeed, car.speed - car.accel * 1.5 * dt);
+                car.pitchAngle = THREE.MathUtils.lerp(car.pitchAngle, -0.06, 0.1); // Dive on brake
             } else {
+                car.pitchAngle = THREE.MathUtils.lerp(car.pitchAngle, 0, 0.1);
                 if (car.speed > 0) car.speed = Math.max(0, car.speed - 7.0 * dt);
                 else if (car.speed < 0) car.speed = Math.min(0, car.speed + 7.0 * dt);
             }
 
-            // 4. Handbrake Drift Slip
-            const mph = Math.round(Math.abs(car.speed) * 2.237);
+            // 5. Handbrake & High-Angle Drift Calculation
+            const speedKmh = Math.round(Math.abs(car.speed) * 3.6);
             if (keys.space && Math.abs(car.speed) > 10.0) {
                 car.isDrifting = true;
-                car.driftFactor = THREE.MathUtils.lerp(car.driftFactor, 0.85, 0.15);
-                car.speed = Math.max(0, car.speed - 12.0 * dt);
+                car.driftFactor = THREE.MathUtils.lerp(car.driftFactor, carRoster[activeCarType].driftFactor, 0.2);
+                car.speed = Math.max(0, car.speed - 10.0 * dt);
                 playTireScreech();
 
                 for (let i = 0; i < 2; i++) {
@@ -1199,8 +1187,8 @@
                 car.driftFactor = THREE.MathUtils.lerp(car.driftFactor, 0, 0.1);
             }
 
-            // 5. Heading & Movement
-            const turnRate = (car.steerAngle * (car.speed / car.maxSpeed) * (1.0 + car.driftFactor * 1.2));
+            // 6. Heading, Yaw & Position
+            const turnRate = (car.steerAngle * (car.speed / car.maxSpeed) * (1.0 + car.driftFactor * 1.2)) * car.gripMultiplier;
             car.heading -= turnRate * dt * 2.8;
 
             const velocity = new THREE.Vector3(
@@ -1210,18 +1198,16 @@
             );
             car.pos.addScaledVector(velocity, dt);
 
-            // 6. Air Gravity & Speed Jump Check
-            const distOnTrack = (car.pos.length()) % currentTrackLength;
+            // 7. Gap Jump Speed Warning & Air Physics
             const jumpWarningEl = document.getElementById("jump-warning-banner");
-
             if (profile.hasJump && Math.abs(distOnTrack - profile.jumpGapDist) < 60) {
-                jumpWarningEl.innerText = `⚠️ SPEED JUMP AHEAD! MIN SPEED: ${profile.minJumpSpeed} MPH!`;
+                jumpWarningEl.innerText = `⚠️ SPEED JUMP AHEAD! MIN SPEED: ${profile.minJumpSpeedKmh} KM/H!`;
                 jumpWarningEl.style.display = "block";
             } else {
                 jumpWarningEl.style.display = "none";
             }
 
-            // Ramp Launch Physics
+            // Launch Ramp
             if (profile.hasJump && Math.abs(distOnTrack - profile.jumpGapDist) < 10 && car.pos.y <= 0.6) {
                 car.isAirborne = true;
                 car.vel.y = 12.0;
@@ -1231,10 +1217,10 @@
                 car.vel.y -= 26.0 * dt;
                 car.pos.y += car.vel.y * dt;
 
-                // Failed Speed Jump Check
-                if (profile.hasJump && Math.abs(distOnTrack - profile.jumpGapDist) < 30 && mph < profile.minJumpSpeed && car.pos.y < -4.0) {
+                // Speed Check Checkpoint: Fail Jump
+                if (profile.hasJump && Math.abs(distOnTrack - profile.jumpGapDist) < 32 && speedKmh < profile.minJumpSpeedKmh && car.pos.y < -4.0) {
                     playCrashSound();
-                    showDialogue(`💥 JUMP CRASH! (Needed ${profile.minJumpSpeed}+ MPH). Resetting...`);
+                    showDialogue(`💥 FAILED GAP JUMP! (Needed ${profile.minJumpSpeedKmh}+ km/h). Resetting...`);
                     resetCar();
                     return;
                 }
@@ -1242,15 +1228,35 @@
                 if (car.pos.y <= 0.4) {
                     car.pos.y = 0.4;
                     car.vel.y = 0;
-                    if (car.isAirborne && mph >= profile.minJumpSpeed) {
-                        addCoins(100);
-                        showDialogue("🏆 GAP JUMP CLEARED! +100 Gold");
+                    if (car.isAirborne && speedKmh >= profile.minJumpSpeedKmh) {
+                        addCoins(150);
+                        car.nitroAmount = 100;
+                        showDialogue("🏆 GAP JUMP CLEARED! +150 Gold & Full Nitro!");
                     }
                     car.isAirborne = false;
                 }
             }
 
-            // 7. Dynamic Traffic Simulation & Collision
+            // 8. Rival Drift AI Physics & Lane Blocking
+            if (rivalAICar) {
+                rivalAICar.u = (rivalAICar.u + (rivalAICar.speed * dt) / currentTrackLength) % 1.0;
+                const rPos = currentSpline.getPointAt(rivalAICar.u);
+                const rTan = currentSpline.getTangentAt(rivalAICar.u);
+
+                rivalAICar.mesh.position.copy(rPos);
+                rivalAICar.mesh.position.y = 0.4;
+                rivalAICar.mesh.lookAt(rPos.clone().add(rTan));
+
+                // Rival Tire Smoke Particles
+                if (Math.random() < 0.3) {
+                    const rSmoke = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.6 }));
+                    rSmoke.position.copy(rivalAICar.mesh.position).add(new THREE.Vector3((Math.random() - 0.5) * 1.5, 0.2, (Math.random() - 0.5) * 1.5));
+                    scene.add(rSmoke);
+                    particles.push({ mesh: rSmoke, vy: 1.2, life: 0.3 });
+                }
+            }
+
+            // 9. Civilian Traffic & Near-Miss Detection
             trafficCars.forEach(tc => {
                 tc.u = (tc.u + (tc.speed * dt) / currentTrackLength) % 1.0;
                 const pos = currentSpline.getPointAt(tc.u);
@@ -1261,57 +1267,58 @@
                 tc.mesh.position.y = 0.2;
                 tc.mesh.lookAt(pos.clone().add(tan).addScaledVector(norm, tc.laneOffset));
 
-                // Traffic Hitbox
-                const distToPlayer = car.pos.distanceTo(tc.mesh.position);
-                if (distToPlayer < 3.2 && !car.isAirborne) {
+                const dist = car.pos.distanceTo(tc.mesh.position);
+
+                // Near-Miss Reward (Closer than 4.5m without crashing)
+                if (dist < 4.5 && dist >= 3.0 && speedKmh > 60) {
+                    car.nitroAmount = Math.min(100, car.nitroAmount + 25 * dt);
+                    if (!tc.honked) {
+                        playHornSound();
+                        showDialogue("⚡ NEAR-MISS! +Nitro Boost");
+                        tc.honked = true;
+                    }
+                } else if (dist > 6.0) {
+                    tc.honked = false;
+                }
+
+                // Crash Collision
+                if (dist < 2.8 && !car.isAirborne) {
                     playCrashSound();
                     car.speed *= 0.4;
-                    showDialogue("💥 TRAFFIC CRASH! Watch civilian lanes.");
-                    createDebris(car.pos.x, car.pos.y + 0.5, car.pos.z);
+                    showDialogue("💥 TRAFFIC COLLISION!");
                 }
             });
 
-            // 8. Collectible Pickups (Coins & Nitro)
-            pickups.forEach(p => {
-                p.mesh.rotation.y += dt * 3.0;
-                if (car.pos.distanceTo(p.mesh.position) < 3.5) {
-                    if (p.isCoin) {
-                        addCoins(25);
-                        playCoinChime();
-                        showDialogue("🪙 +25 Gold Coin Collected!");
-                    } else {
-                        car.nitroAmount = 100;
-                        playBoostSound();
-                        showDialogue("⚡ NITRO TANK COLLECTED! (+100% Boost)");
-                    }
-                    p.mesh.position.y = -20;
-                }
-            });
-
-            // Wheel Animation
+            // 10. Visual Animation & Cockpit Steering Wheel
             wheelMeshes.forEach(w => {
                 w.mesh.rotation.x += (car.speed * dt * 2.5);
                 if (w.isFront) w.pivot.rotation.y = car.steerAngle * 0.9;
             });
+            if (steeringWheelMesh) {
+                steeringWheelMesh.rotation.z = -car.steerAngle * 2.2;
+            }
 
             carMesh.position.copy(car.pos);
             carMesh.rotation.y = car.heading;
+            carMesh.rotation.x = car.pitchAngle;
 
-            // Telemetry
+            // Telemetry & Drift Scoring (Angle > 30°)
             const driftDeg = Math.round(Math.abs(car.steerAngle * car.driftFactor) * 75);
-            car.gear = Math.max(1, Math.min(5, Math.floor(mph / 16) + 1));
+            car.gear = Math.max(1, Math.min(6, Math.floor(speedKmh / 42) + 1));
 
-            // Drift Scoring
-            if (car.isDrifting && mph > 18) {
-                car.driftPoints += Math.round(mph * 1.5 * dt);
+            if (car.isDrifting && speedKmh > 30) {
+                car.driftPoints += Math.round(speedKmh * 1.8 * dt);
+                if (driftDeg >= 30) {
+                    car.nitroAmount = Math.min(100, car.nitroAmount + 15 * dt); // Refill on high-angle
+                }
                 const banner = document.getElementById("drift-score-banner");
                 banner.innerText = `DRIFT +${car.driftPoints}`;
                 banner.style.display = "block";
             } else if (!car.isDrifting && car.driftPoints > 0) {
-                addCoins(Math.round(car.driftPoints / 10));
+                addCoins(Math.round(car.driftPoints / 8));
                 if (car.driftPoints > bestDrift) {
                     bestDrift = car.driftPoints;
-                    localStorage.setItem('touge_best_drift', bestDrift);
+                    localStorage.setItem('drift_master_best', bestDrift);
                 }
                 car.driftPoints = 0;
                 document.getElementById("drift-score-banner").style.display = "none";
@@ -1320,8 +1327,9 @@
 
             updateEngineAudio(Math.abs(car.speed) / car.maxSpeed, car.isBoosting);
 
-            document.getElementById("tel-spd").innerText = mph;
+            document.getElementById("tel-spd").innerText = speedKmh;
             document.getElementById("tel-gear").innerText = car.gear;
+            document.getElementById("tel-angle").innerText = `${driftDeg}°`;
             document.getElementById("boost-bar-fill").style.width = `${car.nitroAmount}%`;
 
             // Lap Time Tracking
@@ -1342,32 +1350,49 @@
             }
         }
 
-        function createDebris(x, y, z) {
-            for (let i = 0; i < 8; i++) {
-                const p = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-                p.position.set(x + (Math.random() - 0.5), y + (Math.random() - 0.5), z + (Math.random() - 0.5));
-                scene.add(p);
-                particles.push({ mesh: p, vy: 2.0, life: 0.5 });
-            }
-        }
-
+        // Camera Logic (4 Modes)
         function updateCamera() {
             if (!carMesh) return;
 
+            const forward = new THREE.Vector3(Math.sin(car.heading), 0, Math.cos(car.heading));
+
             if (cameraMode === 0) {
-                const targetFOV = car.isBoosting ? 72 : 60;
+                // Third-Person Chase (4.5m behind, 1.8m above, 65° FOV -> 78° on Nitro)
+                const targetFOV = car.isBoosting ? 78 : 65;
                 camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, 0.1);
                 camera.updateProjectionMatrix();
 
-                const forward = new THREE.Vector3(Math.sin(car.heading), 0, Math.cos(car.heading));
-                const targetCam = car.pos.clone().addScaledVector(forward, -10.5).add(new THREE.Vector3(0, 4.2, 0));
+                // Damped lag swinging slightly outside of turns
+                const driftSwingOffset = new THREE.Vector3(-forward.z, 0, forward.x).multiplyScalar(car.steerAngle * car.driftFactor * 1.8);
+                const targetCam = car.pos.clone().addScaledVector(forward, -4.5).add(new THREE.Vector3(0, 1.8, 0)).add(driftSwingOffset);
                 camera.position.lerp(targetCam, 0.15);
-                camera.lookAt(car.pos.clone().add(new THREE.Vector3(0, 1.2, 0)));
+                camera.lookAt(car.pos.clone().add(new THREE.Vector3(0, 1.0, 0)));
+
+            } else if (cameraMode === 1) {
+                // Hood / Bumper Cam (0.4m height, zero roll, locked horizon)
+                camera.fov = 70;
+                camera.updateProjectionMatrix();
+
+                const bumperPos = car.pos.clone().addScaledVector(forward, 1.8).add(new THREE.Vector3(0, 0.4, 0));
+                camera.position.copy(bumperPos);
+                camera.lookAt(bumperPos.clone().addScaledVector(forward, 35));
+
+            } else if (cameraMode === 2) {
+                // Cockpit Cam (LHD offset, head tilt into apex)
+                camera.fov = 68;
+                camera.updateProjectionMatrix();
+
+                const headTilt = new THREE.Vector3(-forward.z, 0, forward.x).multiplyScalar(-car.steerAngle * 0.4);
+                const cockpitEye = car.pos.clone().addScaledVector(forward, -0.2).add(new THREE.Vector3(-0.4, 1.15, 0)).add(headTilt);
+                camera.position.copy(cockpitEye);
+                camera.lookAt(cockpitEye.clone().addScaledVector(forward, 25));
+
             } else {
-                const forward = new THREE.Vector3(Math.sin(car.heading), 0, Math.cos(car.heading));
-                const hoodCam = car.pos.clone().addScaledVector(forward, 0.6).add(new THREE.Vector3(0, 1.1, 0));
-                camera.position.copy(hoodCam);
-                camera.lookAt(hoodCam.clone().addScaledVector(forward, 25));
+                // Dynamic Drift Orbit (Tracking Replay Shot)
+                const orbitAngle = Date.now() * 0.001;
+                const orbitPos = car.pos.clone().add(new THREE.Vector3(Math.cos(orbitAngle) * 8.5, 2.5, Math.sin(orbitAngle) * 8.5));
+                camera.position.lerp(orbitPos, 0.1);
+                camera.lookAt(car.pos.clone().add(new THREE.Vector3(0, 0.8, 0)));
             }
         }
 
@@ -1380,26 +1405,34 @@
             ctx.fillStyle = "#09101d";
             ctx.beginPath(); ctx.arc(40, 40, 36, 0, Math.PI * 2); ctx.fill();
 
-            // Track Path
+            // Track Circuit Path
             ctx.strokeStyle = "#334155";
             ctx.lineWidth = 2;
             ctx.beginPath();
             for (let i = 0; i <= 30; i++) {
                 const u = i / 30;
                 const p = currentSpline.getPointAt(u);
-                const mx = 40 + (p.x / 450) * 30;
-                const my = 40 + (p.z / 450) * 30;
+                const mx = 40 + (p.x / 480) * 30;
+                const my = 40 + (p.z / 480) * 30;
                 if (i === 0) ctx.moveTo(mx, my);
                 else ctx.lineTo(mx, my);
             }
             ctx.closePath();
             ctx.stroke();
 
-            // Car Blip
-            const cx = 40 + (car.pos.x / 450) * 30;
-            const cy = 40 + (car.pos.z / 450) * 30;
+            // Player Blip
+            const cx = 40 + (car.pos.x / 480) * 30;
+            const cy = 40 + (car.pos.z / 480) * 30;
             ctx.fillStyle = "#00f3ff";
             ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, Math.PI * 2); ctx.fill();
+
+            // Rival AI Blip
+            if (rivalAICar) {
+                const rx = 40 + (rivalAICar.mesh.position.x / 480) * 30;
+                const ry = 40 + (rivalAICar.mesh.position.z / 480) * 30;
+                ctx.fillStyle = "#a855f7";
+                ctx.beginPath(); ctx.arc(rx, ry, 2.8, 0, Math.PI * 2); ctx.fill();
+            }
         }
 
         let lastFrameTime = performance.now();
