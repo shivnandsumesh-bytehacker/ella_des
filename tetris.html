@@ -18,7 +18,49 @@
             --bg: #030712;
             --card: #0b1329;
             --panel-bg: rgba(11, 19, 41, 0.94);
+            --board-bg: rgba(5, 11, 26, 0.95);
         }
+
+        /* Preset Theme Palettes */
+        body.theme-gameboy {
+            --primary: #8bac0f;
+            --primary-glow: rgba(139, 172, 15, 0.4);
+            --accent: #306230;
+            --accent-glow: rgba(48, 98, 48, 0.4);
+            --gold: #9bbc0f;
+            --emerald: #8bac0f;
+            --bg: #0f380f;
+            --card: #1b4b1b;
+            --panel-bg: rgba(27, 75, 27, 0.94);
+            --board-bg: #8bac0f;
+        }
+
+        body.theme-synthwave {
+            --primary: #ff71ce;
+            --primary-glow: rgba(255, 113, 206, 0.4);
+            --accent: #01cdfe;
+            --accent-glow: rgba(1, 205, 254, 0.4);
+            --gold: #ffd319;
+            --emerald: #05ffa1;
+            --bg: #1a0826;
+            --card: #2b0e3f;
+            --panel-bg: rgba(43, 14, 63, 0.94);
+            --board-bg: rgba(26, 8, 38, 0.95);
+        }
+
+        body.theme-matrix {
+            --primary: #00ff66;
+            --primary-glow: rgba(0, 255, 102, 0.4);
+            --accent: #00cc44;
+            --accent-glow: rgba(0, 204, 68, 0.4);
+            --gold: #adff2f;
+            --emerald: #00ff66;
+            --bg: #020d06;
+            --card: #062310;
+            --panel-bg: rgba(6, 35, 16, 0.94);
+            --board-bg: rgba(2, 13, 6, 0.95);
+        }
+
         * { box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
         body {
             background: var(--bg);
@@ -33,6 +75,7 @@
             min-height: 100vh;
             overflow: hidden;
             touch-action: none;
+            transition: background 0.3s ease;
         }
 
         header {
@@ -62,25 +105,25 @@
             box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
             position: relative;
             overflow: hidden;
-            background: #020617;
+            background: var(--bg);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 14px;
             padding: 10px;
         }
 
         .side-panel {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            width: 120px;
+            gap: 10px;
+            width: 125px;
             z-index: 10;
         }
 
         .hud-card {
             background: var(--panel-bg);
-            border: 1.5px solid rgba(0, 243, 255, 0.4);
+            border: 1.5px solid var(--primary);
             border-radius: 10px;
             padding: 8px;
             display: flex;
@@ -89,7 +132,7 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.6);
         }
         .hud-label {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             color: #94a3b8;
             font-weight: bold;
             letter-spacing: 1px;
@@ -104,28 +147,44 @@
         }
 
         #board-canvas {
-            background: rgba(5, 11, 26, 0.95);
-            border: 2px solid rgba(0, 243, 255, 0.6);
+            background: var(--board-bg);
+            border: 2px solid var(--primary);
             border-radius: 10px;
-            box-shadow: 0 0 25px rgba(0, 243, 255, 0.15);
+            box-shadow: 0 0 25px var(--primary-glow);
             max-height: 88%;
             display: block;
         }
 
         #preview-canvas, #hold-canvas {
-            background: #050b1a;
-            border: 1px solid #1e293b;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 6px;
             display: block;
         }
 
-        /* Banners & Overlays */
+        .setting-select {
+            width: 100%;
+            background: rgba(11, 19, 41, 0.9);
+            border: 1px solid var(--primary);
+            color: #fff;
+            padding: 4px 6px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: bold;
+            outline: none;
+            cursor: pointer;
+        }
+        .setting-select option {
+            background: #0b1329;
+            color: #fff;
+        }
+
         #banner-msg {
             position: absolute;
             top: 70px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 243, 255, 0.95);
+            background: var(--primary);
             color: #000;
             font-weight: 900;
             padding: 8px 24px;
@@ -137,7 +196,6 @@
             z-index: 30;
         }
 
-        /* Touch Controls */
         .touch-zone {
             position: absolute;
             bottom: 12px;
@@ -153,7 +211,7 @@
         .ctrl-btn {
             width: 48px;
             height: 48px;
-            background: rgba(11, 19, 41, 0.88);
+            background: var(--panel-bg);
             border: 1.5px solid #334155;
             border-radius: 10px;
             color: #fff;
@@ -172,7 +230,6 @@
         .ctrl-btn.hold-btn { border-color: var(--gold); color: var(--gold); }
         .ctrl-btn.hold-btn:active { background: var(--gold); color: #000; }
 
-        /* Modal */
         .modal {
             position: absolute;
             inset: 0;
@@ -192,7 +249,7 @@
             max-width: 440px;
             width: 90%;
             text-align: center;
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
+            box-shadow: 0 0 40px var(--primary-glow);
         }
         .btn {
             background: var(--primary);
@@ -210,7 +267,7 @@
         .controls-info { margin-top: 4px; font-size: 0.76rem; color: #94a3b8; max-width: 1000px; }
     </style>
 </head>
-<body>
+<body class="theme-cyber">
     <header>
         <a href="index.html" class="nav">← Hub</a>
         <div>🟦 <strong>CYBER TETRIS</strong> | Level: <span id="level-display" style="color:var(--primary);">1</span></div>
@@ -218,11 +275,20 @@
     </header>
 
     <div id="game-wrapper">
-        <!-- Left Side Panel (Hold & Stats) -->
+        <!-- Left Side Panel (Hold, Difficulty, Score) -->
         <div class="side-panel">
             <div class="hud-card">
                 <span class="hud-label">Hold [C]</span>
                 <canvas id="hold-canvas" width="80" height="80"></canvas>
+            </div>
+            <div class="hud-card">
+                <span class="hud-label">Difficulty</span>
+                <select class="setting-select" id="difficulty-select" onchange="changeDifficulty(this.value)">
+                    <option value="EASY">Easy</option>
+                    <option value="MEDIUM" selected>Medium</option>
+                    <option value="HARD">Hard</option>
+                    <option value="INSANE">Insane</option>
+                </select>
             </div>
             <div class="hud-card">
                 <span class="hud-label">Score</span>
@@ -237,15 +303,24 @@
         <!-- Main Board -->
         <canvas id="board-canvas" width="300" height="600"></canvas>
 
-        <!-- Right Side Panel (Next & BGM Controls) -->
+        <!-- Right Side Panel (Next, Theme, Audio) -->
         <div class="side-panel">
             <div class="hud-card">
                 <span class="hud-label">Next</span>
                 <canvas id="preview-canvas" width="80" height="80"></canvas>
             </div>
             <div class="hud-card">
+                <span class="hud-label">Theme</span>
+                <select class="setting-select" id="theme-select" onchange="changeTheme(this.value)">
+                    <option value="cyber" selected>Cyber Neon</option>
+                    <option value="synthwave">Synthwave</option>
+                    <option value="matrix">Matrix</option>
+                    <option value="gameboy">Game Boy</option>
+                </select>
+            </div>
+            <div class="hud-card">
                 <span class="hud-label">Music [M]</span>
-                <button class="ctrl-btn" id="btn-music-toggle" style="width:100%; height:34px; border-radius:6px; font-size:0.75rem;" onclick="toggleMusic()">🎵 ON</button>
+                <button class="ctrl-btn" id="btn-music-toggle" style="width:100%; height:32px; border-radius:6px; font-size:0.75rem;" onclick="toggleMusic()">🎵 ON</button>
             </div>
             <div class="hud-card">
                 <span class="hud-label">Speed</span>
@@ -286,10 +361,9 @@
 
     <script>
         // -------------------------------------------------------------
-        // Web Audio Synthesizer: Sound Effects & Korobeiniki (Theme A)
+        // Audio Engine: Korobeiniki (Theme A) & FX
         // -------------------------------------------------------------
         let audioCtx = null;
-        let musicGain = null;
         let isMusicPlaying = false;
         let musicTimer = null;
         let musicNoteIndex = 0;
@@ -317,7 +391,6 @@
             } catch(e){}
         }
 
-        // Tetris Theme A (Korobeiniki) Melody & Durations
         const THEME_NOTES = [
             { f: 659.25, d: 0.4 }, { f: 493.88, d: 0.2 }, { f: 523.25, d: 0.2 }, { f: 587.33, d: 0.4 },
             { f: 523.25, d: 0.2 }, { f: 493.88, d: 0.2 }, { f: 440.00, d: 0.4 }, { f: 440.00, d: 0.2 },
@@ -360,6 +433,54 @@
         }
 
         // -------------------------------------------------------------
+        // Difficulty & Theme Configurations
+        // -------------------------------------------------------------
+        const DIFFICULTIES = {
+            EASY: { baseInterval: 1200, decrement: 60, scoreMult: 0.8, name: 'Easy', startGarbage: 0 },
+            MEDIUM: { baseInterval: 950, decrement: 80, scoreMult: 1.0, name: 'Medium', startGarbage: 0 },
+            HARD: { baseInterval: 500, decrement: 45, scoreMult: 1.5, name: 'Hard', startGarbage: 2 },
+            INSANE: { baseInterval: 260, decrement: 20, scoreMult: 2.5, name: 'Insane', startGarbage: 4 }
+        };
+
+        const THEME_PALETTES = {
+            cyber: {
+                I: '#00f3ff', O: '#facc15', T: '#a855f7', S: '#10b981', Z: '#ef4444', J: '#3b82f6', L: '#f97316',
+                GHOST: 'rgba(255, 255, 255, 0.18)', GARBAGE: '#64748b'
+            },
+            synthwave: {
+                I: '#01cdfe', O: '#ffd319', T: '#ff71ce', S: '#05ffa1', Z: '#b967ff', J: '#01cdfe', L: '#ff90e8',
+                GHOST: 'rgba(255, 113, 206, 0.2)', GARBAGE: '#4a154b'
+            },
+            matrix: {
+                I: '#00ff66', O: '#adff2f', T: '#00dd55', S: '#00aa33', Z: '#22c55e', J: '#15803d', L: '#86efac',
+                GHOST: 'rgba(0, 255, 102, 0.22)', GARBAGE: '#1e3a1e'
+            },
+            gameboy: {
+                I: '#8bac0f', O: '#9bbc0f', T: '#306230', S: '#8bac0f', Z: '#0f380f', J: '#306230', L: '#9bbc0f',
+                GHOST: 'rgba(15, 56, 15, 0.3)', GARBAGE: '#306230'
+            }
+        };
+
+        let currentDifficulty = 'MEDIUM';
+        let currentTheme = 'cyber';
+
+        function changeTheme(themeName) {
+            currentTheme = themeName;
+            document.body.className = `theme-${themeName}`;
+            localStorage.setItem('tetris_theme', themeName);
+            draw();
+            drawHold();
+            drawPreview();
+        }
+
+        function changeDifficulty(diffKey) {
+            currentDifficulty = diffKey;
+            localStorage.setItem('tetris_difficulty', diffKey);
+            restartGame();
+            showBanner(`${DIFFICULTIES[diffKey].name.toUpperCase()} MODE`);
+        }
+
+        // -------------------------------------------------------------
         // Tetris Matrix & Core Mechanics
         // -------------------------------------------------------------
         const COLS = 10;
@@ -372,17 +493,6 @@
         const previewCtx = previewCanvas.getContext('2d');
         const holdCanvas = document.getElementById('hold-canvas');
         const holdCtx = holdCanvas.getContext('2d');
-
-        const COLORS = {
-            I: '#00f3ff',
-            O: '#facc15',
-            T: '#a855f7',
-            S: '#10b981',
-            Z: '#ef4444',
-            J: '#3b82f6',
-            L: '#f97316',
-            GHOST: 'rgba(255, 255, 255, 0.18)'
-        };
 
         const SHAPES = {
             I: [[0,0,0,0], [1,1,1,1], [0,0,0,0], [0,0,0,0]],
@@ -408,11 +518,21 @@
         let gameOver = false;
 
         let dropCounter = 0;
-        let dropInterval = 1000;
+        let dropInterval = 950;
         let lastTime = 0;
 
         function createGrid() {
-            return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+            const newGrid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+            const diffConfig = DIFFICULTIES[currentDifficulty];
+            if (diffConfig.startGarbage > 0) {
+                for (let r = ROWS - diffConfig.startGarbage; r < ROWS; r++) {
+                    const hole = Math.floor(Math.random() * COLS);
+                    for (let c = 0; c < COLS; c++) {
+                        if (c !== hole) newGrid[r][c] = 'GARBAGE';
+                    }
+                }
+            }
+            return newGrid;
         }
 
         function getNextFromBag() {
@@ -430,8 +550,7 @@
 
         function rotateMatrix(matrix) {
             const N = matrix.length;
-            const result = matrix.map((_, i) => matrix.map(row => row[i]).reverse());
-            return result;
+            return matrix.map((_, i) => matrix.map(row => row[i]).reverse());
         }
 
         function checkCollision(piece, offsetX = 0, offsetY = 0, customShape = null) {
@@ -478,22 +597,25 @@
                     grid.splice(r, 1);
                     grid.unshift(Array(COLS).fill(0));
                     linesCleared++;
-                    r++; // Recheck same row index after splice
+                    r++;
                 }
             }
 
             if (linesCleared > 0) {
-                const points = [0, 100, 300, 500, 800][linesCleared] * level;
+                const diffConfig = DIFFICULTIES[currentDifficulty];
+                const basePoints = [0, 100, 300, 500, 800][linesCleared] * level;
+                const points = Math.round(basePoints * diffConfig.scoreMult);
+
                 score += points;
                 lines += linesCleared;
                 level = Math.floor(lines / 10) + 1;
-                dropInterval = Math.max(100, 1000 - (level - 1) * 85);
+                dropInterval = Math.max(80, diffConfig.baseInterval - (level - 1) * diffConfig.decrement);
 
-                const rewardGold = linesCleared === 4 ? 40 : linesCleared * 6;
+                const rewardGold = Math.round((linesCleared === 4 ? 40 : linesCleared * 6) * diffConfig.scoreMult);
                 addCoins(rewardGold);
 
                 if (linesCleared === 4) {
-                    showBanner("🔥 TETRIS! +800");
+                    showBanner("🔥 TETRIS! +" + points);
                     playTone(880, 'triangle', 0.3, 0.3);
                 } else {
                     playTone(587.33, 'sine', 0.18, 0.2);
@@ -577,7 +699,7 @@
         function triggerGameOver() {
             gameOver = true;
             playTone(180, 'sawtooth', 0.6, 0.3);
-            const reward = Math.floor(score / 50);
+            const reward = Math.floor((score / 50) * DIFFICULTIES[currentDifficulty].scoreMult);
             if (reward > 0) addCoins(reward);
             document.getElementById('final-score').innerText = score.toLocaleString();
             document.getElementById('final-lines').innerText = lines;
@@ -586,12 +708,13 @@
         }
 
         function restartGame() {
+            const diffConfig = DIFFICULTIES[currentDifficulty];
             grid = createGrid();
             bag = [];
             score = 0;
             lines = 0;
             level = 1;
-            dropInterval = 1000;
+            dropInterval = diffConfig.baseInterval;
             holdPieceType = null;
             canHold = true;
             gameOver = false;
@@ -602,14 +725,18 @@
         }
 
         // -------------------------------------------------------------
-        // Rendering
+        // Rendering System
         // -------------------------------------------------------------
+        function getActivePalette() {
+            return THEME_PALETTES[currentTheme] || THEME_PALETTES.cyber;
+        }
+
         function drawBlock(ctx, x, y, color, isGhost = false) {
             ctx.fillStyle = color;
             ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
 
             if (!isGhost) {
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x * BLOCK_SIZE + 1, y * BLOCK_SIZE + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
             }
@@ -623,11 +750,12 @@
             const size = 18;
             const offsetX = (canvas.width - shape[0].length * size) / 2;
             const offsetY = (canvas.height - shape.length * size) / 2;
+            const palette = getActivePalette();
 
             shape.forEach((row, r) => {
                 row.forEach((val, c) => {
                     if (val) {
-                        ctx.fillStyle = COLORS[shapeType];
+                        ctx.fillStyle = palette[shapeType] || palette.I;
                         ctx.fillRect(offsetX + c * size, offsetY + r * size, size - 1, size - 1);
                     }
                 });
@@ -645,36 +773,33 @@
 
         function draw() {
             boardCtx.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
+            const palette = getActivePalette();
 
-            // Draw locked blocks
             for (let r = 0; r < ROWS; r++) {
                 for (let c = 0; c < COLS; c++) {
                     if (grid[r][c]) {
-                        drawBlock(boardCtx, c, r, COLORS[grid[r][c]]);
+                        drawBlock(boardCtx, c, r, palette[grid[r][c]] || palette.GARBAGE);
                     } else {
-                        // Subtle grid background dots
-                        boardCtx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+                        boardCtx.fillStyle = 'rgba(255, 255, 255, 0.03)';
                         boardCtx.fillRect(c * BLOCK_SIZE + 14, r * BLOCK_SIZE + 14, 2, 2);
                     }
                 }
             }
 
             if (currentPiece && !gameOver) {
-                // Ghost Piece
                 const ghostY = getGhostY();
                 currentPiece.shape.forEach((row, r) => {
                     row.forEach((val, c) => {
                         if (val) {
-                            drawBlock(boardCtx, currentPiece.x + c, ghostY + r, COLORS.GHOST, true);
+                            drawBlock(boardCtx, currentPiece.x + c, ghostY + r, palette.GHOST, true);
                         }
                     });
                 });
 
-                // Active Piece
                 currentPiece.shape.forEach((row, r) => {
                     row.forEach((val, c) => {
                         if (val) {
-                            drawBlock(boardCtx, currentPiece.x + c, currentPiece.y + r, COLORS[currentPiece.type]);
+                            drawBlock(boardCtx, currentPiece.x + c, currentPiece.y + r, palette[currentPiece.type]);
                         }
                     });
                 });
@@ -683,9 +808,6 @@
             drawPreview();
         }
 
-        // -------------------------------------------------------------
-        // Main Loop (60Hz & 120Hz Safe Delta-Time)
-        // -------------------------------------------------------------
         function update(time = 0) {
             const deltaTime = time - lastTime;
             lastTime = time;
@@ -707,7 +829,7 @@
         }
 
         // -------------------------------------------------------------
-        // Controls Handling
+        // Input Handling
         // -------------------------------------------------------------
         window.addEventListener('keydown', e => {
             const code = e.code;
@@ -748,7 +870,6 @@
             }
         });
 
-        // Touch Listeners
         function setupTouchListeners() {
             const bindBtn = (id, action) => {
                 const el = document.getElementById(id);
@@ -777,10 +898,18 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            const savedTheme = localStorage.getItem('tetris_theme') || 'cyber';
+            const savedDiff = localStorage.getItem('tetris_difficulty') || 'MEDIUM';
+
+            document.getElementById('theme-select').value = savedTheme;
+            document.getElementById('difficulty-select').value = savedDiff;
+
+            currentDifficulty = savedDiff;
+            changeTheme(savedTheme);
+
             updateWallet();
             setupTouchListeners();
-            currentPiece = getNextFromBag();
-            drawHold();
+            restartGame();
             requestAnimationFrame(update);
         });
     </script>
