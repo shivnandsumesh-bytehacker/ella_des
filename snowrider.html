@@ -2,257 +2,1300 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Snow Rider Legends</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snow Rider 3D - Winter Mountain Odyssey</title>
     <script src="arcade.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
-        
-        header { width: 100%; max-width: 750px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 12px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 15px; box-sizing: border-box; }
-        .stats { font-size: 1.1rem; font-weight: bold; color: #facc15; }
-        .status { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: var(--primary); min-height: 28px; }
-        
-        canvas { background: #000; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 25px rgba(0, 243, 255, 0.25); max-width: 100%; }
-        
-        .hud-panel { display: flex; gap: 10px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
-        .btn { background: var(--primary); color: #000; border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: bold; border-radius: 8px; cursor: pointer; }
-        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
-        
+        :root {
+            --primary: #00f3ff;
+            --primary-glow: rgba(0, 243, 255, 0.4);
+            --accent: #ff007f;
+            --gold: #facc15;
+            --emerald: #10b981;
+            --bg: #030712;
+            --card: #0b1329;
+            --panel-bg: rgba(11, 19, 41, 0.94);
+        }
+        * { box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+            padding: 6px 20px;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            margin-bottom: 4px;
+            box-shadow: 0 0 18px var(--primary-glow);
+        }
+        .stats { font-size: 1.05rem; font-weight: bold; color: var(--gold); }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
+        a.nav:hover { text-shadow: 0 0 8px var(--primary); }
+
+        #game-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            height: calc(100vh - 82px);
+            max-height: 720px;
+            border: 3px solid var(--primary);
+            border-radius: 14px;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
+            position: relative;
+            overflow: hidden;
+            background: #93c5fd;
+            touch-action: none;
+        }
+        #webgl-canvas { width: 100% !important; height: 100% !important; display: block; touch-action: none; }
+
+        /* In-Game HUD Matching Screenshot */
+        .hud-top-left {
+            position: absolute;
+            top: 14px;
+            left: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+            z-index: 15;
+        }
+        .present-badge {
+            background: rgba(11, 19, 41, 0.85);
+            border: 2px solid var(--gold);
+            border-radius: 24px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: #fff;
+            box-shadow: 0 0 16px rgba(250, 204, 21, 0.4);
+        }
+        .present-badge span.gift-icon {
+            font-size: 1.4rem;
+            filter: drop-shadow(0 0 4px #facc15);
+        }
+
+        .hud-top-right {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            pointer-events: none;
+            z-index: 15;
+        }
+        .score-pill {
+            background: rgba(11, 19, 41, 0.85);
+            border: 1.5px solid var(--primary);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--primary);
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        /* Speed & Nitro Bar */
+        #nitro-hud {
+            position: absolute;
+            bottom: 74px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            pointer-events: none;
+            z-index: 15;
+        }
+        .nitro-bar-frame {
+            width: 160px;
+            height: 10px;
+            background: #1e293b;
+            border: 2px solid var(--primary);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+        .nitro-bar-fill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #00f3ff, #ff007f);
+            transition: width 0.1s linear;
+        }
+        .nitro-label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #cbd5e1;
+            text-transform: uppercase;
+        }
+
+        #cliff-warning {
+            position: absolute;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(239, 68, 68, 0.95);
+            color: #fff;
+            font-weight: 900;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-size: 1.15rem;
+            display: none;
+            pointer-events: none;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.8);
+            z-index: 25;
+            animation: pulse-warn 0.4s infinite alternate;
+        }
+        @keyframes pulse-warn {
+            0% { transform: translateX(-50%) scale(0.95); }
+            100% { transform: translateX(-50%) scale(1.05); }
+        }
+
+        /* Mobile & Tablet Touch Zones */
+        .touch-zone {
+            position: absolute;
+            bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 20;
+            touch-action: none;
+        }
+        #touch-left { left: 14px; }
+        #touch-right { right: 14px; }
+
+        .ctrl-btn {
+            width: 52px;
+            height: 52px;
+            background: var(--panel-bg);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 900;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.08s;
+        }
+        .ctrl-btn:active { background: var(--primary); color: #000; transform: scale(0.92); }
+        .ctrl-btn.jump-btn { border-color: var(--gold); color: var(--gold); }
+        .ctrl-btn.jump-btn:active { background: var(--gold); color: #000; }
+        .ctrl-btn.nitro-btn { border-color: var(--accent); color: var(--accent); }
+        .ctrl-btn.nitro-btn:active { background: var(--accent); color: #fff; }
+
+        /* Hotbar Dock */
+        .hud-bottom {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            pointer-events: auto;
+            z-index: 15;
+        }
+        .slot {
+            background: var(--panel-bg);
+            border: 1.5px solid #334155;
+            border-radius: 8px;
+            padding: 4px 12px;
+            min-width: 54px;
+            text-align: center;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .slot:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .slot-val { font-weight: bold; color: var(--gold); font-size: 0.88rem; }
+
+        /* Modals */
+        .modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.94);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 16px;
+        }
+        .modal-card {
+            background: var(--card);
+            border: 2px solid var(--primary);
+            border-radius: 14px;
+            padding: 24px;
+            max-width: 680px;
+            width: 95%;
+            text-align: left;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        .btn:hover:not(:disabled) { filter: brightness(1.2); box-shadow: 0 0 15px var(--primary); }
+
+        .sleigh-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1.5px solid #334155;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 4px;
+        }
+        .sleigh-card.active {
+            border-color: var(--gold);
+            box-shadow: 0 0 16px rgba(250, 204, 21, 0.35);
+        }
+
+        .controls-info { margin-top: 4px; font-size: 0.76rem; color: #94a3b8; max-width: 1200px; }
     </style>
 </head>
 <body>
-
     <header>
         <a href="index.html" class="nav">← Hub</a>
-        <div>Distance: <span id="dist-count" style="color:var(--primary)">0</span>m</div>
-        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
+        <div>🛷 <strong>SNOW RIDER 3D</strong> | Sleigh: <span id="hdr-sleigh-name" style="color:var(--primary); font-weight:bold;">Classic Toboggan</span></div>
+        <div class="stats">🎁 Presents: <span id="coin-count">0</span> | 🏆 Best: <span id="best-dist">0</span>m</div>
     </header>
 
-    <div class="status" id="status">Dodge Trees & Collect Gifts! (A/D or Left/Right)</div>
+    <div id="game-wrapper">
+        <canvas id="webgl-canvas"></canvas>
 
-    <canvas id="snowCanvas" width="700" height="400"></canvas>
+        <div class="hud-top-left">
+            <div class="present-badge">
+                <span class="gift-icon">🎁</span>
+                <span id="run-presents">0</span>
+            </div>
+        </div>
 
-    <div class="hud-panel">
-        <button class="btn" onclick="resetGame()">Restart Ride</button>
-        <button class="btn" id="buy-racer-btn" onclick="buySled('Racer', 75)">Buy Speed Racer (75 Coins)</button>
-        <button class="btn" id="buy-sleigh-btn" onclick="buySled('Sleigh', 200)">Buy Santa Sleigh (200 Coins)</button>
+        <div class="hud-top-right">
+            <div class="score-pill">DIST: <span id="run-dist">0</span> m</div>
+            <div class="score-pill" style="border-color:var(--gold); color:var(--gold); font-size:0.8rem;">SPD: <span id="run-speed">0</span> KM/H</div>
+        </div>
+
+        <div id="cliff-warning">⚠️ CLIFF GAP AHEAD! JUMP [SPACE / ▲]!</div>
+
+        <!-- Nitro Gauge -->
+        <div id="nitro-hud">
+            <div class="nitro-bar-frame">
+                <div class="nitro-bar-fill" id="nitro-fill"></div>
+            </div>
+            <span class="nitro-label">NITRO BOOST [SHIFT]</span>
+        </div>
+
+        <!-- Touch Controls -->
+        <div class="touch-zone" id="touch-left">
+            <div class="ctrl-btn" id="btn-touch-left">◀</div>
+            <div class="ctrl-btn" id="btn-touch-right">▶</div>
+        </div>
+
+        <div class="touch-zone" id="touch-right">
+            <div class="ctrl-btn nitro-btn" id="btn-touch-nitro">⚡<br><small>NITRO</small></div>
+            <div class="ctrl-btn jump-btn" id="btn-touch-jump">▲<br><small>JUMP</small></div>
+        </div>
+
+        <!-- Bottom Action Dock -->
+        <div class="hud-bottom">
+            <div class="slot" onclick="openShop(true)"><div class="slot-val">🎁</div>Sleighs</div>
+            <div class="slot" onclick="resetGame()"><div class="slot-val" style="color:var(--accent);">[R]</div>Restart</div>
+        </div>
+
+        <!-- Sleigh Shop Modal -->
+        <div id="shop-modal" class="modal" style="display: none;">
+            <div class="modal-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="color:var(--gold); margin:0;">🎁 SANTA'S SLEIGH WORKSHOP</h2>
+                    <button class="btn" style="padding:4px 10px;" onclick="openShop(false)">✕ Close</button>
+                </div>
+                <p style="color:#94a3b8; font-size:0.85rem; margin:6px 0 12px 0;">Unlock sleds using collected presents to gain Nitro, higher speed, and present multipliers!</p>
+                <div class="btn-grid" id="sleigh-grid"></div>
+            </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="gameover-modal" class="modal" style="display: none;">
+            <div class="modal-card" style="max-width:440px; text-align:center;">
+                <h2 style="color:var(--accent); margin:0 0 8px 0; font-size:1.8rem;">💥 CRASHED!</h2>
+                <p style="color:#94a3b8; font-size:1rem; margin:4px 0;">Distance Slid: <span id="final-dist" style="color:var(--primary); font-weight:bold;">0</span> m</p>
+                <p style="color:var(--gold); font-size:1.1rem; font-weight:bold; margin:6px 0;">🎁 +<span id="earned-presents">0</span> Presents Collected</p>
+                <div style="display:flex; justify-content:center; gap:10px; margin-top:16px;">
+                    <button class="btn" onclick="resetGame()">🔄 Try Again</button>
+                    <button class="btn" style="background:var(--gold);" onclick="openShop(true)">🎁 Sleigh Shop</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls-info">
+        <strong>Steer:</strong> [A]/[D] or Left/Right &nbsp;|&nbsp; <strong>Jump Cliff/Obstacles:</strong> [W] / Up / [Space] &nbsp;|&nbsp; <strong>Nitro Boost:</strong> [Shift] / [E] &nbsp;|&nbsp; <strong>Restart:</strong> [R]
     </div>
 
     <script>
-        const canvas = document.getElementById("snowCanvas");
-        const ctx = canvas.getContext("2d");
+        // Web Audio Synthesizer Engine
+        let audioCtx = null;
+        let slideOsc = null, slideGain = null;
 
-        let gameActive = true;
-        let distance = 0;
-        let playerX = 350;
-        const playerY = 320;
-        let playerSpeed = 6;
-
-        // Sled Shop & State
-        let ownedSleds = JSON.parse(localStorage.getItem('sled_owned')) || ['Wooden Sled'];
-        let activeSled = localStorage.getItem('sled_active') || 'Wooden Sled';
-
-        let obstacles = [];
-        let gifts = [];
-
-        const keys = { left: false, right: false };
-
-        function updateWallet() {
-            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            document.getElementById('coin-count').innerText = coins.toLocaleString();
-            updateShopButtons();
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
         }
 
-        function addCoins(amount) {
-            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            localStorage.setItem('arcade_coins', coins + amount);
-            updateWallet();
+        function playSound(type) {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+
+                if (type === 'present') {
+                    // Bright festive 2-tone chime
+                    [987.77, 1318.51].forEach((f, idx) => {
+                        setTimeout(() => {
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(f, ctx.currentTime);
+                            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start();
+                            osc.stop(ctx.currentTime + 0.3);
+                        }, idx * 80);
+                    });
+                } else if (type === 'jump') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(540, ctx.currentTime + 0.25);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.25);
+                } else if (type === 'crash') {
+                    const bufferSize = ctx.sampleRate * 0.45;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    const gain = ctx.createGain();
+                    gain.gain.setValueAtTime(0.6, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+                    noise.connect(gain);
+                    gain.connect(ctx.destination);
+                    noise.start();
+                } else if (type === 'nitro') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(140, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.2);
+                }
+            } catch(e){}
         }
 
-        function updateShopButtons() {
-            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            
-            const racerBtn = document.getElementById('buy-racer-btn');
-            if (ownedSleds.includes('Racer')) {
-                racerBtn.innerText = activeSled === 'Racer' ? 'Equipped: Speed Racer' : 'Equip Speed Racer';
-                racerBtn.disabled = activeSled === 'Racer';
+        function initSlideAudio() {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx || slideGain) return;
+
+                const bufferSize = ctx.sampleRate * 2;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                noise.loop = true;
+
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 800;
+                filter.Q.value = 3;
+
+                slideGain = ctx.createGain();
+                slideGain.gain.setValueAtTime(0.02, ctx.currentTime);
+
+                noise.connect(filter);
+                filter.connect(slideGain);
+                slideGain.connect(ctx.destination);
+                noise.start();
+            } catch(e){}
+        }
+
+        // Sleigh Roster & Stats
+        const SLEIGH_ROSTER = [
+            {
+                id: 'wood',
+                name: 'Classic Toboggan',
+                price: 0,
+                speedMult: 1.0,
+                agility: 1.0,
+                nitroSecs: 3.0,
+                giftMult: 1,
+                slatColor: 0xd4a373,
+                frameColor: 0x1f2937
+            },
+            {
+                id: 'frost',
+                name: 'Frost Runner',
+                price: 25,
+                speedMult: 1.15,
+                agility: 1.25,
+                nitroSecs: 4.5,
+                giftMult: 1,
+                slatColor: 0x38bdf8,
+                frameColor: 0x0284c7
+            },
+            {
+                id: 'santa',
+                name: "Santa's Rocket",
+                price: 60,
+                speedMult: 1.30,
+                agility: 1.15,
+                nitroSecs: 6.0,
+                giftMult: 2,
+                slatColor: 0xef4444,
+                frameColor: 0xfacc15
+            },
+            {
+                id: 'gold',
+                name: 'Golden Comet',
+                price: 120,
+                speedMult: 1.45,
+                agility: 1.35,
+                nitroSecs: 8.0,
+                giftMult: 3,
+                slatColor: 0xfacc15,
+                frameColor: 0xffffff
+            }
+        ];
+
+        let ownedSleighs = ['wood'];
+        let activeSleighId = 'wood';
+        let totalPresents = 0;
+        let bestDistance = 0;
+
+        // Player & Run State
+        const player = {
+            pos: new THREE.Vector3(0, 0.4, 0),
+            velY: 0,
+            speed: 36.0,
+            targetX: 0,
+            tiltZ: 0,
+            onGround: true,
+            isJumping: false,
+            isDead: false,
+            nitroFuel: 100, // 0 to 100%
+            isBoosting: false,
+            runDistance: 0,
+            presentsThisRun: 0
+        };
+
+        const keys = { left: false, right: false, jump: false, nitro: false };
+
+        // Three.js Scene Setup
+        let scene, camera, renderer;
+        let sleighGroup = null;
+        let groundSegments = [];
+        let activeObstacles = [];
+        let activePresents = [];
+        let particles = [];
+        let snowFlakes = [];
+
+        const SEGMENT_LENGTH = 120;
+        const SEGMENT_COUNT = 6;
+        const ROAD_WIDTH = 28;
+
+        // Reusable Low-Poly Flat Shaded Materials
+        const snowMat = new THREE.MeshLambertMaterial({ color: 0xf1f5f9, flatShading: true });
+        const canyonRockMat = new THREE.MeshLambertMaterial({ color: 0x854d0e, flatShading: true });
+        const canyonTopSnowMat = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
+        const woodBranchMat = new THREE.MeshLambertMaterial({ color: 0x5c2c16, flatShading: true });
+        const fenceMat = new THREE.MeshLambertMaterial({ color: 0x78350f, flatShading: true });
+        const snowmanMat = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
+        const carrotMat = new THREE.MeshLambertMaterial({ color: 0xf97316, flatShading: true });
+        const coalMat = new THREE.MeshBasicMaterial({ color: 0x111827 });
+        const giftRedMat = new THREE.MeshLambertMaterial({ color: 0xef4444, flatShading: true });
+        const giftGoldMat = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
+
+        function updateStorage() {
+            totalPresents = parseInt(localStorage.getItem('snowrider_presents')) || 0;
+            bestDistance = parseInt(localStorage.getItem('snowrider_best_dist')) || 0;
+            const savedOwned = localStorage.getItem('snowrider_owned');
+            if (savedOwned) ownedSleighs = JSON.parse(savedOwned);
+            activeSleighId = localStorage.getItem('snowrider_selected') || 'wood';
+
+            document.getElementById('coin-count').innerText = totalPresents;
+            document.getElementById('best-dist').innerText = bestDistance;
+            const curSleigh = SLEIGH_ROSTER.find(s => s.id === activeSleighId) || SLEIGH_ROSTER[0];
+            document.getElementById('hdr-sleigh-name').innerText = curSleigh.name;
+        }
+
+        function saveStorage() {
+            localStorage.setItem('snowrider_presents', totalPresents);
+            localStorage.setItem('snowrider_best_dist', bestDistance);
+            localStorage.setItem('snowrider_owned', JSON.stringify(ownedSleighs));
+            localStorage.setItem('snowrider_selected', activeSleighId);
+            updateStorage();
+        }
+
+        // Build Low-Poly Sleigh (Matches Screenshot)
+        function buildSleighModel() {
+            if (sleighGroup) scene.remove(sleighGroup);
+
+            sleighGroup = new THREE.Group();
+            const config = SLEIGH_ROSTER.find(s => s.id === activeSleighId) || SLEIGH_ROSTER[0];
+
+            const woodSlatMat = new THREE.MeshLambertMaterial({ color: config.slatColor, flatShading: true });
+            const railMat = new THREE.MeshLambertMaterial({ color: config.frameColor, flatShading: true });
+            const gloveMat = new THREE.MeshLambertMaterial({ color: 0x1e293b, flatShading: true });
+
+            // Wooden Slats (Center deck)
+            [-0.24, 0, 0.24].forEach(x => {
+                const slat = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.05, 1.6), woodSlatMat);
+                slat.position.set(x, 0.2, -0.1);
+                sleighGroup.add(slat);
+            });
+
+            // Curved Metal Runners (Skis)
+            [-0.42, 0.42].forEach(x => {
+                const runner = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 1.8), railMat);
+                runner.position.set(x, 0.08, 0);
+                sleighGroup.add(runner);
+
+                // Front upward curve
+                const tip = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.4), railMat);
+                tip.position.set(x, 0.22, 0.95);
+                tip.rotation.x = -Math.PI / 4;
+                sleighGroup.add(tip);
+
+                // Stanchions connecting runner to wood slats
+                [-0.4, 0.2].forEach(z => {
+                    const post = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.05), railMat);
+                    post.position.set(x * 0.85, 0.14, z);
+                    sleighGroup.add(post);
+                });
+            });
+
+            // Front Handle Crossbar
+            const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.86, 8), railMat);
+            bar.rotation.z = Math.PI / 2;
+            bar.position.set(0, 0.35, 0.85);
+            sleighGroup.add(bar);
+
+            // First-person view rider's gloves / mittens at bottom edges
+            const gloveL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.2, 0.3), gloveMat);
+            gloveL.position.set(-0.65, 0.1, -0.65);
+            gloveL.rotation.y = 0.25;
+            sleighGroup.add(gloveL);
+
+            const gloveR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.2, 0.3), gloveMat);
+            gloveR.position.set(0.65, 0.1, -0.65);
+            gloveR.rotation.y = -0.25;
+            sleighGroup.add(gloveR);
+
+            scene.add(sleighGroup);
+        }
+
+        // Low-Poly Bare Twisted Trees (Directly from Screenshot)
+        function createBareTree() {
+            const group = new THREE.Group();
+            const trunkGeo = new THREE.CylinderGeometry(0.35, 0.6, 5.5, 6);
+            const trunk = new THREE.Mesh(trunkGeo, woodBranchMat);
+            trunk.position.y = 2.75;
+            trunk.rotation.z = (Math.random() - 0.5) * 0.25;
+            group.add(trunk);
+
+            // Twisted branches
+            for (let b = 0; b < 5; b++) {
+                const branchLen = 2.2 + Math.random() * 1.5;
+                const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.25, branchLen, 5), woodBranchMat);
+                const angle = (b / 5) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+                branch.position.set(0, 3.2 + Math.random() * 1.8, 0);
+                branch.rotation.set(
+                    Math.cos(angle) * 0.7 + (Math.random() - 0.5) * 0.3,
+                    angle,
+                    Math.sin(angle) * 0.7
+                );
+                group.add(branch);
+            }
+            return group;
+        }
+
+        // Low-Poly Snowman
+        function createSnowman() {
+            const group = new THREE.Group();
+            // Bottom ball
+            const b1 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2, 1), snowmanMat);
+            b1.position.y = 1.1;
+            group.add(b1);
+
+            // Middle ball
+            const b2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.85, 1), snowmanMat);
+            b2.position.y = 2.6;
+            group.add(b2);
+
+            // Head
+            const b3 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.6, 1), snowmanMat);
+            b3.position.y = 3.8;
+            group.add(b3);
+
+            // Carrot Nose
+            const nose = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.6, 5), carrotMat);
+            nose.position.set(0, 3.8, 0.7);
+            nose.rotation.x = Math.PI / 2;
+            group.add(nose);
+
+            // Coal Eyes
+            [-0.18, 0.18].forEach(x => {
+                const eye = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.08), coalMat);
+                eye.position.set(x, 3.9, 0.55);
+                group.add(eye);
+            });
+
+            return group;
+        }
+
+        // Giant Rolling/Static Snowball
+        function createHugeSnowball() {
+            const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(2.0, 1), snowmanMat);
+            ball.position.y = 1.9;
+            return ball;
+        }
+
+        // Wooden Fence Barrier
+        function createWoodenFence() {
+            const group = new THREE.Group();
+            [-1.8, 0, 1.8].forEach(x => {
+                const post = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.4, 0.18), fenceMat);
+                post.position.set(x, 0.7, 0);
+                group.add(post);
+            });
+            [0.5, 1.0].forEach(y => {
+                const rail = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.12, 0.1), fenceMat);
+                rail.position.set(0, y, 0);
+                group.add(rail);
+            });
+            return group;
+        }
+
+        // Collectible Present Box
+        function createPresentPickup() {
+            const group = new THREE.Group();
+            const box = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), giftRedMat);
+            group.add(box);
+
+            const ribbonH = new THREE.Mesh(new THREE.BoxGeometry(1.24, 0.28, 1.24), giftGoldMat);
+            group.add(ribbonH);
+
+            const ribbonV = new THREE.Mesh(new THREE.BoxGeometry(0.28, 1.24, 1.24), giftGoldMat);
+            group.add(ribbonV);
+
+            group.position.y = 1.2;
+            return group;
+        }
+
+        // Track Segment Generator with Cliffs & Canyon Walls
+        function createTrackSegment(zStart, hasCliff = false) {
+            const segmentGroup = new THREE.Group();
+            segmentGroup.position.z = zStart;
+
+            const cliffGapLength = 24;
+
+            if (!hasCliff) {
+                // Continuous snow ski slope
+                const slopeGeo = new THREE.PlaneGeometry(ROAD_WIDTH, SEGMENT_LENGTH, 8, 12);
+                // Subtly displace vertices for faceted low-poly look
+                const posAttr = slopeGeo.attributes.position;
+                for (let i = 0; i < posAttr.count; i++) {
+                    posAttr.setZ(i, posAttr.getZ(i) + (Math.random() - 0.5) * 0.4);
+                }
+                slopeGeo.computeVertexNormals();
+
+                const snowFloor = new THREE.Mesh(slopeGeo, snowMat);
+                snowFloor.rotation.x = -Math.PI / 2;
+                snowFloor.position.set(0, 0, SEGMENT_LENGTH / 2);
+                segmentGroup.add(snowFloor);
             } else {
-                racerBtn.disabled = coins < 75;
+                // Divided track with cliff chasm gap in the middle
+                const half1Len = (SEGMENT_LENGTH - cliffGapLength) / 2;
+
+                // Pre-gap snow runway + jump ramp
+                const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_WIDTH, half1Len), snowMat);
+                floor1.rotation.x = -Math.PI / 2;
+                floor1.position.set(0, 0, half1Len / 2);
+                segmentGroup.add(floor1);
+
+                // Snow launch ramp right at cliff edge
+                const ramp = new THREE.Mesh(new THREE.BoxGeometry(16, 1.2, 8), snowMat);
+                ramp.position.set(0, 0.5, half1Len - 4);
+                ramp.rotation.x = -0.16;
+                segmentGroup.add(ramp);
+
+                // Post-gap landing runway
+                const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_WIDTH, half1Len), snowMat);
+                floor2.rotation.x = -Math.PI / 2;
+                floor2.position.set(0, 0, half1Len + cliffGapLength + half1Len / 2);
+                segmentGroup.add(floor2);
+
+                // Chasm abyss details (deep rock drop)
+                const abyssRock = new THREE.Mesh(new THREE.BoxGeometry(ROAD_WIDTH + 6, 18, cliffGapLength), canyonRockMat);
+                abyssRock.position.set(0, -9.5, half1Len + cliffGapLength / 2);
+                segmentGroup.add(abyssRock);
             }
 
-            const sleighBtn = document.getElementById('buy-sleigh-btn');
-            if (ownedSleds.includes('Sleigh')) {
-                sleighBtn.innerText = activeSled === 'Sleigh' ? 'Equipped: Santa Sleigh' : 'Equip Santa Sleigh';
-                sleighBtn.disabled = activeSled === 'Sleigh';
+            // Left & Right Low-Poly Canyon Ridge Walls with Snow Caps
+            [-1, 1].forEach(side => {
+                const wallX = (ROAD_WIDTH / 2 + 10) * side;
+                const wallGeo = new THREE.BoxGeometry(16, 14, SEGMENT_LENGTH, 4, 3, 6);
+                const pAttr = wallGeo.attributes.position;
+                for (let i = 0; i < pAttr.count; i++) {
+                    pAttr.setX(i, pAttr.getX(i) + (Math.random() - 0.5) * 2.0);
+                    pAttr.setY(i, pAttr.getY(i) + (Math.random() - 0.5) * 1.5);
+                }
+                wallGeo.computeVertexNormals();
+
+                const rockWall = new THREE.Mesh(wallGeo, canyonRockMat);
+                rockWall.position.set(wallX, 5.5, SEGMENT_LENGTH / 2);
+                segmentGroup.add(rockWall);
+
+                // Snow topping on ridge
+                const snowCap = new THREE.Mesh(new THREE.BoxGeometry(17, 2.5, SEGMENT_LENGTH + 1), canyonTopSnowMat);
+                snowCap.position.set(wallX, 12.5, SEGMENT_LENGTH / 2);
+                segmentGroup.add(snowCap);
+
+                // Edge wooden fences
+                for (let fz = 10; fz < SEGMENT_LENGTH; fz += 28) {
+                    const fence = createWoodenFence();
+                    fence.position.set((ROAD_WIDTH / 2 - 0.5) * side, 0, fz);
+                    segmentGroup.add(fence);
+                }
+            });
+
+            // Populate Obstacles & Presents on this segment (avoiding cliff gaps)
+            const numObstacles = hasCliff ? 4 : 7;
+            for (let o = 0; o < numObstacles; o++) {
+                const zRel = 12 + Math.random() * (SEGMENT_LENGTH - 24);
+                // Avoid placing on cliff gap
+                if (hasCliff && zRel > (SEGMENT_LENGTH - cliffGapLength) / 2 - 10 && zRel < (SEGMENT_LENGTH + cliffGapLength) / 2 + 10) {
+                    continue;
+                }
+
+                const xRel = (Math.random() - 0.5) * (ROAD_WIDTH - 6);
+                const rand = Math.random();
+                let obsMesh = null;
+                let radius = 1.0;
+
+                if (rand < 0.45) {
+                    obsMesh = createBareTree();
+                    radius = 1.2;
+                } else if (rand < 0.72) {
+                    obsMesh = createSnowman();
+                    radius = 1.1;
+                } else if (rand < 0.88) {
+                    obsMesh = createHugeSnowball();
+                    radius = 1.8;
+                } else {
+                    obsMesh = createWoodenFence();
+                    radius = 1.4;
+                }
+
+                obsMesh.position.set(xRel, 0, zRel);
+                segmentGroup.add(obsMesh);
+
+                activeObstacles.push({
+                    mesh: obsMesh,
+                    worldZ: zStart + zRel,
+                    x: xRel,
+                    radius
+                });
+            }
+
+            // Populate Gift Pickups
+            for (let p = 0; p < 3; p++) {
+                const pZ = 16 + Math.random() * (SEGMENT_LENGTH - 32);
+                const pX = (Math.random() - 0.5) * (ROAD_WIDTH - 8);
+                const present = createPresentPickup();
+                present.position.set(pX, 1.2, pZ);
+                segmentGroup.add(present);
+
+                activePresents.push({
+                    mesh: present,
+                    worldZ: zStart + pZ,
+                    x: pX,
+                    collected: false
+                });
+            }
+
+            scene.add(segmentGroup);
+            return {
+                group: segmentGroup,
+                zStart,
+                hasCliff,
+                cliffZ1: zStart + (SEGMENT_LENGTH - cliffGapLength) / 2,
+                cliffZ2: zStart + (SEGMENT_LENGTH + cliffGapLength) / 2
+            };
+        }
+
+        function init3D() {
+            const container = document.getElementById("game-wrapper");
+            const w = container.clientWidth || 1200;
+            const h = container.clientHeight || 700;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x93c5fd);
+            scene.fog = new THREE.Fog(0x93c5fd, 60, 240);
+
+            camera = new THREE.PerspectiveCamera(58, w / h, 0.1, 800);
+            scene.add(camera);
+
+            renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById("webgl-canvas"),
+                antialias: false,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(w, h);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+
+            // Atmospheric Lighting
+            const ambient = new THREE.AmbientLight(0xffffff, 0.78);
+            scene.add(ambient);
+
+            const sun = new THREE.DirectionalLight(0xfffaed, 1.1);
+            sun.position.set(60, 120, -40);
+            scene.add(sun);
+
+            // Low-Poly Faceted Clouds Scattered in Sky (Like Screenshot)
+            const cloudGeo = new THREE.DodecahedronGeometry(12, 1);
+            const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
+            for (let c = 0; c < 26; c++) {
+                const cloud = new THREE.Mesh(cloudGeo, cloudMat);
+                cloud.position.set((Math.random() - 0.5) * 280, 45 + Math.random() * 35, c * 35);
+                cloud.scale.set(1.5 + Math.random(), 0.6 + Math.random() * 0.4, 1.2 + Math.random());
+                scene.add(cloud);
+            }
+
+            // Falling Snowflake Particles
+            const flakeGeo = new THREE.BoxGeometry(0.14, 0.14, 0.14);
+            const flakeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            for (let s = 0; s < 180; s++) {
+                const flake = new THREE.Mesh(flakeGeo, flakeMat);
+                flake.position.set((Math.random() - 0.5) * 50, Math.random() * 30, Math.random() * 80);
+                scene.add(flake);
+                snowFlakes.push(flake);
+            }
+
+            buildSleighModel();
+
+            // Initial World Chunks
+            for (let s = 0; s < SEGMENT_COUNT; s++) {
+                const hasCliff = (s > 1 && s % 3 === 0);
+                groundSegments.push(createTrackSegment(s * SEGMENT_LENGTH, hasCliff));
+            }
+
+            setupControls();
+
+            window.addEventListener('resize', () => {
+                const nw = container.clientWidth || 1200;
+                const nh = container.clientHeight || 700;
+                camera.aspect = nw / nh;
+                camera.updateProjectionMatrix();
+                renderer.setSize(nw, nh);
+            });
+        }
+
+        function setupControls() {
+            window.addEventListener('keydown', e => {
+                const c = e.code;
+                if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyD','KeyW','KeyS','Space','ShiftLeft','ShiftRight','KeyE','KeyR'].includes(c)) {
+                    e.preventDefault();
+                }
+                getAudioContext();
+                initSlideAudio();
+
+                if (c === 'KeyA' || c === 'ArrowLeft') keys.left = true;
+                if (c === 'KeyD' || c === 'ArrowRight') keys.right = true;
+                if (c === 'KeyW' || c === 'ArrowUp' || c === 'Space') keys.jump = true;
+                if (c === 'ShiftLeft' || c === 'ShiftRight' || c === 'KeyE') keys.nitro = true;
+                if (c === 'KeyR') resetGame();
+            });
+
+            window.addEventListener('keyup', e => {
+                const c = e.code;
+                if (c === 'KeyA' || c === 'ArrowLeft') keys.left = false;
+                if (c === 'KeyD' || c === 'ArrowRight') keys.right = false;
+                if (c === 'KeyW' || c === 'ArrowUp' || c === 'Space') keys.jump = false;
+                if (c === 'ShiftLeft' || c === 'ShiftRight' || c === 'KeyE') keys.nitro = false;
+            });
+
+            const bindBtn = (id, onStart, onEnd) => {
+                const el = document.getElementById(id);
+                el.addEventListener('touchstart', e => { e.preventDefault(); getAudioContext(); initSlideAudio(); onStart(); }, { passive: false });
+                if (onEnd) el.addEventListener('touchend', e => { e.preventDefault(); onEnd(); }, { passive: false });
+            };
+
+            bindBtn('btn-touch-left', () => keys.left = true, () => keys.left = false);
+            bindBtn('btn-touch-right', () => keys.right = true, () => keys.right = false);
+            bindBtn('btn-touch-jump', () => keys.jump = true, () => keys.jump = false);
+            bindBtn('btn-touch-nitro', () => keys.nitro = true, () => keys.nitro = false);
+        }
+
+        function openShop(show) {
+            const modal = document.getElementById('shop-modal');
+            modal.style.display = show ? 'flex' : 'none';
+            if (show) renderShopUI();
+        }
+
+        function renderShopUI() {
+            const grid = document.getElementById('sleigh-grid');
+            grid.innerHTML = '';
+
+            SLEIGH_ROSTER.forEach(s => {
+                const isOwned = ownedSleighs.includes(s.id);
+                const isSelected = activeSleighId === s.id;
+
+                const card = document.createElement('div');
+                card.className = `sleigh-card ${isSelected ? 'active' : ''}`;
+                card.innerHTML = `
+                    <div style="font-size:1.8rem; margin:2px 0;">🛷</div>
+                    <div style="font-weight:900; color:#fff; font-size:0.92rem;">${s.name}</div>
+                    <div style="font-size:0.75rem; color:#94a3b8;">Speed: <strong>${s.speedMult}x</strong> | Nitro: <strong>${s.nitroSecs}s</strong></div>
+                    <div style="font-size:0.72rem; color:var(--gold);">Gifts: <strong>${s.giftMult}x Multiplier</strong></div>
+                    <button class="btn" style="margin-top:8px; padding:6px 14px; width:100%; font-size:0.78rem;" id="btn-sleigh-${s.id}">
+                        ${isSelected ? 'EQUIPPED' : (isOwned ? 'SELECT' : `🎁 ${s.price}`)}
+                    </button>
+                `;
+
+                const btn = card.querySelector(`#btn-sleigh-${s.id}`);
+                btn.onclick = () => handleSleighClick(s);
+                grid.appendChild(card);
+            });
+        }
+
+        function handleSleighClick(s) {
+            if (ownedSleighs.includes(s.id)) {
+                activeSleighId = s.id;
+                saveStorage();
+                buildSleighModel();
+                renderShopUI();
+            } else if (totalPresents >= s.price) {
+                totalPresents -= s.price;
+                ownedSleighs.push(s.id);
+                activeSleighId = s.id;
+                saveStorage();
+                buildSleighModel();
+                playSound('present');
+                renderShopUI();
             } else {
-                sleighBtn.disabled = coins < 200;
+                alert(`⚠️ Not enough presents! You need ${s.price} presents to unlock ${s.name}.`);
             }
-        }
-
-        function buySled(type, cost) {
-            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            if (!ownedSleds.includes(type) && coins >= cost) {
-                addCoins(-cost);
-                ownedSleds.push(type);
-                localStorage.setItem('sled_owned', JSON.stringify(ownedSleds));
-            }
-            if (ownedSleds.includes(type)) {
-                activeSled = type;
-                localStorage.setItem('sled_active', type);
-            }
-            updateShopButtons();
-        }
-
-        // Key Listeners + Anti Scroll
-        window.addEventListener("keydown", e => {
-            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","KeyW","KeyA","KeyS","KeyD","Space"].includes(e.code) || ["w","a","s","d","W","A","S","D"," "].includes(e.key)) {
-                e.preventDefault();
-            }
-
-            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = true;
-            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = true;
-        }, { passive: false });
-
-        window.addEventListener("keyup", e => {
-            if (e.key === "a" || e.key === "A" || e.key === "ArrowLeft") keys.left = false;
-            if (e.key === "d" || e.key === "D" || e.key === "ArrowRight") keys.right = false;
-        });
-
-        function spawnEntities() {
-            obstacles = [];
-            gifts = [];
-            for (let i = 0; i < 15; i++) {
-                obstacles.push({ x: 100 + Math.random() * 500, z: 200 + i * 180, hit: false });
-                if (i % 2 === 0) {
-                    gifts.push({ x: 100 + Math.random() * 500, z: 300 + i * 180, collected: false });
-                }
-            }
-        }
-
-        function update() {
-            if (!gameActive) return;
-
-            // Player Steering
-            if (keys.left) playerX -= playerSpeed;
-            if (keys.right) playerX += playerSpeed;
-
-            if (playerX < 120) playerX = 120;
-            if (playerX > 580) playerX = 580;
-
-            distance += 1;
-            document.getElementById("dist-count").innerText = Math.floor(distance / 5);
-
-            // Obstacles / Trees
-            obstacles.forEach(obs => {
-                obs.z -= 6;
-                if (obs.z < -50) {
-                    obs.z = 2500;
-                    obs.x = 100 + Math.random() * 500;
-                    obs.hit = false;
-                }
-
-                // Collision
-                if (!obs.hit && obs.z < 40 && obs.z > -20 && Math.abs(obs.x - playerX) < 35) {
-                    obs.hit = true;
-                    gameActive = false;
-                    document.getElementById("status").innerText = "💥 CRASHED! Hit a Snow Tree!";
-                }
-            });
-
-            // Gifts / Coins
-            gifts.forEach(gift => {
-                gift.z -= 6;
-                if (gift.z < -50) {
-                    gift.z = 2500;
-                    gift.x = 100 + Math.random() * 500;
-                    gift.collected = false;
-                }
-
-                if (!gift.collected && gift.z < 40 && gift.z > -20 && Math.abs(gift.x - playerX) < 40) {
-                    gift.collected = true;
-                    addCoins(2);
-                }
-            });
-        }
-
-        function render() {
-            // Snowy Sky & Hill
-            ctx.fillStyle = "#0f172a";
-            ctx.fillRect(0, 0, canvas.width, 140);
-
-            ctx.fillStyle = "#f8fafc";
-            ctx.fillRect(0, 140, canvas.width, 260);
-
-            // Perspective Slope Lines
-            ctx.strokeStyle = "#cbd5e1";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(100, 400); ctx.lineTo(300, 140);
-            ctx.moveTo(600, 400); ctx.lineTo(400, 140);
-            ctx.stroke();
-
-            // Render Gifts
-            gifts.forEach(gift => {
-                if (!gift.collected && gift.z > 0) {
-                    let scale = 220 / (220 + gift.z);
-                    let screenX = 350 + (gift.x - 350) * scale;
-                    let screenY = 140 + 220 * scale;
-
-                    ctx.fillStyle = "#ff007f";
-                    ctx.shadowBlur = 10; ctx.shadowColor = "#ff007f";
-                    ctx.fillRect(screenX - 10 * scale, screenY - 10 * scale, 20 * scale, 20 * scale);
-                    ctx.shadowBlur = 0;
-                }
-            });
-
-            // Render Tree Obstacles
-            obstacles.forEach(obs => {
-                if (obs.z > 0) {
-                    let scale = 220 / (220 + obs.z);
-                    let screenX = 350 + (obs.x - 350) * scale;
-                    let screenY = 140 + 220 * scale;
-
-                    ctx.fillStyle = "#15803d";
-                    ctx.beginPath();
-                    ctx.moveTo(screenX, screenY - 30 * scale);
-                    ctx.lineTo(screenX - 18 * scale, screenY);
-                    ctx.lineTo(screenX + 18 * scale, screenY);
-                    ctx.closePath();
-                    ctx.fill();
-                }
-            });
-
-            // Render Player Sled
-            let sledColor = activeSled === 'Sleigh' ? '#ff007f' : (activeSled === 'Racer' ? '#00f3ff' : '#facc15');
-            ctx.fillStyle = sledColor;
-            ctx.shadowBlur = 15; ctx.shadowColor = sledColor;
-
-            ctx.beginPath();
-            ctx.roundRect(playerX - 25, playerY, 50, 30, 8);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-
-        function gameLoop() {
-            update();
-            render();
-            requestAnimationFrame(gameLoop);
         }
 
         function resetGame() {
-            gameActive = true;
-            distance = 0;
-            playerX = 350;
-            document.getElementById("status").innerText = "Dodge Trees & Collect Gifts! (A/D or Left/Right)";
-            spawnEntities();
-            updateWallet();
+            player.pos.set(0, 0.4, 0);
+            player.velY = 0;
+            player.targetX = 0;
+            player.tiltZ = 0;
+            player.onGround = true;
+            player.isJumping = false;
+            player.isDead = false;
+            player.nitroFuel = 100;
+            player.isBoosting = false;
+            player.runDistance = 0;
+            player.presentsThisRun = 0;
+
+            document.getElementById('gameover-modal').style.display = 'none';
+            document.getElementById('cliff-warning').style.display = 'none';
+            document.getElementById('run-presents').innerText = '0';
+
+            // Clean existing terrain chunks
+            groundSegments.forEach(seg => scene.remove(seg.group));
+            groundSegments = [];
+            activeObstacles = [];
+            activePresents = [];
+
+            for (let s = 0; s < SEGMENT_COUNT; s++) {
+                const hasCliff = (s > 1 && s % 3 === 0);
+                groundSegments.push(createTrackSegment(s * SEGMENT_LENGTH, hasCliff));
+            }
         }
 
-        updateWallet();
-        spawnEntities();
-        gameLoop();
+        function triggerCrash(reason = 'obstacle') {
+            if (player.isDead) return;
+            player.isDead = true;
+            playSound('crash');
+
+            // Burst crash particles
+            for (let i = 0; i < 20; i++) {
+                const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), woodBranchMat);
+                p.position.copy(player.pos);
+                p.position.y += 0.5;
+                scene.add(p);
+                particles.push({
+                    mesh: p,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: Math.random() * 8 + 3,
+                    vz: (Math.random() - 0.5) * 12,
+                    life: 0.8
+                });
+            }
+
+            totalPresents += player.presentsThisRun;
+            if (player.runDistance > bestDistance) {
+                bestDistance = player.runDistance;
+            }
+            saveStorage();
+
+            document.getElementById('final-dist').innerText = player.runDistance;
+            document.getElementById('earned-presents').innerText = player.presentsThisRun;
+            document.getElementById('gameover-modal').style.display = 'flex';
+        }
+
+        // 60FPS Clamped Downhill Physics Loop
+        function updateGamePhysics(dt) {
+            if (player.isDead) return;
+
+            const config = SLEIGH_ROSTER.find(s => s.id === activeSleighId) || SLEIGH_ROSTER[0];
+
+            // 1. Nitro Boost
+            if (keys.nitro && player.nitroFuel > 5) {
+                player.isBoosting = true;
+                player.nitroFuel = Math.max(0, player.nitroFuel - 30 * dt);
+                playSound('nitro');
+                // Thruster particles
+                for (let i = 0; i < 2; i++) {
+                    const fire = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: 0x00f3ff }));
+                    fire.position.copy(player.pos).add(new THREE.Vector3((Math.random() - 0.5) * 0.4, 0.1, -1.0));
+                    scene.add(fire);
+                    particles.push({ mesh: fire, vx: 0, vy: 1, vz: -12, life: 0.25 });
+                }
+            } else {
+                player.isBoosting = false;
+                player.nitroFuel = Math.min(100, player.nitroFuel + 8 * dt);
+            }
+            document.getElementById('nitro-fill').style.width = `${player.nitroFuel}%`;
+
+            // 2. Forward Velocity
+            const baseSpeed = 34.0 * config.speedMult;
+            const targetForwardSpeed = player.isBoosting ? baseSpeed * 1.55 : baseSpeed;
+            player.speed = THREE.MathUtils.lerp(player.speed, targetForwardSpeed, 0.1);
+
+            player.pos.z += player.speed * dt;
+            player.runDistance = Math.floor(player.pos.z / 2);
+            document.getElementById('run-dist').innerText = player.runDistance;
+            document.getElementById('run-speed').innerText = Math.round(player.speed * 2.6);
+
+            // 3. Horizontal Steering with Banking
+            const steerRate = 22.0 * config.agility;
+            if (keys.left) {
+                player.targetX = Math.max(-ROAD_WIDTH / 2 + 2, player.targetX - steerRate * dt);
+                player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, 0.35, 0.2);
+            } else if (keys.right) {
+                player.targetX = Math.min(ROAD_WIDTH / 2 - 2, player.targetX + steerRate * dt);
+                player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, -0.35, 0.2);
+            } else {
+                player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, 0, 0.15);
+            }
+            player.pos.x = THREE.MathUtils.lerp(player.pos.x, player.targetX, 0.2);
+
+            // 4. Jump & Gravity
+            if (keys.jump && player.onGround) {
+                player.velY = 12.5;
+                player.onGround = false;
+                playSound('jump');
+            }
+
+            if (!player.onGround || player.pos.y > 0.4) {
+                player.velY -= 32.0 * dt; // Gravity
+                player.pos.y += player.velY * dt;
+
+                if (player.pos.y <= 0.4) {
+                    player.pos.y = 0.4;
+                    player.velY = 0;
+                    player.onGround = true;
+                }
+            }
+
+            // 5. Cliff Chasm Gap Check
+            let nearCliff = false;
+            groundSegments.forEach(seg => {
+                if (seg.hasCliff) {
+                    const distToCliff = seg.cliffZ1 - player.pos.z;
+                    if (distToCliff > 0 && distToCliff < 45) {
+                        nearCliff = true;
+                    }
+
+                    // Check if player plummeted into the chasm without jumping
+                    if (player.pos.z >= seg.cliffZ1 && player.pos.z <= seg.cliffZ2) {
+                        if (player.onGround || player.pos.y < 0.6) {
+                            player.pos.y -= 25.0 * dt; // Fall into canyon
+                            if (player.pos.y < -3.0) {
+                                triggerCrash('chasm');
+                            }
+                        }
+                    }
+                }
+            });
+            document.getElementById('cliff-warning').style.display = nearCliff ? 'block' : 'none';
+
+            // 6. Sleigh Visual Sync & Ski Snow Spray
+            sleighGroup.position.copy(player.pos);
+            sleighGroup.rotation.z = player.tiltZ;
+            sleighGroup.rotation.x = player.onGround ? 0 : -player.velY * 0.025;
+
+            if (player.onGround && player.speed > 10) {
+                // Snow runner spray
+                [-0.4, 0.4].forEach(sx => {
+                    const puff = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.18), snowMat);
+                    puff.position.copy(player.pos).add(new THREE.Vector3(sx, 0, -0.6));
+                    scene.add(puff);
+                    particles.push({ mesh: puff, vx: (Math.random() - 0.5) * 2, vy: 1.5, vz: -4, life: 0.3 });
+                });
+            }
+
+            // 7. Obstacle Collision Detection
+            activeObstacles.forEach(obs => {
+                const dz = obs.worldZ - player.pos.z;
+                if (Math.abs(dz) < 1.8) {
+                    const dx = obs.x - player.pos.x;
+                    if (Math.hypot(dx, dz) < obs.radius && player.pos.y < 1.8) {
+                        triggerCrash('obstacle');
+                    }
+                }
+            });
+
+            // 8. Present Pickup Detection
+            activePresents.forEach(p => {
+                if (!p.collected) {
+                    p.mesh.rotation.y += dt * 3.5;
+                    const dz = p.worldZ - player.pos.z;
+                    if (Math.abs(dz) < 1.8 && Math.abs(p.x - player.pos.x) < 2.0) {
+                        p.collected = true;
+                        p.mesh.visible = false;
+                        const added = 1 * config.giftMult;
+                        player.presentsThisRun += added;
+                        playSound('present');
+                        document.getElementById('run-presents').innerText = player.presentsThisRun;
+                    }
+                }
+            });
+
+            // 9. Camera Follow (Aligned with Screenshot Perspective)
+            camera.position.set(player.pos.x * 0.7, player.pos.y + 2.1, player.pos.z - 3.8);
+            camera.lookAt(player.pos.x * 0.3, player.pos.y + 1.2, player.pos.z + 18.0);
+
+            // 10. Snowflake Ambience Loop
+            snowFlakes.forEach(sf => {
+                sf.position.y -= 12 * dt;
+                sf.position.z += 18 * dt;
+                if (sf.position.y < 0 || sf.position.z > player.pos.z + 30) {
+                    sf.position.y = player.pos.y + 20 + Math.random() * 10;
+                    sf.position.z = player.pos.z - 20 + Math.random() * 80;
+                    sf.position.x = player.pos.x + (Math.random() - 0.5) * 50;
+                }
+            });
+
+            // 11. Recycle Terrain Chunks
+            if (player.pos.z > groundSegments[0].zStart + SEGMENT_LENGTH * 1.5) {
+                const oldSeg = groundSegments.shift();
+                scene.remove(oldSeg.group);
+
+                const newZ = groundSegments[groundSegments.length - 1].zStart + SEGMENT_LENGTH;
+                const cliffChance = (Math.random() < 0.35);
+                groundSegments.push(createTrackSegment(newZ, cliffChance));
+
+                // Clean old obstacles/presents
+                activeObstacles = activeObstacles.filter(o => o.worldZ > player.pos.z - 20);
+                activePresents = activePresents.filter(p => p.worldZ > player.pos.z - 20);
+            }
+
+            // 12. Particles Update
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.mesh.position.x += p.vx * dt;
+                p.mesh.position.y += p.vy * dt;
+                p.mesh.position.z += p.vz * dt;
+                p.life -= 2.5 * dt;
+
+                if (p.life <= 0) {
+                    scene.remove(p.mesh);
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        let lastTime = performance.now();
+        function animate(now) {
+            requestAnimationFrame(animate);
+            // Strict delta time clamp for 120Hz/ProMotion displays
+            const dt = Math.min((now - lastTime) / 1000, 0.02);
+            lastTime = now;
+
+            updateGamePhysics(dt);
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStorage();
+            init3D();
+            requestAnimationFrame(animate);
+        });
     </script>
 </body>
 </html>
