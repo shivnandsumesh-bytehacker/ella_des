@@ -65,7 +65,6 @@
         }
         #webgl-canvas { width: 100% !important; height: 100% !important; display: block; touch-action: none; }
 
-        /* In-Game HUD Matching Screenshot */
         .hud-top-left {
             position: absolute;
             top: 14px;
@@ -116,7 +115,6 @@
             box-shadow: 0 0 12px var(--primary-glow);
         }
 
-        /* Speed & Nitro Bar */
         #nitro-hud {
             position: absolute;
             bottom: 74px;
@@ -174,7 +172,6 @@
             100% { transform: translateX(-50%) scale(1.05); }
         }
 
-        /* Mobile & Tablet Touch Zones */
         .touch-zone {
             position: absolute;
             bottom: 12px;
@@ -209,7 +206,6 @@
         .ctrl-btn.nitro-btn { border-color: var(--accent); color: var(--accent); }
         .ctrl-btn.nitro-btn:active { background: var(--accent); color: #fff; }
 
-        /* Hotbar Dock */
         .hud-bottom {
             position: absolute;
             bottom: 8px;
@@ -234,7 +230,6 @@
         .slot:hover { border-color: var(--primary); transform: translateY(-2px); }
         .slot-val { font-weight: bold; color: var(--gold); font-size: 0.88rem; }
 
-        /* Modals */
         .modal {
             position: absolute;
             inset: 0;
@@ -318,7 +313,6 @@
 
         <div id="cliff-warning">⚠️ CLIFF GAP AHEAD! JUMP [SPACE / ▲]!</div>
 
-        <!-- Nitro Gauge -->
         <div id="nitro-hud">
             <div class="nitro-bar-frame">
                 <div class="nitro-bar-fill" id="nitro-fill"></div>
@@ -326,7 +320,6 @@
             <span class="nitro-label">NITRO BOOST [SHIFT]</span>
         </div>
 
-        <!-- Touch Controls -->
         <div class="touch-zone" id="touch-left">
             <div class="ctrl-btn" id="btn-touch-left">◀</div>
             <div class="ctrl-btn" id="btn-touch-right">▶</div>
@@ -337,13 +330,11 @@
             <div class="ctrl-btn jump-btn" id="btn-touch-jump">▲<br><small>JUMP</small></div>
         </div>
 
-        <!-- Bottom Action Dock -->
         <div class="hud-bottom">
             <div class="slot" onclick="openShop(true)"><div class="slot-val">🎁</div>Sleighs</div>
             <div class="slot" onclick="resetGame()"><div class="slot-val" style="color:var(--accent);">[R]</div>Restart</div>
         </div>
 
-        <!-- Sleigh Shop Modal -->
         <div id="shop-modal" class="modal" style="display: none;">
             <div class="modal-card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -355,7 +346,6 @@
             </div>
         </div>
 
-        <!-- Game Over Modal -->
         <div id="gameover-modal" class="modal" style="display: none;">
             <div class="modal-card" style="max-width:440px; text-align:center;">
                 <h2 style="color:var(--accent); margin:0 0 8px 0; font-size:1.8rem;">💥 CRASHED!</h2>
@@ -374,7 +364,6 @@
     </div>
 
     <script>
-        // Web Audio Synthesizer Engine
         let audioCtx = null;
         let slideOsc = null, slideGain = null;
 
@@ -390,7 +379,6 @@
                 if (!ctx) return;
 
                 if (type === 'present') {
-                    // Bright festive 2-tone chime
                     [987.77, 1318.51].forEach((f, idx) => {
                         setTimeout(() => {
                             const osc = ctx.createOscillator();
@@ -476,7 +464,6 @@
             } catch(e){}
         }
 
-        // Sleigh Roster & Stats
         const SLEIGH_ROSTER = [
             {
                 id: 'wood',
@@ -529,7 +516,6 @@
         let totalPresents = 0;
         let bestDistance = 0;
 
-        // Player & Run State
         const player = {
             pos: new THREE.Vector3(0, 0.4, 0),
             velY: 0,
@@ -539,7 +525,7 @@
             onGround: true,
             isJumping: false,
             isDead: false,
-            nitroFuel: 100, // 0 to 100%
+            nitroFuel: 100,
             isBoosting: false,
             runDistance: 0,
             presentsThisRun: 0
@@ -547,7 +533,6 @@
 
         const keys = { left: false, right: false, jump: false, nitro: false };
 
-        // Three.js Scene Setup
         let scene, camera, renderer;
         let sleighGroup = null;
         let groundSegments = [];
@@ -560,7 +545,6 @@
         const SEGMENT_COUNT = 6;
         const ROAD_WIDTH = 28;
 
-        // Reusable Low-Poly Flat Shaded Materials
         const snowMat = new THREE.MeshLambertMaterial({ color: 0xf1f5f9, flatShading: true });
         const canyonRockMat = new THREE.MeshLambertMaterial({ color: 0x854d0e, flatShading: true });
         const canyonTopSnowMat = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
@@ -593,7 +577,6 @@
             updateStorage();
         }
 
-        // Build Low-Poly Sleigh (Matches Screenshot)
         function buildSleighModel() {
             if (sleighGroup) scene.remove(sleighGroup);
 
@@ -604,26 +587,22 @@
             const railMat = new THREE.MeshLambertMaterial({ color: config.frameColor, flatShading: true });
             const gloveMat = new THREE.MeshLambertMaterial({ color: 0x1e293b, flatShading: true });
 
-            // Wooden Slats (Center deck)
             [-0.24, 0, 0.24].forEach(x => {
                 const slat = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.05, 1.6), woodSlatMat);
                 slat.position.set(x, 0.2, -0.1);
                 sleighGroup.add(slat);
             });
 
-            // Curved Metal Runners (Skis)
             [-0.42, 0.42].forEach(x => {
                 const runner = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 1.8), railMat);
                 runner.position.set(x, 0.08, 0);
                 sleighGroup.add(runner);
 
-                // Front upward curve
                 const tip = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.4), railMat);
                 tip.position.set(x, 0.22, 0.95);
                 tip.rotation.x = -Math.PI / 4;
                 sleighGroup.add(tip);
 
-                // Stanchions connecting runner to wood slats
                 [-0.4, 0.2].forEach(z => {
                     const post = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.05), railMat);
                     post.position.set(x * 0.85, 0.14, z);
@@ -631,13 +610,11 @@
                 });
             });
 
-            // Front Handle Crossbar
             const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.86, 8), railMat);
             bar.rotation.z = Math.PI / 2;
             bar.position.set(0, 0.35, 0.85);
             sleighGroup.add(bar);
 
-            // First-person view rider's gloves / mittens at bottom edges
             const gloveL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.2, 0.3), gloveMat);
             gloveL.position.set(-0.65, 0.1, -0.65);
             gloveL.rotation.y = 0.25;
@@ -651,7 +628,6 @@
             scene.add(sleighGroup);
         }
 
-        // Low-Poly Bare Twisted Trees (Directly from Screenshot)
         function createBareTree() {
             const group = new THREE.Group();
             const trunkGeo = new THREE.CylinderGeometry(0.35, 0.6, 5.5, 6);
@@ -660,7 +636,6 @@
             trunk.rotation.z = (Math.random() - 0.5) * 0.25;
             group.add(trunk);
 
-            // Twisted branches
             for (let b = 0; b < 5; b++) {
                 const branchLen = 2.2 + Math.random() * 1.5;
                 const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.25, branchLen, 5), woodBranchMat);
@@ -676,31 +651,25 @@
             return group;
         }
 
-        // Low-Poly Snowman
         function createSnowman() {
             const group = new THREE.Group();
-            // Bottom ball
             const b1 = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2, 1), snowmanMat);
             b1.position.y = 1.1;
             group.add(b1);
 
-            // Middle ball
             const b2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.85, 1), snowmanMat);
             b2.position.y = 2.6;
             group.add(b2);
 
-            // Head
             const b3 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.6, 1), snowmanMat);
             b3.position.y = 3.8;
             group.add(b3);
 
-            // Carrot Nose
             const nose = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.6, 5), carrotMat);
             nose.position.set(0, 3.8, 0.7);
             nose.rotation.x = Math.PI / 2;
             group.add(nose);
 
-            // Coal Eyes
             [-0.18, 0.18].forEach(x => {
                 const eye = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.08), coalMat);
                 eye.position.set(x, 3.9, 0.55);
@@ -710,14 +679,12 @@
             return group;
         }
 
-        // Giant Rolling/Static Snowball
         function createHugeSnowball() {
             const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(2.0, 1), snowmanMat);
             ball.position.y = 1.9;
             return ball;
         }
 
-        // Wooden Fence Barrier
         function createWoodenFence() {
             const group = new THREE.Group();
             [-1.8, 0, 1.8].forEach(x => {
@@ -733,7 +700,6 @@
             return group;
         }
 
-        // Collectible Present Box
         function createPresentPickup() {
             const group = new THREE.Group();
             const box = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), giftRedMat);
@@ -749,7 +715,6 @@
             return group;
         }
 
-        // Track Segment Generator with Cliffs & Canyon Walls
         function createTrackSegment(zStart, hasCliff = false) {
             const segmentGroup = new THREE.Group();
             segmentGroup.position.z = zStart;
@@ -757,9 +722,7 @@
             const cliffGapLength = 24;
 
             if (!hasCliff) {
-                // Continuous snow ski slope
                 const slopeGeo = new THREE.PlaneGeometry(ROAD_WIDTH, SEGMENT_LENGTH, 8, 12);
-                // Subtly displace vertices for faceted low-poly look
                 const posAttr = slopeGeo.attributes.position;
                 for (let i = 0; i < posAttr.count; i++) {
                     posAttr.setZ(i, posAttr.getZ(i) + (Math.random() - 0.5) * 0.4);
@@ -771,34 +734,28 @@
                 snowFloor.position.set(0, 0, SEGMENT_LENGTH / 2);
                 segmentGroup.add(snowFloor);
             } else {
-                // Divided track with cliff chasm gap in the middle
                 const half1Len = (SEGMENT_LENGTH - cliffGapLength) / 2;
 
-                // Pre-gap snow runway + jump ramp
                 const floor1 = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_WIDTH, half1Len), snowMat);
                 floor1.rotation.x = -Math.PI / 2;
                 floor1.position.set(0, 0, half1Len / 2);
                 segmentGroup.add(floor1);
 
-                // Snow launch ramp right at cliff edge
                 const ramp = new THREE.Mesh(new THREE.BoxGeometry(16, 1.2, 8), snowMat);
                 ramp.position.set(0, 0.5, half1Len - 4);
                 ramp.rotation.x = -0.16;
                 segmentGroup.add(ramp);
 
-                // Post-gap landing runway
                 const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_WIDTH, half1Len), snowMat);
                 floor2.rotation.x = -Math.PI / 2;
                 floor2.position.set(0, 0, half1Len + cliffGapLength + half1Len / 2);
                 segmentGroup.add(floor2);
 
-                // Chasm abyss details (deep rock drop)
                 const abyssRock = new THREE.Mesh(new THREE.BoxGeometry(ROAD_WIDTH + 6, 18, cliffGapLength), canyonRockMat);
                 abyssRock.position.set(0, -9.5, half1Len + cliffGapLength / 2);
                 segmentGroup.add(abyssRock);
             }
 
-            // Left & Right Low-Poly Canyon Ridge Walls with Snow Caps
             [-1, 1].forEach(side => {
                 const wallX = (ROAD_WIDTH / 2 + 10) * side;
                 const wallGeo = new THREE.BoxGeometry(16, 14, SEGMENT_LENGTH, 4, 3, 6);
@@ -813,12 +770,10 @@
                 rockWall.position.set(wallX, 5.5, SEGMENT_LENGTH / 2);
                 segmentGroup.add(rockWall);
 
-                // Snow topping on ridge
                 const snowCap = new THREE.Mesh(new THREE.BoxGeometry(17, 2.5, SEGMENT_LENGTH + 1), canyonTopSnowMat);
                 snowCap.position.set(wallX, 12.5, SEGMENT_LENGTH / 2);
                 segmentGroup.add(snowCap);
 
-                // Edge wooden fences
                 for (let fz = 10; fz < SEGMENT_LENGTH; fz += 28) {
                     const fence = createWoodenFence();
                     fence.position.set((ROAD_WIDTH / 2 - 0.5) * side, 0, fz);
@@ -826,11 +781,9 @@
                 }
             });
 
-            // Populate Obstacles & Presents on this segment (avoiding cliff gaps)
             const numObstacles = hasCliff ? 4 : 7;
             for (let o = 0; o < numObstacles; o++) {
                 const zRel = 12 + Math.random() * (SEGMENT_LENGTH - 24);
-                // Avoid placing on cliff gap
                 if (hasCliff && zRel > (SEGMENT_LENGTH - cliffGapLength) / 2 - 10 && zRel < (SEGMENT_LENGTH + cliffGapLength) / 2 + 10) {
                     continue;
                 }
@@ -865,7 +818,6 @@
                 });
             }
 
-            // Populate Gift Pickups
             for (let p = 0; p < 3; p++) {
                 const pZ = 16 + Math.random() * (SEGMENT_LENGTH - 32);
                 const pX = (Math.random() - 0.5) * (ROAD_WIDTH - 8);
@@ -911,7 +863,6 @@
             renderer.setSize(w, h);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
 
-            // Atmospheric Lighting
             const ambient = new THREE.AmbientLight(0xffffff, 0.78);
             scene.add(ambient);
 
@@ -919,7 +870,6 @@
             sun.position.set(60, 120, -40);
             scene.add(sun);
 
-            // Low-Poly Faceted Clouds Scattered in Sky (Like Screenshot)
             const cloudGeo = new THREE.DodecahedronGeometry(12, 1);
             const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
             for (let c = 0; c < 26; c++) {
@@ -929,7 +879,6 @@
                 scene.add(cloud);
             }
 
-            // Falling Snowflake Particles
             const flakeGeo = new THREE.BoxGeometry(0.14, 0.14, 0.14);
             const flakeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
             for (let s = 0; s < 180; s++) {
@@ -941,7 +890,6 @@
 
             buildSleighModel();
 
-            // Initial World Chunks
             for (let s = 0; s < SEGMENT_COUNT; s++) {
                 const hasCliff = (s > 1 && s % 3 === 0);
                 groundSegments.push(createTrackSegment(s * SEGMENT_LENGTH, hasCliff));
@@ -1062,7 +1010,6 @@
             document.getElementById('cliff-warning').style.display = 'none';
             document.getElementById('run-presents').innerText = '0';
 
-            // Clean existing terrain chunks
             groundSegments.forEach(seg => scene.remove(seg.group));
             groundSegments = [];
             activeObstacles = [];
@@ -1079,7 +1026,6 @@
             player.isDead = true;
             playSound('crash');
 
-            // Burst crash particles
             for (let i = 0; i < 20; i++) {
                 const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), woodBranchMat);
                 p.position.copy(player.pos);
@@ -1105,7 +1051,7 @@
             document.getElementById('gameover-modal').style.display = 'flex';
         }
 
-        // 60FPS Clamped Downhill Physics Loop
+        // 60FPS Clamped Downhill Physics Loop (Corrected Orientations)
         function updateGamePhysics(dt) {
             if (player.isDead) return;
 
@@ -1116,7 +1062,6 @@
                 player.isBoosting = true;
                 player.nitroFuel = Math.max(0, player.nitroFuel - 30 * dt);
                 playSound('nitro');
-                // Thruster particles
                 for (let i = 0; i < 2; i++) {
                     const fire = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: 0x00f3ff }));
                     fire.position.copy(player.pos).add(new THREE.Vector3((Math.random() - 0.5) * 0.4, 0.1, -1.0));
@@ -1139,14 +1084,17 @@
             document.getElementById('run-dist').innerText = player.runDistance;
             document.getElementById('run-speed').innerText = Math.round(player.speed * 2.6);
 
-            // 3. Horizontal Steering with Banking
+            // 3. Horizontal Steering with Non-Inverted Alignment
+            // Facing +Z: Increasing X moves RIGHT on screen; Decreasing X moves LEFT on screen.
             const steerRate = 22.0 * config.agility;
             if (keys.left) {
-                player.targetX = Math.max(-ROAD_WIDTH / 2 + 2, player.targetX - steerRate * dt);
-                player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, 0.35, 0.2);
-            } else if (keys.right) {
+                // Moving Left means targetX increases (+X)
                 player.targetX = Math.min(ROAD_WIDTH / 2 - 2, player.targetX + steerRate * dt);
-                player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, -0.35, 0.2);
+                player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, -0.35, 0.2); // Bank tilt left
+            } else if (keys.right) {
+                // Moving Right means targetX decreases (-X)
+                player.targetX = Math.max(-ROAD_WIDTH / 2 + 2, player.targetX - steerRate * dt);
+                player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, 0.35, 0.2); // Bank tilt right
             } else {
                 player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, 0, 0.15);
             }
@@ -1160,7 +1108,7 @@
             }
 
             if (!player.onGround || player.pos.y > 0.4) {
-                player.velY -= 32.0 * dt; // Gravity
+                player.velY -= 32.0 * dt;
                 player.pos.y += player.velY * dt;
 
                 if (player.pos.y <= 0.4) {
@@ -1179,10 +1127,9 @@
                         nearCliff = true;
                     }
 
-                    // Check if player plummeted into the chasm without jumping
                     if (player.pos.z >= seg.cliffZ1 && player.pos.z <= seg.cliffZ2) {
                         if (player.onGround || player.pos.y < 0.6) {
-                            player.pos.y -= 25.0 * dt; // Fall into canyon
+                            player.pos.y -= 25.0 * dt;
                             if (player.pos.y < -3.0) {
                                 triggerCrash('chasm');
                             }
@@ -1192,13 +1139,12 @@
             });
             document.getElementById('cliff-warning').style.display = nearCliff ? 'block' : 'none';
 
-            // 6. Sleigh Visual Sync & Ski Snow Spray
+            // 6. Visual Position & Spray Particles
             sleighGroup.position.copy(player.pos);
             sleighGroup.rotation.z = player.tiltZ;
             sleighGroup.rotation.x = player.onGround ? 0 : -player.velY * 0.025;
 
             if (player.onGround && player.speed > 10) {
-                // Snow runner spray
                 [-0.4, 0.4].forEach(sx => {
                     const puff = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.18), snowMat);
                     puff.position.copy(player.pos).add(new THREE.Vector3(sx, 0, -0.6));
@@ -1234,11 +1180,11 @@
                 }
             });
 
-            // 9. Camera Follow (Aligned with Screenshot Perspective)
+            // 9. Camera Follow
             camera.position.set(player.pos.x * 0.7, player.pos.y + 2.1, player.pos.z - 3.8);
             camera.lookAt(player.pos.x * 0.3, player.pos.y + 1.2, player.pos.z + 18.0);
 
-            // 10. Snowflake Ambience Loop
+            // 10. Snowflakes
             snowFlakes.forEach(sf => {
                 sf.position.y -= 12 * dt;
                 sf.position.z += 18 * dt;
@@ -1258,7 +1204,6 @@
                 const cliffChance = (Math.random() < 0.35);
                 groundSegments.push(createTrackSegment(newZ, cliffChance));
 
-                // Clean old obstacles/presents
                 activeObstacles = activeObstacles.filter(o => o.worldZ > player.pos.z - 20);
                 activePresents = activePresents.filter(p => p.worldZ > player.pos.z - 20);
             }
@@ -1281,7 +1226,6 @@
         let lastTime = performance.now();
         function animate(now) {
             requestAnimationFrame(animate);
-            // Strict delta time clamp for 120Hz/ProMotion displays
             const dt = Math.min((now - lastTime) / 1000, 0.02);
             lastTime = now;
 
