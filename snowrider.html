@@ -311,7 +311,7 @@
             <div class="score-pill" style="border-color:var(--gold); color:var(--gold); font-size:0.8rem;">SPD: <span id="run-speed">0</span> KM/H</div>
         </div>
 
-        <div id="cliff-warning">⚠️ CLIFF GAP AHEAD! JUMP [SPACE / ▲]!</div>
+        <div id="cliff-warning">⚠️ CLIFF GAP AHEAD! TIME YOUR JUMP!</div>
 
         <div id="nitro-hud">
             <div class="nitro-bar-frame">
@@ -341,14 +341,14 @@
                     <h2 style="color:var(--gold); margin:0;">🎁 SANTA'S SLEIGH WORKSHOP</h2>
                     <button class="btn" style="padding:4px 10px;" onclick="openShop(false)">✕ Close</button>
                 </div>
-                <p style="color:#94a3b8; font-size:0.85rem; margin:6px 0 12px 0;">Unlock sleds using collected presents to gain Nitro, higher speed, and present multipliers!</p>
+                <p style="color:#94a3b8; font-size:0.85rem; margin:6px 0 12px 0;">Unlock sleds using collected presents to gain high speeds, extended nitro, and gift multipliers!</p>
                 <div class="btn-grid" id="sleigh-grid"></div>
             </div>
         </div>
 
         <div id="gameover-modal" class="modal" style="display: none;">
             <div class="modal-card" style="max-width:440px; text-align:center;">
-                <h2 style="color:var(--accent); margin:0 0 8px 0; font-size:1.8rem;">💥 CRASHED!</h2>
+                <h2 style="color:var(--accent); margin:0 0 8px 0; font-size:1.8rem;" id="crash-title">💥 CRASHED!</h2>
                 <p style="color:#94a3b8; font-size:1rem; margin:4px 0;">Distance Slid: <span id="final-dist" style="color:var(--primary); font-weight:bold;">0</span> m</p>
                 <p style="color:var(--gold); font-size:1.1rem; font-weight:bold; margin:6px 0;">🎁 +<span id="earned-presents">0</span> Presents Collected</p>
                 <div style="display:flex; justify-content:center; gap:10px; margin-top:16px;">
@@ -360,7 +360,7 @@
     </div>
 
     <div class="controls-info">
-        <strong>Steer:</strong> [A]/[D] or Left/Right &nbsp;|&nbsp; <strong>Jump Cliff/Obstacles:</strong> [W] / Up / [Space] &nbsp;|&nbsp; <strong>Nitro Boost:</strong> [Shift] / [E] &nbsp;|&nbsp; <strong>Restart:</strong> [R]
+        <strong>Steer:</strong> [A]/[D] &nbsp;|&nbsp; <strong>Jump (Tap to Jump, Can't Hold):</strong> [W] / [Space] &nbsp;|&nbsp; <strong>Watch Out:</strong> Overhead logs hit you if you jump! &nbsp;|&nbsp; <strong>Nitro:</strong> [Shift]
     </div>
 
     <script>
@@ -397,8 +397,8 @@
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(220, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(540, ctx.currentTime + 0.25);
+                    osc.frequency.setValueAtTime(240, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(560, ctx.currentTime + 0.25);
                     gain.gain.setValueAtTime(0.3, ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
                     osc.connect(gain);
@@ -464,6 +464,7 @@
             } catch(e){}
         }
 
+        // Higher Speeds Across Sleigh Tiers
         const SLEIGH_ROSTER = [
             {
                 id: 'wood',
@@ -471,7 +472,7 @@
                 price: 0,
                 speedMult: 1.0,
                 agility: 1.0,
-                nitroSecs: 3.0,
+                nitroSecs: 3.5,
                 giftMult: 1,
                 slatColor: 0xd4a373,
                 frameColor: 0x1f2937
@@ -480,9 +481,9 @@
                 id: 'frost',
                 name: 'Frost Runner',
                 price: 25,
-                speedMult: 1.15,
+                speedMult: 1.18,
                 agility: 1.25,
-                nitroSecs: 4.5,
+                nitroSecs: 5.0,
                 giftMult: 1,
                 slatColor: 0x38bdf8,
                 frameColor: 0x0284c7
@@ -491,9 +492,9 @@
                 id: 'santa',
                 name: "Santa's Rocket",
                 price: 60,
-                speedMult: 1.30,
-                agility: 1.15,
-                nitroSecs: 6.0,
+                speedMult: 1.35,
+                agility: 1.2,
+                nitroSecs: 6.5,
                 giftMult: 2,
                 slatColor: 0xef4444,
                 frameColor: 0xfacc15
@@ -502,9 +503,9 @@
                 id: 'gold',
                 name: 'Golden Comet',
                 price: 120,
-                speedMult: 1.45,
-                agility: 1.35,
-                nitroSecs: 8.0,
+                speedMult: 1.55,
+                agility: 1.4,
+                nitroSecs: 8.5,
                 giftMult: 3,
                 slatColor: 0xfacc15,
                 frameColor: 0xffffff
@@ -516,22 +517,24 @@
         let totalPresents = 0;
         let bestDistance = 0;
 
+        // Player & Run State
         const player = {
             pos: new THREE.Vector3(0, 0.4, 0),
             velY: 0,
-            speed: 36.0,
+            speed: 52.0, // High base velocity
             targetX: 0,
             tiltZ: 0,
             onGround: true,
-            isJumping: false,
             isDead: false,
             nitroFuel: 100,
             isBoosting: false,
             runDistance: 0,
-            presentsThisRun: 0
+            presentsThisRun: 0,
+            jumpCooldown: 0 // Anti-spam cooldown
         };
 
-        const keys = { left: false, right: false, jump: false, nitro: false };
+        const keys = { left: false, right: false, nitro: false };
+        let jumpRequested = false;
 
         let scene, camera, renderer;
         let sleighGroup = null;
@@ -679,9 +682,10 @@
             return group;
         }
 
-        function createHugeSnowball() {
-            const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(2.0, 1), snowmanMat);
-            ball.position.y = 1.9;
+        // Rolling Snowball that rolls towards the player!
+        function createRollingSnowball() {
+            const ball = new THREE.Mesh(new THREE.DodecahedronGeometry(1.7, 1), snowmanMat);
+            ball.position.y = 1.7;
             return ball;
         }
 
@@ -696,6 +700,22 @@
                 const rail = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.12, 0.1), fenceMat);
                 rail.position.set(0, y, 0);
                 group.add(rail);
+            });
+            return group;
+        }
+
+        // Low-Hanging Fallen Log: DUCK / STAY GROUNDED! (Jumping crashes into it!)
+        function createOverheadLog() {
+            const group = new THREE.Group();
+            const log = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, 10, 6), woodBranchMat);
+            log.rotation.z = Math.PI / 2;
+            log.position.set(0, 2.1, 0); // Positioned right at jump height
+            group.add(log);
+
+            [-4.8, 4.8].forEach(x => {
+                const support = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 2.5, 5), woodBranchMat);
+                support.position.set(x, 1.2, 0);
+                group.add(support);
             });
             return group;
         }
@@ -715,17 +735,18 @@
             return group;
         }
 
+        // Track Generator with Guaranteed Landings and Cliff Gaps
         function createTrackSegment(zStart, hasCliff = false) {
             const segmentGroup = new THREE.Group();
             segmentGroup.position.z = zStart;
 
-            const cliffGapLength = 24;
+            const cliffGapLength = 26;
 
             if (!hasCliff) {
                 const slopeGeo = new THREE.PlaneGeometry(ROAD_WIDTH, SEGMENT_LENGTH, 8, 12);
                 const posAttr = slopeGeo.attributes.position;
                 for (let i = 0; i < posAttr.count; i++) {
-                    posAttr.setZ(i, posAttr.getZ(i) + (Math.random() - 0.5) * 0.4);
+                    posAttr.setZ(i, posAttr.getZ(i) + (Math.random() - 0.5) * 0.3);
                 }
                 slopeGeo.computeVertexNormals();
 
@@ -741,9 +762,10 @@
                 floor1.position.set(0, 0, half1Len / 2);
                 segmentGroup.add(floor1);
 
-                const ramp = new THREE.Mesh(new THREE.BoxGeometry(16, 1.2, 8), snowMat);
-                ramp.position.set(0, 0.5, half1Len - 4);
-                ramp.rotation.x = -0.16;
+                // Snow launch ramp right before the cliff
+                const ramp = new THREE.Mesh(new THREE.BoxGeometry(ROAD_WIDTH - 2, 1.4, 7), snowMat);
+                ramp.position.set(0, 0.5, half1Len - 3.5);
+                ramp.rotation.x = -0.18;
                 segmentGroup.add(ramp);
 
                 const floor2 = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_WIDTH, half1Len), snowMat);
@@ -751,11 +773,13 @@
                 floor2.position.set(0, 0, half1Len + cliffGapLength + half1Len / 2);
                 segmentGroup.add(floor2);
 
-                const abyssRock = new THREE.Mesh(new THREE.BoxGeometry(ROAD_WIDTH + 6, 18, cliffGapLength), canyonRockMat);
-                abyssRock.position.set(0, -9.5, half1Len + cliffGapLength / 2);
+                // Deep abyss rock drop
+                const abyssRock = new THREE.Mesh(new THREE.BoxGeometry(ROAD_WIDTH + 6, 25, cliffGapLength), canyonRockMat);
+                abyssRock.position.set(0, -13.0, half1Len + cliffGapLength / 2);
                 segmentGroup.add(abyssRock);
             }
 
+            // Canyon Walls
             [-1, 1].forEach(side => {
                 const wallX = (ROAD_WIDTH / 2 + 10) * side;
                 const wallGeo = new THREE.BoxGeometry(16, 14, SEGMENT_LENGTH, 4, 3, 6);
@@ -781,30 +805,40 @@
                 }
             });
 
-            const numObstacles = hasCliff ? 4 : 7;
+            // Procedural Obstacles with Jump-Punishing Overhead Logs & Rolling Snowballs
+            const numObstacles = hasCliff ? 5 : 8;
             for (let o = 0; o < numObstacles; o++) {
                 const zRel = 12 + Math.random() * (SEGMENT_LENGTH - 24);
-                if (hasCliff && zRel > (SEGMENT_LENGTH - cliffGapLength) / 2 - 10 && zRel < (SEGMENT_LENGTH + cliffGapLength) / 2 + 10) {
+                if (hasCliff && zRel > (SEGMENT_LENGTH - cliffGapLength) / 2 - 12 && zRel < (SEGMENT_LENGTH + cliffGapLength) / 2 + 12) {
                     continue;
                 }
 
-                const xRel = (Math.random() - 0.5) * (ROAD_WIDTH - 6);
                 const rand = Math.random();
                 let obsMesh = null;
                 let radius = 1.0;
+                let isOverhead = false;
+                let isRolling = false;
+                let xRel = (Math.random() - 0.5) * (ROAD_WIDTH - 6);
 
-                if (rand < 0.45) {
+                if (rand < 0.18) {
+                    // Overhead log: covers center road, hits you IF YOU JUMP!
+                    obsMesh = createOverheadLog();
+                    xRel = 0;
+                    radius = 4.8;
+                    isOverhead = true;
+                } else if (rand < 0.42) {
                     obsMesh = createBareTree();
-                    radius = 1.2;
-                } else if (rand < 0.72) {
-                    obsMesh = createSnowman();
                     radius = 1.1;
-                } else if (rand < 0.88) {
-                    obsMesh = createHugeSnowball();
-                    radius = 1.8;
+                } else if (rand < 0.65) {
+                    obsMesh = createSnowman();
+                    radius = 1.0;
+                } else if (rand < 0.84) {
+                    obsMesh = createRollingSnowball();
+                    radius = 1.6;
+                    isRolling = true;
                 } else {
                     obsMesh = createWoodenFence();
-                    radius = 1.4;
+                    radius = 1.8;
                 }
 
                 obsMesh.position.set(xRel, 0, zRel);
@@ -814,7 +848,10 @@
                     mesh: obsMesh,
                     worldZ: zStart + zRel,
                     x: xRel,
-                    radius
+                    radius,
+                    isOverhead,
+                    isRolling,
+                    rollSpeed: isRolling ? (14 + Math.random() * 8) : 0
                 });
             }
 
@@ -850,7 +887,7 @@
 
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x93c5fd);
-            scene.fog = new THREE.Fog(0x93c5fd, 60, 240);
+            scene.fog = new THREE.Fog(0x93c5fd, 60, 260);
 
             camera = new THREE.PerspectiveCamera(58, w / h, 0.1, 800);
             scene.add(camera);
@@ -917,7 +954,10 @@
 
                 if (c === 'KeyA' || c === 'ArrowLeft') keys.left = true;
                 if (c === 'KeyD' || c === 'ArrowRight') keys.right = true;
-                if (c === 'KeyW' || c === 'ArrowUp' || c === 'Space') keys.jump = true;
+                if ((c === 'KeyW' || c === 'ArrowUp' || c === 'Space') && !e.repeat) {
+                    // Requires distinct key presses (can't hold space)
+                    jumpRequested = true;
+                }
                 if (c === 'ShiftLeft' || c === 'ShiftRight' || c === 'KeyE') keys.nitro = true;
                 if (c === 'KeyR') resetGame();
             });
@@ -926,7 +966,6 @@
                 const c = e.code;
                 if (c === 'KeyA' || c === 'ArrowLeft') keys.left = false;
                 if (c === 'KeyD' || c === 'ArrowRight') keys.right = false;
-                if (c === 'KeyW' || c === 'ArrowUp' || c === 'Space') keys.jump = false;
                 if (c === 'ShiftLeft' || c === 'ShiftRight' || c === 'KeyE') keys.nitro = false;
             });
 
@@ -938,7 +977,7 @@
 
             bindBtn('btn-touch-left', () => keys.left = true, () => keys.left = false);
             bindBtn('btn-touch-right', () => keys.right = true, () => keys.right = false);
-            bindBtn('btn-touch-jump', () => keys.jump = true, () => keys.jump = false);
+            bindBtn('btn-touch-jump', () => { jumpRequested = true; });
             bindBtn('btn-touch-nitro', () => keys.nitro = true, () => keys.nitro = false);
         }
 
@@ -999,12 +1038,13 @@
             player.targetX = 0;
             player.tiltZ = 0;
             player.onGround = true;
-            player.isJumping = false;
             player.isDead = false;
             player.nitroFuel = 100;
             player.isBoosting = false;
             player.runDistance = 0;
             player.presentsThisRun = 0;
+            player.jumpCooldown = 0;
+            jumpRequested = false;
 
             document.getElementById('gameover-modal').style.display = 'none';
             document.getElementById('cliff-warning').style.display = 'none';
@@ -1033,9 +1073,9 @@
                 scene.add(p);
                 particles.push({
                     mesh: p,
-                    vx: (Math.random() - 0.5) * 12,
-                    vy: Math.random() * 8 + 3,
-                    vz: (Math.random() - 0.5) * 12,
+                    vx: (Math.random() - 0.5) * 14,
+                    vy: Math.random() * 9 + 4,
+                    vz: (Math.random() - 0.5) * 14,
                     life: 0.8
                 });
             }
@@ -1046,12 +1086,18 @@
             }
             saveStorage();
 
+            const titleEl = document.getElementById('crash-title');
+            if (titleEl) {
+                if (reason === 'chasm') titleEl.innerText = "🕳️ FELL INTO THE CHASM!";
+                else if (reason === 'overhead') titleEl.innerText = "🪵 HIT AN OVERHEAD LOG! (DON'T JUMP!)";
+                else titleEl.innerText = "💥 CRASHED!";
+            }
+
             document.getElementById('final-dist').innerText = player.runDistance;
             document.getElementById('earned-presents').innerText = player.presentsThisRun;
             document.getElementById('gameover-modal').style.display = 'flex';
         }
 
-        // 60FPS Clamped Downhill Physics Loop (Corrected Orientations)
         function updateGamePhysics(dt) {
             if (player.isDead) return;
 
@@ -1066,7 +1112,7 @@
                     const fire = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: 0x00f3ff }));
                     fire.position.copy(player.pos).add(new THREE.Vector3((Math.random() - 0.5) * 0.4, 0.1, -1.0));
                     scene.add(fire);
-                    particles.push({ mesh: fire, vx: 0, vy: 1, vz: -12, life: 0.25 });
+                    particles.push({ mesh: fire, vx: 0, vy: 1, vz: -16, life: 0.25 });
                 }
             } else {
                 player.isBoosting = false;
@@ -1074,92 +1120,122 @@
             }
             document.getElementById('nitro-fill').style.width = `${player.nitroFuel}%`;
 
-            // 2. Forward Velocity
-            const baseSpeed = 34.0 * config.speedMult;
-            const targetForwardSpeed = player.isBoosting ? baseSpeed * 1.55 : baseSpeed;
+            // 2. High-Velocity Forward Speed (Faster Downhill Rush)
+            const baseSpeed = 48.0 * config.speedMult;
+            const targetForwardSpeed = player.isBoosting ? baseSpeed * 1.5 : baseSpeed;
             player.speed = THREE.MathUtils.lerp(player.speed, targetForwardSpeed, 0.1);
 
             player.pos.z += player.speed * dt;
             player.runDistance = Math.floor(player.pos.z / 2);
             document.getElementById('run-dist').innerText = player.runDistance;
-            document.getElementById('run-speed').innerText = Math.round(player.speed * 2.6);
+            document.getElementById('run-speed').innerText = Math.round(player.speed * 2.8);
 
-            // 3. Horizontal Steering with Non-Inverted Alignment
-            // Facing +Z: Increasing X moves RIGHT on screen; Decreasing X moves LEFT on screen.
-            const steerRate = 22.0 * config.agility;
+            // 3. Responsive Steering
+            const steerRate = 24.0 * config.agility;
             if (keys.left) {
-                // Moving Left means targetX increases (+X)
                 player.targetX = Math.min(ROAD_WIDTH / 2 - 2, player.targetX + steerRate * dt);
-                player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, -0.35, 0.2); // Bank tilt left
+                player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, -0.35, 0.2);
             } else if (keys.right) {
-                // Moving Right means targetX decreases (-X)
                 player.targetX = Math.max(-ROAD_WIDTH / 2 + 2, player.targetX - steerRate * dt);
-                player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, 0.35, 0.2); // Bank tilt right
+                player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, 0.35, 0.2);
             } else {
                 player.tiltZ = THREE.MathUtils.lerp(player.tiltZ, 0, 0.15);
             }
             player.pos.x = THREE.MathUtils.lerp(player.pos.x, player.targetX, 0.2);
 
-            // 4. Jump & Gravity
-            if (keys.jump && player.onGround) {
-                player.velY = 12.5;
+            // 4. Anti-Exploit Jump Mechanics & Cooldown
+            if (player.jumpCooldown > 0) {
+                player.jumpCooldown -= dt;
+            }
+
+            if (jumpRequested && player.onGround && player.jumpCooldown <= 0) {
+                player.velY = 13.5;
                 player.onGround = false;
+                player.jumpCooldown = 0.55; // Must wait 0.55s between jumps
                 playSound('jump');
             }
+            jumpRequested = false;
 
-            if (!player.onGround || player.pos.y > 0.4) {
-                player.velY -= 32.0 * dt;
-                player.pos.y += player.velY * dt;
-
-                if (player.pos.y <= 0.4) {
-                    player.pos.y = 0.4;
-                    player.velY = 0;
-                    player.onGround = true;
-                }
-            }
-
-            // 5. Cliff Chasm Gap Check
+            // 5. Accurate Ground Landing & Cliff Chasm Physics
+            let isOverChasm = false;
             let nearCliff = false;
+
             groundSegments.forEach(seg => {
                 if (seg.hasCliff) {
                     const distToCliff = seg.cliffZ1 - player.pos.z;
-                    if (distToCliff > 0 && distToCliff < 45) {
+                    if (distToCliff > 0 && distToCliff < 55) {
                         nearCliff = true;
                     }
 
-                    if (player.pos.z >= seg.cliffZ1 && player.pos.z <= seg.cliffZ2) {
-                        if (player.onGround || player.pos.y < 0.6) {
-                            player.pos.y -= 25.0 * dt;
-                            if (player.pos.y < -3.0) {
-                                triggerCrash('chasm');
-                            }
-                        }
+                    // Between edge of cliff and beginning of next snow runway
+                    if (player.pos.z >= (seg.cliffZ1 - 0.5) && player.pos.z <= (seg.cliffZ2 + 0.5)) {
+                        isOverChasm = true;
                     }
                 }
             });
             document.getElementById('cliff-warning').style.display = nearCliff ? 'block' : 'none';
 
+            if (isOverChasm) {
+                player.onGround = false;
+                player.velY -= 36.0 * dt; // Strong downward gravity over canyon
+                player.pos.y += player.velY * dt;
+
+                // Fell into the chasm abyss
+                if (player.pos.y < -3.5) {
+                    triggerCrash('chasm');
+                    return;
+                }
+            } else {
+                // Over Solid Ground
+                if (!player.onGround || player.pos.y > 0.4) {
+                    player.velY -= 32.0 * dt;
+                    player.pos.y += player.velY * dt;
+
+                    if (player.pos.y <= 0.4) {
+                        player.pos.y = 0.4;
+                        player.velY = 0;
+                        player.onGround = true;
+                    }
+                }
+            }
+
             // 6. Visual Position & Spray Particles
             sleighGroup.position.copy(player.pos);
             sleighGroup.rotation.z = player.tiltZ;
-            sleighGroup.rotation.x = player.onGround ? 0 : -player.velY * 0.025;
+            sleighGroup.rotation.x = player.onGround ? 0 : -player.velY * 0.022;
 
             if (player.onGround && player.speed > 10) {
                 [-0.4, 0.4].forEach(sx => {
-                    const puff = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.18), snowMat);
+                    const puff = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), snowMat);
                     puff.position.copy(player.pos).add(new THREE.Vector3(sx, 0, -0.6));
                     scene.add(puff);
-                    particles.push({ mesh: puff, vx: (Math.random() - 0.5) * 2, vy: 1.5, vz: -4, life: 0.3 });
+                    particles.push({ mesh: puff, vx: (Math.random() - 0.5) * 2.5, vy: 1.6, vz: -5, life: 0.28 });
                 });
             }
 
-            // 7. Obstacle Collision Detection
+            // 7. Precise Obstacle Hitbox Collision (Including Overhead Logs & Rolling Snowballs)
             activeObstacles.forEach(obs => {
+                // Animate rolling snowballs forward towards the player
+                if (obs.isRolling) {
+                    obs.worldZ -= obs.rollSpeed * dt;
+                    obs.mesh.position.z = obs.worldZ - obs.mesh.parent.position.z;
+                    obs.mesh.rotation.x -= 0.15;
+                }
+
                 const dz = obs.worldZ - player.pos.z;
-                if (Math.abs(dz) < 1.8) {
+                if (Math.abs(dz) < 2.0) {
                     const dx = obs.x - player.pos.x;
-                    if (Math.hypot(dx, dz) < obs.radius && player.pos.y < 1.8) {
-                        triggerCrash('obstacle');
+
+                    if (obs.isOverhead) {
+                        // Overhead log: covers the road, hits player IF THEY JUMP! (y > 1.2)
+                        if (Math.abs(dx) < obs.radius && player.pos.y > 1.2 && player.pos.y < 3.2) {
+                            triggerCrash('overhead');
+                        }
+                    } else {
+                        // Standard ground obstacles: trees, snowmen, boulders, fences
+                        if (Math.hypot(dx, dz) < obs.radius && player.pos.y < 1.9) {
+                            triggerCrash('obstacle');
+                        }
                     }
                 }
             });
@@ -1169,7 +1245,7 @@
                 if (!p.collected) {
                     p.mesh.rotation.y += dt * 3.5;
                     const dz = p.worldZ - player.pos.z;
-                    if (Math.abs(dz) < 1.8 && Math.abs(p.x - player.pos.x) < 2.0) {
+                    if (Math.abs(dz) < 2.0 && Math.abs(p.x - player.pos.x) < 2.2) {
                         p.collected = true;
                         p.mesh.visible = false;
                         const added = 1 * config.giftMult;
@@ -1184,10 +1260,10 @@
             camera.position.set(player.pos.x * 0.7, player.pos.y + 2.1, player.pos.z - 3.8);
             camera.lookAt(player.pos.x * 0.3, player.pos.y + 1.2, player.pos.z + 18.0);
 
-            // 10. Snowflakes
+            // 10. Snowflake Ambience
             snowFlakes.forEach(sf => {
-                sf.position.y -= 12 * dt;
-                sf.position.z += 18 * dt;
+                sf.position.y -= 14 * dt;
+                sf.position.z += 22 * dt;
                 if (sf.position.y < 0 || sf.position.z > player.pos.z + 30) {
                     sf.position.y = player.pos.y + 20 + Math.random() * 10;
                     sf.position.z = player.pos.z - 20 + Math.random() * 80;
@@ -1201,11 +1277,11 @@
                 scene.remove(oldSeg.group);
 
                 const newZ = groundSegments[groundSegments.length - 1].zStart + SEGMENT_LENGTH;
-                const cliffChance = (Math.random() < 0.35);
+                const cliffChance = (Math.random() < 0.38);
                 groundSegments.push(createTrackSegment(newZ, cliffChance));
 
-                activeObstacles = activeObstacles.filter(o => o.worldZ > player.pos.z - 20);
-                activePresents = activePresents.filter(p => p.worldZ > player.pos.z - 20);
+                activeObstacles = activeObstacles.filter(o => o.worldZ > player.pos.z - 25);
+                activePresents = activePresents.filter(p => p.worldZ > player.pos.z - 25);
             }
 
             // 12. Particles Update
@@ -1214,7 +1290,7 @@
                 p.mesh.position.x += p.vx * dt;
                 p.mesh.position.y += p.vy * dt;
                 p.mesh.position.z += p.vz * dt;
-                p.life -= 2.5 * dt;
+                p.life -= 2.8 * dt;
 
                 if (p.life <= 0) {
                     scene.remove(p.mesh);
