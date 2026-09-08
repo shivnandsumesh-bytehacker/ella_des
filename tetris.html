@@ -21,7 +21,6 @@
             --board-bg: rgba(5, 11, 26, 0.95);
         }
 
-        /* Preset Theme Palettes */
         body.theme-gameboy {
             --primary: #8bac0f;
             --primary-glow: rgba(139, 172, 15, 0.4);
@@ -275,7 +274,6 @@
     </header>
 
     <div id="game-wrapper">
-        <!-- Left Side Panel (Hold, Difficulty, Score) -->
         <div class="side-panel">
             <div class="hud-card">
                 <span class="hud-label">Hold [C]</span>
@@ -300,10 +298,8 @@
             </div>
         </div>
 
-        <!-- Main Board -->
         <canvas id="board-canvas" width="300" height="600"></canvas>
 
-        <!-- Right Side Panel (Next, Theme, Audio) -->
         <div class="side-panel">
             <div class="hud-card">
                 <span class="hud-label">Next</span>
@@ -330,7 +326,6 @@
 
         <div id="banner-msg">TETRIS! +800</div>
 
-        <!-- Touch Controls -->
         <div class="touch-zone" id="touch-left">
             <div class="ctrl-btn hold-btn" id="btn-touch-hold">📦<br><small>HOLD</small></div>
             <div class="ctrl-btn" id="btn-touch-left">◀</div>
@@ -343,7 +338,6 @@
             <div class="ctrl-btn" id="btn-touch-rot" style="border-color:var(--primary); color:var(--primary);">🔄<br><small>ROTATE</small></div>
         </div>
 
-        <!-- Game Over Modal -->
         <div id="gameover-modal" class="modal" style="display: none;">
             <div class="modal-card">
                 <h2 style="color:var(--accent); margin:0 0 8px 0;">SYSTEM OVERLOAD</h2>
@@ -356,13 +350,10 @@
     </div>
 
     <div class="controls-info">
-        <strong>Move:</strong> [A]/[D] or Left/Right &nbsp;|&nbsp; <strong>Rotate:</strong> [W] / Up / [X] &nbsp;|&nbsp; <strong>Soft Drop:</strong> [S] / Down &nbsp;|&nbsp; <strong>Hard Drop:</strong> [Space] &nbsp;|&nbsp; <strong>Hold:</strong> [C] / [Shift] &nbsp;|&nbsp; <strong>Mute BGM:</strong> [M]
+        <strong>Move:</strong> [A]/[D] or Left/Right &nbsp;|&nbsp; <strong>Rotate:</strong> [W] / Up / [X] &nbsp;|&nbsp; <strong>Fast Soft Drop:</strong> Hold [S] / Down &nbsp;|&nbsp; <strong>Hard Drop:</strong> [Space] &nbsp;|&nbsp; <strong>Hold:</strong> [C] / [Shift]
     </div>
 
     <script>
-        // -------------------------------------------------------------
-        // Audio Engine: Korobeiniki (Theme A) & FX
-        // -------------------------------------------------------------
         let audioCtx = null;
         let isMusicPlaying = false;
         let musicTimer = null;
@@ -432,14 +423,11 @@
             }
         }
 
-        // -------------------------------------------------------------
-        // Difficulty & Theme Configurations
-        // -------------------------------------------------------------
         const DIFFICULTIES = {
-            EASY: { baseInterval: 1200, decrement: 60, scoreMult: 0.8, name: 'Easy', startGarbage: 0 },
-            MEDIUM: { baseInterval: 950, decrement: 80, scoreMult: 1.0, name: 'Medium', startGarbage: 0 },
-            HARD: { baseInterval: 500, decrement: 45, scoreMult: 1.5, name: 'Hard', startGarbage: 2 },
-            INSANE: { baseInterval: 260, decrement: 20, scoreMult: 2.5, name: 'Insane', startGarbage: 4 }
+            EASY: { baseInterval: 1100, lineDec: 15, scoreMult: 0.8, name: 'Easy', startGarbage: 0 },
+            MEDIUM: { baseInterval: 850, lineDec: 22, scoreMult: 1.0, name: 'Medium', startGarbage: 0 },
+            HARD: { baseInterval: 480, lineDec: 16, scoreMult: 1.5, name: 'Hard', startGarbage: 2 },
+            INSANE: { baseInterval: 240, lineDec: 8, scoreMult: 2.5, name: 'Insane', startGarbage: 4 }
         };
 
         const THEME_PALETTES = {
@@ -480,9 +468,6 @@
             showBanner(`${DIFFICULTIES[diffKey].name.toUpperCase()} MODE`);
         }
 
-        // -------------------------------------------------------------
-        // Tetris Matrix & Core Mechanics
-        // -------------------------------------------------------------
         const COLS = 10;
         const ROWS = 20;
         const BLOCK_SIZE = 30;
@@ -518,8 +503,15 @@
         let gameOver = false;
 
         let dropCounter = 0;
-        let dropInterval = 950;
+        let softDropCounter = 0;
+        let normalDropInterval = 850;
         let lastTime = 0;
+        let isSoftDropping = false;
+
+        function calculateNormalDropInterval() {
+            const diffConfig = DIFFICULTIES[currentDifficulty];
+            return Math.max(60, diffConfig.baseInterval - (lines * diffConfig.lineDec));
+        }
 
         function createGrid() {
             const newGrid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
@@ -609,7 +601,7 @@
                 score += points;
                 lines += linesCleared;
                 level = Math.floor(lines / 10) + 1;
-                dropInterval = Math.max(80, diffConfig.baseInterval - (level - 1) * diffConfig.decrement);
+                normalDropInterval = calculateNormalDropInterval();
 
                 const rewardGold = Math.round((linesCleared === 4 ? 40 : linesCleared * 6) * diffConfig.scoreMult);
                 addCoins(rewardGold);
@@ -675,7 +667,7 @@
             document.getElementById('score-display').innerText = score.toLocaleString();
             document.getElementById('lines-display').innerText = lines;
             document.getElementById('level-display').innerText = level;
-            document.getElementById('speed-display').innerText = (1000 / dropInterval).toFixed(1) + 'x';
+            document.getElementById('speed-display').innerText = (1000 / normalDropInterval).toFixed(1) + 'x';
             if (score > highScore) {
                 highScore = score;
                 localStorage.setItem('tetris_high_score', highScore);
@@ -698,6 +690,7 @@
 
         function triggerGameOver() {
             gameOver = true;
+            isSoftDropping = false;
             playTone(180, 'sawtooth', 0.6, 0.3);
             const reward = Math.floor((score / 50) * DIFFICULTIES[currentDifficulty].scoreMult);
             if (reward > 0) addCoins(reward);
@@ -708,25 +701,22 @@
         }
 
         function restartGame() {
-            const diffConfig = DIFFICULTIES[currentDifficulty];
             grid = createGrid();
             bag = [];
             score = 0;
             lines = 0;
             level = 1;
-            dropInterval = diffConfig.baseInterval;
+            normalDropInterval = calculateNormalDropInterval();
             holdPieceType = null;
             canHold = true;
             gameOver = false;
+            isSoftDropping = false;
             currentPiece = getNextFromBag();
             document.getElementById('gameover-modal').style.display = 'none';
             updateHUD();
             drawHold();
         }
 
-        // -------------------------------------------------------------
-        // Rendering System
-        // -------------------------------------------------------------
         function getActivePalette() {
             return THEME_PALETTES[currentTheme] || THEME_PALETTES.cyber;
         }
@@ -813,14 +803,29 @@
             lastTime = time;
 
             if (!gameOver) {
-                dropCounter += deltaTime;
-                if (dropCounter > dropInterval) {
-                    if (!checkCollision(currentPiece, 0, 1)) {
-                        currentPiece.y++;
-                    } else {
-                        lockPiece();
+                if (isSoftDropping) {
+                    softDropCounter += deltaTime;
+                    // Rapid 32ms soft-drop tick rate
+                    if (softDropCounter > 32) {
+                        if (!checkCollision(currentPiece, 0, 1)) {
+                            currentPiece.y++;
+                            score += 1;
+                            updateHUD();
+                        } else {
+                            lockPiece();
+                        }
+                        softDropCounter = 0;
                     }
-                    dropCounter = 0;
+                } else {
+                    dropCounter += deltaTime;
+                    if (dropCounter > normalDropInterval) {
+                        if (!checkCollision(currentPiece, 0, 1)) {
+                            currentPiece.y++;
+                        } else {
+                            lockPiece();
+                        }
+                        dropCounter = 0;
+                    }
                 }
             }
 
@@ -828,9 +833,6 @@
             requestAnimationFrame(update);
         }
 
-        // -------------------------------------------------------------
-        // Input Handling
-        // -------------------------------------------------------------
         window.addEventListener('keydown', e => {
             const code = e.code;
             if (["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Space","KeyW","KeyA","KeyS","KeyD","KeyC","KeyM","KeyX","KeyZ"].includes(code)) {
@@ -841,7 +843,9 @@
             if (code === "KeyM") return toggleMusic();
             if (gameOver) return;
 
-            if (code === "ArrowLeft" || code === "KeyA") {
+            if (code === "ArrowDown" || code === "KeyS") {
+                isSoftDropping = true;
+            } else if (code === "ArrowLeft" || code === "KeyA") {
                 if (!checkCollision(currentPiece, -1, 0)) {
                     currentPiece.x--;
                     playTone(220, 'sine', 0.04, 0.1);
@@ -857,12 +861,6 @@
                     currentPiece.shape = rotated;
                     playTone(400, 'triangle', 0.05, 0.15);
                 }
-            } else if (code === "ArrowDown" || code === "KeyS") {
-                if (!checkCollision(currentPiece, 0, 1)) {
-                    currentPiece.y++;
-                    score += 1;
-                    updateHUD();
-                }
             } else if (code === "Space") {
                 hardDrop();
             } else if (code === "KeyC" || code === "ShiftLeft" || code === "ShiftRight") {
@@ -870,14 +868,29 @@
             }
         });
 
+        window.addEventListener('keyup', e => {
+            const code = e.code;
+            if (code === "ArrowDown" || code === "KeyS") {
+                isSoftDropping = false;
+                softDropCounter = 0;
+            }
+        });
+
         function setupTouchListeners() {
-            const bindBtn = (id, action) => {
+            const bindBtn = (id, onStart, onEnd) => {
                 const el = document.getElementById(id);
                 el.addEventListener('touchstart', e => {
                     e.preventDefault();
                     getAudioContext();
-                    action();
+                    onStart();
                 }, { passive: false });
+
+                if (onEnd) {
+                    el.addEventListener('touchend', e => {
+                        e.preventDefault();
+                        onEnd();
+                    }, { passive: false });
+                }
             };
 
             bindBtn("btn-touch-left", () => {
@@ -891,7 +904,10 @@
                 if (!checkCollision(currentPiece, 0, 0, rotated)) currentPiece.shape = rotated;
             });
             bindBtn("btn-touch-soft", () => {
-                if (!checkCollision(currentPiece, 0, 1)) currentPiece.y++;
+                isSoftDropping = true;
+            }, () => {
+                isSoftDropping = false;
+                softDropCounter = 0;
             });
             bindBtn("btn-touch-hard", () => hardDrop());
             bindBtn("btn-touch-hold", () => holdPiece());
