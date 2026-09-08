@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Drift Master - Touge & Street Championship</title>
+    <title>Drift Master 3D - Touge Championship</title>
     <script src="arcade.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
@@ -17,7 +17,7 @@
             --danger: #ef4444;
             --bg: #030712;
             --card: #0b1329;
-            --panel-bg: rgba(11, 19, 41, 0.94);
+            --panel-bg: rgba(11, 19, 41, 0.92);
         }
         * { box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
         body {
@@ -138,31 +138,9 @@
             transition: width 0.08s linear;
         }
 
-        #jump-warning-banner {
-            position: absolute;
-            top: 75px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(239, 68, 68, 0.95);
-            color: #fff;
-            font-weight: 900;
-            padding: 8px 24px;
-            border-radius: 20px;
-            font-size: 1.1rem;
-            display: none;
-            pointer-events: none;
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
-            z-index: 20;
-            animation: pulse-warn 0.4s infinite alternate;
-        }
-        @keyframes pulse-warn {
-            0% { transform: translateX(-50%) scale(0.96); }
-            100% { transform: translateX(-50%) scale(1.05); }
-        }
-
         #drift-score-banner {
             position: absolute;
-            top: 115px;
+            top: 65px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 1.55rem;
@@ -173,6 +151,23 @@
             pointer-events: none;
             z-index: 15;
             font-family: monospace;
+        }
+
+        #lap-banner {
+            position: absolute;
+            top: 115px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(16, 185, 129, 0.95);
+            color: #000;
+            font-weight: 900;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            display: none;
+            pointer-events: none;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.7);
+            z-index: 20;
         }
 
         #minimap-canvas {
@@ -266,138 +261,38 @@
             z-index: 20;
         }
 
-        .modal {
-            position: absolute;
-            inset: 0;
-            background: rgba(3, 7, 18, 0.95);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            padding: 16px;
-        }
-        .modal-card {
-            background: var(--card);
-            border: 2px solid var(--primary);
-            border-radius: 14px;
-            padding: 24px;
-            max-width: 820px;
-            width: 95%;
-            text-align: left;
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
-        }
-        .btn-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-            gap: 12px;
-            margin-top: 14px;
-        }
-        .btn {
-            background: var(--primary);
-            color: #000;
-            border: none;
-            padding: 10px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.15s;
-        }
-        .btn:hover:not(:disabled) { filter: brightness(1.2); box-shadow: 0 0 15px var(--primary); }
-
         .controls-info { margin-top: 5px; font-size: 0.78rem; color: #94a3b8; max-width: 1320px; }
     </style>
 </head>
 <body>
     <header>
         <a href="index.html" class="nav">← Hub</a>
-        <div>🏎️ <strong>3D DRIFT MASTER</strong> | Circuit: <span id="track-name" style="color:var(--primary); font-weight:bold;">Neon Metropolis</span></div>
+        <div>🏎️ <strong>DRIFT MASTER 3D</strong> | Mount Touge Pass</div>
         <div class="stats">🪙 Gold: <span id="coin-count">0</span> | 🔥 High Score: <span id="best-drift">0</span></div>
     </header>
 
     <div id="game-wrapper">
-        <!-- Map Selection Modal -->
-        <div id="map-modal" class="modal">
-            <div class="modal-card">
-                <div style="text-align:center;">
-                    <h2 style="color:var(--primary); margin:0 0 4px 0; font-size:1.6rem;">🗺️ SELECT DRIFT CIRCUIT & TOUGE</h2>
-                    <p style="color:#94a3b8; font-size:0.88rem; margin:0 0 14px 0;">Select your circuit to deploy. Features dynamic traffic, jumps, and rival drift AI.</p>
-                </div>
-                <div class="btn-grid">
-                    <button class="btn" onclick="startMap('NEON_METROPOLIS')">
-                        🏙️ Neon Metropolis<br>
-                        <small style="color:#0f172a;">Urban Street Circuit</small><br>
-                        <small style="font-size:0.68rem;">Wet Asphalt | Rain | Subway Gap Jump</small>
-                    </button>
-                    <button class="btn" onclick="startMap('MOUNT_SERPENT')" style="background:var(--accent); color:#fff;">
-                        🏔️ Mount Serpent<br>
-                        <small style="color:#fff;">Mountain Touge Pass</small><br>
-                        <small style="font-size:0.68rem;">14 Hairpins | Sunset | Broken Bridge (140+ km/h)</small>
-                    </button>
-                    <button class="btn" onclick="startMap('PORT_TITAN')" style="background:var(--gold);">
-                        ⚓ Port Titan<br>
-                        <small style="color:#0f172a;">Industrial Gymkhana</small><br>
-                        <small style="font-size:0.68rem;">Oil Slicks (-40% Grip) | Cargo Ship Ramp</small>
-                    </button>
-                </div>
-                <div style="display:flex; justify-content:center; gap:12px; margin-top:18px;">
-                    <button class="btn" style="background:#334155; color:#fff; width:220px;" onclick="toggleGarage(true)">🏎️ Vehicle Roster & Tuning</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Garage Modal -->
-        <div id="garage-modal" class="modal" style="display: none;">
-            <div class="modal-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h2 style="color:var(--gold); margin:0;">🏎️ DRIFT MASTER GARAGE ROSTER</h2>
-                    <button class="btn" style="padding:4px 10px;" onclick="toggleGarage(false)">✕ Close</button>
-                </div>
-                <p style="color:#94a3b8; font-size:0.82rem; margin:4px 0 10px 0;">Select from tuned drift chassis or purchase elite exotics:</p>
-                <div class="btn-grid">
-                    <button class="btn" onclick="selectCar('Kansei86')">
-                        🔰 Kansei Sprint '86<br>
-                        <small>Tuner (RWD) | 210 km/h | FREE</small><br>
-                        <small style="font-size:0.68rem;">Drift: 8.5/10 | Technical Turns</small>
-                    </button>
-                    <button class="btn" id="btn-buy-r34" onclick="buyOrSelectCar('ShadowR34', 4500)">
-                        🔥 Shadow R34<br>
-                        <small>AWD Sport | 260 km/h | 🪙 4,500</small><br>
-                        <small style="font-size:0.68rem;">Drift: 7.0/10 | High-Speed Slides</small>
-                    </button>
-                    <button class="btn" id="btn-buy-brawler" onclick="buyOrSelectCar('BrawlerV8', 8500)">
-                        💥 Brawler V8<br>
-                        <small>Muscle (RWD) | 240 km/h | 🪙 8,500</small><br>
-                        <small style="font-size:0.68rem;">Drift: 9.5/10 | Heavy Torque Sweepers</small>
-                    </button>
-                    <button class="btn" id="btn-buy-zenith" onclick="buyOrSelectCar('ZenithGT', 15000)">
-                        ⚡ Zenith Hyper-GT<br>
-                        <small>Exotic (RWD) | 320 km/h | 🪙 15,000</small><br>
-                        <small style="font-size:0.68rem;">Drift: 6.5/10 | Straightaway Bursts</small>
-                    </button>
-                </div>
-            </div>
-        </div>
+        <canvas id="webgl-canvas"></canvas>
 
         <div class="hud-top-left">
             <div class="hud-panel">
-                <div style="font-weight:bold; color:var(--primary);">🏁 RACE TELEMETRY:</div>
-                <div id="lap-status" style="color:#facc15; margin-top:2px;">Lap 1/3 | Sector 1</div>
-                <div id="lap-time" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Time: 00:00.00</div>
+                <div style="font-weight:bold; color:var(--primary);">🏁 RACE POSITION:</div>
+                <div id="lap-status" style="color:#facc15; margin-top:2px; font-weight:bold;">Lap 1 / 3</div>
+                <div id="lap-time" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Lap: 00:00.00</div>
+                <div id="best-lap" style="color:var(--emerald); font-size:0.72rem;">Best: --:--.--</div>
             </div>
         </div>
 
         <div class="hud-top-right">
             <div class="hud-panel" style="display: flex; flex-direction: column; align-items: flex-end;">
                 <div style="font-size:0.75rem; color:#38bdf8;">CAM: <span id="cam-mode-text">CHASE VIEW</span></div>
-                <div style="font-size:0.72rem; color:var(--emerald);">CAR: <span id="active-car-name">Kansei Sprint '86</span></div>
+                <div style="font-size:0.72rem; color:var(--emerald);">CAR: Kansei Sprint '86</div>
                 <canvas id="minimap-canvas" width="80" height="80"></canvas>
             </div>
         </div>
 
-        <div id="jump-warning-banner">⚠️ SPEED JUMP AHEAD! MIN SPEED: 140 KM/H!</div>
         <div id="drift-score-banner">DRIFT +500</div>
+        <div id="lap-banner">🏁 LAP 1 COMPLETE! +200 GOLD</div>
         <div id="dialogue-box"></div>
 
         <div id="telemetry-hud">
@@ -428,13 +323,11 @@
         <div class="hud-bottom">
             <div class="slot" onclick="cycleCamera()"><div class="slot-val" id="val-cam">CHASE</div>[C] Cam</div>
             <div class="slot" onclick="resetCar()"><div class="slot-val" style="color:var(--accent);">[R]</div>Reset</div>
-            <div class="slot" onclick="toggleMapModal(true)"><div class="slot-val" style="color:var(--primary);">🗺️</div>Maps</div>
-            <div class="slot" onclick="toggleGarage(true)"><div class="slot-val" style="color:var(--gold);">🚗</div>Garage</div>
         </div>
     </div>
 
     <div class="controls-info">
-        <strong>Accelerate:</strong> [W] / [↑] / Gas &nbsp;|&nbsp; <strong>Steer:</strong> [A]/[D] &nbsp;|&nbsp; <strong>Brake/Reverse:</strong> [S] / [↓] &nbsp;|&nbsp; <strong>Nitro:</strong> [Shift] / [E] &nbsp;|&nbsp; <strong>Handbrake:</strong> [Space] &nbsp;|&nbsp; <strong>Camera:</strong> [C]
+        <strong>Accelerate:</strong> [W] / [↑] &nbsp;|&nbsp; <strong>Steer (Speed-Sensitive):</strong> [A]/[D] &nbsp;|&nbsp; <strong>Brake/Reverse:</strong> [S] / [↓] &nbsp;|&nbsp; <strong>Nitro:</strong> [Shift] &nbsp;|&nbsp; <strong>Handbrake:</strong> [Space]
     </div>
 
     <script>
@@ -447,36 +340,36 @@
             return audioCtx;
         }
 
-        function initEngineAudio() {
+        function initAudio() {
             try {
                 const ctx = getAudioContext();
                 if (!ctx || engineGain) return;
 
                 engineGain = ctx.createGain();
-                engineGain.gain.setValueAtTime(0.02, ctx.currentTime);
+                engineGain.gain.setValueAtTime(0.015, ctx.currentTime);
                 engineGain.connect(ctx.destination);
 
                 engineOsc = ctx.createOscillator();
                 engineOsc.type = 'sawtooth';
-                engineOsc.frequency.value = 65;
+                engineOsc.frequency.value = 60;
                 engineOsc.connect(engineGain);
                 engineOsc.start();
             } catch(e){}
         }
 
-        function updateEngineAudio(rpmNorm, isBoosting) {
+        function updateAudio(rpmNorm, isBoost) {
             if (!engineGain || !engineOsc) return;
             const ctx = getAudioContext();
-            const freq = 50 + rpmNorm * (isBoosting ? 380 : 250);
-            engineOsc.frequency.setTargetAtTime(freq, ctx.currentTime, 0.05);
-            engineGain.gain.setTargetAtTime(0.02 + rpmNorm * 0.07, ctx.currentTime, 0.05);
+            const f = 50 + rpmNorm * (isBoost ? 320 : 220);
+            engineOsc.frequency.setTargetAtTime(f, ctx.currentTime, 0.05);
+            engineGain.gain.setTargetAtTime(isBoost ? 0.04 : 0.018, ctx.currentTime, 0.05);
         }
 
-        function playTireScreech() {
+        function playScreech() {
             try {
                 const ctx = getAudioContext();
                 if (!ctx) return;
-                const bufferSize = ctx.sampleRate * 0.12;
+                const bufferSize = ctx.sampleRate * 0.1;
                 const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
@@ -489,8 +382,8 @@
                 filter.Q.value = 4;
 
                 const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.18, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
 
                 noise.connect(filter);
                 filter.connect(gain);
@@ -499,232 +392,96 @@
             } catch(e){}
         }
 
-        function playCrashSound() {
+        function playDing() {
             try {
                 const ctx = getAudioContext();
                 if (!ctx) return;
-                const bufferSize = ctx.sampleRate * 0.6;
-                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-                const noise = ctx.createBufferSource();
-                noise.buffer = buffer;
+                const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.6, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-                noise.connect(gain); gain.connect(ctx.destination);
-                noise.start();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, ctx.currentTime);
+                osc.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.25);
             } catch(e){}
         }
 
-        function playHornSound() {
-            try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-                [420, 520].forEach(f => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.value = f;
-                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.4);
-                });
-            } catch(e){}
-        }
-
-        function playBoostSound() {
+        function playBoostPadSound() {
             try {
                 const ctx = getAudioContext();
                 if (!ctx) return;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(440, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3);
+                osc.frequency.setValueAtTime(320, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(740, ctx.currentTime + 0.25);
                 gain.gain.setValueAtTime(0.25, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.start(); osc.stop(ctx.currentTime + 0.3);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.25);
             } catch(e){}
         }
 
-        // Global Scene & Gameplay State
-        let scene, camera, renderer, carMesh = null, wheelMeshes = [], steeringWheelMesh = null;
+        let scene, camera, renderer, carMesh, wheelMeshes = [];
         let gold = 0, bestDrift = 0;
-        let activeCarType = 'Kansei86';
-        let currentMap = 'NEON_METROPOLIS';
-        let ownedCars = ['Kansei86'];
-        let cameraMode = 0; // 0: Third-Person Chase, 1: Hood/Bumper, 2: Cockpit, 3: Dynamic Drift Orbit
+        let cameraMode = 0;
 
-        let trackMeshes = [];
-        let trafficCars = [];
-        let rivalAICar = null;
-        let particles = [];
+        // Elevated Mountain Pass Track Profile (X, Y, Z with hills, crests, and bridges)
+        const trackControlPoints = [
+            new THREE.Vector3(0, 2.0, 0),
+            new THREE.Vector3(30, 6.0, 160),    // Hill climb
+            new THREE.Vector3(120, 14.0, 280),  // Hill peak
+            new THREE.Vector3(240, 8.0, 240),   // Downhill descent
+            new THREE.Vector3(320, 3.0, 100),   // Valley curve
+            new THREE.Vector3(260, 2.0, -80),
+            new THREE.Vector3(140, 7.0, -160),  // Ridge climb
+            new THREE.Vector3(-20, 16.0, -120), // High elevated bridge
+            new THREE.Vector3(-140, 9.0, 40),
+            new THREE.Vector3(-240, 3.0, 200),  // Low canyon floor
+            new THREE.Vector3(-340, 8.0, 120),
+            new THREE.Vector3(-280, 12.0, -140),
+            new THREE.Vector3(-120, 5.0, -220),
+            new THREE.Vector3(-20, 2.0, -100),
+            new THREE.Vector3(0, 2.0, 0)
+        ];
+        const trackSpline = new THREE.CatmullRomCurve3(trackControlPoints, true, 'catmullrom', 0.15);
+        const TRACK_LENGTH = trackSpline.getLength();
+
+        // Lap Tracker State (2-Gate Checkpoint System)
+        let currentLap = 1;
+        const TOTAL_LAPS = 3;
+        let checkpointPassed = false;
         let currentLapTime = 0;
-        let oilSlickZones = [];
+        let bestLapTime = Infinity;
 
-        // 4 Car Profiles & Dynamics
-        const carRoster = {
-            Kansei86: {
-                name: "Kansei Sprint '86",
-                cls: "Tuner (RWD)",
-                topSpeedKmh: 210,
-                nitroDuration: 4.0,
-                driftFactor: 0.85,
-                accel: 28.0,
-                bodyColor: 0xf8fafc,
-                underglowColor: 0x00f3ff,
-                suspensionFront: 1.2,
-                suspensionRear: 0.8
-            },
-            ShadowR34: {
-                name: "Shadow R34",
-                cls: "AWD Sport",
-                topSpeedKmh: 260,
-                nitroDuration: 5.5,
-                driftFactor: 0.70,
-                accel: 33.0,
-                bodyColor: 0x0284c7,
-                underglowColor: 0x3b82f6,
-                suspensionFront: 1.0,
-                suspensionRear: 1.0
-            },
-            BrawlerV8: {
-                name: "Brawler V8",
-                cls: "Muscle (RWD)",
-                topSpeedKmh: 240,
-                nitroDuration: 3.5,
-                driftFactor: 0.95,
-                accel: 31.0,
-                bodyColor: 0xef4444,
-                underglowColor: 0xff007f,
-                suspensionFront: 1.4,
-                suspensionRear: 0.6
-            },
-            ZenithGT: {
-                name: "Zenith Hyper-GT",
-                cls: "Exotic (RWD)",
-                topSpeedKmh: 320,
-                nitroDuration: 6.0,
-                driftFactor: 0.65,
-                accel: 38.0,
-                bodyColor: 0xf59e0b,
-                underglowColor: 0xfacc15,
-                suspensionFront: 0.9,
-                suspensionRear: 0.9
-            }
-        };
-
+        // Player Dynamics with Speed-Sensitive Steering
         const car = {
-            pos: new THREE.Vector3(0, 0.4, 0),
-            vel: new THREE.Vector3(0, 0, 0),
+            pos: new THREE.Vector3(0, 2.4, 0),
             heading: 0,
-            speed: 0,
-            maxSpeed: 58.3, // m/s (210 km/h)
+            speed: 0, // m/s
+            maxSpeed: 58.0,
             accel: 28.0,
             reverseSpeed: 14.0,
             steerAngle: 0,
-            maxSteer: 0.62,
-            steerSpeed: 3.8,
-            steerReturn: 5.0,
-            driftFactor: 0.85,
+            driftFactor: 0,
             isDrifting: false,
-            isAirborne: false,
-            nitroAmount: 100, // 0-100%
+            nitroFuel: 100,
             isBoosting: false,
             driftPoints: 0,
             gear: 1,
-            gripMultiplier: 1.0,
-            pitchAngle: 0,
-            rollAngle: 0
+            groundHeight: 2.0
         };
 
         const keys = { w: false, s: false, a: false, d: false, space: false, shift: false };
-
-        // 3 Distinct Tracks & Stunt Configurations
-        const mapProfiles = {
-            NEON_METROPOLIS: {
-                name: "Neon Metropolis",
-                desc: "Urban Street Circuit | Rain & Wet Asphalt",
-                bgColor: 0x030712,
-                fogColor: 0x030712,
-                groundColor: 0x090d16,
-                hasJump: true,
-                jumpGapDist: 480,
-                minJumpSpeedKmh: 120,
-                points: [
-                    new THREE.Vector3(0, 0, 0),
-                    new THREE.Vector3(0, 0, 240),
-                    new THREE.Vector3(140, 0, 240),
-                    new THREE.Vector3(140, 0, 480), // Subway Ramp Jump
-                    new THREE.Vector3(280, 0, 480),
-                    new THREE.Vector3(280, 0, 760),
-                    new THREE.Vector3(100, 0, 760),
-                    new THREE.Vector3(100, 0, 1000),
-                    new THREE.Vector3(-140, 0, 1000),
-                    new THREE.Vector3(-140, 0, 520),
-                    new THREE.Vector3(-240, 0, 520),
-                    new THREE.Vector3(-240, 0, 0),
-                    new THREE.Vector3(0, 0, 0)
-                ]
-            },
-            MOUNT_SERPENT: {
-                name: "Mount Serpent",
-                desc: "Mountain Touge Pass | 14 Downhill Hairpins",
-                bgColor: 0x7c2d12,
-                fogColor: 0x7c2d12,
-                groundColor: 0x1c1917,
-                hasJump: true,
-                jumpGapDist: 560,
-                minJumpSpeedKmh: 140, // Broken wooden bridge
-                points: [
-                    new THREE.Vector3(0, 0, 0),
-                    new THREE.Vector3(80, 0, 140),
-                    new THREE.Vector3(160, 0, 220),
-                    new THREE.Vector3(240, 0, 160),
-                    new THREE.Vector3(220, 0, -20),
-                    new THREE.Vector3(120, 0, -120),
-                    new THREE.Vector3(-40, 0, -60),
-                    new THREE.Vector3(-160, 0, 80),
-                    new THREE.Vector3(-260, 0, 240),
-                    new THREE.Vector3(-340, 0, 400),
-                    new THREE.Vector3(-220, 0, 560), // Broken Bridge Gap Jump
-                    new THREE.Vector3(-60, 0, 480),
-                    new THREE.Vector3(0, 0, 320),
-                    new THREE.Vector3(0, 0, 0)
-                ]
-            },
-            PORT_TITAN: {
-                name: "Port Titan",
-                desc: "Industrial Gymkhana | Oil Slicks & Cargo Ramp",
-                bgColor: 0x1e293b,
-                fogColor: 0x1e293b,
-                groundColor: 0x0f172a,
-                hasJump: true,
-                jumpGapDist: 420,
-                minJumpSpeedKmh: 110,
-                points: [
-                    new THREE.Vector3(0, 0, 0),
-                    new THREE.Vector3(60, 0, 180),
-                    new THREE.Vector3(180, 0, 260),
-                    new THREE.Vector3(280, 0, 180),
-                    new THREE.Vector3(280, 0, -60),
-                    new THREE.Vector3(140, 0, -160),
-                    new THREE.Vector3(-80, 0, -100),
-                    new THREE.Vector3(-200, 0, 80),
-                    new THREE.Vector3(-260, 0, 280),
-                    new THREE.Vector3(-140, 0, 420), // Cargo Ship Drop Ramp
-                    new THREE.Vector3(40, 0, 340),
-                    new THREE.Vector3(0, 0, 0)
-                ]
-            }
-        };
-
-        let currentSpline = null;
-        let currentTrackLength = 0;
+        let particles = [];
+        let pickups = [];
+        let boostPads = [];
 
         function updateWallet() {
             gold = parseInt(localStorage.getItem('arcade_coins')) || 0;
@@ -746,297 +503,174 @@
             setTimeout(() => { d.style.display = "none"; }, 3000);
         }
 
-        function toggleGarage(force) {
-            const m = document.getElementById("garage-modal");
-            if (m) m.style.display = force !== undefined ? (force ? 'flex' : 'none') : (m.style.display === 'none' ? 'flex' : 'none');
+        function showLapBanner(txt) {
+            const b = document.getElementById("lap-banner");
+            b.innerText = txt;
+            b.style.display = "block";
+            setTimeout(() => { b.style.display = "none"; }, 3000);
         }
 
-        function toggleMapModal(force) {
-            const m = document.getElementById("map-modal");
-            if (m) m.style.display = force !== undefined ? (force ? 'flex' : 'none') : (m.style.display === 'none' ? 'flex' : 'none');
-        }
-
-        function selectCar(type) {
-            activeCarType = type;
-            const spec = carRoster[type];
-            document.getElementById("active-car-name").innerText = spec.name;
-
-            car.maxSpeed = spec.topSpeedKmh / 3.6;
-            car.accel = spec.accel;
-            car.driftFactor = spec.driftFactor;
-            car.bodyColor = spec.bodyColor;
-
-            buildCarModel();
-            toggleGarage(false);
-            showDialogue(`🏎️ Equipped ${spec.name} (${spec.cls})!`);
-        }
-
-        function buyOrSelectCar(type, price) {
-            if (ownedCars.includes(type)) {
-                selectCar(type);
-            } else if (gold >= price) {
-                addCoins(-price);
-                ownedCars.push(type);
-                const btn = document.getElementById(`btn-buy-${type.toLowerCase()}`);
-                if (btn) btn.innerText = `🏎️ ${carRoster[type].name} (OWNED)`;
-                selectCar(type);
-            } else {
-                showDialogue("⚠️ Not enough Gold! Earn drift score and win races to unlock.");
-            }
-        }
-
-        function startMap(mapId) {
-            currentMap = mapId;
-            const profile = mapProfiles[mapId];
-            document.getElementById("track-name").innerText = profile.name;
-            document.getElementById("lap-status").innerText = `Lap 1/3 | ${profile.desc.split('|')[0]}`;
-            toggleMapModal(false);
-            buildWorldForCurrentMap();
-            resetCar();
-            showDialogue(`🏁 Deployed to ${profile.name}! Watch for gap jumps & rival AI.`);
-        }
-
-        function cycleCamera() {
-            cameraMode = (cameraMode + 1) % 4;
-            const names = ["CHASE VIEW", "HOOD VIEW", "COCKPIT VIEW", "DRIFT ORBIT"];
-            document.getElementById("cam-mode-text").innerText = names[cameraMode];
-            document.getElementById("val-cam").innerText = names[cameraMode].split(" ")[0];
-        }
-
-        function resetCar() {
-            car.pos.set(0, 0.4, 0);
-            car.vel.set(0, 0, 0);
-            car.heading = 0;
-            car.speed = 0;
-            car.steerAngle = 0;
-            car.driftPoints = 0;
-            car.isDrifting = false;
-            car.isAirborne = false;
-            car.nitroAmount = 100;
-            car.gripMultiplier = 1.0;
-            currentLapTime = 0;
-        }
-
-        // 3D Player Car Builder with Cockpit & Underglow
         function buildCarModel() {
-            if (carMesh) scene.remove(carMesh);
+            carMesh = new THREE.Group();
             wheelMeshes = [];
 
-            carMesh = new THREE.Group();
-            const spec = carRoster[activeCarType];
-            const bodyMat = new THREE.MeshStandardMaterial({ color: spec.bodyColor, roughness: 0.25, metalness: 0.5 });
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3, metalness: 0.4 });
             const darkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
-            const glassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.75 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x00f3ff, roughness: 0.1, transparent: true, opacity: 0.75 });
             const lightMat = new THREE.MeshBasicMaterial({ color: 0xfffaed });
             const tailMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-            const underglowMat = new THREE.MeshBasicMaterial({ color: spec.underglowColor });
 
-            // Chassis
-            const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.55, 4.4), bodyMat);
+            const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.6, 4.4), bodyMat);
             chassis.position.y = 0.5;
             carMesh.add(chassis);
 
-            // Cabin
-            const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.65, 2.2), bodyMat);
+            const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.65, 2.2), bodyMat);
             cabin.position.set(0, 1.05, -0.2);
             carMesh.add(cabin);
 
-            // Windshield
-            const winF = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.55, 0.2), glassMat);
+            const winF = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.55, 0.2), glassMat);
             winF.position.set(0, 1.05, 0.9); winF.rotation.x = 0.35;
             carMesh.add(winF);
 
-            const winR = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.55, 0.2), glassMat);
+            const winR = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.55, 0.2), glassMat);
             winR.position.set(0, 1.05, -1.3); winR.rotation.x = -0.35;
             carMesh.add(winR);
 
-            // Cockpit Interior Steering Wheel (LHD offset)
-            const wheelGroup = new THREE.Group();
-            const steeringWheel = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.03, 8, 16), darkMat);
-            wheelGroup.position.set(-0.4, 0.95, 0.2);
-            wheelGroup.rotation.x = 0.4;
-            wheelGroup.add(steeringWheel);
-            carMesh.add(wheelGroup);
-            steeringWheelMesh = wheelGroup;
-
-            // Underglow Light Strip
-            const underglow = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 3.8), underglowMat);
-            underglow.rotation.x = -Math.PI / 2;
-            underglow.position.y = 0.08;
-            carMesh.add(underglow);
-
-            // Spoiler Wing
             const spoiler = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.08, 0.5), darkMat);
-            spoiler.position.set(0, 1.25, -2.0); carMesh.add(spoiler);
+            spoiler.position.set(0, 1.25, -2.0);
+            carMesh.add(spoiler);
 
-            const strutL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.1), darkMat);
-            strutL.position.set(-0.7, 0.95, -2.0); carMesh.add(strutL);
-            const strutR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.1), darkMat);
-            strutR.position.set(0.7, 0.95, -2.0); carMesh.add(strutR);
-
-            // Lights
             [-0.75, 0.75].forEach(x => {
                 const hl = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.18, 0.1), lightMat);
                 hl.position.set(x, 0.55, 2.22); carMesh.add(hl);
+
                 const tl = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.18, 0.1), tailMat);
                 tl.position.set(x, 0.55, -2.22); carMesh.add(tl);
             });
 
-            // 4 Wheels
             const wheelGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.32, 16);
             const wheelMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.9 });
             wheelGeo.rotateZ(Math.PI / 2);
 
-            const wheelPositions = [
+            [
                 [-1.05, 0.38, 1.35], [1.05, 0.38, 1.35],
                 [-1.05, 0.38, -1.35], [1.05, 0.38, -1.35]
-            ];
-
-            wheelPositions.forEach((wp, idx) => {
-                const wheelPivot = new THREE.Group();
-                wheelPivot.position.set(wp[0], wp[1], wp[2]);
+            ].forEach((wp, idx) => {
+                const pivot = new THREE.Group();
+                pivot.position.set(wp[0], wp[1], wp[2]);
                 const wMesh = new THREE.Mesh(wheelGeo, wheelMat);
-                wheelPivot.add(wMesh);
-                carMesh.add(wheelPivot);
-                wheelMeshes.push({ pivot: wheelPivot, mesh: wMesh, isFront: idx < 2 });
+                pivot.add(wMesh);
+                carMesh.add(pivot);
+                wheelMeshes.push({ pivot, mesh: wMesh, isFront: idx < 2 });
             });
 
             scene.add(carMesh);
         }
 
-        // Build Active Track Environment, Scenery, Traffic, Rival AI & Oil Slicks
-        function buildWorldForCurrentMap() {
-            trackMeshes.forEach(m => scene.remove(m));
-            trafficCars.forEach(tc => scene.remove(tc.mesh));
-            if (rivalAICar) scene.remove(rivalAICar.mesh);
-            trackMeshes = []; trafficCars = []; oilSlickZones = [];
-
-            const profile = mapProfiles[currentMap];
-            currentSpline = new THREE.CatmullRomCurve3(profile.points, true, 'catmullrom', 0.15);
-            currentTrackLength = currentSpline.getLength();
-
-            scene.background.setHex(profile.bgColor);
-            scene.fog.color.setHex(profile.fogColor);
-
+        // Build 3D Road Mesh with Elevation Variations, Terrain Hills & Power-Ups
+        function build3DWorld() {
             const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 });
             const kerbRedMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
             const kerbWhiteMat = new THREE.MeshBasicMaterial({ color: 0xf8fafc });
-            const rampMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5 });
-            const roadWidth = 14.0;
+            const guardMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 });
+            const pillarMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 });
 
-            const segs = 500;
+            const segs = 550;
             for (let i = 0; i < segs; i++) {
                 const u1 = i / segs;
                 const u2 = (i + 1) / segs;
-                const p1 = currentSpline.getPointAt(u1);
-                const p2 = currentSpline.getPointAt(u2);
+                const p1 = trackSpline.getPointAt(u1);
+                const p2 = trackSpline.getPointAt(u2);
                 const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
-                const tan = currentSpline.getTangentAt(u1);
+                const tan = trackSpline.getTangentAt(u1).normalize();
                 const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
                 const segLen = p1.distanceTo(p2);
-                const distAlong = u1 * currentTrackLength;
 
-                const isJumpGap = profile.hasJump && Math.abs(distAlong - profile.jumpGapDist) < 32;
+                // Asphalt Road Slab
+                const road = new THREE.Mesh(new THREE.BoxGeometry(15.0, 0.25, segLen + 0.4), roadMat);
+                road.position.copy(mid);
+                road.lookAt(p2);
+                scene.add(road);
 
-                if (!isJumpGap) {
-                    const road = new THREE.Mesh(new THREE.BoxGeometry(roadWidth, 0.2, segLen + 0.4), roadMat);
-                    road.position.copy(mid); road.position.y = 0.1;
-                    road.lookAt(p2);
-                    scene.add(road);
-                    trackMeshes.push(road);
-
-                    const kMat = i % 4 < 2 ? kerbRedMat : kerbWhiteMat;
-                    [-roadWidth / 2, roadWidth / 2].forEach(kx => {
-                        const kerb = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, segLen + 0.2), kMat);
-                        kerb.position.copy(mid).addScaledVector(norm, kx);
-                        kerb.position.y = 0.25;
-                        kerb.lookAt(p2.clone().addScaledVector(norm, kx));
-                        scene.add(kerb);
-                        trackMeshes.push(kerb);
-                    });
-                } else if (Math.abs(distAlong - profile.jumpGapDist) < 8) {
-                    // Stunt Launch Ramp
-                    const ramp = new THREE.Mesh(new THREE.BoxGeometry(roadWidth, 1.8, 12.0), rampMat);
-                    ramp.position.copy(mid); ramp.position.y = 0.8;
-                    ramp.lookAt(p2);
-                    ramp.rotation.x = -0.15;
-                    scene.add(ramp);
-                    trackMeshes.push(ramp);
+                // Bridge Support Pillars when elevated high above base ground
+                if (mid.y > 6.0 && i % 8 === 0) {
+                    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, mid.y, 8), pillarMat);
+                    pillar.position.set(mid.x, mid.y / 2, mid.z);
+                    scene.add(pillar);
                 }
 
-                // Port Titan Oil Slicks (-40% Grip Hazard)
-                if (currentMap === 'PORT_TITAN' && i % 80 === 30) {
-                    const oil = new THREE.Mesh(new THREE.CircleGeometry(3.5, 12), new THREE.MeshBasicMaterial({ color: 0x09090b }));
-                    oil.rotation.x = -Math.PI / 2;
-                    oil.position.copy(mid); oil.position.y = 0.22;
-                    scene.add(oil);
-                    trackMeshes.push(oil);
-                    oilSlickZones.push(distAlong);
-                }
+                // Kerbs
+                const kMat = i % 4 < 2 ? kerbRedMat : kerbWhiteMat;
+                [-7.6, 7.6].forEach(kx => {
+                    const kerb = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, segLen + 0.2), kMat);
+                    kerb.position.copy(mid).addScaledVector(norm, kx);
+                    kerb.lookAt(p2.clone().addScaledVector(norm, kx));
+                    scene.add(kerb);
 
-                // Scenery details per map
-                if (currentMap === 'NEON_METROPOLIS' && i % 20 === 0) {
-                    const bldg = new THREE.Mesh(
-                        new THREE.BoxGeometry(18, 40 + Math.random() * 50, 18),
-                        new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.6 })
-                    );
-                    bldg.position.copy(p1).addScaledVector(norm, (i % 40 === 0 ? 25 : -25));
-                    bldg.position.y = 20;
-                    scene.add(bldg);
-                    trackMeshes.push(bldg);
-                }
-            }
-
-            // Spawn Rival Drift AI Car (Aggressive Bodykit & Underglow)
-            const rivalGroup = new THREE.Group();
-            const rivalBodyMat = new THREE.MeshStandardMaterial({ color: 0x9333ea, roughness: 0.2 });
-            const rChassis = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.6, 4.4), rivalBodyMat);
-            rChassis.position.y = 0.5; rivalGroup.add(rChassis);
-            const rCabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.65, 2.2), rivalBodyMat);
-            rCabin.position.set(0, 1.05, -0.2); rivalGroup.add(rCabin);
-
-            const rUnderglow = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 3.8), new THREE.MeshBasicMaterial({ color: 0xa855f7 }));
-            rUnderglow.rotation.x = -Math.PI / 2; rUnderglow.position.y = 0.08; rivalGroup.add(rUnderglow);
-
-            scene.add(rivalGroup);
-            rivalAICar = {
-                mesh: rivalGroup,
-                u: 0.08,
-                speed: 40.0,
-                heading: 0,
-                steerAngle: 0,
-                isDrifting: false
-            };
-
-            // Spawn Civilian Traffic Vehicles
-            const numTraffic = currentMap === 'NEON_METROPOLIS' ? 14 : 8;
-            const trafficColors = [0x94a3b8, 0x475569, 0x64748b, 0x334155];
-
-            for (let t = 0; t < numTraffic; t++) {
-                const tCar = new THREE.Group();
-                const tMat = new THREE.MeshStandardMaterial({ color: trafficColors[t % trafficColors.length], roughness: 0.5 });
-                const body = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.6, 4.0), tMat);
-                body.position.y = 0.5; tCar.add(body);
-                const top = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.5, 2.0), tMat);
-                top.position.set(0, 0.95, -0.2); tCar.add(top);
-
-                const uSpawn = (t / numTraffic) + 0.05;
-                const laneOffset = (t % 2 === 0 ? 3.2 : -3.2);
-
-                scene.add(tCar);
-                trafficCars.push({
-                    mesh: tCar,
-                    u: uSpawn % 1.0,
-                    laneOffset,
-                    speed: 14.0,
-                    honked: false
+                    // Guardrails on sharp turns or elevated sections
+                    if (mid.y > 5.0 || i % 5 === 0) {
+                        const guard = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.75, segLen + 0.2), guardMat);
+                        guard.position.copy(mid).addScaledVector(norm, kx + (kx > 0 ? 0.3 : -0.3));
+                        guard.position.y += 0.4;
+                        guard.lookAt(p2.clone().addScaledVector(norm, kx));
+                        scene.add(guard);
+                    }
                 });
+
+                // ⚡ Speed Boost Pads on Track
+                if (i % 90 === 25) {
+                    const pad = new THREE.Mesh(
+                        new THREE.PlaneGeometry(7.0, 8.0),
+                        new THREE.MeshBasicMaterial({ color: 0x10b981, side: THREE.DoubleSide })
+                    );
+                    pad.rotation.x = -Math.PI / 2;
+                    pad.position.copy(mid);
+                    pad.position.y += 0.16;
+                    pad.lookAt(p2);
+                    scene.add(pad);
+                    boostPads.push({ pos: mid.clone(), length: 8.0 });
+                }
+
+                // 🪙 Floating Gold Coin Lines & 🔋 Nitro Pickups
+                if (i % 60 === 10) {
+                    const isNitro = (i % 120 === 10);
+                    const pickupMesh = isNitro ?
+                        new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 1.3, 10), new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true })) :
+                        new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.15, 14), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+
+                    pickupMesh.position.copy(mid);
+                    pickupMesh.position.y += 1.0;
+                    if (!isNitro) pickupMesh.rotation.x = Math.PI / 2;
+                    scene.add(pickupMesh);
+                    pickups.push({ mesh: pickupMesh, pos: pickupMesh.position, isNitro, active: true });
+                }
             }
 
-            const ground = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400), new THREE.MeshStandardMaterial({ color: profile.groundColor, roughness: 0.95 }));
-            ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05;
+            // Mountain Terrain Landscape
+            const mountainGeo = new THREE.DodecahedronGeometry(24, 1);
+            const mountainMat = new THREE.MeshStandardMaterial({ color: 0x1e3a2f, roughness: 0.95, flatShading: true });
+            for (let m = 0; m < 55; m++) {
+                const u = m / 55;
+                const p = trackSpline.getPointAt(u);
+                const tan = trackSpline.getTangentAt(u).normalize();
+                const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
+                const side = m % 2 === 0 ? 1 : -1;
+
+                const mountain = new THREE.Mesh(mountainGeo, mountainMat);
+                mountain.position.copy(p).addScaledVector(norm, side * (45 + Math.random() * 35));
+                mountain.position.y = Math.random() * 8;
+                mountain.scale.set(1.5 + Math.random(), 1.8 + Math.random() * 1.5, 1.5 + Math.random());
+                scene.add(mountain);
+            }
+
+            // Base Ground Floor
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(3000, 3000),
+                new THREE.MeshStandardMaterial({ color: 0x0a1f18, roughness: 0.98 })
+            );
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -0.5;
             scene.add(ground);
-            trackMeshes.push(ground);
         }
 
         function init3D() {
@@ -1045,27 +679,34 @@
             const h = container.clientHeight || 680;
 
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x030712);
-            scene.fog = new THREE.FogExp2(0x030712, 0.0025);
+            scene.background = new THREE.Color(0x0a1128);
+            scene.fog = new THREE.FogExp2(0x0a1128, 0.0035);
 
-            camera = new THREE.PerspectiveCamera(65, w / h, 0.1, 1000);
+            camera = new THREE.PerspectiveCamera(62, w / h, 0.1, 1000);
             scene.add(camera);
 
-            renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+            renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById("webgl-canvas"),
+                antialias: false,
+                powerPreference: "high-performance"
+            });
             renderer.setSize(w, h);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
-            renderer.domElement.id = "webgl-canvas";
-            container.appendChild(renderer.domElement);
 
-            const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.85);
             scene.add(ambient);
 
-            const sun = new THREE.DirectionalLight(0xfffaed, 1.1);
-            sun.position.set(120, 240, 100);
+            const sun = new THREE.DirectionalLight(0xfffaed, 1.15);
+            sun.position.set(120, 250, 100);
             scene.add(sun);
 
+            build3DWorld();
             buildCarModel();
             setupControls();
+
+            // Spawn car safely on track starting gate
+            const startP = trackSpline.getPointAt(0);
+            car.pos.set(startP.x, startP.y + 0.4, startP.z);
 
             window.addEventListener('resize', () => {
                 const nw = container.clientWidth || 1280;
@@ -1079,16 +720,16 @@
         function setupControls() {
             window.addEventListener("keydown", e => {
                 const code = e.code;
-                if (["KeyW","KeyS","KeyA","KeyD","Space","ShiftLeft","ShiftRight","KeyE","KeyR","KeyC","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(code)) {
+                if (["KeyW","KeyS","KeyA","KeyD","Space","ShiftLeft","ShiftRight","KeyR","KeyC","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(code)) {
                     e.preventDefault();
                 }
-                initEngineAudio();
+                initAudio();
                 if (code === "KeyW" || code === "ArrowUp") keys.w = true;
                 if (code === "KeyS" || code === "ArrowDown") keys.s = true;
                 if (code === "KeyA" || code === "ArrowLeft") keys.a = true;
                 if (code === "KeyD" || code === "ArrowRight") keys.d = true;
                 if (code === "Space") keys.space = true;
-                if (code === "ShiftLeft" || code === "ShiftRight" || code === "KeyE") keys.shift = true;
+                if (code === "ShiftLeft" || code === "ShiftRight") keys.shift = true;
                 if (code === "KeyR") resetCar();
                 if (code === "KeyC") cycleCamera();
             });
@@ -1100,12 +741,12 @@
                 if (code === "KeyA" || code === "ArrowLeft") keys.a = false;
                 if (code === "KeyD" || code === "ArrowRight") keys.d = false;
                 if (code === "Space") keys.space = false;
-                if (code === "ShiftLeft" || code === "ShiftRight" || code === "KeyE") keys.shift = false;
+                if (code === "ShiftLeft" || code === "ShiftRight") keys.shift = false;
             });
 
             const bindBtn = (id, onStart, onEnd) => {
                 const el = document.getElementById(id);
-                el.addEventListener("touchstart", e => { e.preventDefault(); initEngineAudio(); onStart(); }, { passive: false });
+                el.addEventListener("touchstart", e => { e.preventDefault(); initAudio(); onStart(); }, { passive: false });
                 if (onEnd) el.addEventListener("touchend", e => { e.preventDefault(); onEnd(); }, { passive: false });
             };
 
@@ -1117,33 +758,44 @@
             bindBtn("btn-touch-hb", () => { keys.space = true; }, () => { keys.space = false; });
         }
 
-        // 60FPS Clamped Driving, AI & Physics
-        function updateCarPhysics(dt) {
-            if (!carMesh || !currentSpline) return;
+        function cycleCamera() {
+            cameraMode = (cameraMode + 1) % 2;
+            document.getElementById("cam-mode-text").innerText = cameraMode === 0 ? "CHASE VIEW" : "HOOD VIEW";
+            document.getElementById("val-cam").innerText = cameraMode === 0 ? "CHASE" : "HOOD";
+        }
 
-            const profile = mapProfiles[currentMap];
-            const distOnTrack = (car.pos.length()) % currentTrackLength;
+        function resetCar() {
+            const startP = trackSpline.getPointAt(0);
+            car.pos.set(startP.x, startP.y + 0.4, startP.z);
+            car.heading = 0;
+            car.speed = 0;
+            car.steerAngle = 0;
+            car.driftPoints = 0;
+            car.nitroFuel = 100;
+            checkpointPassed = false;
+            currentLapTime = 0;
+        }
 
-            // 1. Oil Slick Hazard Detection (-40% Grip)
-            const onOilSlick = oilSlickZones.some(od => Math.abs(distOnTrack - od) < 15);
-            car.gripMultiplier = onOilSlick ? 0.6 : 1.0;
+        // 60FPS Clamped Physics, Terrain Elevation Matching, and Checkpoint Lap Counting
+        function updatePhysics(dt) {
+            // 1. Speed-Sensitive Steering Lock (Eliminates Twitchy High-Speed Steering)
+            const speedRatio = Math.min(1.0, Math.abs(car.speed) / car.maxSpeed);
+            // Steering lock dynamically reduces from 0.58 rad (low speed) down to 0.22 rad (top speed)
+            const dynamicMaxSteer = THREE.MathUtils.lerp(0.58, 0.22, speedRatio);
 
-            // 2. Steering & Return
             if (keys.a) {
-                car.steerAngle = Math.max(-car.maxSteer, car.steerAngle - car.steerSpeed * dt);
+                car.steerAngle = Math.max(-dynamicMaxSteer, car.steerAngle - 3.2 * dt);
             } else if (keys.d) {
-                car.steerAngle = Math.min(car.maxSteer, car.steerAngle + car.steerSpeed * dt);
+                car.steerAngle = Math.min(dynamicMaxSteer, car.steerAngle + 3.2 * dt);
             } else {
-                if (car.steerAngle > 0) car.steerAngle = Math.max(0, car.steerAngle - car.steerReturn * dt);
-                else if (car.steerAngle < 0) car.steerAngle = Math.min(0, car.steerAngle + car.steerReturn * dt);
+                car.steerAngle = THREE.MathUtils.lerp(car.steerAngle, 0, 0.18);
             }
 
-            // 3. Nitro Boost System
-            if (keys.shift && car.nitroAmount > 5 && car.speed > 8) {
+            // 2. Nitro Boost Handling
+            if (keys.shift && car.nitroFuel > 5 && car.speed > 8) {
                 car.isBoosting = true;
-                car.nitroAmount = Math.max(0, car.nitroAmount - 32 * dt);
-                car.speed = Math.min(car.maxSpeed * 1.35, car.speed + car.accel * 1.8 * dt);
-                playBoostSound();
+                car.nitroFuel = Math.max(0, car.nitroFuel - 32 * dt);
+                car.speed = Math.min(car.maxSpeed * 1.35, car.speed + car.accel * 1.6 * dt);
 
                 for (let i = 0; i < 2; i++) {
                     const fire = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: 0x00f3ff }));
@@ -1153,28 +805,26 @@
                 }
             } else {
                 car.isBoosting = false;
+                car.nitroFuel = Math.min(100, car.nitroFuel + 6 * dt);
             }
 
-            // 4. Acceleration, Braking & Weight Transfer
+            // 3. Acceleration & Braking
             if (keys.w) {
                 car.speed = Math.min(car.maxSpeed, car.speed + car.accel * dt);
-                car.pitchAngle = THREE.MathUtils.lerp(car.pitchAngle, 0.05, 0.1); // Squat on accel
             } else if (keys.s) {
-                car.speed = Math.max(-car.reverseSpeed, car.speed - car.accel * 1.5 * dt);
-                car.pitchAngle = THREE.MathUtils.lerp(car.pitchAngle, -0.06, 0.1); // Dive on brake
+                car.speed = Math.max(-car.reverseSpeed, car.speed - car.accel * 1.4 * dt);
             } else {
-                car.pitchAngle = THREE.MathUtils.lerp(car.pitchAngle, 0, 0.1);
                 if (car.speed > 0) car.speed = Math.max(0, car.speed - 7.0 * dt);
                 else if (car.speed < 0) car.speed = Math.min(0, car.speed + 7.0 * dt);
             }
 
-            // 5. Handbrake & High-Angle Drift Calculation
+            // 4. Handbrake Drift Slip
             const speedKmh = Math.round(Math.abs(car.speed) * 3.6);
             if (keys.space && Math.abs(car.speed) > 10.0) {
                 car.isDrifting = true;
-                car.driftFactor = THREE.MathUtils.lerp(car.driftFactor, carRoster[activeCarType].driftFactor, 0.2);
+                car.driftFactor = THREE.MathUtils.lerp(car.driftFactor, 0.85, 0.15);
                 car.speed = Math.max(0, car.speed - 10.0 * dt);
-                playTireScreech();
+                playScreech();
 
                 for (let i = 0; i < 2; i++) {
                     const smoke = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.35), new THREE.MeshBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.5 }));
@@ -1187,133 +837,102 @@
                 car.driftFactor = THREE.MathUtils.lerp(car.driftFactor, 0, 0.1);
             }
 
-            // 6. Heading, Yaw & Position
-            const turnRate = (car.steerAngle * (car.speed / car.maxSpeed) * (1.0 + car.driftFactor * 1.2)) * car.gripMultiplier;
+            // 5. Yaw & Horizontal Movement
+            const turnRate = car.steerAngle * (car.speed / car.maxSpeed) * (1.0 + car.driftFactor * 1.2);
             car.heading -= turnRate * dt * 2.8;
 
             const velocity = new THREE.Vector3(
                 Math.sin(car.heading) * car.speed,
-                car.vel.y,
+                0,
                 Math.cos(car.heading) * car.speed
             );
             car.pos.addScaledVector(velocity, dt);
 
-            // 7. Gap Jump Speed Warning & Air Physics
-            const jumpWarningEl = document.getElementById("jump-warning-banner");
-            if (profile.hasJump && Math.abs(distOnTrack - profile.jumpGapDist) < 60) {
-                jumpWarningEl.innerText = `⚠️ SPEED JUMP AHEAD! MIN SPEED: ${profile.minJumpSpeedKmh} KM/H!`;
-                jumpWarningEl.style.display = "block";
-            } else {
-                jumpWarningEl.style.display = "none";
-            }
-
-            // Launch Ramp
-            if (profile.hasJump && Math.abs(distOnTrack - profile.jumpGapDist) < 10 && car.pos.y <= 0.6) {
-                car.isAirborne = true;
-                car.vel.y = 12.0;
-            }
-
-            if (car.isAirborne || car.pos.y > 0.4) {
-                car.vel.y -= 26.0 * dt;
-                car.pos.y += car.vel.y * dt;
-
-                // Speed Check Checkpoint: Fail Jump
-                if (profile.hasJump && Math.abs(distOnTrack - profile.jumpGapDist) < 32 && speedKmh < profile.minJumpSpeedKmh && car.pos.y < -4.0) {
-                    playCrashSound();
-                    showDialogue(`💥 FAILED GAP JUMP! (Needed ${profile.minJumpSpeedKmh}+ km/h). Resetting...`);
-                    resetCar();
-                    return;
-                }
-
-                if (car.pos.y <= 0.4) {
-                    car.pos.y = 0.4;
-                    car.vel.y = 0;
-                    if (car.isAirborne && speedKmh >= profile.minJumpSpeedKmh) {
-                        addCoins(150);
-                        car.nitroAmount = 100;
-                        showDialogue("🏆 GAP JUMP CLEARED! +150 Gold & Full Nitro!");
-                    }
-                    car.isAirborne = false;
+            // 6. Terrain & Bridge Height Elevation Matching
+            // Find closest track spline node to determine actual road height
+            let closestU = 0;
+            let minDistSq = Infinity;
+            for (let i = 0; i <= 60; i++) {
+                const u = i / 60;
+                const p = trackSpline.getPointAt(u);
+                const dSq = car.pos.distanceToSquared(p);
+                if (dSq < minDistSq) {
+                    minDistSq = dSq;
+                    closestU = u;
                 }
             }
+            const trackP = trackSpline.getPointAt(closestU);
+            car.groundHeight = trackP.y + 0.4;
+            car.pos.y = THREE.MathUtils.lerp(car.pos.y, car.groundHeight, 0.2);
 
-            // 8. Rival Drift AI Physics & Lane Blocking
-            if (rivalAICar) {
-                rivalAICar.u = (rivalAICar.u + (rivalAICar.speed * dt) / currentTrackLength) % 1.0;
-                const rPos = currentSpline.getPointAt(rivalAICar.u);
-                const rTan = currentSpline.getTangentAt(rivalAICar.u);
+            // 7. Robust 2-Gate Lap Counter
+            if (closestU > 0.45 && closestU < 0.65) {
+                checkpointPassed = true;
+            }
+            if (closestU > 0.95 && checkpointPassed) {
+                checkpointPassed = false;
+                currentLap++;
 
-                rivalAICar.mesh.position.copy(rPos);
-                rivalAICar.mesh.position.y = 0.4;
-                rivalAICar.mesh.lookAt(rPos.clone().add(rTan));
-
-                // Rival Tire Smoke Particles
-                if (Math.random() < 0.3) {
-                    const rSmoke = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.6 }));
-                    rSmoke.position.copy(rivalAICar.mesh.position).add(new THREE.Vector3((Math.random() - 0.5) * 1.5, 0.2, (Math.random() - 0.5) * 1.5));
-                    scene.add(rSmoke);
-                    particles.push({ mesh: rSmoke, vy: 1.2, life: 0.3 });
+                if (currentLapTime < bestLapTime) {
+                    bestLapTime = currentLapTime;
+                    const mins = Math.floor(bestLapTime / 60).toString().padStart(2, '0');
+                    const secs = (bestLapTime % 60).toFixed(2).padStart(5, '0');
+                    document.getElementById("best-lap").innerText = `Best: ${mins}:${secs}`;
                 }
+
+                currentLapTime = 0;
+                addCoins(200);
+                playDing();
+                showLapBanner(`🏁 LAP ${currentLap - 1} COMPLETE! +200 GOLD`);
+                document.getElementById("lap-status").innerText = `Lap ${Math.min(currentLap, TOTAL_LAPS)} / ${TOTAL_LAPS}`;
             }
 
-            // 9. Civilian Traffic & Near-Miss Detection
-            trafficCars.forEach(tc => {
-                tc.u = (tc.u + (tc.speed * dt) / currentTrackLength) % 1.0;
-                const pos = currentSpline.getPointAt(tc.u);
-                const tan = currentSpline.getTangentAt(tc.u);
-                const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
-
-                tc.mesh.position.copy(pos).addScaledVector(norm, tc.laneOffset);
-                tc.mesh.position.y = 0.2;
-                tc.mesh.lookAt(pos.clone().add(tan).addScaledVector(norm, tc.laneOffset));
-
-                const dist = car.pos.distanceTo(tc.mesh.position);
-
-                // Near-Miss Reward (Closer than 4.5m without crashing)
-                if (dist < 4.5 && dist >= 3.0 && speedKmh > 60) {
-                    car.nitroAmount = Math.min(100, car.nitroAmount + 25 * dt);
-                    if (!tc.honked) {
-                        playHornSound();
-                        showDialogue("⚡ NEAR-MISS! +Nitro Boost");
-                        tc.honked = true;
-                    }
-                } else if (dist > 6.0) {
-                    tc.honked = false;
-                }
-
-                // Crash Collision
-                if (dist < 2.8 && !car.isAirborne) {
-                    playCrashSound();
-                    car.speed *= 0.4;
-                    showDialogue("💥 TRAFFIC COLLISION!");
+            // 8. Boost Pad Trigger Check
+            boostPads.forEach(bp => {
+                if (car.pos.distanceTo(bp.pos) < 5.0) {
+                    car.speed = car.maxSpeed * 1.4;
+                    car.nitroFuel = 100;
+                    playBoostPadSound();
+                    showDialogue("⚡ MEGA SPEED BOOST!");
                 }
             });
 
-            // 10. Visual Animation & Cockpit Steering Wheel
+            // 9. Pickups Collection (Gold & Nitro)
+            pickups.forEach(p => {
+                if (p.active) {
+                    p.mesh.rotation.y += dt * 3.5;
+                    if (car.pos.distanceTo(p.pos) < 3.2) {
+                        p.active = false;
+                        p.mesh.visible = false;
+                        if (p.isNitro) {
+                            car.nitroFuel = 100;
+                            playBoostPadSound();
+                            showDialogue("🔋 NITRO REFILLED!");
+                        } else {
+                            addCoins(25);
+                            playDing();
+                        }
+                    }
+                }
+            });
+
+            // 10. Visual Wheel Rotations & Vehicle Heading
             wheelMeshes.forEach(w => {
                 w.mesh.rotation.x += (car.speed * dt * 2.5);
                 if (w.isFront) w.pivot.rotation.y = car.steerAngle * 0.9;
             });
-            if (steeringWheelMesh) {
-                steeringWheelMesh.rotation.z = -car.steerAngle * 2.2;
-            }
-
             carMesh.position.copy(car.pos);
             carMesh.rotation.y = car.heading;
-            carMesh.rotation.x = car.pitchAngle;
 
-            // Telemetry & Drift Scoring (Angle > 30°)
+            // Drift Scoring
             const driftDeg = Math.round(Math.abs(car.steerAngle * car.driftFactor) * 75);
-            car.gear = Math.max(1, Math.min(6, Math.floor(speedKmh / 42) + 1));
+            car.gear = Math.max(1, Math.min(6, Math.floor(speedKmh / 35) + 1));
 
-            if (car.isDrifting && speedKmh > 30) {
-                car.driftPoints += Math.round(speedKmh * 1.8 * dt);
-                if (driftDeg >= 30) {
-                    car.nitroAmount = Math.min(100, car.nitroAmount + 15 * dt); // Refill on high-angle
-                }
-                const banner = document.getElementById("drift-score-banner");
-                banner.innerText = `DRIFT +${car.driftPoints}`;
-                banner.style.display = "block";
+            if (car.isDrifting && speedKmh > 25) {
+                car.driftPoints += Math.round(speedKmh * 1.6 * dt);
+                const b = document.getElementById("drift-score-banner");
+                b.innerText = `DRIFT +${car.driftPoints}`;
+                b.style.display = "block";
             } else if (!car.isDrifting && car.driftPoints > 0) {
                 addCoins(Math.round(car.driftPoints / 8));
                 if (car.driftPoints > bestDrift) {
@@ -1325,18 +944,18 @@
                 updateWallet();
             }
 
-            updateEngineAudio(Math.abs(car.speed) / car.maxSpeed, car.isBoosting);
-
+            // HUD Telemetry
             document.getElementById("tel-spd").innerText = speedKmh;
             document.getElementById("tel-gear").innerText = car.gear;
             document.getElementById("tel-angle").innerText = `${driftDeg}°`;
-            document.getElementById("boost-bar-fill").style.width = `${car.nitroAmount}%`;
+            document.getElementById("boost-bar-fill").style.width = `${car.nitroFuel}%`;
 
-            // Lap Time Tracking
             currentLapTime += dt;
-            const mins = Math.floor(currentLapTime / 60).toString().padStart(2, '0');
-            const secs = (currentLapTime % 60).toFixed(2).padStart(5, '0');
-            document.getElementById("lap-time").innerText = `Time: ${mins}:${secs}`;
+            const lMins = Math.floor(currentLapTime / 60).toString().padStart(2, '0');
+            const lSecs = (currentLapTime % 60).toFixed(2).padStart(5, '0');
+            document.getElementById("lap-time").innerText = `Lap: ${lMins}:${lSecs}`;
+
+            updateAudio(Math.abs(car.speed) / car.maxSpeed, car.isBoosting);
 
             // Particles Update
             for (let i = particles.length - 1; i >= 0; i--) {
@@ -1350,98 +969,59 @@
             }
         }
 
-        // Camera Logic (4 Modes)
         function updateCamera() {
             if (!carMesh) return;
-
             const forward = new THREE.Vector3(Math.sin(car.heading), 0, Math.cos(car.heading));
 
             if (cameraMode === 0) {
-                // Third-Person Chase (4.5m behind, 1.8m above, 65° FOV -> 78° on Nitro)
-                const targetFOV = car.isBoosting ? 78 : 65;
-                camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, 0.1);
-                camera.updateProjectionMatrix();
-
-                // Damped lag swinging slightly outside of turns
-                const driftSwingOffset = new THREE.Vector3(-forward.z, 0, forward.x).multiplyScalar(car.steerAngle * car.driftFactor * 1.8);
-                const targetCam = car.pos.clone().addScaledVector(forward, -4.5).add(new THREE.Vector3(0, 1.8, 0)).add(driftSwingOffset);
+                // Chase View
+                const targetCam = car.pos.clone().addScaledVector(forward, -10.5).add(new THREE.Vector3(0, 4.2, 0));
                 camera.position.lerp(targetCam, 0.15);
-                camera.lookAt(car.pos.clone().add(new THREE.Vector3(0, 1.0, 0)));
-
-            } else if (cameraMode === 1) {
-                // Hood / Bumper Cam (0.4m height, zero roll, locked horizon)
-                camera.fov = 70;
-                camera.updateProjectionMatrix();
-
-                const bumperPos = car.pos.clone().addScaledVector(forward, 1.8).add(new THREE.Vector3(0, 0.4, 0));
-                camera.position.copy(bumperPos);
-                camera.lookAt(bumperPos.clone().addScaledVector(forward, 35));
-
-            } else if (cameraMode === 2) {
-                // Cockpit Cam (LHD offset, head tilt into apex)
-                camera.fov = 68;
-                camera.updateProjectionMatrix();
-
-                const headTilt = new THREE.Vector3(-forward.z, 0, forward.x).multiplyScalar(-car.steerAngle * 0.4);
-                const cockpitEye = car.pos.clone().addScaledVector(forward, -0.2).add(new THREE.Vector3(-0.4, 1.15, 0)).add(headTilt);
-                camera.position.copy(cockpitEye);
-                camera.lookAt(cockpitEye.clone().addScaledVector(forward, 25));
-
+                camera.lookAt(car.pos.clone().add(new THREE.Vector3(0, 1.2, 0)));
             } else {
-                // Dynamic Drift Orbit (Tracking Replay Shot)
-                const orbitAngle = Date.now() * 0.001;
-                const orbitPos = car.pos.clone().add(new THREE.Vector3(Math.cos(orbitAngle) * 8.5, 2.5, Math.sin(orbitAngle) * 8.5));
-                camera.position.lerp(orbitPos, 0.1);
-                camera.lookAt(car.pos.clone().add(new THREE.Vector3(0, 0.8, 0)));
+                // Hood View
+                const hoodCam = car.pos.clone().addScaledVector(forward, 0.6).add(new THREE.Vector3(0, 1.1, 0));
+                camera.position.copy(hoodCam);
+                camera.lookAt(hoodCam.clone().addScaledVector(forward, 25));
             }
         }
 
         function updateMinimap() {
             const canvas = document.getElementById("minimap-canvas");
-            if (!canvas || !currentSpline) return;
+            if (!canvas) return;
             const ctx = canvas.getContext("2d");
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = "#09101d";
             ctx.beginPath(); ctx.arc(40, 40, 36, 0, Math.PI * 2); ctx.fill();
 
-            // Track Circuit Path
             ctx.strokeStyle = "#334155";
             ctx.lineWidth = 2;
             ctx.beginPath();
             for (let i = 0; i <= 30; i++) {
                 const u = i / 30;
-                const p = currentSpline.getPointAt(u);
-                const mx = 40 + (p.x / 480) * 30;
-                const my = 40 + (p.z / 480) * 30;
+                const p = trackSpline.getPointAt(u);
+                const mx = 40 + (p.x / 450) * 30;
+                const my = 40 + (p.z / 450) * 30;
                 if (i === 0) ctx.moveTo(mx, my);
                 else ctx.lineTo(mx, my);
             }
             ctx.closePath();
             ctx.stroke();
 
-            // Player Blip
-            const cx = 40 + (car.pos.x / 480) * 30;
-            const cy = 40 + (car.pos.z / 480) * 30;
+            const cx = 40 + (car.pos.x / 450) * 30;
+            const cy = 40 + (car.pos.z / 450) * 30;
             ctx.fillStyle = "#00f3ff";
             ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, Math.PI * 2); ctx.fill();
-
-            // Rival AI Blip
-            if (rivalAICar) {
-                const rx = 40 + (rivalAICar.mesh.position.x / 480) * 30;
-                const ry = 40 + (rivalAICar.mesh.position.z / 480) * 30;
-                ctx.fillStyle = "#a855f7";
-                ctx.beginPath(); ctx.arc(rx, ry, 2.8, 0, Math.PI * 2); ctx.fill();
-            }
         }
 
-        let lastFrameTime = performance.now();
+        let lastTime = performance.now();
         function animate(now) {
             requestAnimationFrame(animate);
-            const dt = Math.min((now - lastFrameTime) / 1000, 0.02);
-            lastFrameTime = now;
+            const dt = Math.min((now - lastTime) / 1000, 0.02);
+            lastTime = now;
 
-            updateCarPhysics(dt);
+            updatePhysics(dt);
             updateCamera();
             updateMinimap();
             if (renderer && scene && camera) renderer.render(scene, camera);
