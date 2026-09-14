@@ -44,7 +44,7 @@
         }
         #game-canvas { width: 100%; height: 100%; display: block; }
 
-        /* Top HUD Scoreboard */
+        /* Top HUD Scoreboard & Controls */
         #scoreboard {
             position: absolute;
             top: 10px;
@@ -55,22 +55,46 @@
             background: linear-gradient(180deg, #581c87, #2e1065);
             border: 3px solid #c084fc;
             border-radius: 14px;
-            padding: 4px 20px;
+            padding: 4px 18px;
             box-shadow: 0 6px 25px rgba(0,0,0,0.7);
             z-index: 10;
-            gap: 16px;
+            gap: 14px;
         }
-        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 90px; }
-        .team-title { font-size: 0.8rem; color: #e9d5ff; letter-spacing: 1px; }
-        .score-num { font-size: 2.2rem; line-height: 1; font-weight: 900; color: #fff; text-shadow: 2px 2px #000; }
+        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 85px; }
+        .team-title { font-size: 0.75rem; color: #e9d5ff; letter-spacing: 1px; }
+        .score-num { font-size: 2.1rem; line-height: 1; font-weight: 900; color: #fff; text-shadow: 2px 2px #000; }
         .timer-box {
             background: #0f172a;
             border: 2px solid var(--gold);
             border-radius: 8px;
-            padding: 4px 16px;
+            padding: 4px 14px;
             text-align: center;
         }
-        .timer-num { font-size: 1.8rem; color: var(--gold); font-family: monospace; font-weight: 900; }
+        .timer-num { font-size: 1.7rem; color: var(--gold); font-family: monospace; font-weight: 900; }
+
+        /* Quick Utility Buttons (HUD) */
+        .hud-actions {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            display: flex;
+            gap: 8px;
+            z-index: 20;
+        }
+        .hud-btn {
+            background: #2e1065;
+            border: 2px solid #a855f7;
+            color: #fff;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            transition: all 0.1s;
+        }
+        .hud-btn:hover { background: #581c87; border-color: var(--gold); }
+        .hud-btn:active { transform: translateY(2px); }
 
         /* Comic Popups */
         #banner-popup {
@@ -181,6 +205,11 @@
     <div id="game-wrapper">
         <canvas id="game-canvas" width="1000" height="600"></canvas>
 
+        <div class="hud-actions">
+            <button class="hud-btn" id="music-btn" onclick="toggleMusic()">🎵 Music: OFF</button>
+            <button class="hud-btn" onclick="quickReset()">🔄 Restart [R]</button>
+        </div>
+
         <div id="scoreboard">
             <div class="team-box">
                 <span class="team-title" id="p1-name-display">LEBRON</span>
@@ -218,17 +247,91 @@
     </div>
 
     <div class="controls-bar">
-        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Tap: Jumper | Hold: Sweet-Spot Shot | Run at Rim: Slam Dunk!</div>
-        <div><strong>P2:</strong> [◀]/[▶] Move | [▲] Jump | [L/ENTER] Shoot / Slam Dunk</div>
+        <div><strong>P1:</strong> [A]/[D] Run | [W] Jump | [SPACE/F] Shot / Slam Dunk | <strong>[R]:</strong> Quick Ball Reset</div>
+        <div><strong>P2:</strong> [◀]/[▶] Run | [▲] Jump | [L/ENTER] Shot / Slam Dunk</div>
     </div>
 
     <script>
-        // Synthesizer Audio Engine
+        // Web Audio Synthesizer (BGM + SFX)
         let audioCtx = null;
+        let musicPlaying = false;
+        let musicStep = 0;
+        let musicInterval = null;
+
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
             return audioCtx;
+        }
+
+        // Procedural 90s Arcade Drum & Bass Loop
+        const BASS_NOTES = [110, 110, 130.81, 146.83, 110, 110, 164.81, 146.83]; // A2 bassline
+        function playBeatStep() {
+            if (!musicPlaying) return;
+            const ctx = getAudioContext();
+            const now = ctx.currentTime;
+
+            // Bassline
+            const freq = BASS_NOTES[musicStep % BASS_NOTES.length];
+            const bOsc = ctx.createOscillator();
+            const bGain = ctx.createGain();
+            bOsc.type = 'triangle';
+            bOsc.frequency.setValueAtTime(freq, now);
+            bGain.gain.setValueAtTime(0.18, now);
+            bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+            bOsc.connect(bGain);
+            bGain.connect(ctx.destination);
+            bOsc.start();
+            bOsc.stop(now + 0.18);
+
+            // Kick Drum (on steps 0 and 4)
+            if (musicStep % 4 === 0) {
+                const kOsc = ctx.createOscillator();
+                const kGain = ctx.createGain();
+                kOsc.frequency.setValueAtTime(150, now);
+                kOsc.frequency.exponentialRampToValueAtTime(35, now + 0.12);
+                kGain.gain.setValueAtTime(0.4, now);
+                kGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                kOsc.connect(kGain);
+                kGain.connect(ctx.destination);
+                kOsc.start();
+                kOsc.stop(now + 0.12);
+            }
+
+            // Snare / Clap (on step 2 and 6)
+            if (musicStep % 4 === 2) {
+                const bSize = ctx.sampleRate * 0.08;
+                const buffer = ctx.createBuffer(1, bSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bSize; i++) data[i] = (Math.random() * 2 - 1) * 0.25;
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 900;
+                const sGain = ctx.createGain();
+                sGain.gain.setValueAtTime(0.2, now);
+                sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                noise.connect(filter);
+                filter.connect(sGain);
+                sGain.connect(ctx.destination);
+                noise.start();
+            }
+
+            musicStep = (musicStep + 1) % 16;
+        }
+
+        function toggleMusic() {
+            getAudioContext();
+            musicPlaying = !musicPlaying;
+            const btn = document.getElementById('music-btn');
+            if (musicPlaying) {
+                btn.innerText = '🎵 Music: ON';
+                musicInterval = setInterval(playBeatStep, 175); // ~85 BPM
+            } else {
+                btn.innerText = '🎵 Music: OFF';
+                clearInterval(musicInterval);
+            }
         }
 
         function playSound(type) {
@@ -252,40 +355,42 @@
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(950, now);
                     osc.frequency.exponentialRampToValueAtTime(320, now + 0.15);
-                    g.gain.setValueAtTime(0.3, now);
+                    g.gain.setValueAtTime(0.35, now);
                     g.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                     osc.connect(g); g.connect(ctx.destination);
                     osc.start(); osc.stop(now + 0.15);
                 } else if (type === 'swish') {
-                    const bSize = ctx.sampleRate * 0.18;
+                    const bSize = ctx.sampleRate * 0.22;
                     const b = ctx.createBuffer(1, bSize, ctx.sampleRate);
                     const d = b.getChannelData(0);
+                    for (let i = 0; i < bSize; i++) data = (Math.random() * 2 - 1);
                     for (let i = 0; i < bSize; i++) d[i] = Math.random() * 2 - 1;
                     const src = ctx.createBufferSource();
                     src.buffer = b;
                     const filter = ctx.createBiquadFilter();
                     filter.type = 'bandpass';
-                    filter.frequency.value = 2400;
+                    filter.frequency.value = 2600;
+                    filter.Q.value = 3.5;
                     const g = ctx.createGain();
-                    g.gain.setValueAtTime(0.4, now);
-                    g.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+                    g.gain.setValueAtTime(0.45, now);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
                     src.connect(filter); filter.connect(g); g.connect(ctx.destination);
                     src.start();
                 } else if (type === 'dunk') {
                     const osc = ctx.createOscillator();
                     const g = ctx.createGain();
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(200, now);
-                    osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.exponentialRampToValueAtTime(30, now + 0.28);
                     g.gain.setValueAtTime(0.5, now);
-                    g.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
                     osc.connect(g); g.connect(ctx.destination);
-                    osc.start(); osc.stop(now + 0.25);
+                    osc.start(); osc.stop(now + 0.28);
                 }
             } catch(e){}
         }
 
-        // Legends Roster Configuration
+        // Roster Data
         const ROSTER = [
             {
                 id: 'lebron',
@@ -348,7 +453,6 @@
         let selectedP1Index = 0;
         let selectedP2Index = 1;
 
-        // Render Character Select Grid
         const rosterContainer = document.getElementById('roster-container');
         ROSTER.forEach((legend, idx) => {
             const card = document.createElement('div');
@@ -366,7 +470,6 @@
                 document.querySelectorAll('.roster-card').forEach(c => c.classList.remove('active'));
                 card.classList.add('active');
                 selectedP1Index = idx;
-                // Auto pick rival AI
                 selectedP2Index = (idx + 1) % ROSTER.length;
             };
             rosterContainer.appendChild(card);
@@ -385,8 +488,8 @@
         let clockTimer = null;
         let particles = [];
         let screenShake = 0;
+        let ballStuckTimer = 0;
 
-        // Player Entities
         function createPlayer(legend, startX, facing) {
             return {
                 ...legend,
@@ -401,7 +504,6 @@
                 isCharging: false,
                 chargeTimer: 0,
                 isDunking: false,
-                dunkTimer: 0,
                 aiDecisionTimer: 0
             };
         }
@@ -426,11 +528,16 @@
             { side: 'right', bbX: 940, bbY: 210, bbH: 110, rimX: 892, rimY: 288, rimW: 46, netAnim: 0 }
         ];
 
-        // Controls Handling
+        // Global Key Controls
         const keys = {};
         window.addEventListener('keydown', e => {
             getAudioContext();
             keys[e.code] = true;
+
+            // Instant Ball / Position Reset
+            if (e.code === 'KeyR') {
+                quickReset();
+            }
 
             // P1 Jump
             if (e.code === 'KeyW' && p1.onGround && !p1.isDunking) {
@@ -438,7 +545,7 @@
                 p1.onGround = false;
             }
 
-            // P1 Shoot Start / Dunk Trigger
+            // P1 Shot or Dunk
             if ((e.code === 'Space' || e.code === 'KeyF') && ball.holder === p1 && !p1.isCharging) {
                 if (canTriggerDunk(p1, hoops[1])) {
                     executeDunk(p1, hoops[1]);
@@ -448,7 +555,7 @@
                 }
             }
 
-            // P2 Controls (2P Mode)
+            // P2 Controls
             if (gameMode === '2P') {
                 if (e.code === 'ArrowUp' && p2.onGround && !p2.isDunking) {
                     p2.vy = -p2.jumpForce;
@@ -483,6 +590,11 @@
             }
         });
 
+        function quickReset() {
+            triggerBanner('PLAY RESET!');
+            resetRound(p1);
+        }
+
         function canTriggerDunk(player, targetHoop) {
             const distToRim = Math.abs((targetHoop.rimX + 23) - (player.x + player.width / 2));
             return distToRim < player.dunkReach && player.y < COURT_Y - 45;
@@ -490,7 +602,6 @@
 
         function executeDunk(player, targetHoop) {
             player.isDunking = true;
-            player.dunkTimer = 0;
             player.vx = 0;
             player.vy = -180;
 
@@ -504,7 +615,7 @@
                 ball.x = targetHoop.rimX + 23;
                 ball.y = targetHoop.rimY + 5;
                 ball.vx = 0;
-                ball.vy = 400;
+                ball.vy = 420;
                 targetHoop.netAnim = 1.0;
                 screenShake = 16;
                 playSound('dunk');
@@ -513,11 +624,11 @@
                 if (targetHoop.side === 'right') {
                     p1Score += 2;
                     document.getElementById('p1-score').innerText = p1Score;
-                    setTimeout(() => resetRound(p2), 600);
+                    setTimeout(() => resetRound(p2), 650);
                 } else {
                     p2Score += 2;
                     document.getElementById('p2-score').innerText = p2Score;
-                    setTimeout(() => resetRound(p1), 600);
+                    setTimeout(() => resetRound(p1), 650);
                 }
             }, 320);
         }
@@ -535,19 +646,16 @@
             const dist = Math.abs(dx);
 
             if (isGreenRelease) {
-                // Perfect Green Release
                 ball.isFireball = true;
                 ball.vx = dir * (265 + dist * 0.72);
                 ball.vy = -560 - (dist * 0.32);
-                triggerBanner('🔥 PERFECT RELEASE!');
+                triggerBanner('🔥 PERFECT GREEN!');
             } else if (player.chargeTimer > 0.75) {
-                // Overcharge Brick
                 ball.isFireball = false;
                 ball.vx = dir * (180 + dist * 0.5);
                 ball.vy = -640;
                 triggerBanner('BRICK!');
             } else {
-                // Standard Jump Shot
                 ball.isFireball = false;
                 const err = (1 - player.shotAccuracy) * (Math.random() - 0.5) * 80;
                 ball.vx = dir * (255 + dist * 0.72) + err;
@@ -600,6 +708,7 @@
             ball.holder = inboundPlayer;
             ball.vx = 0; ball.vy = 0;
             ball.isFireball = false;
+            ballStuckTimer = 0;
         }
 
         function endMatch() {
@@ -616,7 +725,6 @@
             document.getElementById('start-modal').style.display = 'flex';
         }
 
-        // Competitive State-Machine AI
         function updateAI(dt) {
             if (gameMode !== '1P' || !matchActive || p2.isDunking) return;
 
@@ -625,9 +733,7 @@
             const distToRim = (p2.x + p2.width / 2) - (hoop.rimX + 23);
 
             if (ball.holder === p2) {
-                // OFFENSIVE TACTICS
                 if (p2.dunkReach > 150 && distToRim > 100 && distToRim < 300) {
-                    // Drive to hoop for slam dunk
                     p2.vx = -p2.speed;
                     p2.facing = -1;
                     if (distToRim < p2.dunkReach && p2.onGround) {
@@ -639,7 +745,6 @@
                     p2.vx = -p2.speed;
                     p2.facing = -1;
                 } else {
-                    // Step back and shoot
                     p2.vx = 0;
                     if (p2.onGround && p2.aiDecisionTimer > 0.5) {
                         p2.vy = -p2.jumpForce;
@@ -647,50 +752,41 @@
                         p2.aiDecisionTimer = 0;
                         setTimeout(() => {
                             if (ball.holder === p2 && !p2.isDunking) {
-                                p2.chargeTimer = 0.45; // Hits green release
+                                p2.chargeTimer = 0.45;
                                 releaseJumpShot(p2, hoop);
                             }
                         }, 220);
                     }
                 }
             } else if (ball.holder === p1) {
-                // DEFENSIVE TACTICS
                 const guardDist = p2.x - p1.x;
-                if (guardDist > 90) {
-                    p2.vx = -p2.speed;
-                    p2.facing = -1;
-                } else if (guardDist < -50) {
-                    p2.vx = p2.speed;
-                    p2.facing = 1;
-                } else {
+                if (guardDist > 90) { p2.vx = -p2.speed; p2.facing = -1; }
+                else if (guardDist < -50) { p2.vx = p2.speed; p2.facing = 1; }
+                else {
                     p2.vx = 0;
-                    // Block jump shots
                     if (!p1.onGround && p2.onGround && Math.random() < 0.75) {
                         p2.vy = -p2.jumpForce;
                         p2.onGround = false;
                     }
                 }
             } else {
-                // LOOSE BALL PURSUIT
                 if (ball.x < p2.x - 16) { p2.vx = -p2.speed; p2.facing = -1; }
                 else if (ball.x > p2.x + 16) { p2.vx = p2.speed; p2.facing = 1; }
                 else p2.vx = 0;
 
-                if (ball.y < p2.y && p2.onGround && Math.abs(ball.x - p2.x) < 50) {
+                if (ball.y < p2.y && p2.onGround && Math.abs(ball.x - p2.x) < 60) {
                     p2.vy = -p2.jumpForce * 0.85;
                     p2.onGround = false;
                 }
             }
         }
 
-        // Physics Loop
         function updatePhysics(dt) {
             if (!matchActive) return;
 
-            // Screen shake dampening
-            if (screenShake > 0) screenShake *= 0.88;
+            if (screenShake > 0.5) screenShake *= 0.88;
 
-            // P1 Movement
+            // Player 1 Movement
             if (!p1.isDunking) {
                 if (keys['KeyA']) { p1.vx = -p1.speed; p1.facing = -1; }
                 else if (keys['KeyD']) { p1.vx = p1.speed; p1.facing = 1; }
@@ -699,7 +795,7 @@
                 if (p1.isCharging) p1.chargeTimer += dt;
             }
 
-            // P2 Movement (2P Mode)
+            // Player 2 Movement
             if (gameMode === '2P' && !p2.isDunking) {
                 if (keys['ArrowLeft']) { p2.vx = -p2.speed; p2.facing = -1; }
                 else if (keys['ArrowRight']) { p2.vx = p2.speed; p2.facing = 1; }
@@ -708,7 +804,7 @@
                 if (p2.isCharging) p2.chargeTimer += dt;
             }
 
-            // Gravity & Ground Checks
+            // Character Gravity & Court Clamping
             [p1, p2].forEach(p => {
                 if (!p.isDunking) {
                     p.vy += GRAVITY * dt;
@@ -720,12 +816,14 @@
                         p.vy = 0;
                         p.onGround = true;
                     }
-                    p.x = Math.max(65, Math.min(935 - p.width, p.x));
+                    // Prevent character leaving screen
+                    p.x = Math.max(45, Math.min(955 - p.width, p.x));
                 }
             });
 
-            // Ball Physics
+            // Ball Dynamics & Anti-OutOfBounds System
             if (ball.holder) {
+                ballStuckTimer = 0;
                 const h = ball.holder;
                 ball.x = h.x + (h.facing === 1 ? 36 : 8);
                 ball.y = h.isDunking ? h.y - 12 : h.y + 40;
@@ -737,7 +835,32 @@
                 ball.y += ball.vy * dt;
                 ball.rotation += ball.vx * 0.015;
 
-                // Fireball particle trail
+                // STUCK WATCHDOG: If loose for > 4.5s or glitched offscreen, auto reset possession
+                ballStuckTimer += dt;
+                if (ballStuckTimer > 4.5 || ball.x < 0 || ball.x > 1000 || ball.y > 620) {
+                    triggerBanner('BALL INBOUND!');
+                    resetRound(p1);
+                    return;
+                }
+
+                // Hard Boundary Walls: Ball CANNOT leave court sides
+                if (ball.x - ball.radius <= 35) {
+                    ball.x = 35 + ball.radius;
+                    ball.vx = Math.abs(ball.vx) * 0.75;
+                    playSound('bounce');
+                } else if (ball.x + ball.radius >= 965) {
+                    ball.x = 965 - ball.radius;
+                    ball.vx = -Math.abs(ball.vx) * 0.75;
+                    playSound('bounce');
+                }
+
+                // Hard Boundary Ceiling
+                if (ball.y - ball.radius <= 10) {
+                    ball.y = 10 + ball.radius;
+                    ball.vy = Math.abs(ball.vy) * 0.75;
+                }
+
+                // Fireball trail particles
                 if (ball.isFireball) {
                     particles.push({
                         x: ball.x, y: ball.y,
@@ -767,7 +890,7 @@
                         playSound('bounce');
                     }
 
-                    // Rim Clanks
+                    // Rim Iron Clanks
                     [h.rimX, h.rimX + h.rimW].forEach(rx => {
                         if (Math.hypot(ball.x - rx, ball.y - h.rimY) < ball.radius + 3) {
                             ball.vy = -ball.vy * 0.58;
@@ -777,7 +900,7 @@
                         }
                     });
 
-                    // Scoring Through Rim
+                    // Scoring Condition
                     if (ball.vy > 0 && ball.y >= h.rimY - 4 && ball.y <= h.rimY + 12 &&
                         ball.x > h.rimX + 4 && ball.x < h.rimX + h.rimW - 4) {
 
@@ -798,15 +921,14 @@
                         ball.isFireball = false;
                     }
 
-                    // Dampen net animation
                     if (h.netAnim > 0) h.netAnim -= dt * 2;
                 });
 
-                // Steals & Rebounds
+                // Rebound & Catching Hitbox
                 [p1, p2].forEach(p => {
                     const cx = p.x + p.width / 2;
                     const cy = p.y + p.height / 2;
-                    if (Math.hypot(cx - ball.x, cy - ball.y) < 42 && ball.vy > -140) {
+                    if (Math.hypot(cx - ball.x, cy - ball.y) < 46 && ball.vy > -140) {
                         ball.holder = p;
                         ball.lastTouchedBy = p;
                         ball.isFireball = false;
@@ -814,7 +936,7 @@
                 });
             }
 
-            // Particles Update
+            // Particle Updates
             for (let i = particles.length - 1; i >= 0; i--) {
                 const pt = particles[i];
                 pt.x += pt.vx;
@@ -824,7 +946,7 @@
             }
         }
 
-        // Render Graphics & Comic Sprites
+        // Render Artwork
         function render() {
             ctx.save();
             if (screenShake > 0.5) {
@@ -840,7 +962,6 @@
             ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, canvas.width, COURT_Y);
 
-            // Bleacher rows with crowd silhouettes
             for (let r = 0; r < 4; r++) {
                 const rowY = 80 + r * 44;
                 ctx.fillStyle = `rgba(30, 10, 60, ${0.4 + r * 0.15})`;
@@ -861,18 +982,18 @@
             ctx.fillStyle = woodGrad;
             ctx.fillRect(0, COURT_Y, canvas.width, canvas.height - COURT_Y);
 
-            // Polished Court Lines
+            // Out-of-bounds Border Line
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 4;
-            ctx.strokeRect(30, COURT_Y, canvas.width - 60, canvas.height - COURT_Y - 14);
+            ctx.strokeRect(35, COURT_Y, canvas.width - 70, canvas.height - COURT_Y - 14);
 
+            // Center Key Circle
             ctx.beginPath();
             ctx.arc(canvas.width / 2, COURT_Y, 78, Math.PI, 0);
             ctx.stroke();
 
-            // 3. Hoops & Dynamic Net
+            // 3. Hoops
             hoops.forEach(h => {
-                // Post
                 ctx.fillStyle = '#1e293b';
                 const px = h.side === 'left' ? h.bbX - 16 : h.bbX + 16;
                 ctx.fillRect(px, h.bbY, 16, COURT_Y - h.bbY);
@@ -892,7 +1013,7 @@
                 ctx.lineTo(h.rimX + h.rimW, h.rimY);
                 ctx.stroke();
 
-                // Dynamic Swishing Net
+                // Dynamic Net Swish
                 const swing = Math.sin(performance.now() * 0.02) * 12 * h.netAnim;
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 2;
@@ -904,38 +1025,36 @@
                 ctx.stroke();
             });
 
-            // 4. Draw Characters
+            // 4. Athletes
             [p1, p2].forEach(p => {
                 const bounce = Math.sin(performance.now() * 0.009) * 3;
 
-                // Player Shadow
+                // Shadow
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
                 ctx.beginPath();
                 ctx.ellipse(p.x + p.width/2, COURT_Y - 4, 25, 7, 0, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Sneakers
+                // Shoes
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(p.x + (p.facing === 1 ? 4 : 22), p.y + p.height - 14, 18, 12);
                 ctx.fillStyle = p.accentColor;
                 ctx.fillRect(p.x + (p.facing === 1 ? 4 : 22), p.y + p.height - 6, 18, 4);
 
-                // Jersey & Torso
+                // Jersey
                 ctx.fillStyle = p.primaryColor;
                 ctx.beginPath();
                 ctx.roundRect(p.x + 8, p.y + 36 + bounce, 28, 40, 6);
                 ctx.fill();
-
                 ctx.fillStyle = p.accentColor;
                 ctx.fillRect(p.x + 8, p.y + 42 + bounce, 28, 6);
 
-                // Big Cartoon Head
+                // Head
                 ctx.fillStyle = p.skinColor;
                 ctx.beginPath();
                 ctx.arc(p.x + 22, p.y + 20 + bounce, 23, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Beard
                 if (p.beard) {
                     ctx.fillStyle = '#171717';
                     ctx.beginPath();
@@ -947,7 +1066,7 @@
                 ctx.fillStyle = p.headband;
                 ctx.fillRect(p.x + 2, p.y + 6 + bounce, 40, 8);
 
-                // Eyes & Smirk
+                // Face
                 const eyeOffset = p.facing === 1 ? 6 : -6;
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
@@ -958,28 +1077,26 @@
                 ctx.arc(p.x + 23 + eyeOffset, p.y + 18 + bounce, 2.5, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Sweet-Spot Shot Gauge
+                // Shot Gauge
                 if (p.isCharging && ball.holder === p) {
                     const meterW = 50;
                     const meterX = p.x - 3;
                     const meterY = p.y - 18;
 
-                    // Meter BG
                     ctx.fillStyle = 'rgba(0,0,0,0.8)';
                     ctx.fillRect(meterX, meterY, meterW, 8);
 
-                    // Green Sweet Spot Zone (0.45s mark)
+                    // Green release point
                     ctx.fillStyle = '#22c55e';
                     ctx.fillRect(meterX + (meterW * 0.45) - 4, meterY, 8, 8);
 
-                    // Active Pointer
                     const fillW = Math.min(1.0, p.chargeTimer / 0.85) * meterW;
                     ctx.fillStyle = '#facc15';
                     ctx.fillRect(meterX, meterY + 1, fillW, 6);
                 }
             });
 
-            // 5. Basketball & Flame Particle Render
+            // 5. Basketball
             particles.forEach(pt => {
                 ctx.fillStyle = pt.color;
                 ctx.fillRect(pt.x, pt.y, 4, 4);
@@ -997,7 +1114,6 @@
             ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
             ctx.fill();
 
-            // Ball Seams
             ctx.strokeStyle = '#1e293b';
             ctx.lineWidth = 1.5;
             ctx.beginPath();
@@ -1008,7 +1124,7 @@
             ctx.restore();
         }
 
-        // Main Loop with Capped Delta Time
+        // Loop
         let lastTime = performance.now();
         function mainLoop(time) {
             requestAnimationFrame(mainLoop);
