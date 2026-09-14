@@ -3,30 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hoops Legends 1v1</title>
+    <title>Hoops Legends: All-Stars</title>
     <style>
         :root {
             --gold: #facc15;
-            --purple-main: #4c1d95;
-            --purple-dark: #2e1065;
-            --court-wood: #df9755;
-            --accent-glow: #a855f7;
+            --purple-dark: #1e0b36;
+            --purple-card: #2d1254;
+            --accent: #ec4899;
+            --court-wood: #d97706;
+            --green: #22c55e;
+            --red: #ef4444;
         }
-        * { box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
         body {
-            background: #0f0728;
+            background: #0d041a;
             color: #fff;
             font-family: 'Impact', 'Arial Black', sans-serif;
             text-align: center;
             margin: 0;
-            padding: 8px;
+            padding: 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             overflow: hidden;
-            touch-action: none;
         }
 
         #game-wrapper {
@@ -34,16 +35,16 @@
             height: 600px;
             max-width: 100%;
             max-height: 85vh;
-            border: 4px solid #7e22ce;
+            border: 4px solid #9333ea;
             border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(126, 34, 206, 0.4);
+            box-shadow: 0 10px 50px rgba(147, 51, 234, 0.45);
             position: relative;
             overflow: hidden;
-            background: #110726;
+            background: #12072b;
         }
         #game-canvas { width: 100%; height: 100%; display: block; }
 
-        /* Arcade Scoreboard */
+        /* Top HUD Scoreboard */
         #scoreboard {
             position: absolute;
             top: 10px;
@@ -51,112 +52,128 @@
             transform: translateX(-50%);
             display: flex;
             align-items: center;
-            background: linear-gradient(180deg, #6b21a8, #3b0764);
+            background: linear-gradient(180deg, #581c87, #2e1065);
             border: 3px solid #c084fc;
             border-radius: 14px;
-            padding: 4px 18px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            padding: 4px 20px;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.7);
             z-index: 10;
             gap: 16px;
         }
-        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 70px; }
-        .team-title { font-size: 0.75rem; color: #e9d5ff; letter-spacing: 1px; }
+        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 90px; }
+        .team-title { font-size: 0.8rem; color: #e9d5ff; letter-spacing: 1px; }
         .score-num { font-size: 2.2rem; line-height: 1; font-weight: 900; color: #fff; text-shadow: 2px 2px #000; }
         .timer-box {
-            background: #1e1b4b;
+            background: #0f172a;
             border: 2px solid var(--gold);
             border-radius: 8px;
-            padding: 2px 14px;
+            padding: 4px 16px;
             text-align: center;
         }
-        .timer-num { font-size: 1.6rem; color: var(--gold); font-family: monospace; font-weight: 900; }
+        .timer-num { font-size: 1.8rem; color: var(--gold); font-family: monospace; font-weight: 900; }
 
         /* Comic Popups */
         #banner-popup {
             position: absolute;
-            top: 100px;
+            top: 90px;
             left: 50%;
             transform: translateX(-50%) scale(0);
-            background: #fbbf24;
-            color: #7c2d12;
+            background: #f59e0b;
+            color: #451a03;
             padding: 8px 30px;
             font-size: 2.2rem;
             font-weight: 900;
             border: 4px solid #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
             pointer-events: none;
             z-index: 30;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Overlay Menus */
+        /* Screen Overlays */
         .overlay {
             position: absolute;
             inset: 0;
-            background: rgba(15, 7, 40, 0.92);
+            background: rgba(13, 4, 26, 0.95);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 50;
-            padding: 20px;
+            padding: 14px;
         }
-        .menu-title {
-            font-size: 3.2rem;
+        .title {
+            font-size: 3rem;
             color: var(--gold);
-            text-shadow: 3px 3px 0 #ea580c, 6px 6px 0 #000;
-            margin: 0 0 16px 0;
+            text-shadow: 3px 3px 0 #d97706, 6px 6px 0 #000;
+            margin: 0 0 10px 0;
             letter-spacing: 2px;
         }
-        .menu-card {
-            background: #2e1065;
-            border: 3px solid #a855f7;
-            border-radius: 16px;
-            padding: 24px;
-            width: 460px;
-            max-width: 90%;
+
+        /* Roster Grid */
+        .roster-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            max-width: 880px;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+        .roster-card {
+            background: var(--purple-card);
+            border: 3px solid #7e22ce;
+            border-radius: 12px;
+            padding: 10px 6px;
+            cursor: pointer;
+            transition: transform 0.12s, border-color 0.12s;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            box-shadow: 0 0 35px rgba(168, 85, 247, 0.4);
+            align-items: center;
         }
+        .roster-card:hover { transform: translateY(-3px); border-color: var(--gold); }
+        .roster-card.active { border-color: var(--gold); background: #4c1d95; box-shadow: 0 0 16px var(--gold); }
+        .card-name { font-size: 1.1rem; color: #fff; margin-bottom: 4px; }
+        .card-type { font-size: 0.65rem; color: #cbd5e1; font-family: sans-serif; text-transform: uppercase; margin-bottom: 6px; }
+        .card-stat { font-size: 0.72rem; color: #facc15; font-family: sans-serif; text-align: left; width: 85%; }
+
+        .btn-row { display: flex; gap: 14px; margin-top: 6px; }
         .btn {
             background: linear-gradient(180deg, #facc15, #eab308);
             color: #000;
             border: 3px solid #fff;
-            padding: 12px 18px;
-            font-size: 1.2rem;
+            padding: 10px 24px;
+            font-size: 1.25rem;
             font-family: inherit;
             font-weight: 900;
             border-radius: 10px;
             cursor: pointer;
             box-shadow: 0 5px 0 #a16207;
-            transition: all 0.1s ease;
+            transition: all 0.08s;
         }
-        .btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
         .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #a16207; }
-
-        .btn-secondary {
+        .btn-blue {
             background: linear-gradient(180deg, #06b6d4, #0891b2);
             box-shadow: 0 5px 0 #0e7490;
             color: #fff;
         }
 
-        .controls-panel {
-            margin-top: 10px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            text-align: left;
-            font-size: 0.75rem;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 8px;
-            padding: 10px;
-            border: 1px solid #475569;
+        /* Controls Footer */
+        .controls-bar {
+            width: 1000px;
+            max-width: 100%;
+            background: #1e1138;
+            border: 2px solid #581c87;
+            border-radius: 10px;
+            margin-top: 6px;
+            padding: 6px 14px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 0.76rem;
+            font-family: 'Segoe UI', sans-serif;
+            color: #cbd5e1;
         }
-        .controls-panel h4 { margin: 0 0 4px 0; font-size: 0.85rem; color: var(--gold); }
+        .controls-bar strong { color: var(--gold); }
     </style>
 </head>
 <body>
@@ -166,56 +183,47 @@
 
         <div id="scoreboard">
             <div class="team-box">
-                <span class="team-title" id="p1-label">PLAYER 1</span>
+                <span class="team-title" id="p1-name-display">LEBRON</span>
                 <span class="score-num" id="p1-score">0</span>
             </div>
             <div class="timer-box">
                 <div class="timer-num" id="match-clock">60</div>
             </div>
             <div class="team-box">
-                <span class="team-title" id="p2-label">RIVAL AI</span>
+                <span class="team-title" id="p2-name-display">CURRY (AI)</span>
                 <span class="score-num" id="p2-score">0</span>
             </div>
         </div>
 
         <div id="banner-popup">SWISH!</div>
 
-        <!-- Start Menu -->
+        <!-- Character Selection & Mode Overlay -->
         <div id="start-modal" class="overlay">
-            <h1 class="menu-title">HOOPS LEGENDS</h1>
-            <div class="menu-card">
-                <button class="btn" onclick="startMatch('1P')">👤 1 PLAYER (VS AI)</button>
-                <button class="btn btn-secondary" onclick="startMatch('2P')">👥 2 PLAYERS (LOCAL 1v1)</button>
+            <h1 class="title">HOOPS LEGENDS ARENA</h1>
 
-                <div class="controls-panel">
-                    <div>
-                        <h4>PLAYER 1</h4>
-                        <strong>Move:</strong> A / D<br>
-                        <strong>Jump:</strong> W<br>
-                        <strong>Shoot / Steal:</strong> Space / F
-                    </div>
-                    <div>
-                        <h4>PLAYER 2</h4>
-                        <strong>Move:</strong> ◀ / ▶<br>
-                        <strong>Jump:</strong> ▲<br>
-                        <strong>Shoot / Steal:</strong> L / Enter
-                    </div>
-                </div>
+            <div class="roster-grid" id="roster-container"></div>
+
+            <div class="btn-row">
+                <button class="btn" onclick="startMatch('1P')">▶ VS AI</button>
+                <button class="btn btn-blue" onclick="startMatch('2P')">👥 LOCAL 2P</button>
             </div>
         </div>
 
-        <!-- Match Over Modal -->
+        <!-- Match Over Overlay -->
         <div id="end-modal" class="overlay" style="display: none;">
-            <h1 class="menu-title" id="end-title">FINAL WHISTLE</h1>
-            <div class="menu-card">
-                <h2 id="final-score-text" style="color:var(--gold); margin:0 0 10px 0;">0 - 0</h2>
-                <button class="btn" onclick="openStartMenu()">🔄 Main Menu</button>
-            </div>
+            <h1 class="title" id="end-title">FINAL BUZZER</h1>
+            <h2 id="final-score-text" style="color:var(--gold); font-size:2.4rem; margin:10px 0;">0 - 0</h2>
+            <button class="btn" onclick="showSelectMenu()">🔄 PLAY AGAIN</button>
         </div>
     </div>
 
+    <div class="controls-bar">
+        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Tap: Jumper | Hold: Sweet-Spot Shot | Run at Rim: Slam Dunk!</div>
+        <div><strong>P2:</strong> [◀]/[▶] Move | [▲] Jump | [L/ENTER] Shoot / Slam Dunk</div>
+    </div>
+
     <script>
-        // Web Audio Synthesizer
+        // Synthesizer Audio Engine
         let audioCtx = null;
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -223,154 +231,236 @@
             return audioCtx;
         }
 
-        function soundBounce() {
+        function playSound(type) {
             try {
                 const ctx = getAudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(140, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.start(); osc.stop(ctx.currentTime + 0.08);
+                if (!ctx) return;
+                const now = ctx.currentTime;
+
+                if (type === 'bounce') {
+                    const osc = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    osc.frequency.setValueAtTime(130, now);
+                    osc.frequency.exponentialRampToValueAtTime(45, now + 0.08);
+                    g.gain.setValueAtTime(0.3, now);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(); osc.stop(now + 0.08);
+                } else if (type === 'rim') {
+                    const osc = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(950, now);
+                    osc.frequency.exponentialRampToValueAtTime(320, now + 0.15);
+                    g.gain.setValueAtTime(0.3, now);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(); osc.stop(now + 0.15);
+                } else if (type === 'swish') {
+                    const bSize = ctx.sampleRate * 0.18;
+                    const b = ctx.createBuffer(1, bSize, ctx.sampleRate);
+                    const d = b.getChannelData(0);
+                    for (let i = 0; i < bSize; i++) d[i] = Math.random() * 2 - 1;
+                    const src = ctx.createBufferSource();
+                    src.buffer = b;
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 2400;
+                    const g = ctx.createGain();
+                    g.gain.setValueAtTime(0.4, now);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+                    src.connect(filter); filter.connect(g); g.connect(ctx.destination);
+                    src.start();
+                } else if (type === 'dunk') {
+                    const osc = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+                    g.gain.setValueAtTime(0.5, now);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(); osc.stop(now + 0.25);
+                }
             } catch(e){}
         }
 
-        function soundRim() {
-            try {
-                const ctx = getAudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(980, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.14);
-                gain.gain.setValueAtTime(0.25, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.14);
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.start(); osc.stop(ctx.currentTime + 0.14);
-            } catch(e){}
-        }
+        // Legends Roster Configuration
+        const ROSTER = [
+            {
+                id: 'lebron',
+                name: 'KING JAMES',
+                type: 'Power Dunker',
+                speed: 340,
+                jumpForce: 630,
+                shotAccuracy: 0.82,
+                dunkReach: 170,
+                primaryColor: '#581c87',
+                accentColor: '#facc15',
+                skinColor: '#854d0e',
+                beard: true,
+                headband: '#000000'
+            },
+            {
+                id: 'curry',
+                name: 'CHEF CURRY',
+                type: 'Sharpshooter',
+                speed: 350,
+                jumpForce: 590,
+                shotAccuracy: 0.98,
+                dunkReach: 95,
+                primaryColor: '#1d4ed8',
+                accentColor: '#facc15',
+                skinColor: '#ca8a04',
+                beard: true,
+                headband: '#ffffff'
+            },
+            {
+                id: 'jordan',
+                name: 'AIR MJ',
+                type: 'Flying Hangtime',
+                speed: 365,
+                jumpForce: 670,
+                shotAccuracy: 0.90,
+                dunkReach: 180,
+                primaryColor: '#dc2626',
+                accentColor: '#ffffff',
+                skinColor: '#78350f',
+                beard: false,
+                headband: '#dc2626'
+            },
+            {
+                id: 'lamelo',
+                name: 'LAMELO',
+                type: 'Speed Playmaker',
+                speed: 385,
+                jumpForce: 605,
+                shotAccuracy: 0.86,
+                dunkReach: 130,
+                primaryColor: '#0d9488',
+                accentColor: '#7e22ce',
+                skinColor: '#d97706',
+                beard: false,
+                headband: '#0d9488'
+            }
+        ];
 
-        function soundSwish() {
-            try {
-                const ctx = getAudioContext();
-                const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.18, ctx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-                const noise = ctx.createBufferSource();
-                noise.buffer = buffer;
-                const filter = ctx.createBiquadFilter();
-                filter.type = 'bandpass';
-                filter.frequency.value = 2200;
-                const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.4, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
-                noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-                noise.start();
-            } catch(e){}
-        }
+        let selectedP1Index = 0;
+        let selectedP2Index = 1;
 
-        // Court Dimensions & State
+        // Render Character Select Grid
+        const rosterContainer = document.getElementById('roster-container');
+        ROSTER.forEach((legend, idx) => {
+            const card = document.createElement('div');
+            card.className = `roster-card ${idx === 0 ? 'active' : ''}`;
+            card.id = `card-${idx}`;
+            card.innerHTML = `
+                <div class="card-name">${legend.name}</div>
+                <div class="card-type">${legend.type}</div>
+                <div class="card-stat">⚡ Speed: ${Math.round(legend.speed / 4)}</div>
+                <div class="card-stat">🚀 Jump: ${Math.round(legend.jumpForce / 7)}</div>
+                <div class="card-stat">🎯 3PT: ${Math.round(legend.shotAccuracy * 100)}%</div>
+                <div class="card-stat">💥 Dunk: ${legend.dunkReach > 150 ? 'ELITE' : 'NORMAL'}</div>
+            `;
+            card.onclick = () => {
+                document.querySelectorAll('.roster-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                selectedP1Index = idx;
+                // Auto pick rival AI
+                selectedP2Index = (idx + 1) % ROSTER.length;
+            };
+            rosterContainer.appendChild(card);
+        });
+
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         const GRAVITY = 1150;
-        const COURT_Y = 510;
+        const COURT_Y = 515;
 
-        let gameMode = '1P'; 
+        let gameMode = '1P';
         let matchActive = false;
         let p1Score = 0;
         let p2Score = 0;
         let timeLeft = 60;
-        let clockInterval = null;
+        let clockTimer = null;
+        let particles = [];
+        let screenShake = 0;
 
-        // Player Models
-        const p1 = {
-            id: 'p1',
-            x: 230,
-            y: COURT_Y - 95,
-            vx: 0,
-            vy: 0,
-            width: 44,
-            height: 95,
-            speed: 360,
-            jumpForce: 630,
-            onGround: true,
-            isCharging: false,
-            chargeTimer: 0,
-            hasBall: true,
-            facing: 1,
-            jerseyColor: '#dc2626',
-            jerseyTrim: '#ffffff',
-            skinColor: '#a16207',
-            headband: '#ffffff'
-        };
+        // Player Entities
+        function createPlayer(legend, startX, facing) {
+            return {
+                ...legend,
+                x: startX,
+                y: COURT_Y - 95,
+                vx: 0,
+                vy: 0,
+                width: 44,
+                height: 95,
+                facing: facing,
+                onGround: true,
+                isCharging: false,
+                chargeTimer: 0,
+                isDunking: false,
+                dunkTimer: 0,
+                aiDecisionTimer: 0
+            };
+        }
 
-        const p2 = {
-            id: 'p2',
-            x: 730,
-            y: COURT_Y - 95,
-            vx: 0,
-            vy: 0,
-            width: 44,
-            height: 95,
-            speed: 330,
-            jumpForce: 630,
-            onGround: true,
-            isCharging: false,
-            chargeTimer: 0,
-            hasBall: false,
-            facing: -1,
-            jerseyColor: '#facc15',
-            jerseyTrim: '#7e22ce',
-            skinColor: '#78350f',
-            headband: '#7e22ce',
-            aiTimer: 0
-        };
+        let p1 = createPlayer(ROSTER[0], 230, 1);
+        let p2 = createPlayer(ROSTER[1], 730, -1);
 
         const ball = {
-            x: p1.x + 20,
-            y: p1.y + 10,
+            x: 250,
+            y: COURT_Y - 80,
             vx: 0,
             vy: 0,
             radius: 13,
-            holder: p1,
-            lastTouchedBy: p1,
-            rotation: 0
+            holder: null,
+            lastTouchedBy: null,
+            rotation: 0,
+            isFireball: false
         };
 
         const hoops = [
-            { side: 'left', bbX: 52, bbY: 210, bbH: 105, rimX: 62, rimY: 285, rimW: 46 },
-            { side: 'right', bbX: 940, bbY: 210, bbH: 105, rimX: 892, rimY: 285, rimW: 46 }
+            { side: 'left', bbX: 52, bbY: 210, bbH: 110, rimX: 62, rimY: 288, rimW: 46, netAnim: 0 },
+            { side: 'right', bbX: 940, bbY: 210, bbH: 110, rimX: 892, rimY: 288, rimW: 46, netAnim: 0 }
         ];
 
-        // Key Listeners
+        // Controls Handling
         const keys = {};
         window.addEventListener('keydown', e => {
             getAudioContext();
             keys[e.code] = true;
 
             // P1 Jump
-            if ((e.code === 'KeyW') && p1.onGround) {
+            if (e.code === 'KeyW' && p1.onGround && !p1.isDunking) {
                 p1.vy = -p1.jumpForce;
                 p1.onGround = false;
             }
-            // P1 Charge Shot
+
+            // P1 Shoot Start / Dunk Trigger
             if ((e.code === 'Space' || e.code === 'KeyF') && ball.holder === p1 && !p1.isCharging) {
-                p1.isCharging = true;
-                p1.chargeTimer = 0;
+                if (canTriggerDunk(p1, hoops[1])) {
+                    executeDunk(p1, hoops[1]);
+                } else {
+                    p1.isCharging = true;
+                    p1.chargeTimer = 0;
+                }
             }
 
-            // P2 Jump (Multiplayer)
+            // P2 Controls (2P Mode)
             if (gameMode === '2P') {
-                if (e.code === 'ArrowUp' && p2.onGround) {
+                if (e.code === 'ArrowUp' && p2.onGround && !p2.isDunking) {
                     p2.vy = -p2.jumpForce;
                     p2.onGround = false;
                 }
                 if ((e.code === 'KeyL' || e.code === 'Enter') && ball.holder === p2 && !p2.isCharging) {
-                    p2.isCharging = true;
-                    p2.chargeTimer = 0;
+                    if (canTriggerDunk(p2, hoops[0])) {
+                        executeDunk(p2, hoops[0]);
+                    } else {
+                        p2.isCharging = true;
+                        p2.chargeTimer = 0;
+                    }
                 }
             }
         });
@@ -379,39 +469,98 @@
             keys[e.code] = false;
 
             // Release P1 Shot
-            if (e.code === 'Space' || e.code === 'KeyF') {
-                if (p1.isCharging && ball.holder === p1) shootBall(p1, p1.chargeTimer);
+            if ((e.code === 'Space' || e.code === 'KeyF') && p1.isCharging) {
+                if (ball.holder === p1) releaseJumpShot(p1, hoops[1]);
                 p1.isCharging = false;
                 p1.chargeTimer = 0;
             }
 
             // Release P2 Shot
-            if (gameMode === '2P' && (e.code === 'KeyL' || e.code === 'Enter')) {
-                if (p2.isCharging && ball.holder === p2) shootBall(p2, p2.chargeTimer);
+            if (gameMode === '2P' && (e.code === 'KeyL' || e.code === 'Enter') && p2.isCharging) {
+                if (ball.holder === p2) releaseJumpShot(p2, hoops[0]);
                 p2.isCharging = false;
                 p2.chargeTimer = 0;
             }
         });
 
-        function shootBall(shooter, charge) {
+        function canTriggerDunk(player, targetHoop) {
+            const distToRim = Math.abs((targetHoop.rimX + 23) - (player.x + player.width / 2));
+            return distToRim < player.dunkReach && player.y < COURT_Y - 45;
+        }
+
+        function executeDunk(player, targetHoop) {
+            player.isDunking = true;
+            player.dunkTimer = 0;
+            player.vx = 0;
+            player.vy = -180;
+
+            const targetX = targetHoop.side === 'right' ? targetHoop.rimX - 10 : targetHoop.rimX + 30;
+            player.x = targetX;
+
+            setTimeout(() => {
+                if (!player.isDunking) return;
+                player.isDunking = false;
+                ball.holder = null;
+                ball.x = targetHoop.rimX + 23;
+                ball.y = targetHoop.rimY + 5;
+                ball.vx = 0;
+                ball.vy = 400;
+                targetHoop.netAnim = 1.0;
+                screenShake = 16;
+                playSound('dunk');
+                triggerBanner('💥 MONSTER SLAM!');
+
+                if (targetHoop.side === 'right') {
+                    p1Score += 2;
+                    document.getElementById('p1-score').innerText = p1Score;
+                    setTimeout(() => resetRound(p2), 600);
+                } else {
+                    p2Score += 2;
+                    document.getElementById('p2-score').innerText = p2Score;
+                    setTimeout(() => resetRound(p1), 600);
+                }
+            }, 320);
+        }
+
+        function releaseJumpShot(player, targetHoop) {
             ball.holder = null;
-            ball.lastTouchedBy = shooter;
+            ball.lastTouchedBy = player;
 
-            const targetHoop = (shooter === p1) ? hoops[1] : hoops[0];
-            const dist = (targetHoop.rimX + 23) - shooter.x;
-            const dir = Math.sign(dist);
-            const shotFactor = Math.min(1.0, Math.max(0.2, charge * 1.7));
+            const sweetSpot = 0.45;
+            const diff = Math.abs(player.chargeTimer - sweetSpot);
+            const isGreenRelease = diff < 0.12;
 
-            ball.vx = dir * (260 + Math.abs(dist) * 0.72) * shotFactor;
-            ball.vy = -540 - (Math.abs(dist) * 0.32);
-            soundBounce();
+            const dx = (targetHoop.rimX + 23) - player.x;
+            const dir = Math.sign(dx);
+            const dist = Math.abs(dx);
+
+            if (isGreenRelease) {
+                // Perfect Green Release
+                ball.isFireball = true;
+                ball.vx = dir * (265 + dist * 0.72);
+                ball.vy = -560 - (dist * 0.32);
+                triggerBanner('🔥 PERFECT RELEASE!');
+            } else if (player.chargeTimer > 0.75) {
+                // Overcharge Brick
+                ball.isFireball = false;
+                ball.vx = dir * (180 + dist * 0.5);
+                ball.vy = -640;
+                triggerBanner('BRICK!');
+            } else {
+                // Standard Jump Shot
+                ball.isFireball = false;
+                const err = (1 - player.shotAccuracy) * (Math.random() - 0.5) * 80;
+                ball.vx = dir * (255 + dist * 0.72) + err;
+                ball.vy = -550 - (dist * 0.32);
+            }
+            playSound('bounce');
         }
 
         function triggerBanner(text) {
             const b = document.getElementById('banner-popup');
             b.innerText = text;
             b.style.transform = 'translateX(-50%) scale(1.15)';
-            setTimeout(() => { b.style.transform = 'translateX(-50%) scale(0)'; }, 1000);
+            setTimeout(() => { b.style.transform = 'translateX(-50%) scale(0)'; }, 900);
         }
 
         function startMatch(mode) {
@@ -421,95 +570,137 @@
             timeLeft = 60;
             matchActive = true;
 
+            p1 = createPlayer(ROSTER[selectedP1Index], 230, 1);
+            p2 = createPlayer(ROSTER[selectedP2Index], 730, -1);
+
+            document.getElementById('p1-name-display').innerText = p1.name;
+            document.getElementById('p2-name-display').innerText = gameMode === '1P' ? `${p2.name} (AI)` : p2.name;
             document.getElementById('p1-score').innerText = '0';
             document.getElementById('p2-score').innerText = '0';
             document.getElementById('match-clock').innerText = '60';
-            document.getElementById('p2-label').innerText = (gameMode === '1P') ? 'RIVAL AI' : 'PLAYER 2';
+
             document.getElementById('start-modal').style.display = 'none';
             document.getElementById('end-modal').style.display = 'none';
 
             resetRound(p1);
 
-            if (clockInterval) clearInterval(clockInterval);
-            clockInterval = setInterval(() => {
+            if (clockTimer) clearInterval(clockTimer);
+            clockTimer = setInterval(() => {
                 if (matchActive && timeLeft > 0) {
                     timeLeft--;
                     document.getElementById('match-clock').innerText = timeLeft;
-                    if (timeLeft <= 0) finishMatch();
+                    if (timeLeft <= 0) endMatch();
                 }
             }, 1000);
         }
 
         function resetRound(inboundPlayer) {
-            p1.x = 220; p1.y = COURT_Y - p1.height; p1.vx = 0; p1.vy = 0;
-            p2.x = 730; p2.y = COURT_Y - p2.height; p2.vx = 0; p2.vy = 0;
+            p1.x = 220; p1.y = COURT_Y - p1.height; p1.vx = 0; p1.vy = 0; p1.isDunking = false;
+            p2.x = 730; p2.y = COURT_Y - p2.height; p2.vx = 0; p2.vy = 0; p2.isDunking = false;
             ball.holder = inboundPlayer;
             ball.vx = 0; ball.vy = 0;
+            ball.isFireball = false;
         }
 
-        function finishMatch() {
+        function endMatch() {
             matchActive = false;
-            clearInterval(clockInterval);
+            clearInterval(clockTimer);
             document.getElementById('end-modal').style.display = 'flex';
-            const winner = p1Score > p2Score ? 'PLAYER 1 WINS!' : (p2Score > p1Score ? (gameMode === '1P' ? 'AI WINS!' : 'PLAYER 2 WINS!') : 'IT\'S A TIE!');
+            const winner = p1Score > p2Score ? `${p1.name} WINS!` : (p2Score > p1Score ? `${p2.name} WINS!` : 'DRAW MATCH!');
             document.getElementById('end-title').innerText = winner;
             document.getElementById('final-score-text').innerText = `${p1Score} - ${p2Score}`;
         }
 
-        function openStartMenu() {
+        function showSelectMenu() {
             document.getElementById('end-modal').style.display = 'none';
             document.getElementById('start-modal').style.display = 'flex';
         }
 
+        // Competitive State-Machine AI
         function updateAI(dt) {
-            if (gameMode !== '1P' || !matchActive) return;
+            if (gameMode !== '1P' || !matchActive || p2.isDunking) return;
 
-            p2.aiTimer += dt;
-            const targetHoop = hoops[0];
-            const distToRim = p2.x - (targetHoop.rimX + 23);
+            p2.aiDecisionTimer += dt;
+            const hoop = hoops[0];
+            const distToRim = (p2.x + p2.width / 2) - (hoop.rimX + 23);
 
             if (ball.holder === p2) {
-                if (distToRim > 290) {
+                // OFFENSIVE TACTICS
+                if (p2.dunkReach > 150 && distToRim > 100 && distToRim < 300) {
+                    // Drive to hoop for slam dunk
                     p2.vx = -p2.speed;
-                } else {
-                    p2.vx = 0;
-                    if (p2.onGround && p2.aiTimer > 0.6) {
+                    p2.facing = -1;
+                    if (distToRim < p2.dunkReach && p2.onGround) {
                         p2.vy = -p2.jumpForce;
                         p2.onGround = false;
-                        setTimeout(() => { if (ball.holder === p2) shootBall(p2, 0.7); }, 220);
-                        p2.aiTimer = 0;
+                        setTimeout(() => executeDunk(p2, hoop), 100);
+                    }
+                } else if (distToRim > 260) {
+                    p2.vx = -p2.speed;
+                    p2.facing = -1;
+                } else {
+                    // Step back and shoot
+                    p2.vx = 0;
+                    if (p2.onGround && p2.aiDecisionTimer > 0.5) {
+                        p2.vy = -p2.jumpForce;
+                        p2.onGround = false;
+                        p2.aiDecisionTimer = 0;
+                        setTimeout(() => {
+                            if (ball.holder === p2 && !p2.isDunking) {
+                                p2.chargeTimer = 0.45; // Hits green release
+                                releaseJumpShot(p2, hoop);
+                            }
+                        }, 220);
                     }
                 }
             } else if (ball.holder === p1) {
-                const pDist = p2.x - p1.x;
-                if (pDist > 90) p2.vx = -p2.speed;
-                else if (pDist < -50) p2.vx = p2.speed;
-                else {
+                // DEFENSIVE TACTICS
+                const guardDist = p2.x - p1.x;
+                if (guardDist > 90) {
+                    p2.vx = -p2.speed;
+                    p2.facing = -1;
+                } else if (guardDist < -50) {
+                    p2.vx = p2.speed;
+                    p2.facing = 1;
+                } else {
                     p2.vx = 0;
-                    if (!p1.onGround && p2.onGround && Math.random() < 0.6) {
+                    // Block jump shots
+                    if (!p1.onGround && p2.onGround && Math.random() < 0.75) {
                         p2.vy = -p2.jumpForce;
                         p2.onGround = false;
                     }
                 }
             } else {
-                if (ball.x < p2.x - 20) p2.vx = -p2.speed;
-                else if (ball.x > p2.x + 20) p2.vx = p2.speed;
+                // LOOSE BALL PURSUIT
+                if (ball.x < p2.x - 16) { p2.vx = -p2.speed; p2.facing = -1; }
+                else if (ball.x > p2.x + 16) { p2.vx = p2.speed; p2.facing = 1; }
                 else p2.vx = 0;
+
+                if (ball.y < p2.y && p2.onGround && Math.abs(ball.x - p2.x) < 50) {
+                    p2.vy = -p2.jumpForce * 0.85;
+                    p2.onGround = false;
+                }
             }
         }
 
+        // Physics Loop
         function updatePhysics(dt) {
             if (!matchActive) return;
 
-            // P1 Controls
-            if (keys['KeyA']) { p1.vx = -p1.speed; p1.facing = -1; }
-            else if (keys['KeyD']) { p1.vx = p1.speed; p1.facing = 1; }
-            else p1.vx = 0;
+            // Screen shake dampening
+            if (screenShake > 0) screenShake *= 0.88;
 
-            if (p1.isCharging) p1.chargeTimer += dt;
+            // P1 Movement
+            if (!p1.isDunking) {
+                if (keys['KeyA']) { p1.vx = -p1.speed; p1.facing = -1; }
+                else if (keys['KeyD']) { p1.vx = p1.speed; p1.facing = 1; }
+                else p1.vx = 0;
 
-            // P2 Controls (2P Mode)
-            if (gameMode === '2P') {
+                if (p1.isCharging) p1.chargeTimer += dt;
+            }
+
+            // P2 Movement (2P Mode)
+            if (gameMode === '2P' && !p2.isDunking) {
                 if (keys['ArrowLeft']) { p2.vx = -p2.speed; p2.facing = -1; }
                 else if (keys['ArrowRight']) { p2.vx = p2.speed; p2.facing = 1; }
                 else p2.vx = 0;
@@ -517,210 +708,226 @@
                 if (p2.isCharging) p2.chargeTimer += dt;
             }
 
-            // Update Characters
+            // Gravity & Ground Checks
             [p1, p2].forEach(p => {
-                p.vy += GRAVITY * dt;
-                p.x += p.vx * dt;
-                p.y += p.vy * dt;
+                if (!p.isDunking) {
+                    p.vy += GRAVITY * dt;
+                    p.x += p.vx * dt;
+                    p.y += p.vy * dt;
 
-                if (p.y >= COURT_Y - p.height) {
-                    p.y = COURT_Y - p.height;
-                    p.vy = 0;
-                    p.onGround = true;
+                    if (p.y >= COURT_Y - p.height) {
+                        p.y = COURT_Y - p.height;
+                        p.vy = 0;
+                        p.onGround = true;
+                    }
+                    p.x = Math.max(65, Math.min(935 - p.width, p.x));
                 }
-                p.x = Math.max(70, Math.min(930 - p.width, p.x));
             });
 
-            // Ball Updates
+            // Ball Physics
             if (ball.holder) {
                 const h = ball.holder;
-                ball.x = h.x + (h.facing === 1 ? 34 : 10);
-                ball.y = h.y + 42;
-                ball.vx = 0; ball.vy = 0;
+                ball.x = h.x + (h.facing === 1 ? 36 : 8);
+                ball.y = h.isDunking ? h.y - 12 : h.y + 40;
+                ball.vx = 0;
+                ball.vy = 0;
             } else {
                 ball.vy += GRAVITY * dt;
                 ball.x += ball.vx * dt;
                 ball.y += ball.vy * dt;
-                ball.rotation += ball.vx * 0.02 * dt;
+                ball.rotation += ball.vx * 0.015;
 
-                // Floor Bounce
-                if (ball.y >= COURT_Y - ball.radius) {
-                    ball.y = COURT_Y - ball.radius;
-                    ball.vy = -ball.vy * 0.65;
-                    ball.vx *= 0.88;
-                    if (Math.abs(ball.vy) > 50) soundBounce();
+                // Fireball particle trail
+                if (ball.isFireball) {
+                    particles.push({
+                        x: ball.x, y: ball.y,
+                        vx: (Math.random() - 0.5) * 40, vy: (Math.random() - 0.5) * 40,
+                        color: Math.random() > 0.5 ? '#f97316' : '#ef4444',
+                        life: 0.25
+                    });
                 }
 
-                // Hoops Interactions
+                // Floor Rebound
+                if (ball.y >= COURT_Y - ball.radius) {
+                    ball.y = COURT_Y - ball.radius;
+                    ball.vy = -ball.vy * 0.64;
+                    ball.vx *= 0.88;
+                    ball.isFireball = false;
+                    if (Math.abs(ball.vy) > 60) playSound('bounce');
+                }
+
+                // Hoops Collisions
                 hoops.forEach(h => {
-                    // Backboard rebound
+                    // Backboard Deflection
                     if (ball.x + ball.radius >= h.bbX - 4 && ball.x - ball.radius <= h.bbX + 12 &&
                         ball.y >= h.bbY && ball.y <= h.bbY + h.bbH) {
                         ball.vx = -ball.vx * 0.72;
-                        ball.x = (ball.vx > 0) ? h.bbX + 16 : h.bbX - 8;
-                        soundBounce();
+                        ball.x = (ball.vx > 0) ? h.bbX + 14 : h.bbX - 8;
+                        ball.isFireball = false;
+                        playSound('bounce');
                     }
 
                     // Rim Clanks
                     [h.rimX, h.rimX + h.rimW].forEach(rx => {
-                        const d = Math.hypot(ball.x - rx, ball.y - h.rimY);
-                        if (d < ball.radius + 3) {
+                        if (Math.hypot(ball.x - rx, ball.y - h.rimY) < ball.radius + 3) {
                             ball.vy = -ball.vy * 0.58;
                             ball.vx = (ball.x < rx ? -1 : 1) * 140;
-                            soundRim();
+                            ball.isFireball = false;
+                            playSound('rim');
                         }
                     });
 
-                    // Scoring
+                    // Scoring Through Rim
                     if (ball.vy > 0 && ball.y >= h.rimY - 4 && ball.y <= h.rimY + 12 &&
                         ball.x > h.rimX + 4 && ball.x < h.rimX + h.rimW - 4) {
-                        soundSwish();
+
+                        h.netAnim = 1.0;
+                        playSound('swish');
 
                         if (h.side === 'right' && ball.lastTouchedBy === p1) {
-                            p1Score += 2;
+                            p1Score += ball.isFireball ? 3 : 2;
                             document.getElementById('p1-score').innerText = p1Score;
-                            triggerBanner('SLAM DUNK! +2');
-                            resetRound(p2);
+                            triggerBanner(ball.isFireball ? '🔥 3-POINT SWISH!' : 'BUCKET! +2');
+                            setTimeout(() => resetRound(p2), 500);
                         } else if (h.side === 'left' && ball.lastTouchedBy === p2) {
-                            p2Score += 2;
+                            p2Score += ball.isFireball ? 3 : 2;
                             document.getElementById('p2-score').innerText = p2Score;
-                            triggerBanner(gameMode === '1P' ? 'RIVAL SCORED!' : 'P2 SCORES! +2');
-                            resetRound(p1);
+                            triggerBanner('RIVAL SCORED!');
+                            setTimeout(() => resetRound(p1), 500);
                         }
+                        ball.isFireball = false;
                     }
+
+                    // Dampen net animation
+                    if (h.netAnim > 0) h.netAnim -= dt * 2;
                 });
 
-                // Rebound collection
+                // Steals & Rebounds
                 [p1, p2].forEach(p => {
                     const cx = p.x + p.width / 2;
                     const cy = p.y + p.height / 2;
-                    if (Math.hypot(cx - ball.x, cy - ball.y) < 40 && ball.vy > -120) {
+                    if (Math.hypot(cx - ball.x, cy - ball.y) < 42 && ball.vy > -140) {
                         ball.holder = p;
                         ball.lastTouchedBy = p;
+                        ball.isFireball = false;
                     }
                 });
             }
+
+            // Particles Update
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const pt = particles[i];
+                pt.x += pt.vx;
+                pt.y += pt.vy;
+                pt.life -= dt;
+                if (pt.life <= 0) particles.splice(i, 1);
+            }
         }
 
-        // Render Artwork (Stadium, Hardwood, Bobblehead Characters)
+        // Render Graphics & Comic Sprites
         function render() {
+            ctx.save();
+            if (screenShake > 0.5) {
+                ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+            }
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Stadium Backdrop (Bleachers & Crowd)
-            const skyGrad = ctx.createLinearGradient(0, 0, 0, COURT_Y);
-            skyGrad.addColorStop(0, '#1c093a');
-            skyGrad.addColorStop(1, '#3b126d');
-            ctx.fillStyle = skyGrad;
+            // 1. Stadium Bleachers & Lights
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, COURT_Y);
+            bgGrad.addColorStop(0, '#110726');
+            bgGrad.addColorStop(1, '#2c0c59');
+            ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, canvas.width, COURT_Y);
 
-            // Crowd Spectator Rows
-            for (let row = 0; row < 5; row++) {
-                const rowY = 70 + row * 45;
-                ctx.fillStyle = `rgba(35, 12, 70, ${0.4 + row * 0.12})`;
+            // Bleacher rows with crowd silhouettes
+            for (let r = 0; r < 4; r++) {
+                const rowY = 80 + r * 44;
+                ctx.fillStyle = `rgba(30, 10, 60, ${0.4 + r * 0.15})`;
                 ctx.fillRect(0, rowY, canvas.width, 42);
 
-                for (let c = 30; c < canvas.width; c += 34) {
-                    ctx.fillStyle = (c + row * 17) % 2 === 0 ? '#4c1d95' : '#6366f1';
+                for (let c = 25; c < canvas.width; c += 36) {
+                    ctx.fillStyle = (c + r * 19) % 2 === 0 ? '#4338ca' : '#7c3aed';
                     ctx.beginPath();
                     ctx.arc(c, rowY + 16, 9, 0, Math.PI * 2);
                     ctx.fill();
                 }
             }
 
-            // Light Beams
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
-            ctx.beginPath();
-            ctx.moveTo(150, 0); ctx.lineTo(30, COURT_Y); ctx.lineTo(340, COURT_Y); ctx.closePath();
-            ctx.fill();
-            ctx.beginPath();
-            ctx.moveTo(850, 0); ctx.lineTo(660, COURT_Y); ctx.lineTo(970, COURT_Y); ctx.closePath();
-            ctx.fill();
-
-            // 2. Polished Hardwood Court
+            // 2. High-Gloss Hardwood Court
             const woodGrad = ctx.createLinearGradient(0, COURT_Y, 0, canvas.height);
-            woodGrad.addColorStop(0, '#df9755');
-            woodGrad.addColorStop(1, '#b45309');
+            woodGrad.addColorStop(0, '#d97706');
+            woodGrad.addColorStop(1, '#92400e');
             ctx.fillStyle = woodGrad;
             ctx.fillRect(0, COURT_Y, canvas.width, canvas.height - COURT_Y);
 
-            // Floor Plank Seams
-            ctx.strokeStyle = 'rgba(120, 53, 15, 0.3)';
-            ctx.lineWidth = 1;
-            for (let py = COURT_Y; py < canvas.height; py += 12) {
-                ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(canvas.width, py); ctx.stroke();
-            }
-
-            // Court Line Markings
+            // Polished Court Lines
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 4;
             ctx.strokeRect(30, COURT_Y, canvas.width - 60, canvas.height - COURT_Y - 14);
 
-            // Half-Court Circle
             ctx.beginPath();
-            ctx.arc(canvas.width / 2, COURT_Y, 75, Math.PI, 0);
+            ctx.arc(canvas.width / 2, COURT_Y, 78, Math.PI, 0);
             ctx.stroke();
 
-            // 3. Hoops & Net
+            // 3. Hoops & Dynamic Net
             hoops.forEach(h => {
-                // Support Arm
+                // Post
                 ctx.fillStyle = '#1e293b';
-                const armX = h.side === 'left' ? h.bbX - 16 : h.bbX + 16;
-                ctx.fillRect(armX, h.bbY, 16, COURT_Y - h.bbY);
+                const px = h.side === 'left' ? h.bbX - 16 : h.bbX + 16;
+                ctx.fillRect(px, h.bbY, 16, COURT_Y - h.bbY);
 
-                // Glass Backboard
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+                // Backboard
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                 ctx.strokeStyle = '#38bdf8';
                 ctx.lineWidth = 5;
                 ctx.fillRect(h.bbX, h.bbY, 8, h.bbH);
                 ctx.strokeRect(h.bbX, h.bbY, 8, h.bbH);
 
-                // Target Inner Box
-                ctx.strokeStyle = '#ef4444';
-                ctx.lineWidth = 3;
-                ctx.strokeRect(h.bbX, h.bbY + 36, 8, 36);
-
-                // Metal Orange Rim
-                ctx.strokeStyle = '#ea580c';
+                // Rim
+                ctx.strokeStyle = '#f97316';
                 ctx.lineWidth = 6;
                 ctx.beginPath();
                 ctx.moveTo(h.rimX, h.rimY);
                 ctx.lineTo(h.rimX + h.rimW, h.rimY);
                 ctx.stroke();
 
-                // Net Mesh
+                // Dynamic Swishing Net
+                const swing = Math.sin(performance.now() * 0.02) * 12 * h.netAnim;
                 ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1.8;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(h.rimX + 4, h.rimY);
-                ctx.lineTo(h.rimX + 10, h.rimY + 32);
-                ctx.lineTo(h.rimX + h.rimW - 10, h.rimY + 32);
+                ctx.lineTo(h.rimX + 10 + swing, h.rimY + 34);
+                ctx.lineTo(h.rimX + h.rimW - 10 + swing, h.rimY + 34);
                 ctx.lineTo(h.rimX + h.rimW - 4, h.rimY);
                 ctx.stroke();
             });
 
-            // 4. Draw Big-Head Athletes
+            // 4. Draw Characters
             [p1, p2].forEach(p => {
-                const bounce = Math.sin(performance.now() * 0.008) * 3;
+                const bounce = Math.sin(performance.now() * 0.009) * 3;
 
-                // Character Shadow
+                // Player Shadow
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
                 ctx.beginPath();
-                ctx.ellipse(p.x + p.width/2, COURT_Y - 4, 24, 7, 0, 0, Math.PI * 2);
+                ctx.ellipse(p.x + p.width/2, COURT_Y - 4, 25, 7, 0, 0, Math.PI * 2);
                 ctx.fill();
 
                 // Sneakers
                 ctx.fillStyle = '#ffffff';
-                ctx.fillRect(p.x + (p.facing === 1 ? 4 : 20), p.y + p.height - 14, 18, 12);
-                ctx.fillStyle = '#dc2626';
-                ctx.fillRect(p.x + (p.facing === 1 ? 4 : 20), p.y + p.height - 6, 18, 4);
+                ctx.fillRect(p.x + (p.facing === 1 ? 4 : 22), p.y + p.height - 14, 18, 12);
+                ctx.fillStyle = p.accentColor;
+                ctx.fillRect(p.x + (p.facing === 1 ? 4 : 22), p.y + p.height - 6, 18, 4);
 
                 // Jersey & Torso
-                ctx.fillStyle = p.jerseyColor;
+                ctx.fillStyle = p.primaryColor;
                 ctx.beginPath();
                 ctx.roundRect(p.x + 8, p.y + 36 + bounce, 28, 40, 6);
                 ctx.fill();
-                ctx.fillStyle = p.jerseyTrim;
-                ctx.fillRect(p.x + 8, p.y + 44 + bounce, 28, 6);
+
+                ctx.fillStyle = p.accentColor;
+                ctx.fillRect(p.x + 8, p.y + 42 + bounce, 28, 6);
 
                 // Big Cartoon Head
                 ctx.fillStyle = p.skinColor;
@@ -728,54 +935,63 @@
                 ctx.arc(p.x + 22, p.y + 20 + bounce, 23, 0, Math.PI * 2);
                 ctx.fill();
 
+                // Beard
+                if (p.beard) {
+                    ctx.fillStyle = '#171717';
+                    ctx.beginPath();
+                    ctx.arc(p.x + 22, p.y + 26 + bounce, 15, 0, Math.PI);
+                    ctx.fill();
+                }
+
                 // Headband
                 ctx.fillStyle = p.headband;
                 ctx.fillRect(p.x + 2, p.y + 6 + bounce, 40, 8);
 
-                // Facial Features
-                ctx.fillStyle = '#ffffff';
+                // Eyes & Smirk
                 const eyeOffset = p.facing === 1 ? 6 : -6;
+                ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
                 ctx.arc(p.x + 22 + eyeOffset, p.y + 18 + bounce, 5, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.fillStyle = '#000000';
+                ctx.fillStyle = '#000';
                 ctx.beginPath();
                 ctx.arc(p.x + 23 + eyeOffset, p.y + 18 + bounce, 2.5, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Big Smirk
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(p.x + 22 + eyeOffset, p.y + 26 + bounce, 6, 0, Math.PI);
-                ctx.stroke();
-
-                // Floating Hands
-                ctx.fillStyle = p.skinColor;
-                ctx.beginPath();
-                ctx.arc(p.x + (p.facing === 1 ? 36 : 8), p.y + 46 + bounce, 6, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Charge Meter Indicator
+                // Sweet-Spot Shot Gauge
                 if (p.isCharging && ball.holder === p) {
-                    const pct = Math.min(1.0, p.chargeTimer / 0.8);
+                    const meterW = 50;
+                    const meterX = p.x - 3;
+                    const meterY = p.y - 18;
+
+                    // Meter BG
+                    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+                    ctx.fillRect(meterX, meterY, meterW, 8);
+
+                    // Green Sweet Spot Zone (0.45s mark)
+                    ctx.fillStyle = '#22c55e';
+                    ctx.fillRect(meterX + (meterW * 0.45) - 4, meterY, 8, 8);
+
+                    // Active Pointer
+                    const fillW = Math.min(1.0, p.chargeTimer / 0.85) * meterW;
                     ctx.fillStyle = '#facc15';
-                    ctx.fillRect(p.x, p.y - 12, 44 * pct, 6);
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 1;
-                    ctx.strokeRect(p.x, p.y - 12, 44, 6);
+                    ctx.fillRect(meterX, meterY + 1, fillW, 6);
                 }
             });
 
-            // 5. Basketball
+            // 5. Basketball & Flame Particle Render
+            particles.forEach(pt => {
+                ctx.fillStyle = pt.color;
+                ctx.fillRect(pt.x, pt.y, 4, 4);
+            });
+
             ctx.save();
             ctx.translate(ball.x, ball.y);
             ctx.rotate(ball.rotation);
 
-            // Ball Body & Shading
             const bGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, ball.radius);
-            bGrad.addColorStop(0, '#fb923c');
-            bGrad.addColorStop(1, '#c2410c');
+            bGrad.addColorStop(0, ball.isFireball ? '#fef08a' : '#fb923c');
+            bGrad.addColorStop(1, ball.isFireball ? '#dc2626' : '#c2410c');
             ctx.fillStyle = bGrad;
             ctx.beginPath();
             ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
@@ -783,21 +999,20 @@
 
             // Ball Seams
             ctx.strokeStyle = '#1e293b';
-            ctx.lineWidth = 1.4;
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.arc(0, 0, ball.radius, -0.6, 0.6);
             ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(-ball.radius, 0); ctx.lineTo(ball.radius, 0);
-            ctx.stroke();
+            ctx.restore();
+
             ctx.restore();
         }
 
-        // Main Loop
+        // Main Loop with Capped Delta Time
         let lastTime = performance.now();
-        function loop(time) {
-            requestAnimationFrame(loop);
-            const dt = Math.min((time - lastTime) / 1000, 0.022);
+        function mainLoop(time) {
+            requestAnimationFrame(mainLoop);
+            const dt = Math.min((time - lastTime) / 1000, 0.02);
             lastTime = time;
 
             updateAI(dt);
@@ -805,7 +1020,7 @@
             render();
         }
 
-        requestAnimationFrame(loop);
+        requestAnimationFrame(mainLoop);
     </script>
 </body>
 </html>
