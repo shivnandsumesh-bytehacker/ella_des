@@ -8,7 +8,8 @@
         :root {
             --gold: #facc15;
             --purple-card: #1e1138;
-            --accent: #00f3ff;
+            --p1-cyan: #00f3ff;
+            --p2-pink: #f43f5e;
             --green: #22c55e;
             --red: #ef4444;
         }
@@ -55,14 +56,14 @@
             background: linear-gradient(180deg, #4c1d95, #1e0b36);
             border: 2px solid #a855f7;
             border-radius: 12px;
-            padding: 4px 16px;
-            gap: 14px;
+            padding: 4px 18px;
+            gap: 16px;
             z-index: 10;
             box-shadow: 0 4px 20px rgba(0,0,0,0.7);
         }
-        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 95px; }
-        .team-title { font-size: 0.72rem; color: #cbd5e1; letter-spacing: 1px; }
-        .score-num { font-size: 2rem; line-height: 1; font-weight: 900; color: #fff; }
+        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 105px; }
+        .team-title { font-size: 0.75rem; letter-spacing: 1px; font-weight: bold; }
+        .score-num { font-size: 2.1rem; line-height: 1; font-weight: 900; color: #fff; }
         .timer-box {
             background: #020617;
             border: 2px solid var(--gold);
@@ -76,7 +77,7 @@
 
         #banner-popup {
             position: absolute;
-            top: 80px;
+            top: 78px;
             left: 50%;
             transform: translateX(-50%) scale(0);
             background: #f59e0b;
@@ -119,13 +120,13 @@
             justify-content: center;
             cursor: pointer;
         }
-        .ctrl-btn:active { background: var(--accent); color: #000; transform: scale(0.92); }
+        .ctrl-btn:active { background: var(--p1-cyan); color: #000; transform: scale(0.92); }
         .ctrl-btn.act { border-color: var(--gold); color: var(--gold); }
 
         .overlay {
             position: absolute;
             inset: 0;
-            background: rgba(9, 4, 20, 0.95);
+            background: rgba(9, 4, 20, 0.96);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -134,25 +135,47 @@
             padding: 10px;
         }
         .title {
-            font-size: 2.3rem;
+            font-size: 2.1rem;
             color: var(--gold);
             text-shadow: 3px 3px 0 #ea580c, 5px 5px 0 #000;
-            margin: 0 0 8px 0;
+            margin: 0 0 6px 0;
         }
 
-        /* Roster Grid optimized for 7 players */
+        /* Dual Player Roster Selector Bar */
+        .select-header-tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+        .tab-indicator {
+            padding: 5px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-family: sans-serif;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .tab-p1 { background: rgba(0, 243, 255, 0.18); color: var(--p1-cyan); border-color: var(--p1-cyan); }
+        .tab-p1.selected { background: var(--p1-cyan); color: #000; box-shadow: 0 0 14px var(--p1-cyan); }
+        .tab-p2 { background: rgba(244, 63, 94, 0.18); color: var(--p2-pink); border-color: var(--p2-pink); }
+        .tab-p2.selected { background: var(--p2-pink); color: #fff; box-shadow: 0 0 14px var(--p2-pink); }
+
         .roster-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
             gap: 8px;
             max-width: 940px;
-            max-height: 330px;
+            max-height: 320px;
             overflow-y: auto;
             width: 100%;
-            padding: 4px;
+            padding: 6px;
             margin-bottom: 10px;
         }
         .roster-card {
+            position: relative;
             background: var(--purple-card);
             border: 2px solid #6b21a8;
             border-radius: 10px;
@@ -163,24 +186,54 @@
             flex-direction: column;
             align-items: center;
         }
-        .roster-card:hover, .roster-card.active {
-            border-color: var(--gold);
-            background: #3b166e;
+        .roster-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 0 14px var(--gold);
         }
+        .roster-card.p1-pick {
+            border-color: var(--p1-cyan) !important;
+            box-shadow: 0 0 14px var(--p1-cyan);
+            background: #162a4d;
+        }
+        .roster-card.p2-pick {
+            border-color: var(--p2-pink) !important;
+            box-shadow: 0 0 14px var(--p2-pink);
+            background: #3e1227;
+        }
+        .roster-card.both-pick {
+            border-color: var(--gold) !important;
+            box-shadow: 0 0 16px var(--gold);
+            background: #3c2415;
+        }
+
+        .badge-container {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            display: flex;
+            gap: 3px;
+        }
+        .pick-badge {
+            font-size: 0.58rem;
+            font-family: sans-serif;
+            font-weight: 900;
+            padding: 1px 4px;
+            border-radius: 4px;
+        }
+        .badge-p1 { background: var(--p1-cyan); color: #000; }
+        .badge-p2 { background: var(--p2-pink); color: #fff; }
+
         .card-name { font-size: 0.95rem; color: #fff; margin-bottom: 2px; }
         .card-type { font-size: 0.6rem; color: #38bdf8; font-family: sans-serif; text-transform: uppercase; margin-bottom: 4px; }
         .card-stat { font-size: 0.68rem; color: #cbd5e1; font-family: sans-serif; text-align: left; width: 95%; line-height: 1.3; }
         .card-stat strong { color: var(--gold); }
 
-        .btn-row { display: flex; gap: 12px; margin-top: 4px; }
+        .btn-row { display: flex; gap: 14px; margin-top: 4px; }
         .btn {
             background: linear-gradient(180deg, #facc15, #eab308);
             color: #000;
             border: 2px solid #fff;
-            padding: 8px 20px;
-            font-size: 1.1rem;
+            padding: 8px 22px;
+            font-size: 1.15rem;
             font-family: inherit;
             font-weight: 900;
             border-radius: 8px;
@@ -213,19 +266,19 @@
 
         <div id="scoreboard">
             <div class="team-box">
-                <span class="team-title" id="p1-name-hud">PLAYER 1</span>
+                <span class="team-title" id="p1-name-hud" style="color:var(--p1-cyan);">PLAYER 1</span>
                 <span class="score-num" id="p1-score">0</span>
             </div>
             <div class="timer-box" id="match-timer">60</div>
             <div class="team-box">
-                <span class="team-title" id="p2-name-hud">RIVAL AI</span>
+                <span class="team-title" id="p2-name-hud" style="color:var(--p2-pink);">RIVAL AI</span>
                 <span class="score-num" id="p2-score">0</span>
             </div>
         </div>
 
         <div id="banner-popup">SWISH!</div>
 
-        <!-- Touch UI for iPad -->
+        <!-- Touch Controls for iPad -->
         <div class="touch-zone" id="touch-left">
             <div class="ctrl-btn" id="t-left">◀</div>
             <div class="ctrl-btn" id="t-right">▶</div>
@@ -238,10 +291,14 @@
         <!-- Roster Selection Modal -->
         <div id="select-modal" class="overlay">
             <h1 class="title">RIVALS & ALL-STARS</h1>
+            <div class="select-header-tabs">
+                <div class="tab-indicator tab-p1 selected" id="tab-btn-p1" onclick="setActivePicker(1)">P1 SELECTION: <span id="p1-pick-name">KAI JIE</span></div>
+                <div class="tab-indicator tab-p2" id="tab-btn-p2" onclick="setActivePicker(2)">P2 / RIVAL SELECTION: <span id="p2-pick-name">JOHN</span></div>
+            </div>
             <div class="roster-grid" id="roster-container"></div>
             <div class="btn-row">
                 <button class="btn" onclick="startMatch('1P')">▶ VS AI</button>
-                <button class="btn" style="background:#06b6d4; box-shadow:0 4px 0 #0891b2; color:#fff;" onclick="startMatch('2P')">👥 LOCAL 2P</button>
+                <button class="btn" style="background:#06b6d4; box-shadow:0 4px 0 #0891b2; color:#fff;" onclick="startMatch('2P')">👥 LOCAL 2-PLAYER</button>
             </div>
         </div>
 
@@ -308,42 +365,61 @@
             } catch(e){}
         }
 
+        // Updated Roster: Jump buffed for Kai Jie, Shivnand added as ultimate lockdown defender
         const ROSTER = [
             {
                 id: 'kaijie',
                 name: 'KAI JIE',
                 role: '100% Sniper',
-                speed: 190,
-                jumpForce: 310,
-                shotAccuracy: 1.0,
-                dunkReach: 0,
-                stealStat: 0.3,
-                defenseRating: 40,
-                skin: '#fcd34d',
-                hair: 'parted',
+                speed: 215,
+                jumpForce: 490,      // Jump buffed (modest realistic elevation)
+                shotAccuracy: 1.0,   // 100% sniper
+                dunkReach: 0,        // No dunks
+                stealStat: 0.45,
+                defenseRating: 55,
+                skin: '#fed7aa',     // Light skin tone from photo
+                hair: 'parted',      // Parted dark hair with bangs
                 glasses: false,
                 beard: false,
-                earpiece: true,
+                earpiece: true,      // White earpiece on left ear
                 tongueOut: false,
-                shirtColor: '#38bdf8'
+                shirtColor: '#38bdf8' // School blue polo
             },
             {
                 id: 'john',
                 name: 'JOHN',
                 role: 'Speed & Dunk Demon',
-                speed: 400,
-                jumpForce: 670,
-                shotAccuracy: 0.42,
-                dunkReach: 210,
-                stealStat: 0.6,
-                defenseRating: 65,
-                skin: '#fde047',
-                hair: 'wavy',
-                glasses: true,
+                speed: 400,          // 100% speed
+                jumpForce: 670,      // 85 jump
+                shotAccuracy: 0.42,  // Meh shooting
+                dunkReach: 210,      // 90 dunk
+                stealStat: 0.65,
+                defenseRating: 68,
+                skin: '#fdba74',     // Warm tan skin tone
+                hair: 'wavy',        // Fluffy wavy dark hair
+                glasses: true,       // Distinct black framed glasses
                 beard: false,
                 earpiece: false,
-                tongueOut: true,
-                shirtColor: '#38bdf8'
+                tongueOut: true,     // Tongue out expression from photo
+                shirtColor: '#38bdf8' // School blue polo
+            },
+            {
+                id: 'shivnand',
+                name: 'SHIVNAND',
+                role: 'Lockdown Clamp God',
+                speed: 400,          // Blazing fast
+                jumpForce: 730,      // Highest jump in the game
+                shotAccuracy: 0.48,  // Shooting is not the best
+                dunkReach: 185,      // Big athletic dunks
+                stealStat: 0.98,     // Best steal in the game
+                defenseRating: 99,   // Shuts down pure shooters
+                skin: '#d97706',     // Rich brown skin tone
+                hair: 'athletic',    // Clean athletic dark hair
+                glasses: false,
+                beard: false,
+                earpiece: false,
+                tongueOut: false,
+                shirtColor: '#10b981' // Emerald defense jersey
             },
             {
                 id: 'lebron',
@@ -416,52 +492,70 @@
                 earpiece: false,
                 tongueOut: true,
                 shirtColor: '#dc2626'
-            },
-            {
-                id: 'counter',
-                name: 'THE COUNTER',
-                role: 'Perimeter Clamper',
-                speed: 390,
-                jumpForce: 640,
-                shotAccuracy: 0.72,
-                dunkReach: 140,
-                stealStat: 0.95,
-                defenseRating: 99,
-                skin: '#f59e0b',
-                hair: 'crop',
-                glasses: false,
-                beard: false,
-                earpiece: false,
-                tongueOut: false,
-                shirtColor: '#10b981'
             }
         ];
 
-        let selectedP1Idx = 0; // Kai Jie
-        let selectedP2Idx = 1; // John
+        let selectedP1Idx = 0; // Kai Jie default P1
+        let selectedP2Idx = 1; // John default P2
+        let currentActivePicker = 1; // 1 = P1 choosing, 2 = P2 choosing
+
+        function setActivePicker(playerNum) {
+            currentActivePicker = playerNum;
+            document.getElementById('tab-btn-p1').classList.toggle('selected', playerNum === 1);
+            document.getElementById('tab-btn-p2').classList.toggle('selected', playerNum === 2);
+        }
+
+        function refreshRosterCardsUI() {
+            ROSTER.forEach((p, idx) => {
+                const card = document.getElementById(`card-${idx}`);
+                if (!card) return;
+                card.className = 'roster-card';
+                const isP1 = (idx === selectedP1Idx);
+                const isP2 = (idx === selectedP2Idx);
+
+                if (isP1 && isP2) card.classList.add('both-pick');
+                else if (isP1) card.classList.add('p1-pick');
+                else if (isP2) card.classList.add('p2-pick');
+
+                const badgeContainer = card.querySelector('.badge-container');
+                badgeContainer.innerHTML = '';
+                if (isP1) badgeContainer.innerHTML += `<span class="pick-badge badge-p1">P1</span>`;
+                if (isP2) badgeContainer.innerHTML += `<span class="pick-badge badge-p2">P2</span>`;
+            });
+            document.getElementById('p1-pick-name').innerText = ROSTER[selectedP1Idx].name;
+            document.getElementById('p2-pick-name').innerText = ROSTER[selectedP2Idx].name;
+        }
 
         const rosterContainer = document.getElementById('roster-container');
         ROSTER.forEach((p, idx) => {
             const card = document.createElement('div');
-            card.className = `roster-card ${idx === selectedP1Idx ? 'active' : ''}`;
+            card.className = 'roster-card';
             card.id = `card-${idx}`;
             card.innerHTML = `
+                <div class="badge-container"></div>
                 <div class="card-name">${p.name}</div>
                 <div class="card-type">${p.role}</div>
                 <div class="card-stat">⚡ Spd: <strong>${Math.round(p.speed / 4)}</strong></div>
-                <div class="card-stat">🚀 Jump: <strong>${p.jumpForce > 400 ? 'HIGH' : '10'}</strong></div>
+                <div class="card-stat">🚀 Jump: <strong>${p.jumpForce > 600 ? 'ELITE' : (p.jumpForce > 400 ? 'MID' : 'LOW')}</strong></div>
                 <div class="card-stat">🎯 3PT: <strong>${Math.round(p.shotAccuracy * 100)}%</strong></div>
                 <div class="card-stat">💥 Dunk: <strong>${p.dunkReach > 0 ? 'YES' : 'NO'}</strong></div>
                 <div class="card-stat">🛡️ Stl: <strong>${Math.round(p.stealStat * 100)}%</strong></div>
             `;
             card.onclick = () => {
-                document.querySelectorAll('.roster-card').forEach(c => c.classList.remove('active'));
-                card.classList.add('active');
-                selectedP1Idx = idx;
-                selectedP2Idx = (idx === 0) ? 1 : 0;
+                if (currentActivePicker === 1) {
+                    selectedP1Idx = idx;
+                    // Auto-switch tab to P2 for smooth workflow
+                    setActivePicker(2);
+                } else {
+                    selectedP2Idx = idx;
+                    setActivePicker(1);
+                }
+                refreshRosterCardsUI();
             };
             rosterContainer.appendChild(card);
         });
+
+        refreshRosterCardsUI();
 
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
@@ -516,20 +610,21 @@
 
         function attemptSteal(stealer, target) {
             if (stealer.stealCooldown > 0 || ball.holder !== target) return;
-            stealer.stealCooldown = 0.55;
+            stealer.stealCooldown = 0.50;
 
             const dist = Math.hypot((stealer.x + stealer.width/2) - (target.x + target.width/2), stealer.y - target.y);
-            if (dist < 68) {
-                const successProb = stealer.stealStat * (stealer.id === 'counter' && target.id === 'kaijie' ? 0.95 : 0.65);
+            if (dist < 72) {
+                // Shivnand has clamp defense against shooters like Kai Jie
+                const successProb = stealer.stealStat * (stealer.id === 'shivnand' && target.id === 'kaijie' ? 0.98 : 0.68);
                 if (Math.random() < successProb) {
                     ball.holder = null;
                     ball.lastTouchedBy = stealer;
-                    ball.vx = (stealer.x < target.x ? -1 : 1) * 160;
-                    ball.vy = -260;
+                    ball.vx = (stealer.x < target.x ? -1 : 1) * 175;
+                    ball.vy = -270;
                     playSound('steal');
-                    triggerBanner('BALL STRIPPED! ⚡');
+                    triggerBanner(`${stealer.name} STRIP! ⚡`);
                 } else {
-                    stealer.vx *= 0.2;
+                    stealer.vx *= 0.25;
                 }
             }
         }
@@ -557,7 +652,7 @@
             const sweetSpot = 0.45;
             const diff = Math.abs(shooter.chargeTimer - sweetSpot);
             const contested = isShotContested(shooter, defender);
-            const maxAllowedDiff = contested ? (defender.id === 'counter' ? 0.04 : 0.07) : 0.12;
+            const maxAllowedDiff = contested ? (defender.id === 'shivnand' ? 0.035 : 0.07) : 0.12;
             const isGreen = diff <= maxAllowedDiff;
 
             const targetX = targetHoop.rimX + targetHoop.rimW / 2;
@@ -578,12 +673,12 @@
             } else {
                 ball.isFireball = false;
                 let penalty = (1 - shooter.shotAccuracy);
-                if (contested) penalty += (defender.defenseRating / 100) * 0.55;
+                if (contested) penalty += (defender.defenseRating / 100) * 0.60;
 
-                const spread = (diff * 220 + penalty * 120);
+                const spread = (diff * 220 + penalty * 125);
                 ball.vx = perfectArc.vx + (Math.random() - 0.5) * spread;
                 ball.vy = perfectArc.vy + (Math.random() - 0.5) * (spread * 0.6);
-                if (contested) triggerBanner('SMOTHERED!');
+                if (contested) triggerBanner('CLAMPS APPLIED!');
             }
             playSound('bounce');
         }
@@ -675,6 +770,7 @@
         function openMenu() {
             document.getElementById('end-modal').style.display = 'none';
             document.getElementById('select-modal').style.display = 'flex';
+            refreshRosterCardsUI();
         }
 
         function updateAI(dt) {
@@ -686,27 +782,45 @@
             const distToPlayer = Math.abs(p2.x - p1.x);
 
             if (ball.holder === p2) {
-                if (p2.dunkReach > 150) {
+                if (p2.id === 'john') {
+                    // John sprints for the slam
                     p2.vx = -p2.speed;
                     p2.facing = -1;
                     if (distToRim < p2.dunkReach && p2.onGround) {
                         p2.vy = -p2.jumpForce;
                         p2.onGround = false;
-                        setTimeout(() => executeDunk(p2, targetHoop), 120);
+                        setTimeout(() => executeDunk(p2, targetHoop), 110);
                     }
-                } else if (p2.shotAccuracy >= 0.95) {
+                } else if (p2.id === 'kaijie') {
+                    // Kai Jie spots up beyond the arc
                     if (distToRim > 320) {
                         p2.vx = -p2.speed;
                         p2.facing = -1;
-                    } else if (distToPlayer < 60) {
-                        p2.vx = p2.speed;
+                    } else if (distToPlayer < 65) {
+                        p2.vx = p2.speed * 0.9;
                         p2.facing = -1;
                     } else {
                         p2.vx = 0;
-                        if (p2.onGround && p2.aiDecisionTimer > 0.6) {
+                        if (p2.onGround && p2.aiDecisionTimer > 0.55) {
                             p2.aiDecisionTimer = 0;
                             p2.chargeTimer = 0.45;
                             releaseJumpShot(p2, targetHoop, p1);
+                        }
+                    }
+                } else if (p2.id === 'shivnand') {
+                    // Shivnand drives to rim with high jump
+                    if (distToRim > 200) {
+                        p2.vx = -p2.speed;
+                        p2.facing = -1;
+                    } else {
+                        if (distToRim < p2.dunkReach && p2.onGround) {
+                            p2.vy = -p2.jumpForce;
+                            p2.onGround = false;
+                            setTimeout(() => executeDunk(p2, targetHoop), 110);
+                        } else if (p2.onGround && p2.aiDecisionTimer > 0.6) {
+                            p2.chargeTimer = 0.45;
+                            releaseJumpShot(p2, targetHoop, p1);
+                            p2.aiDecisionTimer = 0;
                         }
                     }
                 } else {
@@ -726,10 +840,10 @@
                 else if (guardDist < -45) { p2.vx = p2.speed; p2.facing = 1; }
                 else {
                     p2.vx = 0;
-                    if (p2.stealCooldown <= 0 && Math.random() < 0.35) {
+                    if (p2.stealCooldown <= 0 && Math.random() < 0.45) {
                         attemptSteal(p2, p1);
                     }
-                    if ((!p1.onGround || p1.isCharging) && p2.onGround && Math.random() < 0.8) {
+                    if ((!p1.onGround || p1.isCharging) && p2.onGround && Math.random() < 0.85) {
                         p2.vy = -p2.jumpForce;
                         p2.onGround = false;
                     }
@@ -740,7 +854,7 @@
                 else p2.vx = 0;
 
                 if (ball.y < p2.y && p2.onGround && Math.abs(ball.x - p2.x) < 55) {
-                    p2.vy = -p2.jumpForce * 0.8;
+                    p2.vy = -p2.jumpForce * 0.85;
                     p2.onGround = false;
                 }
             }
@@ -939,6 +1053,7 @@
             }
         }
 
+        // Render Artwork
         function render() {
             ctx.save();
             if (screenShake > 0.5) {
@@ -985,7 +1100,7 @@
                 ctx.stroke();
             });
 
-            [p1, p2].forEach(p => {
+            [p1, p2].forEach((p, idx) => {
                 const bounce = Math.sin(performance.now() * 0.009) * 2;
 
                 ctx.fillStyle = 'rgba(0,0,0,0.35)';
@@ -993,24 +1108,35 @@
                 ctx.ellipse(p.x + p.width/2, COURT_Y - 4, 25, 7, 0, 0, Math.PI*2);
                 ctx.fill();
 
+                // Shoes
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(p.x + (p.facing === 1 ? 4 : 22), p.y + p.height - 14, 18, 12);
 
+                // Polo / Jersey
                 ctx.fillStyle = p.shirtColor;
                 ctx.beginPath();
                 ctx.roundRect(p.x + 8, p.y + 36 + bounce, 28, 40, 6);
                 ctx.fill();
 
+                // School Blue Polo Collar Detail (for Kai Jie & John)
                 if (p.shirtColor === '#38bdf8') {
-                    ctx.fillStyle = '#0369a1';
-                    ctx.fillRect(p.x + 18, p.y + 36 + bounce, 8, 12);
+                    ctx.fillStyle = '#0284c7';
+                    ctx.fillRect(p.x + 18, p.y + 36 + bounce, 8, 14);
+                    // Blue collar corners
+                    ctx.beginPath();
+                    ctx.moveTo(p.x + 14, p.y + 36 + bounce);
+                    ctx.lineTo(p.x + 18, p.y + 44 + bounce);
+                    ctx.lineTo(p.x + 22, p.y + 36 + bounce);
+                    ctx.fill();
                 }
 
+                // Head
                 ctx.fillStyle = p.skin;
                 ctx.beginPath();
                 ctx.arc(p.x + 22, p.y + 20 + bounce, 22, 0, Math.PI*2);
                 ctx.fill();
 
+                // Facial Hair (for LeBron / Curry)
                 if (p.beard) {
                     ctx.fillStyle = '#171717';
                     ctx.beginPath();
@@ -1018,49 +1144,68 @@
                     ctx.fill();
                 }
 
+                // Custom Hairstyle Rendering Matching Photos
                 ctx.fillStyle = '#171717';
                 if (p.hair === 'parted') {
+                    // Kai Jie: Sleek curtain/center-parted fringe
                     ctx.beginPath();
-                    ctx.arc(p.x + 22, p.y + 14 + bounce, 23, Math.PI, 0);
+                    ctx.arc(p.x + 22, p.y + 14 + bounce, 23, Math.PI * 0.9, 0.1);
                     ctx.fill();
+                    // Left and right bangs
+                    ctx.fillRect(p.x + 2, p.y + 10 + bounce, 10, 16);
+                    ctx.fillRect(p.x + 32, p.y + 10 + bounce, 10, 16);
+                    ctx.clearRect(p.x + 20, p.y + 12 + bounce, 4, 8); // Part gap
                 } else if (p.hair === 'wavy') {
+                    // John: Fluffy wavy bangs from photo
                     ctx.beginPath();
                     ctx.arc(p.x + 22, p.y + 12 + bounce, 24, Math.PI, 0);
-                    ctx.arc(p.x + 12, p.y + 16 + bounce, 8, 0, Math.PI*2);
-                    ctx.arc(p.x + 32, p.y + 16 + bounce, 8, 0, Math.PI*2);
+                    ctx.arc(p.x + 10, p.y + 15 + bounce, 9, 0, Math.PI*2);
+                    ctx.arc(p.x + 22, p.y + 14 + bounce, 9, 0, Math.PI*2);
+                    ctx.arc(p.x + 34, p.y + 15 + bounce, 9, 0, Math.PI*2);
                     ctx.fill();
+                } else if (p.hair === 'athletic') {
+                    // Shivnand: Tapered athletic fade
+                    ctx.beginPath();
+                    ctx.arc(p.x + 22, p.y + 12 + bounce, 22, Math.PI, 0);
+                    ctx.fill();
+                    ctx.fillRect(p.x + 4, p.y + 4 + bounce, 36, 8);
                 } else {
                     ctx.fillRect(p.x + 2, p.y - 2 + bounce, 40, 10);
                 }
 
+                // John's Glasses (Black rimmed circular frame from photo)
                 if (p.glasses) {
-                    ctx.strokeStyle = '#000'; ctx.lineWidth = 2.5;
+                    ctx.strokeStyle = '#000000'; ctx.lineWidth = 2.4;
                     ctx.strokeRect(p.x + 10, p.y + 12 + bounce, 10, 8);
                     ctx.strokeRect(p.x + 24, p.y + 12 + bounce, 10, 8);
                     ctx.beginPath(); ctx.moveTo(p.x + 20, p.y + 16 + bounce); ctx.lineTo(p.x + 24, p.y + 16 + bounce); ctx.stroke();
                 }
 
+                // Kai Jie's White Earpiece (AirPod style from photo)
                 if (p.earpiece) {
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
-                    ctx.arc(p.x + (p.facing === 1 ? 38 : 6), p.y + 20 + bounce, 4, 0, Math.PI*2);
+                    ctx.arc(p.x + (p.facing === 1 ? 38 : 6), p.y + 19 + bounce, 4.5, 0, Math.PI*2);
                     ctx.fill();
-                    ctx.fillRect(p.x + (p.facing === 1 ? 37 : 5), p.y + 22 + bounce, 2.5, 6);
+                    ctx.fillRect(p.x + (p.facing === 1 ? 37 : 5), p.y + 22 + bounce, 2.5, 7);
                 }
 
+                // Eyes
                 const eyeX = p.facing === 1 ? 26 : 14;
                 ctx.fillStyle = '#000';
                 ctx.beginPath();
                 ctx.arc(p.x + eyeX, p.y + 18 + bounce, 2.5, 0, Math.PI*2);
                 ctx.fill();
 
+                // John's Signature Tongue-Out Expression from Photo
                 if (p.tongueOut) {
                     ctx.fillStyle = '#000';
                     ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + 26 + bounce, 5, 0, Math.PI); ctx.fill();
-                    ctx.fillStyle = '#f43f5e';
+                    ctx.fillStyle = '#fb7185';
                     ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + 29 + bounce, 4, 0, Math.PI); ctx.fill();
                 }
 
+                // Shot Gauge Meter with Green Sweet Spot
                 if (p.isCharging && ball.holder === p) {
                     const meterW = 54;
                     const meterH = 9;
@@ -1084,6 +1229,7 @@
                 }
             });
 
+            // Basketball
             ctx.save();
             ctx.translate(ball.x, ball.y);
             ctx.rotate(ball.rotation);
