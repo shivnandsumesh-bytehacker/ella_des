@@ -3,1191 +3,1106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>World Railways 3D - Pro Cab Simulator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <title>Hoops Legends: Classroom Rivals</title>
     <style>
         :root {
-            --primary: #00f3ff;
             --gold: #facc15;
-            --emerald: #10b981;
-            --amber: #f59e0b;
-            --danger: #ef4444;
-            --card: rgba(11, 19, 41, 0.92);
+            --purple-card: #1e1138;
+            --accent: #00f3ff;
+            --green: #22c55e;
+            --red: #ef4444;
+            --blue-polo: #38bdf8;
         }
-        * { box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
-        html, body {
-            width: 100%;
-            height: 100%;
-            height: 100dvh;
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body {
+            background: #090414;
+            color: #fff;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            text-align: center;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            min-height: 100dvh;
             overflow: hidden;
-            background: #020617;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            color: #fff;
             touch-action: none;
         }
 
         #game-wrapper {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: 100dvh;
+            position: relative;
+            width: 1000px;
+            height: 600px;
+            max-width: 100vw;
+            max-height: 86vh;
+            border: 3px solid #9333ea;
+            border-radius: 14px;
+            box-shadow: 0 8px 40px rgba(147, 51, 234, 0.45);
             overflow: hidden;
+            background: #110726;
         }
-        #webgl-canvas {
-            position: absolute;
-            inset: 0;
-            width: 100% !important;
-            height: 100% !important;
-            display: block;
-        }
+        #game-canvas { width: 100%; height: 100%; display: block; }
 
-        /* Top HUD Bar */
-        .hud-top {
+        /* Scoreboard */
+        #scoreboard {
             position: absolute;
-            top: max(8px, env(safe-area-inset-top));
-            left: 10px;
-            right: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            pointer-events: none;
-            z-index: 20;
-        }
-
-        .hud-card {
-            background: var(--card);
-            border: 1px solid rgba(0, 243, 255, 0.35);
-            border-radius: 8px;
-            padding: 6px 12px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-            pointer-events: auto;
-            backdrop-filter: blur(8px);
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             align-items: center;
-            gap: 8px;
+            background: linear-gradient(180deg, #4c1d95, #1e0b36);
+            border: 2px solid #a855f7;
+            border-radius: 12px;
+            padding: 4px 18px;
+            gap: 16px;
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.7);
         }
-
-        .station-hud {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            background: rgba(11, 19, 41, 0.85);
-            padding: 4px 16px;
+        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 90px; }
+        .team-title { font-size: 0.75rem; color: #cbd5e1; letter-spacing: 1px; }
+        .score-num { font-size: 2.1rem; line-height: 1; font-weight: 900; color: #fff; }
+        .timer-box {
+            background: #020617;
+            border: 2px solid var(--gold);
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(6px);
-        }
-        .station-tag { font-size: 0.58rem; color: #94a3b8; letter-spacing: 1.5px; text-transform: uppercase; font-weight: bold; }
-        .station-title { font-size: 1.1rem; font-weight: 900; color: #fff; letter-spacing: 0.8px; text-transform: uppercase; }
-        .station-sub { font-size: 0.72rem; color: var(--gold); font-family: monospace; font-weight: bold; }
-
-        .speed-hud {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            background: var(--card);
-            border: 1px solid rgba(0, 243, 255, 0.35);
-            border-radius: 8px;
-            padding: 4px 12px;
-            backdrop-filter: blur(8px);
-        }
-        .speed-val { font-size: 1.8rem; font-weight: 900; line-height: 1; color: #fff; font-family: monospace; }
-        .speed-unit { font-size: 0.6rem; color: #94a3b8; font-weight: bold; }
-        .limit-pill {
-            background: var(--gold);
-            color: #000;
-            font-weight: 900;
-            font-size: 0.72rem;
-            padding: 1px 6px;
-            border-radius: 4px;
-            margin-top: 2px;
+            padding: 3px 14px;
+            font-size: 1.7rem;
+            color: var(--gold);
             font-family: monospace;
+            font-weight: 900;
         }
 
-        /* Signal Aspect Flags (Left Side) */
-        .signal-alerts {
+        /* Comic Popups */
+        #banner-popup {
             position: absolute;
-            top: 72px;
-            left: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+            top: 85px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: #f59e0b;
+            color: #000;
+            padding: 6px 26px;
+            font-size: 2rem;
+            font-weight: 900;
+            border: 3px solid #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
             pointer-events: none;
-            z-index: 20;
-        }
-        .alert-pill {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(15, 23, 42, 0.88);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 4px 10px;
-            border-radius: 16px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-        .alert-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #22c55e;
-            box-shadow: 0 0 8px #22c55e;
+            z-index: 30;
+            transition: transform 0.16s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Touch / iPad Throttle Lever (Right Side) */
-        #throttle-container {
+        /* Touch Controls for iPad/Mobile */
+        .touch-zone {
             position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 48px;
-            height: 190px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 2px solid #334155;
-            border-radius: 24px;
+            bottom: 12px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 0;
-            z-index: 30;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+            gap: 8px;
+            z-index: 25;
             touch-action: none;
         }
-        #throttle-track {
-            position: relative;
-            width: 10px;
-            height: 130px;
-            background: #020617;
-            border-radius: 5px;
-            border: 1px solid rgba(255,255,255,0.12);
-        }
-        #throttle-handle {
-            position: absolute;
-            left: 50%;
-            bottom: 0px;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 32px;
-            background: linear-gradient(180deg, #475569, #1e293b);
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            cursor: grab;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 243, 255, 0.4);
-        }
-        #throttle-handle::after {
-            content: '';
-            width: 16px;
-            height: 3px;
-            background: var(--primary);
-            border-radius: 2px;
-        }
+        #touch-left { left: 12px; }
+        #touch-right { right: 12px; }
 
-        /* Bottom Driver Console Desk */
-        .hud-bottom {
-            position: absolute;
-            bottom: max(6px, env(safe-area-inset-bottom));
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 5px;
-            align-items: center;
-            background: rgba(11, 19, 41, 0.95);
-            border: 1px solid rgba(0, 243, 255, 0.35);
-            border-radius: 10px;
-            padding: 4px 10px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.8);
-            z-index: 25;
-            max-width: 96vw;
-            overflow-x: auto;
-        }
-        .desk-btn {
-            background: #1e293b;
-            border: 1px solid #334155;
+        .ctrl-btn {
+            width: 52px;
+            height: 52px;
+            background: rgba(30, 17, 56, 0.85);
+            border: 2px solid #a855f7;
+            border-radius: 12px;
             color: #fff;
-            padding: 6px 9px;
-            border-radius: 6px;
-            font-size: 0.65rem;
+            font-size: 0.8rem;
             font-weight: bold;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2px;
+            justify-content: center;
             cursor: pointer;
-            min-width: 50px;
-            transition: transform 0.08s, background 0.1s;
         }
-        .desk-btn:active, .desk-btn.active {
-            background: var(--primary);
-            color: #000;
-            border-color: #fff;
-            transform: scale(0.94);
-        }
-        .desk-btn.danger { border-color: var(--danger); color: var(--danger); }
-        .desk-btn.danger:active { background: var(--danger); color: #fff; }
+        .ctrl-btn:active { background: var(--accent); color: #000; transform: scale(0.92); }
+        .ctrl-btn.act { border-color: var(--gold); color: var(--gold); }
 
-        /* Floating Fare Popups */
-        .fare-popup {
-            position: absolute;
-            color: var(--gold);
-            font-size: 1.3rem;
-            font-weight: 900;
-            text-shadow: 0 0 10px rgba(250, 204, 21, 0.8), 2px 2px #000;
-            pointer-events: none;
-            z-index: 50;
-            animation: floatUp 1.2s forwards cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        @keyframes floatUp {
-            0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
-            30% { opacity: 1; transform: translate(-50%, -20px) scale(1.1); }
-            100% { opacity: 0; transform: translate(-50%, -60px) scale(1); }
-        }
-
-        #dialogue-box {
-            position: absolute;
-            top: 65px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(11, 19, 41, 0.96);
-            border: 2px solid var(--gold);
-            color: #fff;
-            padding: 6px 18px;
-            border-radius: 8px;
-            font-size: 0.82rem;
-            font-weight: bold;
-            display: none;
-            z-index: 40;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.8);
-            text-align: center;
-        }
-
-        .modal {
+        /* Modals */
+        .overlay {
             position: absolute;
             inset: 0;
-            background: rgba(3, 7, 18, 0.94);
-            display: none;
+            background: rgba(9, 4, 20, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            padding: 12px;
+        }
+        .title {
+            font-size: 2.6rem;
+            color: var(--gold);
+            text-shadow: 3px 3px 0 #ea580c, 5px 5px 0 #000;
+            margin: 0 0 10px 0;
+        }
+
+        .roster-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 820px;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+        .roster-card {
+            background: var(--purple-card);
+            border: 2px solid #6b21a8;
+            border-radius: 12px;
+            padding: 10px 8px;
+            cursor: pointer;
+            transition: all 0.12s;
+            display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            z-index: 100;
-            padding: 16px;
         }
-        .modal-card {
-            background: var(--card);
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            padding: 18px;
-            max-width: 620px;
-            width: 90%;
-            text-align: left;
+        .roster-card:hover, .roster-card.active {
+            border-color: var(--gold);
+            background: #3b166e;
+            transform: translateY(-2px);
+            box-shadow: 0 0 16px var(--gold);
         }
-        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
+        .card-name { font-size: 1.15rem; color: #fff; margin-bottom: 2px; }
+        .card-type { font-size: 0.65rem; color: #38bdf8; font-family: sans-serif; text-transform: uppercase; margin-bottom: 6px; }
+        .card-stat { font-size: 0.74rem; color: #cbd5e1; font-family: sans-serif; text-align: left; width: 90%; }
+        .card-stat strong { color: var(--gold); }
+
+        .btn-row { display: flex; gap: 14px; margin-top: 4px; }
         .btn {
-            background: var(--primary);
+            background: linear-gradient(180deg, #facc15, #eab308);
             color: #000;
-            border: none;
-            padding: 8px;
-            font-weight: 800;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
+            border: 2px solid #fff;
+            padding: 10px 22px;
+            font-size: 1.2rem;
             font-family: inherit;
+            font-weight: 900;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #a16207;
         }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #a16207; }
+
+        .controls-bar {
+            width: 1000px;
+            max-width: 100vw;
+            background: #150a2a;
+            border: 1.5px solid #4c1d95;
+            border-radius: 8px;
+            margin-top: 4px;
+            padding: 4px 12px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 0.74rem;
+            font-family: sans-serif;
+            color: #cbd5e1;
+        }
+        .controls-bar strong { color: var(--gold); }
     </style>
 </head>
 <body>
+
     <div id="game-wrapper">
-        <!-- Reusing exactly this canvas (prevents blank canvas overlapping bug) -->
-        <canvas id="webgl-canvas"></canvas>
+        <canvas id="game-canvas" width="1000" height="600"></canvas>
 
-        <div class="hud-top">
-            <div class="hud-card">
-                <button class="btn" style="padding:3px 8px; font-size:0.7rem;" onclick="toggleModal('map-modal', true)">🗺️ Map</button>
-                <button class="btn" style="padding:3px 8px; font-size:0.7rem;" onclick="toggleModal('depot-modal', true)">🚆 Fleet</button>
-                <span style="font-size:0.8rem; font-weight:bold; color:var(--gold);">💷 £<span id="cash-count">2,500</span></span>
+        <div id="scoreboard">
+            <div class="team-box">
+                <span class="team-title" id="p1-name-hud">PLAYER 1</span>
+                <span class="score-num" id="p1-score">0</span>
             </div>
-
-            <div class="station-hud">
-                <span class="station-tag">Next Stop</span>
-                <span class="station-title" id="station-name-hud">ARAKKONAM VIADUCT</span>
-                <span class="station-sub" id="station-dist-hud">450 M</span>
-            </div>
-
-            <div class="speed-hud">
-                <span class="speed-val" id="speed-display">0</span>
-                <span class="speed-unit">KMPH</span>
-                <div class="limit-pill" id="limit-display">LIMIT: 70</div>
+            <div class="timer-box" id="match-timer">60</div>
+            <div class="team-box">
+                <span class="team-title" id="p2-name-hud">RIVAL AI</span>
+                <span class="score-num" id="p2-score">0</span>
             </div>
         </div>
 
-        <div class="signal-alerts">
-            <div class="alert-pill">
-                <div class="alert-dot"></div>
-                <span>LINE CLEAR (GREEN)</span>
-            </div>
-            <div class="alert-pill">
-                <span style="color:var(--gold);">⚠️</span>
-                <span id="curve-warning-text">TRACK SPEED 70 KMPH</span>
+        <div id="banner-popup">SWISH!</div>
+
+        <!-- Touch UI for iPad -->
+        <div class="touch-zone" id="touch-left">
+            <div class="ctrl-btn" id="t-left">◀</div>
+            <div class="ctrl-btn" id="t-right">▶</div>
+        </div>
+        <div class="touch-zone" id="touch-right">
+            <div class="ctrl-btn act" id="t-jump">▲<br><small>JUMP</small></div>
+            <div class="ctrl-btn act" id="t-action">🏀<br><small>SHOT/STL</small></div>
+        </div>
+
+        <!-- Roster Selection Modal -->
+        <div id="select-modal" class="overlay">
+            <h1 class="title">RIVALS BASKETBALL</h1>
+            <div class="roster-grid" id="roster-container"></div>
+            <div class="btn-row">
+                <button class="btn" onclick="startMatch('1P')">▶ VS AI</button>
+                <button class="btn" style="background:#06b6d4; box-shadow:0 4px 0 #0891b2; color:#fff;" onclick="startMatch('2P')">👥 LOCAL 2P</button>
             </div>
         </div>
 
-        <div id="throttle-container">
-            <span style="font-size:0.55rem; font-weight:900; color:#94a3b8;">PWR</span>
-            <div id="throttle-track">
-                <div id="throttle-handle"></div>
-            </div>
-            <span style="font-size:0.55rem; font-weight:900; color:#94a3b8;">BRK</span>
-        </div>
-
-        <div id="dialogue-box"></div>
-
-        <!-- Desk Controls -->
-        <div class="hud-bottom">
-            <button class="desk-btn danger" onclick="applyEmergencyBrake()">🛑<br>E-STOP</button>
-            <button class="desk-btn" id="btn-master" onclick="toggleMasterKey()">🔑<br>KEY</button>
-            <button class="desk-btn" id="btn-reverser" onclick="cycleReverser()">🔄<br>FWD</button>
-            <button class="desk-btn" id="btn-doors" onclick="toggleDoors()">🚪<br>DOORS</button>
-            <button class="desk-btn" onclick="soundHorn()">📯<br>HORN</button>
-            <button class="desk-btn" id="btn-wiper" onclick="toggleWiper()">🌧️<br>WIPER</button>
-            <button class="desk-btn" onclick="cycleCamera()">🎥<br>CAM</button>
-            <button class="desk-btn" onclick="acknowledgeAWS()">⚠️<br>AWS</button>
-        </div>
-
-        <!-- Fleet Modal -->
-        <div id="depot-modal" class="modal">
-            <div class="modal-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="color:var(--primary); margin:0;">🚆 FLEET DEPOT</h3>
-                    <button class="btn" style="padding:2px 8px;" onclick="toggleModal('depot-modal', false)">✕</button>
-                </div>
-                <div class="btn-grid">
-                    <button class="btn" onclick="selectTrain('WAP7')">🇮🇳 WAP-7 Electric Loco<br><small>140 KMPH Express | ACTIVE</small></button>
-                    <button class="btn" onclick="selectTrain('Class142')">🇬🇧 BR Class 142 Pacer<br><small>Regional Commuter | FREE</small></button>
-                    <button class="btn" onclick="selectTrain('Shinkansen')">🇯🇵 Shinkansen N700S<br><small>285 KMPH Bullet | FREE</small></button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Map Modal -->
-        <div id="map-modal" class="modal">
-            <div class="modal-card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="color:var(--gold); margin:0;">🗺️ TERRITORY SELECTOR</h3>
-                    <button class="btn" style="padding:2px 8px;" onclick="toggleModal('map-modal', false)">✕</button>
-                </div>
-                <div class="btn-grid">
-                    <button class="btn" onclick="selectMap('IN')">🇮🇳 Arakkonam Lake Viaduct<br><small>Water Viaduct & Mountains</small></button>
-                    <button class="btn" onclick="selectMap('UK')">🇬🇧 Pennine Country Line<br><small>Rolling Hills & Double Ballast</small></button>
-                    <button class="btn" onclick="selectMap('JP')">🇯🇵 Tokaido Coastal Line<br><small>High Speed Coastal Track</small></button>
-                </div>
-            </div>
+        <!-- Final Modal -->
+        <div id="end-modal" class="overlay" style="display:none;">
+            <h1 class="title" id="end-title">MATCH OVER</h1>
+            <h2 id="final-score-text" style="color:var(--gold); font-size:2.2rem; margin:10px 0;">0 - 0</h2>
+            <button class="btn" onclick="openMenu()">🔄 PLAY AGAIN</button>
         </div>
     </div>
 
-    <script>
-        // High-Fidelity Audio Synthesizer
-        let audioCtx = null;
-        let motorGain = null, motorOsc = null;
-        let lastJointDistance = 0;
+    <div class="controls-bar">
+        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Hold & Release to Shoot / Tap near rival to <strong>STEAL</strong></div>
+        <div><strong>P2:</strong> [◀]/[▶] Move | [▲] Jump | [L/ENTER] Shoot / Steal</div>
+    </div>
 
+    <script>
+        // Audio Engine
+        let audioCtx = null;
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
             return audioCtx;
         }
 
-        function initTractionSound() {
+        function playSound(type) {
             try {
                 const ctx = getAudioContext();
-                if (!ctx || motorGain) return;
-                motorGain = ctx.createGain();
-                motorGain.gain.setValueAtTime(0.001, ctx.currentTime);
-                motorGain.connect(ctx.destination);
-
-                motorOsc = ctx.createOscillator();
-                motorOsc.type = 'sawtooth';
-                motorOsc.frequency.value = 45;
-                motorOsc.connect(motorGain);
-                motorOsc.start();
+                if (!ctx) return;
+                const t = ctx.currentTime;
+                if (type === 'bounce') {
+                    const o = ctx.createOscillator(); const g = ctx.createGain();
+                    o.frequency.setValueAtTime(140, t);
+                    o.frequency.exponentialRampToValueAtTime(45, t + 0.08);
+                    g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+                    o.connect(g); g.connect(ctx.destination);
+                    o.start(); o.stop(t + 0.08);
+                } else if (type === 'steal') {
+                    const o = ctx.createOscillator(); const g = ctx.createGain();
+                    o.type = 'triangle';
+                    o.frequency.setValueAtTime(440, t);
+                    o.frequency.exponentialRampToValueAtTime(880, t + 0.12);
+                    g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+                    o.connect(g); g.connect(ctx.destination);
+                    o.start(); o.stop(t + 0.12);
+                } else if (type === 'swish') {
+                    const b = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+                    const d = b.getChannelData(0);
+                    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+                    const src = ctx.createBufferSource(); src.buffer = b;
+                    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2600;
+                    const g = ctx.createGain(); g.gain.setValueAtTime(0.45, t);
+                    g.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+                    src.connect(f); f.connect(g); g.connect(ctx.destination);
+                    src.start();
+                } else if (type === 'dunk') {
+                    const o = ctx.createOscillator(); const g = ctx.createGain();
+                    o.type = 'sawtooth';
+                    o.frequency.setValueAtTime(220, t);
+                    o.frequency.exponentialRampToValueAtTime(30, t + 0.25);
+                    g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+                    o.connect(g); g.connect(ctx.destination);
+                    o.start(); o.stop(t + 0.25);
+                }
             } catch(e){}
         }
 
-        function updateMotorPitch(speedRatio, throttleRatio) {
-            if (!motorGain) return;
-            const ctx = getAudioContext();
-            if (train.masterKeyOn && !train.doorsOpen) {
-                const targetFreq = 42 + (speedRatio * 180) + (throttleRatio * 95);
-                motorOsc.frequency.setTargetAtTime(targetFreq, ctx.currentTime, 0.08);
-                motorGain.gain.setTargetAtTime(0.02 + (throttleRatio * 0.07), ctx.currentTime, 0.08);
-            } else {
-                motorGain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.15);
+        // Custom Roster Based on Classroom Picture
+        const ROSTER = [
+            {
+                id: 'kaijie',
+                name: 'KAI JIE',
+                role: '100% Sniper',
+                speed: 190,          // 50% speed
+                jumpForce: 310,      // jump: 10 (very low elevation)
+                shotAccuracy: 1.0,   // 100% pure shooter
+                dunkReach: 0,        // cannot dunk
+                stealStat: 0.3,
+                defenseRating: 40,
+                skin: '#fcd34d',
+                hair: 'parted',
+                glasses: false,
+                earpiece: true,
+                tongueOut: false,
+                shirtColor: '#38bdf8' // Blue polo from photo
+            },
+            {
+                id: 'john',
+                name: 'JOHN',
+                role: 'Speed & Dunk Demon',
+                speed: 400,          // 100% speed
+                jumpForce: 670,      // 85 jump (super high)
+                shotAccuracy: 0.42,  // shooting is meh
+                dunkReach: 210,      // 90 monster dunk reach
+                stealStat: 0.6,
+                defenseRating: 65,
+                skin: '#fde047',
+                hair: 'wavy',
+                glasses: true,
+                earpiece: false,
+                tongueOut: true,     // signature expression from photo
+                shirtColor: '#38bdf8' // Blue polo from photo
+            },
+            {
+                id: 'counter',
+                name: 'THE COUNTER',
+                role: 'Perimeter Clamper',
+                speed: 390,          // Fast enough to hound Kai Jie
+                jumpForce: 640,      // High contest reach
+                shotAccuracy: 0.72,
+                dunkReach: 140,
+                stealStat: 0.95,     // 95% Steal & Strip mastery
+                defenseRating: 99,   // Shuts down pure shooters
+                skin: '#f59e0b',
+                hair: 'crop',
+                glasses: false,
+                earpiece: false,
+                tongueOut: false,
+                shirtColor: '#dc2626' // Red lockdown jersey
             }
-        }
-
-        function playAirHiss() {
-            try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-                const bufferSize = ctx.sampleRate * 0.4;
-                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-                const noise = ctx.createBufferSource();
-                noise.buffer = buffer;
-                const filter = ctx.createBiquadFilter();
-                filter.type = 'bandpass';
-                filter.frequency.value = 1600;
-
-                const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-                noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-                noise.start();
-            } catch(e){}
-        }
-
-        function playRailJoint() {
-            try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-                [0, 0.08].forEach(d => {
-                    const osc = ctx.createOscillator();
-                    const g = ctx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(80, ctx.currentTime + d);
-                    osc.frequency.exponentialRampToValueAtTime(25, ctx.currentTime + d + 0.05);
-                    g.gain.setValueAtTime(0.1, ctx.currentTime + d);
-                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 0.05);
-                    osc.connect(g); g.connect(ctx.destination);
-                    osc.start(ctx.currentTime + d);
-                    osc.stop(ctx.currentTime + d + 0.05);
-                });
-            } catch(e){}
-        }
-
-        function playDualHorn() {
-            try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-                [293.66, 369.99].forEach(f => {
-                    const osc = ctx.createOscillator();
-                    const g = ctx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(f, ctx.currentTime);
-                    g.gain.setValueAtTime(0.2, ctx.currentTime);
-                    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.7);
-                    osc.connect(g); g.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.7);
-                });
-            } catch(e){}
-        }
-
-        function playCoinSound() {
-            try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-                const osc = ctx.createOscillator();
-                const g = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(987.77, ctx.currentTime);
-                osc.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.08);
-                g.gain.setValueAtTime(0.2, ctx.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-                osc.connect(g); g.connect(ctx.destination);
-                osc.start(); osc.stop(ctx.currentTime + 0.4);
-            } catch(e){}
-        }
-
-        // 3D Scene Variables
-        let scene, camera, renderer;
-        let trainRig = null, opposingTrainRig = null;
-        let cabInteriorGroup = null;
-        let wiperMeshL = null, wiperMeshR = null;
-        let speedNeedle = null;
-
-        let currentMap = 'IN';
-        let currentTrain = 'WAP7';
-        let driverFares = 2500;
-        let cameraMode = 0; // 0: Realistic Cab View, 1: Nose Buffer, 2: 3rd Person Follow, 3: Passenger Window
-        let wiperActive = false;
-
-        const train = {
-            distance: 0,
-            velocity: 0,
-            speedKMPH: 0,
-            powerNotch: 0.0,
-            brakeNotch: 1.0,
-            reverser: 1,
-            masterKeyOn: false,
-            doorsOpen: false,
-            weight: 120000,
-            maxSpeedKMPH: 140,
-            tractionForce: 360000
-        };
-
-        const opposingAI = {
-            distance: 3800,
-            speed: 22
-        };
-
-        const trackPoints = [
-            new THREE.Vector3(0, 5, 0),
-            new THREE.Vector3(0, 5, 1200),
-            new THREE.Vector3(120, 5, 2600),
-            new THREE.Vector3(240, 5, 4200),
-            new THREE.Vector3(180, 5, 6000),
-            new THREE.Vector3(-140, 5, 7800),
-            new THREE.Vector3(-60, 5, 9600),
-            new THREE.Vector3(0, 5, 12000)
         ];
-        const spline = new THREE.CatmullRomCurve3(trackPoints, false, 'catmullrom', 0.15);
-        const TRACK_LENGTH = spline.getLength();
 
-        const STATIONS = {
-            'IN': [
-                { name: 'ARAKKONAM VIADUCT', dist: 450, limit: 70 },
-                { name: 'KATPADI JUNCTION', dist: 3500, limit: 110 },
-                { name: 'JOLARPETTAI EXPRESS', dist: 7400, limit: 130 },
-                { name: 'SALEM CENTRAL', dist: 11500, limit: 60 }
-            ],
-            'UK': [
-                { name: 'PENKARN MEADOWS', dist: 450, limit: 75 },
-                { name: 'MILLBRIDGE RIDGE', dist: 3500, limit: 90 },
-                { name: 'BRIMMOUTH VALLEY', dist: 7400, limit: 125 },
-                { name: 'AAN HILL TERMINUS', dist: 11500, limit: 45 }
-            ],
-            'JP': [
-                { name: 'SHIN-YOKOHAMA BAY', dist: 450, limit: 110 },
-                { name: 'ODAWARA EXPRESSWAY', dist: 3500, limit: 210 },
-                { name: 'SHIZUOKA COAST', dist: 7400, limit: 285 },
-                { name: 'NAGOYA TERMINAL', dist: 11500, limit: 90 }
-            ]
+        let selectedP1Idx = 2; // Default to The Counter
+        let selectedP2Idx = 0; // Rival Kai Jie
+
+        // Build Selection Menu
+        const rosterContainer = document.getElementById('roster-container');
+        ROSTER.forEach((p, idx) => {
+            const card = document.createElement('div');
+            card.className = `roster-card ${idx === selectedP1Idx ? 'active' : ''}`;
+            card.id = `card-${idx}`;
+            card.innerHTML = `
+                <div class="card-name">${p.name}</div>
+                <div class="card-type">${p.role}</div>
+                <div class="card-stat">⚡ Speed: <strong>${Math.round(p.speed / 4)}</strong></div>
+                <div class="card-stat">🚀 Jump: <strong>${p.jumpForce > 400 ? 'HIGH' : 'LOW (10)'}</strong></div>
+                <div class="card-stat">🎯 3PT: <strong>${Math.round(p.shotAccuracy * 100)}%</strong></div>
+                <div class="card-stat">💥 Dunk: <strong>${p.dunkReach > 0 ? 'ELITE' : 'CANNOT'}</strong></div>
+                <div class="card-stat">🛡️ Steal/Defense: <strong>${Math.round(p.stealStat * 100)}%</strong></div>
+            `;
+            card.onclick = () => {
+                document.querySelectorAll('.roster-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                selectedP1Idx = idx;
+                selectedP2Idx = (idx === 0) ? 1 : 0; // auto-pick rival
+            };
+            rosterContainer.appendChild(card);
+        });
+
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const GRAVITY = 1180;
+        const COURT_Y = 515;
+
+        let gameMode = '1P';
+        let matchActive = false;
+        let p1Score = 0, p2Score = 0;
+        let timeLeft = 60;
+        let timerInterval = null;
+        let particles = [];
+        let screenShake = 0;
+
+        function createEntity(data, startX, facing) {
+            return {
+                ...data,
+                x: startX,
+                y: COURT_Y - 95,
+                vx: 0,
+                vy: 0,
+                width: 44,
+                height: 95,
+                facing: facing,
+                onGround: true,
+                isCharging: false,
+                chargeTimer: 0,
+                isDunking: false,
+                stealCooldown: 0,
+                aiDecisionTimer: 0
+            };
+        }
+
+        let p1 = createEntity(ROSTER[selectedP1Idx], 220, 1);
+        let p2 = createEntity(ROSTER[selectedP2Idx], 740, -1);
+
+        const ball = {
+            x: 250,
+            y: COURT_Y - 70,
+            vx: 0,
+            vy: 0,
+            radius: 13,
+            holder: null,
+            lastTouchedBy: null,
+            rotation: 0,
+            isFireball: false
         };
 
-        function showDialogue(text) {
-            const el = document.getElementById("dialogue-box");
-            el.innerText = text;
-            el.style.display = "block";
-            setTimeout(() => { el.style.display = "none"; }, 3500);
-        }
-
-        function toggleModal(id, open) {
-            document.getElementById(id).style.display = open ? 'flex' : 'none';
-        }
-
-        function spawnFarePopups(count) {
-            for (let i = 0; i < count; i++) {
-                setTimeout(() => {
-                    const el = document.createElement("div");
-                    el.className = "fare-popup";
-                    el.innerText = `+£35 🪙`;
-                    el.style.left = `${45 + (Math.random() * 10)}%`;
-                    el.style.top = `${52 + (Math.random() * 10)}%`;
-                    document.getElementById("game-wrapper").appendChild(el);
-                    playCoinSound();
-                    setTimeout(() => el.remove(), 1200);
-                }, i * 150);
-            }
-        }
-
-        // Build 3D Cockpit Frame Attached to Camera (Frames the Windshield & Desk)
-        function buildCabCockpit() {
-            if (cabInteriorGroup) camera.remove(cabInteriorGroup);
-            cabInteriorGroup = new THREE.Group();
-
-            const frameMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.8 });
-            const deskMat = new THREE.MeshStandardMaterial({ color: 0x334e5a, roughness: 0.5 });
-            const blackConsole = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.7 });
-
-            // 1. Lower Dashboard Console
-            const desk = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.85, 1.4), deskMat);
-            desk.position.set(0, -0.62, -1.1);
-            cabInteriorGroup.add(desk);
-
-            // 2. Dual Display Screen Housings
-            [-1.1, 1.1].forEach(x => {
-                const scr = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 0.04), blackConsole);
-                scr.position.set(x, -0.36, -0.95);
-                scr.rotation.x = -0.32;
-                cabInteriorGroup.add(scr);
-            });
-
-            // 3. Central Analog Speedometer Gauge
-            const dialHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.05, 24), blackConsole);
-            dialHousing.rotation.x = Math.PI / 2 - 0.32;
-            dialHousing.position.set(-0.32, -0.34, -0.92);
-            cabInteriorGroup.add(dialHousing);
-
-            speedNeedle = new THREE.Mesh(
-                new THREE.BoxGeometry(0.012, 0.15, 0.01),
-                new THREE.MeshBasicMaterial({ color: 0xef4444 })
-            );
-            speedNeedle.position.set(-0.32, -0.34, -0.9);
-            cabInteriorGroup.add(speedNeedle);
-
-            // 4. Windshield Pillars (Left, Right, and Top Brow)
-            const pillarL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.2, 0.15), frameMat);
-            pillarL.position.set(-1.6, 0.35, -1.05);
-            pillarL.rotation.z = -0.16;
-            cabInteriorGroup.add(pillarL);
-
-            const pillarR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.2, 0.15), frameMat);
-            pillarR.position.set(1.6, 0.35, -1.05);
-            pillarR.rotation.z = 0.16;
-            cabInteriorGroup.add(pillarR);
-
-            const roofBrow = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.45, 0.25), frameMat);
-            roofBrow.position.set(0, 1.25, -1.05);
-            cabInteriorGroup.add(roofBrow);
-
-            // 5. Wipers
-            const wiperMat = new THREE.MeshStandardMaterial({ color: 0x020617 });
-            wiperMeshL = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.8, 0.02), wiperMat);
-            wiperMeshL.position.set(-0.65, 0.38, -1.08);
-            cabInteriorGroup.add(wiperMeshL);
-
-            wiperMeshR = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.8, 0.02), wiperMat);
-            wiperMeshR.position.set(0.65, 0.38, -1.08);
-            cabInteriorGroup.add(wiperMeshR);
-
-            camera.add(cabInteriorGroup);
-        }
-
-        // Build 3D Train Models
-        function buildPlayerTrain() {
-            if (trainRig) scene.remove(trainRig);
-            trainRig = new THREE.Group();
-
-            const darkMetal = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
-            const lightGlow = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
-            if (currentTrain === 'WAP7') {
-                const wapWhite = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
-                const redBand = new THREE.MeshStandardMaterial({ color: 0xb91c1c });
-
-                const body = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.2, 21), wapWhite);
-                body.position.set(0, 2.2, 0);
-                trainRig.add(body);
-
-                const stripe = new THREE.Mesh(new THREE.BoxGeometry(3.02, 0.45, 20.8), redBand);
-                stripe.position.set(0, 1.6, 0);
-                trainRig.add(stripe);
-
-                const nose = new THREE.Mesh(new THREE.BoxGeometry(2.95, 2.8, 2.2), wapWhite);
-                nose.position.set(0, 2.1, 11.2);
-                trainRig.add(nose);
-            } else if (currentTrain === 'Class142') {
-                const bodyWhite = new THREE.MeshStandardMaterial({ color: 0xf8fafc });
-                const railBlue = new THREE.MeshStandardMaterial({ color: 0x0284c7 });
-                const warnYellow = new THREE.MeshStandardMaterial({ color: 0xfacc15 });
-
-                const body = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.7, 18), bodyWhite);
-                body.position.set(0, 2.0, 0);
-                trainRig.add(body);
-
-                const stripe = new THREE.Mesh(new THREE.BoxGeometry(2.82, 0.5, 17.8), railBlue);
-                stripe.position.set(0, 1.4, 0);
-                trainRig.add(stripe);
-
-                const nose = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.68, 2.0), warnYellow);
-                nose.position.set(0, 2.0, 9.8);
-                trainRig.add(nose);
-            } else {
-                const bulletWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
-                const jrBlue = new THREE.MeshStandardMaterial({ color: 0x1d4ed8 });
-
-                const body = new THREE.Mesh(new THREE.BoxGeometry(2.9, 2.7, 22), bulletWhite);
-                body.position.set(0, 2.0, 0);
-                trainRig.add(body);
-
-                const stripe = new THREE.Mesh(new THREE.BoxGeometry(2.92, 0.35, 21.8), jrBlue);
-                stripe.position.set(0, 1.4, 0);
-                trainRig.add(stripe);
-
-                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.4, 5.5, 16), bulletWhite);
-                nose.rotation.x = Math.PI / 2;
-                nose.position.set(0, 1.8, 13.5);
-                trainRig.add(nose);
-            }
-
-            // Headlights
-            [-0.95, 0.95].forEach(x => {
-                const light = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.1, 16), lightGlow);
-                light.rotation.x = Math.PI / 2;
-                light.position.set(x, 1.25, 11.5);
-                trainRig.add(light);
-            });
-
-            // Bogies
-            [-6.5, 6.5].forEach(z => {
-                const bogie = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.5, 4.0), darkMetal);
-                bogie.position.set(0, 0.5, z);
-                trainRig.add(bogie);
-            });
-
-            scene.add(trainRig);
-        }
-
-        // Build Opposing Train on Adjacent Track
-        function buildOpposingTrain() {
-            if (opposingTrainRig) scene.remove(opposingTrainRig);
-            opposingTrainRig = new THREE.Group();
-
-            const wapBody = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.2, 22), new THREE.MeshStandardMaterial({ color: 0xf1f5f9 }));
-            wapBody.position.set(0, 2.2, 0);
-            opposingTrainRig.add(wapBody);
-
-            const redStripe = new THREE.Mesh(new THREE.BoxGeometry(3.02, 0.45, 21.8), new THREE.MeshStandardMaterial({ color: 0xb91c1c }));
-            redStripe.position.set(0, 1.6, 0);
-            opposingTrainRig.add(redStripe);
-
-            for (let c = 1; c <= 4; c++) {
-                const coach = new THREE.Mesh(new THREE.BoxGeometry(2.9, 3.1, 24), new THREE.MeshStandardMaterial({ color: 0x1d4ed8 }));
-                coach.position.set(0, 2.2, c * 25.5);
-                opposingTrainRig.add(coach);
-            }
-
-            scene.add(opposingTrainRig);
-        }
-
-        // Build Tracks, Viaduct over Water, Mountains, and Platforms
-        function buildTerritoryMap() {
-            const toRemove = [];
-            scene.traverse(obj => { if (obj.userData && obj.userData.isMap) toRemove.push(obj); });
-            toRemove.forEach(obj => scene.remove(obj));
-
-            // 1. Water Plane (Reflective Lake under Viaduct)
-            const waterMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.15, metalness: 0.7 });
-            const water = new THREE.Mesh(new THREE.PlaneGeometry(16000, 16000), waterMat);
-            water.rotation.x = -Math.PI / 2;
-            water.position.y = -0.5;
-            water.userData.isMap = true;
-            scene.add(water);
-
-            // 2. Distant Mountains
-            const mtnMat = new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.9 });
-            for (let m = 0; m < 14; m++) {
-                const height = 400 + Math.random() * 500;
-                const mtn = new THREE.Mesh(new THREE.ConeGeometry(500 + Math.random() * 300, height, 7), mtnMat);
-                const ang = (m / 14) * Math.PI * 2;
-                mtn.position.set(Math.cos(ang) * 4500, height / 2, Math.sin(ang) * 4500);
-                mtn.userData.isMap = true;
-                scene.add(mtn);
-            }
-
-            // 3. Viaduct Bridge Deck & Rails
-            const steps = 380;
-            const pierMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 });
-            const railMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.95 });
-
-            for (let i = 0; i < steps; i++) {
-                const u1 = i / steps;
-                const u2 = (i + 1) / steps;
-                const p1 = spline.getPointAt(u1);
-                const p2 = spline.getPointAt(u2);
-                const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
-                const len = p1.distanceTo(p2);
-                const tan = spline.getTangentAt(u1).normalize();
-                const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
-
-                // Bridge Deck
-                const deck = new THREE.Mesh(new THREE.BoxGeometry(11.0, 1.2, len + 0.6), pierMat);
-                deck.position.copy(mid);
-                deck.position.y = p1.y - 0.6;
-                deck.lookAt(p2);
-                deck.userData.isMap = true;
-                scene.add(deck);
-
-                // Piers & Catenary Poles
-                if (i % 8 === 0) {
-                    const pier = new THREE.Mesh(new THREE.BoxGeometry(3.5, 14, 3.5), pierMat);
-                    pier.position.copy(p1);
-                    pier.position.y = -1;
-                    pier.userData.isMap = true;
-                    scene.add(pier);
-
-                    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 7.5), pierMat);
-                    mast.position.copy(p1).addScaledVector(norm, 5.2);
-                    mast.position.y = 8.5;
-                    mast.userData.isMap = true;
-                    scene.add(mast);
-                }
-
-                // Railings
-                [-5.4, 5.4].forEach(off => {
-                    const railing = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.85, len + 0.4), pierMat);
-                    railing.position.copy(mid).addScaledVector(norm, off);
-                    railing.position.y = p1.y + 0.42;
-                    railing.lookAt(p2.clone().addScaledVector(norm, off));
-                    railing.userData.isMap = true;
-                    scene.add(railing);
-                });
-
-                // 4 Rails (Up Line & Down Line)
-                [-2.2, -0.8, 0.8, 2.2].forEach(rx => {
-                    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.22, len + 0.4), railMat);
-                    rail.position.set(rx, 0.35, 0);
-                    const rg = new THREE.Group();
-                    rg.position.copy(mid);
-                    rg.lookAt(p2);
-                    rg.add(rail);
-                    rg.userData.isMap = true;
-                    scene.add(rg);
-                });
-            }
-
-            // 4. Stations & Waiting Passengers
-            const stationsList = STATIONS[currentMap];
-            stationsList.forEach(st => {
-                const u = st.dist / TRACK_LENGTH;
-                const pos = spline.getPointAt(u);
-                const tan = spline.getTangentAt(u).normalize();
-                const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
-
-                const stGroup = new THREE.Group();
-                const platform = new THREE.Mesh(new THREE.BoxGeometry(5.5, 1.4, 180), new THREE.MeshStandardMaterial({ color: 0x475569 }));
-                platform.position.set(0, 0.7, 0);
-                stGroup.add(platform);
-
-                // Passengers
-                for (let p = -70; p <= 70; p += 18) {
-                    const pax = createPassenger();
-                    pax.position.set(-1.0, 1.4, p);
-                    pax.rotation.y = Math.PI / 2;
-                    stGroup.add(pax);
-                }
-
-                stGroup.position.copy(pos).addScaledVector(norm, -5.2);
-                stGroup.lookAt(pos.clone().add(tan).addScaledVector(norm, -5.2));
-                stGroup.userData.isMap = true;
-                scene.add(stGroup);
-            });
-        }
-
-        function createPassenger() {
-            const p = new THREE.Group();
-            const skin = new THREE.MeshLambertMaterial({ color: 0xffdbac });
-            const shirt = new THREE.MeshLambertMaterial({ color: [0xef4444, 0x3b82f6, 0x10b981, 0xf59e0b][Math.floor(Math.random()*4)] });
-
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.6, 0.3), shirt);
-            torso.position.y = 0.6;
-            p.add(torso);
-
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), skin);
-            head.position.y = 1.05;
-            p.add(head);
-
-            return p;
-        }
-
-        // Initialize 3D Graphics Engine
-        function init3D() {
-            const canvas = document.getElementById("webgl-canvas");
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x93c5fd);
-            scene.fog = new THREE.FogExp2(0x93c5fd, 0.0003);
-
-            camera = new THREE.PerspectiveCamera(54, w / h, 0.1, 8000);
-            scene.add(camera);
-
-            // Attach renderer directly to the existing canvas
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: "high-performance" });
-            renderer.setSize(w, h);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-
-            const ambient = new THREE.AmbientLight(0xffffff, 0.88);
-            scene.add(ambient);
-
-            const sun = new THREE.DirectionalLight(0xfffaed, 1.25);
-            sun.position.set(400, 900, 350);
-            scene.add(sun);
-
-            buildTerritoryMap();
-            buildPlayerTrain();
-            buildOpposingTrain();
-            buildCabCockpit();
-            setupTouchSlider();
-
-            window.addEventListener('resize', onWindowResize);
-        }
-
-        function onWindowResize() {
-            const nw = window.innerWidth;
-            const nh = window.innerHeight;
-            camera.aspect = nw / nh;
-            camera.updateProjectionMatrix();
-            renderer.setSize(nw, nh);
-        }
-
-        // Touch Throttle Drag
-        function setupTouchSlider() {
-            const track = document.getElementById("throttle-track");
-            const handle = document.getElementById("throttle-handle");
-            let isDragging = false;
-
-            function updateSlider(clientY) {
-                const rect = track.getBoundingClientRect();
-                let ratio = 1 - ((clientY - rect.top) / rect.height);
-                ratio = Math.max(0, Math.min(1, ratio));
-
-                handle.style.bottom = `${ratio * (rect.height - 32)}px`;
-
-                if (ratio > 0.55) {
-                    train.powerNotch = (ratio - 0.55) / 0.45;
-                    train.brakeNotch = 0;
-                } else if (ratio < 0.45) {
-                    train.brakeNotch = (0.45 - ratio) / 0.45;
-                    train.powerNotch = 0;
-                    if (train.brakeNotch > 0.3) playAirHiss();
+        const hoops = [
+            { side: 'left', bbX: 52, bbY: 210, bbH: 110, rimX: 62, rimY: 288, rimW: 46, netWiggle: 0 },
+            { side: 'right', bbX: 940, bbY: 210, bbH: 110, rimX: 892, rimY: 288, rimW: 46, netWiggle: 0 }
+        ];
+
+        // Active Steal Mechanic
+        function attemptSteal(stealer, target) {
+            if (stealer.stealCooldown > 0 || ball.holder !== target) return;
+            stealer.stealCooldown = 0.55; // 0.55s cooldown
+
+            const dist = Math.hypot((stealer.x + stealer.width/2) - (target.x + target.width/2), stealer.y - target.y);
+            
+            // Proximity check: Must be right in opponent's face
+            if (dist < 68) {
+                // Calculation: stealer's steal stat vs target's ball handling
+                const successProb = stealer.stealStat * (stealer.id === 'counter' && target.id === 'kaijie' ? 0.95 : 0.65);
+                
+                if (Math.random() < successProb) {
+                    ball.holder = null;
+                    ball.lastTouchedBy = stealer;
+                    // Pop ball loose
+                    ball.vx = (stealer.x < target.x ? -1 : 1) * 160;
+                    ball.vy = -260;
+                    playSound('steal');
+                    triggerBanner('BALL STRIPPED! ⚡');
                 } else {
-                    train.powerNotch = 0;
-                    train.brakeNotch = 0;
+                    // Missed swipe creates small hesitation
+                    stealer.vx *= 0.2;
                 }
             }
-
-            track.parentElement.addEventListener("touchstart", e => {
-                isDragging = true;
-                getAudioContext();
-                initTractionSound();
-                updateSlider(e.touches[0].clientY);
-            }, { passive: false });
-
-            window.addEventListener("touchmove", e => {
-                if (isDragging) updateSlider(e.touches[0].clientY);
-            }, { passive: false });
-
-            window.addEventListener("touchend", () => { isDragging = false; });
         }
 
-        // Driver Actions
-        function toggleMasterKey() {
+        // Projectile Kinematics
+        function getArcTrajectory(startX, startY, targetX, targetY, gravity) {
+            const dx = targetX - startX;
+            const dy = targetY - startY;
+            const dist = Math.abs(dx);
+            const flightTime = Math.min(1.15, Math.max(0.72, 0.70 + dist * 0.00065));
+            return {
+                vx: dx / flightTime,
+                vy: (dy - 0.5 * gravity * flightTime * flightTime) / flightTime
+            };
+        }
+
+        // Contest Check (Does defender smother the shooter?)
+        function isShotContested(shooter, defender) {
+            const dist = Math.abs((shooter.x + shooter.width/2) - (defender.x + defender.width/2));
+            const isClose = dist < 75;
+            const isGuarding = !defender.onGround || defender.defenseRating > 70;
+            return isClose && isGuarding;
+        }
+
+        function releaseJumpShot(shooter, targetHoop, defender) {
+            ball.holder = null;
+            ball.lastTouchedBy = shooter;
+
+            const sweetSpot = 0.45;
+            const diff = Math.abs(shooter.chargeTimer - sweetSpot);
+            
+            // Check contest
+            const contested = isShotContested(shooter, defender);
+            // Sweet spot window shrinks if heavily contested by "The Counter"
+            const maxAllowedDiff = contested ? (defender.id === 'counter' ? 0.04 : 0.07) : 0.12;
+            const isGreen = diff <= maxAllowedDiff;
+
+            const targetX = targetHoop.rimX + targetHoop.rimW / 2;
+            const targetY = targetHoop.rimY;
+            const perfectArc = getArcTrajectory(ball.x, ball.y, targetX, targetY, GRAVITY);
+
+            if (isGreen) {
+                // Green Release: 100% Cash regardless of defense!
+                ball.isFireball = true;
+                ball.vx = perfectArc.vx;
+                ball.vy = perfectArc.vy;
+                triggerBanner('🔥 PERFECT GREEN!');
+            } else if (shooter.chargeTimer > 0.78) {
+                // Hard Overcharge
+                ball.isFireball = false;
+                const dir = Math.sign(targetX - ball.x);
+                ball.vx = dir * 180;
+                ball.vy = -680;
+                triggerBanner('BRICK!');
+            } else {
+                // Normal Shot: Kai Jie has 100% baseline accuracy UNLESS contested
+                ball.isFireball = false;
+                let penalty = (1 - shooter.shotAccuracy);
+                if (contested) penalty += (defender.defenseRating / 100) * 0.55;
+
+                const spread = (diff * 220 + penalty * 120);
+                ball.vx = perfectArc.vx + (Math.random() - 0.5) * spread;
+                ball.vy = perfectArc.vy + (Math.random() - 0.5) * (spread * 0.6);
+                if (contested) triggerBanner('SMOTHERED!');
+            }
+            playSound('bounce');
+        }
+
+        function executeDunk(player, targetHoop) {
+            if (player.dunkReach <= 0) return; // Kai Jie cannot dunk!
+
+            player.isDunking = true;
+            player.vx = 0; player.vy = -160;
+            player.x = (targetHoop.side === 'right') ? targetHoop.rimX - 10 : targetHoop.rimX + 30;
+
+            setTimeout(() => {
+                if (!player.isDunking) return;
+                player.isDunking = false;
+                ball.holder = null;
+                ball.x = targetHoop.rimX + 23;
+                ball.y = targetHoop.rimY + 5;
+                ball.vx = 0; ball.vy = 420;
+                targetHoop.netWiggle = 1.0;
+                screenShake = 16;
+                playSound('dunk');
+                triggerBanner('💥 MONSTER SLAM!');
+
+                if (targetHoop.side === 'right') {
+                    p1Score += 2;
+                    document.getElementById('p1-score').innerText = p1Score;
+                    setTimeout(() => resetRound(p2), 600);
+                } else {
+                    p2Score += 2;
+                    document.getElementById('p2-score').innerText = p2Score;
+                    setTimeout(() => resetRound(p1), 600);
+                }
+            }, 300);
+        }
+
+        function triggerBanner(text) {
+            const b = document.getElementById('banner-popup');
+            b.innerText = text;
+            b.style.transform = 'translateX(-50%) scale(1.15)';
+            setTimeout(() => { b.style.transform = 'translateX(-50%) scale(0)'; }, 900);
+        }
+
+        function startMatch(mode) {
+            gameMode = mode;
+            p1Score = 0; p2Score = 0; timeLeft = 60;
+            matchActive = true;
+
+            p1 = createEntity(ROSTER[selectedP1Idx], 220, 1);
+            p2 = createEntity(ROSTER[selectedP2Idx], 740, -1);
+
+            document.getElementById('p1-name-hud').innerText = p1.name;
+            document.getElementById('p2-name-hud').innerText = (gameMode === '1P') ? `${p2.name} (AI)` : p2.name;
+            document.getElementById('p1-score').innerText = '0';
+            document.getElementById('p2-score').innerText = '0';
+            document.getElementById('match-timer').innerText = '60';
+
+            document.getElementById('select-modal').style.display = 'none';
+            document.getElementById('end-modal').style.display = 'none';
+
+            resetRound(p1);
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (matchActive && timeLeft > 0) {
+                    timeLeft--;
+                    document.getElementById('match-timer').innerText = timeLeft;
+                    if (timeLeft <= 0) finishMatch();
+                }
+            }, 1000);
+        }
+
+        function resetRound(inboundPlayer) {
+            p1.x = 220; p1.y = COURT_Y - p1.height; p1.vx = 0; p1.vy = 0; p1.isDunking = false;
+            p2.x = 740; p2.y = COURT_Y - p2.height; p2.vx = 0; p2.vy = 0; p2.isDunking = false;
+            ball.holder = inboundPlayer;
+            ball.vx = 0; ball.vy = 0;
+            ball.isFireball = false;
+        }
+
+        function finishMatch() {
+            matchActive = false;
+            clearInterval(timerInterval);
+            document.getElementById('end-modal').style.display = 'flex';
+            const winner = p1Score > p2Score ? `${p1.name} WINS!` : (p2Score > p1Score ? `${p2.name} WINS!` : "DRAW MATCH!");
+            document.getElementById('end-title').innerText = winner;
+            document.getElementById('final-score-text').innerText = `${p1Score} - ${p2Score}`;
+        }
+
+        function openMenu() {
+            document.getElementById('end-modal').style.display = 'none';
+            document.getElementById('select-modal').style.display = 'flex';
+        }
+
+        // Specialized AI Brain (Distinguishes between Kai Jie, John, and Counter)
+        function updateAI(dt) {
+            if (gameMode !== '1P' || !matchActive || p2.isDunking) return;
+
+            p2.aiDecisionTimer += dt;
+            const targetHoop = hoops[0];
+            const distToRim = (p2.x + p2.width / 2) - (targetHoop.rimX + 23);
+            const distToPlayer = Math.abs(p2.x - p1.x);
+
+            if (ball.holder === p2) {
+                // OFFENSE LOGIC
+                if (p2.id === 'john') {
+                    // John: Aggressive slasher, sprints to rim for monster dunk
+                    p2.vx = -p2.speed;
+                    p2.facing = -1;
+                    if (distToRim < p2.dunkReach && p2.onGround) {
+                        p2.vy = -p2.jumpForce;
+                        p2.onGround = false;
+                        setTimeout(() => executeDunk(p2, targetHoop), 120);
+                    }
+                } else if (p2.id === 'kaijie') {
+                    // Kai Jie: 3PT Sniper, avoids paint, finds perimeter space to launch 100% 3PT
+                    if (distToRim > 320) {
+                        p2.vx = -p2.speed;
+                        p2.facing = -1;
+                    } else if (distToPlayer < 60) {
+                        // Back up / step back if player is crowding
+                        p2.vx = p2.speed;
+                        p2.facing = -1;
+                    } else {
+                        // Spot up and shoot
+                        p2.vx = 0;
+                        if (p2.onGround && p2.aiDecisionTimer > 0.6) {
+                            p2.aiDecisionTimer = 0;
+                            p2.chargeTimer = 0.45; // Hits green
+                            releaseJumpShot(p2, targetHoop, p1);
+                        }
+                    }
+                } else {
+                    // The Counter / Balanced
+                    if (distToRim > 240) p2.vx = -p2.speed;
+                    else {
+                        p2.vx = 0;
+                        if (p2.onGround && p2.aiDecisionTimer > 0.6) {
+                            p2.chargeTimer = 0.45;
+                            releaseJumpShot(p2, targetHoop, p1);
+                            p2.aiDecisionTimer = 0;
+                        }
+                    }
+                }
+            } else if (ball.holder === p1) {
+                // DEFENSE LOGIC
+                const guardDist = p2.x - p1.x;
+                if (guardDist > 65) { p2.vx = -p2.speed; p2.facing = -1; }
+                else if (guardDist < -45) { p2.vx = p2.speed; p2.facing = 1; }
+                else {
+                    p2.vx = 0;
+                    // Active Steal Attempt
+                    if (p2.stealCooldown <= 0 && Math.random() < 0.35) {
+                        attemptSteal(p2, p1);
+                    }
+                    // Shot Contest: Jump if shooter jumps or charges
+                    if ((!p1.onGround || p1.isCharging) && p2.onGround && Math.random() < 0.8) {
+                        p2.vy = -p2.jumpForce;
+                        p2.onGround = false;
+                    }
+                }
+            } else {
+                // LOOSE BALL RECOVERY
+                if (ball.x < p2.x - 16) { p2.vx = -p2.speed; p2.facing = -1; }
+                else if (ball.x > p2.x + 16) { p2.vx = p2.speed; p2.facing = 1; }
+                else p2.vx = 0;
+
+                if (ball.y < p2.y && p2.onGround && Math.abs(ball.x - p2.x) < 55) {
+                    p2.vy = -p2.jumpForce * 0.8;
+                    p2.onGround = false;
+                }
+            }
+        }
+
+        // Keys & Inputs
+        const keys = {};
+        window.addEventListener('keydown', e => {
             getAudioContext();
-            initTractionSound();
-            train.masterKeyOn = !train.masterKeyOn;
-            document.getElementById("btn-master").classList.toggle("active", train.masterKeyOn);
-            showDialogue(train.masterKeyOn ? "🔑 Master Key Inserted! Throttle Active." : "🛑 Desk Isolated.");
-        }
+            keys[e.code] = true;
 
-        function cycleReverser() {
-            if (!train.masterKeyOn) return showDialogue("⚠️ Insert Master Key first!");
-            if (Math.abs(train.velocity) > 0.5) return showDialogue("⚠️ Full stop required to reverse!");
-
-            train.reverser = train.reverser === 1 ? -1 : 1;
-            document.getElementById("btn-reverser").innerHTML = `🔄<br>${train.reverser === 1 ? 'FWD' : 'REV'}`;
-            showDialogue(`🔄 Reverser: ${train.reverser === 1 ? 'FORWARD' : 'REVERSE'}`);
-        }
-
-        function toggleDoors() {
-            if (Math.abs(train.velocity) > 0.5) return showDialogue("⚠️ Train must be stopped to open doors!");
-            train.doorsOpen = !train.doorsOpen;
-            document.getElementById("btn-doors").classList.toggle("active", train.doorsOpen);
-
-            if (train.doorsOpen) {
-                showDialogue("🚪 Passenger Doors Open! Fares Boarding...");
-                spawnFarePopups(6);
-                driverFares += 350;
-                document.getElementById("cash-count").innerText = driverFares.toLocaleString();
-            } else {
-                showDialogue("🚪 Doors Closed & Interlocked.");
-            }
-        }
-
-        function applyEmergencyBrake() {
-            train.powerNotch = 0;
-            train.brakeNotch = 1.0;
-            playAirHiss();
-            document.getElementById("throttle-handle").style.bottom = "0px";
-            showDialogue("🛑 EMERGENCY BRAKE TRIPPED!");
-        }
-
-        function soundHorn() { playDualHorn(); }
-
-        function toggleWiper() {
-            wiperActive = !wiperActive;
-            document.getElementById("btn-wiper").classList.toggle("active", wiperActive);
-            showDialogue(wiperActive ? "🌧️ Wipers Active" : "Wipers Off");
-        }
-
-        function cycleCamera() {
-            cameraMode = (cameraMode + 1) % 4;
-            const names = ["CAB COCKPIT", "NOSE BUFFER", "3RD PERSON CHASE", "WINDOW VIEW"];
-            showDialogue(`🎥 ${names[cameraMode]}`);
-        }
-
-        function acknowledgeAWS() { showDialogue("⚠️ AWS Acknowledged."); }
-
-        function selectTrain(name) {
-            currentTrain = name;
-            buildPlayerTrain();
-            toggleModal("depot-modal", false);
-            showDialogue(`🚆 Selected ${name}`);
-        }
-
-        function selectMap(code) {
-            currentMap = code;
-            train.distance = 0;
-            train.velocity = 0;
-            buildTerritoryMap();
-            buildPlayerTrain();
-            buildOpposingTrain();
-            toggleModal("map-modal", false);
-            showDialogue(`🗺️ Loaded Map: ${code}`);
-        }
-
-        // Keyboard Controls
-        window.addEventListener("keydown", e => {
-            const c = e.code;
-            if (["KeyW","KeyS","KeyA","KeyD","KeyK","KeyR","KeyT","KeyH","KeyC","KeyV","Space","ArrowUp","ArrowDown"].includes(c)) e.preventDefault();
-            if (c === "KeyW" || c === "ArrowUp") {
-                train.powerNotch = Math.min(1.0, train.powerNotch + 0.1);
-                train.brakeNotch = 0;
-            }
-            if (c === "KeyS" || c === "ArrowDown") {
-                train.brakeNotch = Math.min(1.0, train.brakeNotch + 0.15);
-                train.powerNotch = 0;
-                if (train.brakeNotch > 0.4) playAirHiss();
-            }
-            if (c === "KeyK") toggleMasterKey();
-            if (c === "KeyR") cycleReverser();
-            if (c === "KeyT") toggleDoors();
-            if (c === "KeyH" || c === "Space") soundHorn();
-            if (c === "KeyV") toggleWiper();
-            if (c === "KeyC") cycleCamera();
-        });
-
-        // Physics & Animation Loop
-        function updatePhysics(dt) {
-            if (!trainRig) return;
-
-            const currentSpeed = Math.abs(train.velocity);
-            const accelForce = (train.powerNotch * train.tractionForce - train.brakeNotch * 240000) * train.reverser;
-            const resistance = 0.0028 * train.weight * 9.81 + (0.00045 * currentSpeed * currentSpeed);
-
-            let accel = (accelForce - Math.sign(train.velocity) * resistance) / train.weight;
-            train.velocity += accel * dt;
-
-            if (train.powerNotch === 0 && train.brakeNotch > 0.2 && currentSpeed < 0.25) {
-                train.velocity = 0;
+            // P1 Jump
+            if (e.code === 'KeyW' && p1.onGround && !p1.isDunking) {
+                p1.vy = -p1.jumpForce;
+                p1.onGround = false;
             }
 
-            train.distance += train.velocity * dt;
-            train.distance = Math.max(0, Math.min(TRACK_LENGTH, train.distance));
-            train.speedKMPH = Math.round(Math.abs(train.velocity) * 3.6);
-
-            // Rail Joint Sound Trigger
-            if (Math.abs(train.distance - lastJointDistance) > 30 && currentSpeed > 3) {
-                lastJointDistance = train.distance;
-                playRailJoint();
-            }
-
-            // Move Player Train
-            const u = Math.min(1.0, Math.max(0.0, train.distance / TRACK_LENGTH));
-            const pos = spline.getPointAt(u);
-            const tan = spline.getTangentAt(u).normalize();
-            const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
-
-            trainRig.position.copy(pos).addScaledVector(norm, 1.5);
-            trainRig.lookAt(pos.clone().add(tan).addScaledVector(norm, 1.5));
-
-            // Move Opposing AI Train
-            if (opposingTrainRig) {
-                opposingAI.distance -= opposingAI.speed * dt;
-                if (opposingAI.distance < 0) opposingAI.distance = TRACK_LENGTH;
-
-                const aiU = Math.min(1.0, Math.max(0.0, opposingAI.distance / TRACK_LENGTH));
-                const aiPos = spline.getPointAt(aiU);
-                const aiTan = spline.getTangentAt(aiU).normalize();
-
-                opposingTrainRig.position.copy(aiPos).addScaledVector(norm, -1.5);
-                opposingTrainRig.lookAt(aiPos.clone().sub(aiTan).addScaledVector(norm, -1.5));
-
-                if (Math.abs(train.distance - opposingAI.distance) < 90 && Math.abs(train.distance - opposingAI.distance) > 70) {
-                    playDualHorn();
+            // P1 Action: Shoot or Steal
+            if (e.code === 'Space' || e.code === 'KeyF') {
+                if (ball.holder === p1 && !p1.isCharging) {
+                    const distToRim = Math.abs((hoops[1].rimX + 23) - (p1.x + p1.width/2));
+                    if (distToRim < p1.dunkReach && p1.y < COURT_Y - 40) {
+                        executeDunk(p1, hoops[1]);
+                    } else {
+                        p1.isCharging = true;
+                        p1.chargeTimer = 0;
+                    }
+                } else if (ball.holder === p2) {
+                    // Attempt Steal!
+                    attemptSteal(p1, p2);
                 }
             }
 
-            // Wipers & Needle
-            if (wiperActive && wiperMeshL && wiperMeshR) {
-                const ang = Math.sin(performance.now() * 0.008) * 0.65;
-                wiperMeshL.rotation.z = ang;
-                wiperMeshR.rotation.z = ang;
+            // P2 Controls (2P Mode)
+            if (gameMode === '2P') {
+                if (e.code === 'ArrowUp' && p2.onGround && !p2.isDunking) {
+                    p2.vy = -p2.jumpForce;
+                    p2.onGround = false;
+                }
+                if (e.code === 'KeyL' || e.code === 'Enter') {
+                    if (ball.holder === p2 && !p2.isCharging) {
+                        const distToRim = Math.abs((hoops[0].rimX + 23) - (p2.x + p2.width/2));
+                        if (distToRim < p2.dunkReach && p2.y < COURT_Y - 40) {
+                            executeDunk(p2, hoops[0]);
+                        } else {
+                            p2.isCharging = true;
+                            p2.chargeTimer = 0;
+                        }
+                    } else if (ball.holder === p1) {
+                        attemptSteal(p2, p1);
+                    }
+                }
             }
-            if (speedNeedle) {
-                speedNeedle.rotation.z = -(train.speedKMPH / train.maxSpeedKMPH) * Math.PI * 1.2;
-            }
-
-            updateMotorPitch(currentSpeed / 40, train.powerNotch);
-
-            // HUD
-            document.getElementById("speed-display").innerText = train.speedKMPH;
-            const stationsList = STATIONS[currentMap];
-            const nextSt = stationsList.find(s => s.dist > train.distance - 20) || stationsList[stationsList.length - 1];
-            document.getElementById("station-name-hud").innerText = nextSt.name;
-            document.getElementById("station-dist-hud").innerText = `${Math.max(0, Math.round(nextSt.dist - train.distance))} M`;
-            document.getElementById("limit-display").innerText = `LIMIT: ${nextSt.limit}`;
-        }
-
-        function updateCamera() {
-            if (!trainRig) return;
-            trainRig.updateMatrixWorld(true);
-
-            if (cameraMode === 0) {
-                // 1. Realistic Cab Cockpit View (Aligned through front windshield)
-                if (cabInteriorGroup) cabInteriorGroup.visible = true;
-                const eye = trainRig.localToWorld(new THREE.Vector3(0.45, 2.5, 9.2));
-                const target = trainRig.localToWorld(new THREE.Vector3(0.45, 2.2, 80.0));
-                camera.position.copy(eye);
-                camera.lookAt(target);
-            } else if (cameraMode === 1) {
-                // 2. Buffer Cam
-                if (cabInteriorGroup) cabInteriorGroup.visible = false;
-                const eye = trainRig.localToWorld(new THREE.Vector3(0, 1.8, 12.5));
-                const target = trainRig.localToWorld(new THREE.Vector3(0, 1.8, 80.0));
-                camera.position.copy(eye);
-                camera.lookAt(target);
-            } else if (cameraMode === 2) {
-                // 3. 3rd Person Follow
-                if (cabInteriorGroup) cabInteriorGroup.visible = false;
-                const eye = trainRig.localToWorld(new THREE.Vector3(0, 7.5, -34.0));
-                const target = trainRig.localToWorld(new THREE.Vector3(0, 2.0, 10.0));
-                camera.position.lerp(eye, 0.18);
-                camera.lookAt(target);
-            } else {
-                // 4. Passenger Window
-                if (cabInteriorGroup) cabInteriorGroup.visible = false;
-                const eye = trainRig.localToWorld(new THREE.Vector3(-1.3, 2.2, -4.0));
-                const target = trainRig.localToWorld(new THREE.Vector3(-30.0, 2.0, -4.0));
-                camera.position.copy(eye);
-                camera.lookAt(target);
-            }
-        }
-
-        let lastTime = performance.now();
-        function loop(now) {
-            requestAnimationFrame(loop);
-            const dt = Math.min((now - lastTime) / 1000, 0.02);
-            lastTime = now;
-
-            updatePhysics(dt);
-            updateCamera();
-            renderer.render(scene, camera);
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            init3D();
-            requestAnimationFrame(loop);
         });
+
+        window.addEventListener('keyup', e => {
+            keys[e.code] = false;
+            if ((e.code === 'Space' || e.code === 'KeyF') && p1.isCharging) {
+                if (ball.holder === p1) releaseJumpShot(p1, hoops[1], p2);
+                p1.isCharging = false;
+            }
+            if (gameMode === '2P' && (e.code === 'KeyL' || e.code === 'Enter') && p2.isCharging) {
+                if (ball.holder === p2) releaseJumpShot(p2, hoops[0], p1);
+                p2.isCharging = false;
+            }
+        });
+
+        // Touch Input Bindings (iPad)
+        const bindTouch = (id, start, end) => {
+            const el = document.getElementById(id);
+            el.addEventListener('touchstart', e => { e.preventDefault(); getAudioContext(); start(); }, { passive: false });
+            if (end) el.addEventListener('touchend', e => { e.preventDefault(); end(); }, { passive: false });
+        };
+
+        bindTouch('t-left', () => keys['KeyA'] = true, () => keys['KeyA'] = false);
+        bindTouch('t-right', () => keys['KeyD'] = true, () => keys['KeyD'] = false);
+        bindTouch('t-jump', () => {
+            if (p1.onGround && !p1.isDunking) { p1.vy = -p1.jumpForce; p1.onGround = false; }
+        });
+        bindTouch('t-action', () => {
+            if (ball.holder === p1) {
+                const distToRim = Math.abs((hoops[1].rimX + 23) - (p1.x + p1.width/2));
+                if (distToRim < p1.dunkReach && p1.y < COURT_Y - 40) executeDunk(p1, hoops[1]);
+                else { p1.isCharging = true; p1.chargeTimer = 0; }
+            } else if (ball.holder === p2) {
+                attemptSteal(p1, p2);
+            }
+        }, () => {
+            if (p1.isCharging && ball.holder === p1) { releaseJumpShot(p1, hoops[1], p2); }
+            p1.isCharging = false;
+        });
+
+        // Physics Update
+        function updatePhysics(dt) {
+            if (!matchActive) return;
+
+            if (screenShake > 0.5) screenShake *= 0.88;
+            if (p1.stealCooldown > 0) p1.stealCooldown -= dt;
+            if (p2.stealCooldown > 0) p2.stealCooldown -= dt;
+
+            // P1 Movement
+            if (!p1.isDunking) {
+                if (keys['KeyA']) { p1.vx = -p1.speed; p1.facing = -1; }
+                else if (keys['KeyD']) { p1.vx = p1.speed; p1.facing = 1; }
+                else p1.vx = 0;
+
+                if (p1.isCharging) p1.chargeTimer += dt;
+            }
+
+            // P2 Movement (2P Mode)
+            if (gameMode === '2P' && !p2.isDunking) {
+                if (keys['ArrowLeft']) { p2.vx = -p2.speed; p2.facing = -1; }
+                else if (keys['ArrowRight']) { p2.vx = p2.speed; p2.facing = 1; }
+                else p2.vx = 0;
+
+                if (p2.isCharging) p2.chargeTimer += dt;
+            }
+
+            // Gravity & Boundary
+            [p1, p2].forEach(p => {
+                if (!p.isDunking) {
+                    p.vy += GRAVITY * dt;
+                    p.x += p.vx * dt;
+                    p.y += p.vy * dt;
+
+                    if (p.y >= COURT_Y - p.height) {
+                        p.y = COURT_Y - p.height;
+                        p.vy = 0;
+                        p.onGround = true;
+                    }
+                    p.x = Math.max(45, Math.min(955 - p.width, p.x));
+                }
+            });
+
+            // Ball Physics
+            if (ball.holder) {
+                const h = ball.holder;
+                ball.x = h.x + (h.facing === 1 ? 36 : 8);
+                ball.y = h.isDunking ? h.y - 12 : h.y + 40;
+                ball.vx = 0; ball.vy = 0;
+            } else {
+                ball.vy += GRAVITY * dt;
+                ball.x += ball.vx * dt;
+                ball.y += ball.vy * dt;
+                ball.rotation += ball.vx * 0.015;
+
+                // Boundary walls
+                if (ball.x - ball.radius <= 35) {
+                    ball.x = 35 + ball.radius;
+                    ball.vx = Math.abs(ball.vx) * 0.75;
+                    playSound('bounce');
+                } else if (ball.x + ball.radius >= 965) {
+                    ball.x = 965 - ball.radius;
+                    ball.vx = -Math.abs(ball.vx) * 0.75;
+                    playSound('bounce');
+                }
+
+                // Floor bounce
+                if (ball.y >= COURT_Y - ball.radius) {
+                    ball.y = COURT_Y - ball.radius;
+                    ball.vy = -ball.vy * 0.65;
+                    ball.vx *= 0.88;
+                    ball.isFireball = false;
+                    if (Math.abs(ball.vy) > 60) playSound('bounce');
+                }
+
+                // Hoop Scoring / Collisions
+                hoops.forEach(h => {
+                    // Backboard Deflection (Bypassed if green release)
+                    if (!ball.isFireball) {
+                        if (ball.x + ball.radius >= h.bbX - 4 && ball.x - ball.radius <= h.bbX + 12 &&
+                            ball.y >= h.bbY && ball.y <= h.bbY + h.bbH) {
+                            ball.vx = -ball.vx * 0.72;
+                            ball.x = (ball.vx > 0) ? h.bbX + 14 : h.bbX - 8;
+                            playSound('bounce');
+                        }
+                    }
+
+                    // Score condition
+                    if (ball.vy > 0 && ball.y >= h.rimY - 4 && ball.y <= h.rimY + 16 &&
+                        ball.x > h.rimX + 4 && ball.x < h.rimX + h.rimW - 4) {
+
+                        h.netWiggle = 1.0;
+                        playSound('swish');
+
+                        if (h.side === 'right' && ball.lastTouchedBy === p1) {
+                            p1Score += ball.isFireball ? 3 : 2;
+                            document.getElementById('p1-score').innerText = p1Score;
+                            triggerBanner(ball.isFireball ? '🔥 3-POINT SWISH!' : 'BUCKET! +2');
+                            setTimeout(() => resetRound(p2), 500);
+                        } else if (h.side === 'left' && ball.lastTouchedBy === p2) {
+                            p2Score += ball.isFireball ? 3 : 2;
+                            document.getElementById('p2-score').innerText = p2Score;
+                            triggerBanner('RIVAL SCORED!');
+                            setTimeout(() => resetRound(p1), 500);
+                        }
+                        ball.isFireball = false;
+                    }
+
+                    if (h.netWiggle > 0) h.netWiggle -= dt * 2;
+                });
+
+                // Catch/Rebound Hitbox
+                [p1, p2].forEach(p => {
+                    const cx = p.x + p.width / 2;
+                    const cy = p.y + p.height / 2;
+                    if (Math.hypot(cx - ball.x, cy - ball.y) < 46 && ball.vy > -140) {
+                        ball.holder = p;
+                        ball.lastTouchedBy = p;
+                        ball.isFireball = false;
+                    }
+                });
+            }
+        }
+
+        // Render Artwork (Custom faces from photo)
+        function render() {
+            ctx.save();
+            if (screenShake > 0.5) {
+                ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Gym Arena / Classroom Court
+            const bg = ctx.createLinearGradient(0, 0, 0, COURT_Y);
+            bg.addColorStop(0, '#130628');
+            bg.addColorStop(1, '#2c0d5a');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, canvas.width, COURT_Y);
+
+            // Floor
+            const wood = ctx.createLinearGradient(0, COURT_Y, 0, canvas.height);
+            wood.addColorStop(0, '#d97706');
+            wood.addColorStop(1, '#92400e');
+            ctx.fillStyle = wood;
+            ctx.fillRect(0, COURT_Y, canvas.width, canvas.height - COURT_Y);
+
+            // Lines
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 4;
+            ctx.strokeRect(35, COURT_Y, canvas.width - 70, canvas.height - COURT_Y - 14);
+            ctx.beginPath(); ctx.arc(canvas.width / 2, COURT_Y, 78, Math.PI, 0); ctx.stroke();
+
+            // 2. Hoops
+            hoops.forEach(h => {
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(h.side === 'left' ? h.bbX - 16 : h.bbX + 16, h.bbY, 16, COURT_Y - h.bbY);
+
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 5;
+                ctx.fillRect(h.bbX, h.bbY, 8, h.bbH);
+                ctx.strokeRect(h.bbX, h.bbY, 8, h.bbH);
+
+                ctx.strokeStyle = '#f97316'; ctx.lineWidth = 6;
+                ctx.beginPath(); ctx.moveTo(h.rimX, h.rimY); ctx.lineTo(h.rimX + h.rimW, h.rimY); ctx.stroke();
+
+                const swing = Math.sin(performance.now() * 0.02) * 12 * h.netWiggle;
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(h.rimX + 4, h.rimY);
+                ctx.lineTo(h.rimX + 10 + swing, h.rimY + 34);
+                ctx.lineTo(h.rimX + h.rimW - 10 + swing, h.rimY + 34);
+                ctx.lineTo(h.rimX + h.rimW - 4, h.rimY);
+                ctx.stroke();
+            });
+
+            // 3. Characters Rendering (Custom Caricatures from Photo)
+            [p1, p2].forEach(p => {
+                const bounce = Math.sin(performance.now() * 0.009) * 2;
+
+                // Shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.35)';
+                ctx.beginPath();
+                ctx.ellipse(p.x + p.width/2, COURT_Y - 4, 25, 7, 0, 0, Math.PI*2);
+                ctx.fill();
+
+                // Shoes & Socks
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(p.x + (p.facing === 1 ? 4 : 22), p.y + p.height - 14, 18, 12);
+
+                // Blue School Polo Shirt (from Photo)
+                ctx.fillStyle = p.shirtColor;
+                ctx.beginPath();
+                ctx.roundRect(p.x + 8, p.y + 36 + bounce, 28, 40, 6);
+                ctx.fill();
+
+                // Dark Blue Collar / Emblem
+                ctx.fillStyle = '#0369a1';
+                ctx.fillRect(p.x + 18, p.y + 36 + bounce, 8, 12);
+
+                // Head
+                ctx.fillStyle = p.skin;
+                ctx.beginPath();
+                ctx.arc(p.x + 22, p.y + 20 + bounce, 22, 0, Math.PI*2);
+                ctx.fill();
+
+                // Hair Styles
+                ctx.fillStyle = '#171717';
+                if (p.hair === 'parted') {
+                    // Kai Jie's neat parted black hair
+                    ctx.beginPath();
+                    ctx.arc(p.x + 22, p.y + 14 + bounce, 23, Math.PI, 0);
+                    ctx.fill();
+                } else if (p.hair === 'wavy') {
+                    // John's wavy fluffy hair
+                    ctx.beginPath();
+                    ctx.arc(p.x + 22, p.y + 12 + bounce, 24, Math.PI, 0);
+                    ctx.arc(p.x + 12, p.y + 16 + bounce, 8, 0, Math.PI*2);
+                    ctx.arc(p.x + 32, p.y + 16 + bounce, 8, 0, Math.PI*2);
+                    ctx.fill();
+                } else {
+                    // Counter's athletic crop
+                    ctx.fillRect(p.x + 2, p.y - 2 + bounce, 40, 10);
+                }
+
+                // Glasses (John has black round frames from Photo)
+                if (p.glasses) {
+                    ctx.strokeStyle = '#000'; ctx.lineWidth = 2.5;
+                    ctx.strokeRect(p.x + 10, p.y + 12 + bounce, 10, 8);
+                    ctx.strokeRect(p.x + 24, p.y + 12 + bounce, 10, 8);
+                    ctx.beginPath(); ctx.moveTo(p.x + 20, p.y + 16 + bounce); ctx.lineTo(p.x + 24, p.y + 16 + bounce); ctx.stroke();
+                }
+
+                // White AirPod / Earpiece (Kai Jie has white earpiece from Photo)
+                if (p.earpiece) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(p.x + (p.facing === 1 ? 38 : 6), p.y + 20 + bounce, 4, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillRect(p.x + (p.facing === 1 ? 37 : 5), p.y + 22 + bounce, 2.5, 6);
+                }
+
+                // Face / Eyes
+                const eyeX = p.facing === 1 ? 26 : 14;
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(p.x + eyeX, p.y + 18 + bounce, 2.5, 0, Math.PI*2);
+                ctx.fill();
+
+                // Tongue Out Expression (John from Photo!)
+                if (p.tongueOut) {
+                    // Open playful mouth
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + 26 + bounce, 5, 0, Math.PI); ctx.fill();
+                    // Pink tongue sticking out
+                    ctx.fillStyle = '#f43f5e';
+                    ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + 29 + bounce, 4, 0, Math.PI); ctx.fill();
+                }
+
+                // Interactive Shot Gauge Meter (With Green Release Line)
+                if (p.isCharging && ball.holder === p) {
+                    const meterW = 54;
+                    const meterH = 9;
+                    const meterX = p.x - 5;
+                    const meterY = p.y - 22;
+
+                    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+                    ctx.fillRect(meterX, meterY, meterW, meterH);
+
+                    // Green Center Sweet Spot Window
+                    ctx.fillStyle = '#22c55e';
+                    const greenStart = meterW * (0.45 - 0.10);
+                    ctx.fillRect(meterX + greenStart, meterY, meterW * 0.20, meterH);
+
+                    // Active moving bar
+                    const fillRatio = Math.min(1.0, p.chargeTimer / 0.85);
+                    const isCurrentlyGreen = Math.abs(p.chargeTimer - 0.45) <= 0.10;
+                    ctx.fillStyle = isCurrentlyGreen ? '#22c55e' : (fillRatio > 0.8 ? '#ef4444' : '#facc15');
+                    ctx.fillRect(meterX + 1, meterY + 1, (meterW - 2) * fillRatio, meterH - 2);
+
+                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+                    ctx.strokeRect(meterX, meterY, meterW, meterH);
+                }
+            });
+
+            // 4. Basketball
+            ctx.save();
+            ctx.translate(ball.x, ball.y);
+            ctx.rotate(ball.rotation);
+
+            const bGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, ball.radius);
+            bGrad.addColorStop(0, ball.isFireball ? '#fef08a' : '#fb923c');
+            bGrad.addColorStop(1, ball.isFireball ? '#dc2626' : '#c2410c');
+            ctx.fillStyle = bGrad;
+            ctx.beginPath(); ctx.arc(0, 0, ball.radius, 0, Math.PI * 2); ctx.fill();
+
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(0, 0, ball.radius, -0.6, 0.6); ctx.stroke();
+            ctx.restore();
+
+            ctx.restore();
+        }
+
+        // Loop
+        let lastTime = performance.now();
+        function loop(time) {
+            requestAnimationFrame(loop);
+            const dt = Math.min((time - lastTime) / 1000, 0.02);
+            lastTime = time;
+
+            updateAI(dt);
+            updatePhysics(dt);
+            render();
+        }
+
+        requestAnimationFrame(loop);
     </script>
 </body>
 </html>
