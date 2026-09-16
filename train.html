@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Hoops Legends: Classroom Rivals</title>
+    <title>Hoops Legends: Classroom & All-Stars</title>
     <style>
         :root {
             --gold: #facc15;
@@ -11,7 +11,6 @@
             --accent: #00f3ff;
             --green: #22c55e;
             --red: #ef4444;
-            --blue-polo: #38bdf8;
         }
         * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
         body {
@@ -48,7 +47,7 @@
         /* Scoreboard */
         #scoreboard {
             position: absolute;
-            top: 10px;
+            top: 8px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -56,35 +55,34 @@
             background: linear-gradient(180deg, #4c1d95, #1e0b36);
             border: 2px solid #a855f7;
             border-radius: 12px;
-            padding: 4px 18px;
-            gap: 16px;
+            padding: 4px 16px;
+            gap: 14px;
             z-index: 10;
             box-shadow: 0 4px 20px rgba(0,0,0,0.7);
         }
-        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 90px; }
-        .team-title { font-size: 0.75rem; color: #cbd5e1; letter-spacing: 1px; }
-        .score-num { font-size: 2.1rem; line-height: 1; font-weight: 900; color: #fff; }
+        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 95px; }
+        .team-title { font-size: 0.72rem; color: #cbd5e1; letter-spacing: 1px; }
+        .score-num { font-size: 2rem; line-height: 1; font-weight: 900; color: #fff; }
         .timer-box {
             background: #020617;
             border: 2px solid var(--gold);
             border-radius: 8px;
-            padding: 3px 14px;
-            font-size: 1.7rem;
+            padding: 3px 12px;
+            font-size: 1.6rem;
             color: var(--gold);
             font-family: monospace;
             font-weight: 900;
         }
 
-        /* Comic Popups */
         #banner-popup {
             position: absolute;
-            top: 85px;
+            top: 80px;
             left: 50%;
             transform: translateX(-50%) scale(0);
             background: #f59e0b;
             color: #000;
-            padding: 6px 26px;
-            font-size: 2rem;
+            padding: 6px 24px;
+            font-size: 1.8rem;
             font-weight: 900;
             border: 3px solid #fff;
             border-radius: 12px;
@@ -97,23 +95,23 @@
         /* Touch Controls for iPad/Mobile */
         .touch-zone {
             position: absolute;
-            bottom: 12px;
+            bottom: 10px;
             display: flex;
             gap: 8px;
             z-index: 25;
             touch-action: none;
         }
-        #touch-left { left: 12px; }
-        #touch-right { right: 12px; }
+        #touch-left { left: 10px; }
+        #touch-right { right: 10px; }
 
         .ctrl-btn {
-            width: 52px;
-            height: 52px;
+            width: 50px;
+            height: 50px;
             background: rgba(30, 17, 56, 0.85);
             border: 2px solid #a855f7;
             border-radius: 12px;
             color: #fff;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: bold;
             display: flex;
             flex-direction: column;
@@ -124,7 +122,6 @@
         .ctrl-btn:active { background: var(--accent); color: #000; transform: scale(0.92); }
         .ctrl-btn.act { border-color: var(--gold); color: var(--gold); }
 
-        /* Modals */
         .overlay {
             position: absolute;
             inset: 0;
@@ -134,28 +131,32 @@
             justify-content: center;
             align-items: center;
             z-index: 50;
-            padding: 12px;
+            padding: 10px;
         }
         .title {
-            font-size: 2.6rem;
+            font-size: 2.3rem;
             color: var(--gold);
             text-shadow: 3px 3px 0 #ea580c, 5px 5px 0 #000;
-            margin: 0 0 10px 0;
+            margin: 0 0 8px 0;
         }
 
+        /* Roster Grid optimized for 7 players */
         .roster-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            max-width: 820px;
+            grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+            gap: 8px;
+            max-width: 940px;
+            max-height: 330px;
+            overflow-y: auto;
             width: 100%;
-            margin-bottom: 12px;
+            padding: 4px;
+            margin-bottom: 10px;
         }
         .roster-card {
             background: var(--purple-card);
             border: 2px solid #6b21a8;
-            border-radius: 12px;
-            padding: 10px 8px;
+            border-radius: 10px;
+            padding: 8px 6px;
             cursor: pointer;
             transition: all 0.12s;
             display: flex;
@@ -166,20 +167,20 @@
             border-color: var(--gold);
             background: #3b166e;
             transform: translateY(-2px);
-            box-shadow: 0 0 16px var(--gold);
+            box-shadow: 0 0 14px var(--gold);
         }
-        .card-name { font-size: 1.15rem; color: #fff; margin-bottom: 2px; }
-        .card-type { font-size: 0.65rem; color: #38bdf8; font-family: sans-serif; text-transform: uppercase; margin-bottom: 6px; }
-        .card-stat { font-size: 0.74rem; color: #cbd5e1; font-family: sans-serif; text-align: left; width: 90%; }
+        .card-name { font-size: 0.95rem; color: #fff; margin-bottom: 2px; }
+        .card-type { font-size: 0.6rem; color: #38bdf8; font-family: sans-serif; text-transform: uppercase; margin-bottom: 4px; }
+        .card-stat { font-size: 0.68rem; color: #cbd5e1; font-family: sans-serif; text-align: left; width: 95%; line-height: 1.3; }
         .card-stat strong { color: var(--gold); }
 
-        .btn-row { display: flex; gap: 14px; margin-top: 4px; }
+        .btn-row { display: flex; gap: 12px; margin-top: 4px; }
         .btn {
             background: linear-gradient(180deg, #facc15, #eab308);
             color: #000;
             border: 2px solid #fff;
-            padding: 10px 22px;
-            font-size: 1.2rem;
+            padding: 8px 20px;
+            font-size: 1.1rem;
             font-family: inherit;
             font-weight: 900;
             border-radius: 8px;
@@ -198,7 +199,7 @@
             padding: 4px 12px;
             display: flex;
             justify-content: space-around;
-            font-size: 0.74rem;
+            font-size: 0.72rem;
             font-family: sans-serif;
             color: #cbd5e1;
         }
@@ -236,7 +237,7 @@
 
         <!-- Roster Selection Modal -->
         <div id="select-modal" class="overlay">
-            <h1 class="title">RIVALS BASKETBALL</h1>
+            <h1 class="title">RIVALS & ALL-STARS</h1>
             <div class="roster-grid" id="roster-container"></div>
             <div class="btn-row">
                 <button class="btn" onclick="startMatch('1P')">▶ VS AI</button>
@@ -244,7 +245,7 @@
             </div>
         </div>
 
-        <!-- Final Modal -->
+        <!-- End Modal -->
         <div id="end-modal" class="overlay" style="display:none;">
             <h1 class="title" id="end-title">MATCH OVER</h1>
             <h2 id="final-score-text" style="color:var(--gold); font-size:2.2rem; margin:10px 0;">0 - 0</h2>
@@ -253,12 +254,11 @@
     </div>
 
     <div class="controls-bar">
-        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Hold & Release to Shoot / Tap near rival to <strong>STEAL</strong></div>
+        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Shoot / Tap near rival to <strong>STEAL</strong></div>
         <div><strong>P2:</strong> [◀]/[▶] Move | [▲] Jump | [L/ENTER] Shoot / Steal</div>
     </div>
 
     <script>
-        // Audio Engine
         let audioCtx = null;
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -308,65 +308,138 @@
             } catch(e){}
         }
 
-        // Custom Roster Based on Classroom Picture
         const ROSTER = [
             {
                 id: 'kaijie',
                 name: 'KAI JIE',
                 role: '100% Sniper',
-                speed: 190,          // 50% speed
-                jumpForce: 310,      // jump: 10 (very low elevation)
-                shotAccuracy: 1.0,   // 100% pure shooter
-                dunkReach: 0,        // cannot dunk
+                speed: 190,
+                jumpForce: 310,
+                shotAccuracy: 1.0,
+                dunkReach: 0,
                 stealStat: 0.3,
                 defenseRating: 40,
                 skin: '#fcd34d',
                 hair: 'parted',
                 glasses: false,
+                beard: false,
                 earpiece: true,
                 tongueOut: false,
-                shirtColor: '#38bdf8' // Blue polo from photo
+                shirtColor: '#38bdf8'
             },
             {
                 id: 'john',
                 name: 'JOHN',
                 role: 'Speed & Dunk Demon',
-                speed: 400,          // 100% speed
-                jumpForce: 670,      // 85 jump (super high)
-                shotAccuracy: 0.42,  // shooting is meh
-                dunkReach: 210,      // 90 monster dunk reach
+                speed: 400,
+                jumpForce: 670,
+                shotAccuracy: 0.42,
+                dunkReach: 210,
                 stealStat: 0.6,
                 defenseRating: 65,
                 skin: '#fde047',
                 hair: 'wavy',
                 glasses: true,
+                beard: false,
                 earpiece: false,
-                tongueOut: true,     // signature expression from photo
-                shirtColor: '#38bdf8' // Blue polo from photo
+                tongueOut: true,
+                shirtColor: '#38bdf8'
+            },
+            {
+                id: 'lebron',
+                name: 'LEBRON JAMES',
+                role: 'Freight Train',
+                speed: 350,
+                jumpForce: 640,
+                shotAccuracy: 0.84,
+                dunkReach: 180,
+                stealStat: 0.7,
+                defenseRating: 88,
+                skin: '#854d0e',
+                hair: 'crop',
+                glasses: false,
+                beard: true,
+                earpiece: false,
+                tongueOut: false,
+                shirtColor: '#581c87'
+            },
+            {
+                id: 'curry',
+                name: 'CHEF CURRY',
+                role: 'Deep Assassin',
+                speed: 360,
+                jumpForce: 590,
+                shotAccuracy: 0.98,
+                dunkReach: 90,
+                stealStat: 0.75,
+                defenseRating: 70,
+                skin: '#ca8a04',
+                hair: 'crop',
+                glasses: false,
+                beard: true,
+                earpiece: false,
+                tongueOut: false,
+                shirtColor: '#1d4ed8'
+            },
+            {
+                id: 'kd',
+                name: 'KEVIN DURANT',
+                role: 'Slim Reaper',
+                speed: 345,
+                jumpForce: 630,
+                shotAccuracy: 0.94,
+                dunkReach: 160,
+                stealStat: 0.65,
+                defenseRating: 80,
+                skin: '#78350f',
+                hair: 'crop',
+                glasses: false,
+                beard: false,
+                earpiece: false,
+                tongueOut: false,
+                shirtColor: '#0f172a'
+            },
+            {
+                id: 'jordan',
+                name: 'AIR JORDAN',
+                role: 'Hangtime Legend',
+                speed: 380,
+                jumpForce: 700,
+                shotAccuracy: 0.90,
+                dunkReach: 190,
+                stealStat: 0.85,
+                defenseRating: 95,
+                skin: '#78350f',
+                hair: 'crop',
+                glasses: false,
+                beard: false,
+                earpiece: false,
+                tongueOut: true,
+                shirtColor: '#dc2626'
             },
             {
                 id: 'counter',
                 name: 'THE COUNTER',
                 role: 'Perimeter Clamper',
-                speed: 390,          // Fast enough to hound Kai Jie
-                jumpForce: 640,      // High contest reach
+                speed: 390,
+                jumpForce: 640,
                 shotAccuracy: 0.72,
                 dunkReach: 140,
-                stealStat: 0.95,     // 95% Steal & Strip mastery
-                defenseRating: 99,   // Shuts down pure shooters
+                stealStat: 0.95,
+                defenseRating: 99,
                 skin: '#f59e0b',
                 hair: 'crop',
                 glasses: false,
+                beard: false,
                 earpiece: false,
                 tongueOut: false,
-                shirtColor: '#dc2626' // Red lockdown jersey
+                shirtColor: '#10b981'
             }
         ];
 
-        let selectedP1Idx = 2; // Default to The Counter
-        let selectedP2Idx = 0; // Rival Kai Jie
+        let selectedP1Idx = 0; // Kai Jie
+        let selectedP2Idx = 1; // John
 
-        // Build Selection Menu
         const rosterContainer = document.getElementById('roster-container');
         ROSTER.forEach((p, idx) => {
             const card = document.createElement('div');
@@ -375,17 +448,17 @@
             card.innerHTML = `
                 <div class="card-name">${p.name}</div>
                 <div class="card-type">${p.role}</div>
-                <div class="card-stat">⚡ Speed: <strong>${Math.round(p.speed / 4)}</strong></div>
-                <div class="card-stat">🚀 Jump: <strong>${p.jumpForce > 400 ? 'HIGH' : 'LOW (10)'}</strong></div>
+                <div class="card-stat">⚡ Spd: <strong>${Math.round(p.speed / 4)}</strong></div>
+                <div class="card-stat">🚀 Jump: <strong>${p.jumpForce > 400 ? 'HIGH' : '10'}</strong></div>
                 <div class="card-stat">🎯 3PT: <strong>${Math.round(p.shotAccuracy * 100)}%</strong></div>
-                <div class="card-stat">💥 Dunk: <strong>${p.dunkReach > 0 ? 'ELITE' : 'CANNOT'}</strong></div>
-                <div class="card-stat">🛡️ Steal/Defense: <strong>${Math.round(p.stealStat * 100)}%</strong></div>
+                <div class="card-stat">💥 Dunk: <strong>${p.dunkReach > 0 ? 'YES' : 'NO'}</strong></div>
+                <div class="card-stat">🛡️ Stl: <strong>${Math.round(p.stealStat * 100)}%</strong></div>
             `;
             card.onclick = () => {
                 document.querySelectorAll('.roster-card').forEach(c => c.classList.remove('active'));
                 card.classList.add('active');
                 selectedP1Idx = idx;
-                selectedP2Idx = (idx === 0) ? 1 : 0; // auto-pick rival
+                selectedP2Idx = (idx === 0) ? 1 : 0;
             };
             rosterContainer.appendChild(card);
         });
@@ -400,7 +473,6 @@
         let p1Score = 0, p2Score = 0;
         let timeLeft = 60;
         let timerInterval = null;
-        let particles = [];
         let screenShake = 0;
 
         function createEntity(data, startX, facing) {
@@ -442,34 +514,26 @@
             { side: 'right', bbX: 940, bbY: 210, bbH: 110, rimX: 892, rimY: 288, rimW: 46, netWiggle: 0 }
         ];
 
-        // Active Steal Mechanic
         function attemptSteal(stealer, target) {
             if (stealer.stealCooldown > 0 || ball.holder !== target) return;
-            stealer.stealCooldown = 0.55; // 0.55s cooldown
+            stealer.stealCooldown = 0.55;
 
             const dist = Math.hypot((stealer.x + stealer.width/2) - (target.x + target.width/2), stealer.y - target.y);
-            
-            // Proximity check: Must be right in opponent's face
             if (dist < 68) {
-                // Calculation: stealer's steal stat vs target's ball handling
                 const successProb = stealer.stealStat * (stealer.id === 'counter' && target.id === 'kaijie' ? 0.95 : 0.65);
-                
                 if (Math.random() < successProb) {
                     ball.holder = null;
                     ball.lastTouchedBy = stealer;
-                    // Pop ball loose
                     ball.vx = (stealer.x < target.x ? -1 : 1) * 160;
                     ball.vy = -260;
                     playSound('steal');
                     triggerBanner('BALL STRIPPED! ⚡');
                 } else {
-                    // Missed swipe creates small hesitation
                     stealer.vx *= 0.2;
                 }
             }
         }
 
-        // Projectile Kinematics
         function getArcTrajectory(startX, startY, targetX, targetY, gravity) {
             const dx = targetX - startX;
             const dy = targetY - startY;
@@ -481,12 +545,9 @@
             };
         }
 
-        // Contest Check (Does defender smother the shooter?)
         function isShotContested(shooter, defender) {
             const dist = Math.abs((shooter.x + shooter.width/2) - (defender.x + defender.width/2));
-            const isClose = dist < 75;
-            const isGuarding = !defender.onGround || defender.defenseRating > 70;
-            return isClose && isGuarding;
+            return dist < 75 && (!defender.onGround || defender.defenseRating > 70);
         }
 
         function releaseJumpShot(shooter, targetHoop, defender) {
@@ -495,10 +556,7 @@
 
             const sweetSpot = 0.45;
             const diff = Math.abs(shooter.chargeTimer - sweetSpot);
-            
-            // Check contest
             const contested = isShotContested(shooter, defender);
-            // Sweet spot window shrinks if heavily contested by "The Counter"
             const maxAllowedDiff = contested ? (defender.id === 'counter' ? 0.04 : 0.07) : 0.12;
             const isGreen = diff <= maxAllowedDiff;
 
@@ -507,20 +565,17 @@
             const perfectArc = getArcTrajectory(ball.x, ball.y, targetX, targetY, GRAVITY);
 
             if (isGreen) {
-                // Green Release: 100% Cash regardless of defense!
                 ball.isFireball = true;
                 ball.vx = perfectArc.vx;
                 ball.vy = perfectArc.vy;
                 triggerBanner('🔥 PERFECT GREEN!');
             } else if (shooter.chargeTimer > 0.78) {
-                // Hard Overcharge
                 ball.isFireball = false;
                 const dir = Math.sign(targetX - ball.x);
                 ball.vx = dir * 180;
                 ball.vy = -680;
                 triggerBanner('BRICK!');
             } else {
-                // Normal Shot: Kai Jie has 100% baseline accuracy UNLESS contested
                 ball.isFireball = false;
                 let penalty = (1 - shooter.shotAccuracy);
                 if (contested) penalty += (defender.defenseRating / 100) * 0.55;
@@ -534,7 +589,7 @@
         }
 
         function executeDunk(player, targetHoop) {
-            if (player.dunkReach <= 0) return; // Kai Jie cannot dunk!
+            if (player.dunkReach <= 0) return;
 
             player.isDunking = true;
             player.vx = 0; player.vy = -160;
@@ -622,7 +677,6 @@
             document.getElementById('select-modal').style.display = 'flex';
         }
 
-        // Specialized AI Brain (Distinguishes between Kai Jie, John, and Counter)
         function updateAI(dt) {
             if (gameMode !== '1P' || !matchActive || p2.isDunking) return;
 
@@ -632,9 +686,7 @@
             const distToPlayer = Math.abs(p2.x - p1.x);
 
             if (ball.holder === p2) {
-                // OFFENSE LOGIC
-                if (p2.id === 'john') {
-                    // John: Aggressive slasher, sprints to rim for monster dunk
+                if (p2.dunkReach > 150) {
                     p2.vx = -p2.speed;
                     p2.facing = -1;
                     if (distToRim < p2.dunkReach && p2.onGround) {
@@ -642,26 +694,22 @@
                         p2.onGround = false;
                         setTimeout(() => executeDunk(p2, targetHoop), 120);
                     }
-                } else if (p2.id === 'kaijie') {
-                    // Kai Jie: 3PT Sniper, avoids paint, finds perimeter space to launch 100% 3PT
+                } else if (p2.shotAccuracy >= 0.95) {
                     if (distToRim > 320) {
                         p2.vx = -p2.speed;
                         p2.facing = -1;
                     } else if (distToPlayer < 60) {
-                        // Back up / step back if player is crowding
                         p2.vx = p2.speed;
                         p2.facing = -1;
                     } else {
-                        // Spot up and shoot
                         p2.vx = 0;
                         if (p2.onGround && p2.aiDecisionTimer > 0.6) {
                             p2.aiDecisionTimer = 0;
-                            p2.chargeTimer = 0.45; // Hits green
+                            p2.chargeTimer = 0.45;
                             releaseJumpShot(p2, targetHoop, p1);
                         }
                     }
                 } else {
-                    // The Counter / Balanced
                     if (distToRim > 240) p2.vx = -p2.speed;
                     else {
                         p2.vx = 0;
@@ -673,24 +721,20 @@
                     }
                 }
             } else if (ball.holder === p1) {
-                // DEFENSE LOGIC
                 const guardDist = p2.x - p1.x;
                 if (guardDist > 65) { p2.vx = -p2.speed; p2.facing = -1; }
                 else if (guardDist < -45) { p2.vx = p2.speed; p2.facing = 1; }
                 else {
                     p2.vx = 0;
-                    // Active Steal Attempt
                     if (p2.stealCooldown <= 0 && Math.random() < 0.35) {
                         attemptSteal(p2, p1);
                     }
-                    // Shot Contest: Jump if shooter jumps or charges
                     if ((!p1.onGround || p1.isCharging) && p2.onGround && Math.random() < 0.8) {
                         p2.vy = -p2.jumpForce;
                         p2.onGround = false;
                     }
                 }
             } else {
-                // LOOSE BALL RECOVERY
                 if (ball.x < p2.x - 16) { p2.vx = -p2.speed; p2.facing = -1; }
                 else if (ball.x > p2.x + 16) { p2.vx = p2.speed; p2.facing = 1; }
                 else p2.vx = 0;
@@ -702,19 +746,16 @@
             }
         }
 
-        // Keys & Inputs
         const keys = {};
         window.addEventListener('keydown', e => {
             getAudioContext();
             keys[e.code] = true;
 
-            // P1 Jump
             if (e.code === 'KeyW' && p1.onGround && !p1.isDunking) {
                 p1.vy = -p1.jumpForce;
                 p1.onGround = false;
             }
 
-            // P1 Action: Shoot or Steal
             if (e.code === 'Space' || e.code === 'KeyF') {
                 if (ball.holder === p1 && !p1.isCharging) {
                     const distToRim = Math.abs((hoops[1].rimX + 23) - (p1.x + p1.width/2));
@@ -725,12 +766,10 @@
                         p1.chargeTimer = 0;
                     }
                 } else if (ball.holder === p2) {
-                    // Attempt Steal!
                     attemptSteal(p1, p2);
                 }
             }
 
-            // P2 Controls (2P Mode)
             if (gameMode === '2P') {
                 if (e.code === 'ArrowUp' && p2.onGround && !p2.isDunking) {
                     p2.vy = -p2.jumpForce;
@@ -764,7 +803,6 @@
             }
         });
 
-        // Touch Input Bindings (iPad)
         const bindTouch = (id, start, end) => {
             const el = document.getElementById(id);
             el.addEventListener('touchstart', e => { e.preventDefault(); getAudioContext(); start(); }, { passive: false });
@@ -789,7 +827,6 @@
             p1.isCharging = false;
         });
 
-        // Physics Update
         function updatePhysics(dt) {
             if (!matchActive) return;
 
@@ -797,7 +834,6 @@
             if (p1.stealCooldown > 0) p1.stealCooldown -= dt;
             if (p2.stealCooldown > 0) p2.stealCooldown -= dt;
 
-            // P1 Movement
             if (!p1.isDunking) {
                 if (keys['KeyA']) { p1.vx = -p1.speed; p1.facing = -1; }
                 else if (keys['KeyD']) { p1.vx = p1.speed; p1.facing = 1; }
@@ -806,7 +842,6 @@
                 if (p1.isCharging) p1.chargeTimer += dt;
             }
 
-            // P2 Movement (2P Mode)
             if (gameMode === '2P' && !p2.isDunking) {
                 if (keys['ArrowLeft']) { p2.vx = -p2.speed; p2.facing = -1; }
                 else if (keys['ArrowRight']) { p2.vx = p2.speed; p2.facing = 1; }
@@ -815,7 +850,6 @@
                 if (p2.isCharging) p2.chargeTimer += dt;
             }
 
-            // Gravity & Boundary
             [p1, p2].forEach(p => {
                 if (!p.isDunking) {
                     p.vy += GRAVITY * dt;
@@ -831,7 +865,6 @@
                 }
             });
 
-            // Ball Physics
             if (ball.holder) {
                 const h = ball.holder;
                 ball.x = h.x + (h.facing === 1 ? 36 : 8);
@@ -843,7 +876,6 @@
                 ball.y += ball.vy * dt;
                 ball.rotation += ball.vx * 0.015;
 
-                // Boundary walls
                 if (ball.x - ball.radius <= 35) {
                     ball.x = 35 + ball.radius;
                     ball.vx = Math.abs(ball.vx) * 0.75;
@@ -854,7 +886,6 @@
                     playSound('bounce');
                 }
 
-                // Floor bounce
                 if (ball.y >= COURT_Y - ball.radius) {
                     ball.y = COURT_Y - ball.radius;
                     ball.vy = -ball.vy * 0.65;
@@ -863,9 +894,7 @@
                     if (Math.abs(ball.vy) > 60) playSound('bounce');
                 }
 
-                // Hoop Scoring / Collisions
                 hoops.forEach(h => {
-                    // Backboard Deflection (Bypassed if green release)
                     if (!ball.isFireball) {
                         if (ball.x + ball.radius >= h.bbX - 4 && ball.x - ball.radius <= h.bbX + 12 &&
                             ball.y >= h.bbY && ball.y <= h.bbY + h.bbH) {
@@ -875,7 +904,6 @@
                         }
                     }
 
-                    // Score condition
                     if (ball.vy > 0 && ball.y >= h.rimY - 4 && ball.y <= h.rimY + 16 &&
                         ball.x > h.rimX + 4 && ball.x < h.rimX + h.rimW - 4) {
 
@@ -899,7 +927,6 @@
                     if (h.netWiggle > 0) h.netWiggle -= dt * 2;
                 });
 
-                // Catch/Rebound Hitbox
                 [p1, p2].forEach(p => {
                     const cx = p.x + p.width / 2;
                     const cy = p.y + p.height / 2;
@@ -912,7 +939,6 @@
             }
         }
 
-        // Render Artwork (Custom faces from photo)
         function render() {
             ctx.save();
             if (screenShake > 0.5) {
@@ -920,26 +946,22 @@
             }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Gym Arena / Classroom Court
             const bg = ctx.createLinearGradient(0, 0, 0, COURT_Y);
             bg.addColorStop(0, '#130628');
             bg.addColorStop(1, '#2c0d5a');
             ctx.fillStyle = bg;
             ctx.fillRect(0, 0, canvas.width, COURT_Y);
 
-            // Floor
             const wood = ctx.createLinearGradient(0, COURT_Y, 0, canvas.height);
             wood.addColorStop(0, '#d97706');
             wood.addColorStop(1, '#92400e');
             ctx.fillStyle = wood;
             ctx.fillRect(0, COURT_Y, canvas.width, canvas.height - COURT_Y);
 
-            // Lines
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 4;
             ctx.strokeRect(35, COURT_Y, canvas.width - 70, canvas.height - COURT_Y - 14);
             ctx.beginPath(); ctx.arc(canvas.width / 2, COURT_Y, 78, Math.PI, 0); ctx.stroke();
 
-            // 2. Hoops
             hoops.forEach(h => {
                 ctx.fillStyle = '#1e293b';
                 ctx.fillRect(h.side === 'left' ? h.bbX - 16 : h.bbX + 16, h.bbY, 16, COURT_Y - h.bbY);
@@ -963,56 +985,54 @@
                 ctx.stroke();
             });
 
-            // 3. Characters Rendering (Custom Caricatures from Photo)
             [p1, p2].forEach(p => {
                 const bounce = Math.sin(performance.now() * 0.009) * 2;
 
-                // Shadow
                 ctx.fillStyle = 'rgba(0,0,0,0.35)';
                 ctx.beginPath();
                 ctx.ellipse(p.x + p.width/2, COURT_Y - 4, 25, 7, 0, 0, Math.PI*2);
                 ctx.fill();
 
-                // Shoes & Socks
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(p.x + (p.facing === 1 ? 4 : 22), p.y + p.height - 14, 18, 12);
 
-                // Blue School Polo Shirt (from Photo)
                 ctx.fillStyle = p.shirtColor;
                 ctx.beginPath();
                 ctx.roundRect(p.x + 8, p.y + 36 + bounce, 28, 40, 6);
                 ctx.fill();
 
-                // Dark Blue Collar / Emblem
-                ctx.fillStyle = '#0369a1';
-                ctx.fillRect(p.x + 18, p.y + 36 + bounce, 8, 12);
+                if (p.shirtColor === '#38bdf8') {
+                    ctx.fillStyle = '#0369a1';
+                    ctx.fillRect(p.x + 18, p.y + 36 + bounce, 8, 12);
+                }
 
-                // Head
                 ctx.fillStyle = p.skin;
                 ctx.beginPath();
                 ctx.arc(p.x + 22, p.y + 20 + bounce, 22, 0, Math.PI*2);
                 ctx.fill();
 
-                // Hair Styles
+                if (p.beard) {
+                    ctx.fillStyle = '#171717';
+                    ctx.beginPath();
+                    ctx.arc(p.x + 22, p.y + 25 + bounce, 15, 0, Math.PI);
+                    ctx.fill();
+                }
+
                 ctx.fillStyle = '#171717';
                 if (p.hair === 'parted') {
-                    // Kai Jie's neat parted black hair
                     ctx.beginPath();
                     ctx.arc(p.x + 22, p.y + 14 + bounce, 23, Math.PI, 0);
                     ctx.fill();
                 } else if (p.hair === 'wavy') {
-                    // John's wavy fluffy hair
                     ctx.beginPath();
                     ctx.arc(p.x + 22, p.y + 12 + bounce, 24, Math.PI, 0);
                     ctx.arc(p.x + 12, p.y + 16 + bounce, 8, 0, Math.PI*2);
                     ctx.arc(p.x + 32, p.y + 16 + bounce, 8, 0, Math.PI*2);
                     ctx.fill();
                 } else {
-                    // Counter's athletic crop
                     ctx.fillRect(p.x + 2, p.y - 2 + bounce, 40, 10);
                 }
 
-                // Glasses (John has black round frames from Photo)
                 if (p.glasses) {
                     ctx.strokeStyle = '#000'; ctx.lineWidth = 2.5;
                     ctx.strokeRect(p.x + 10, p.y + 12 + bounce, 10, 8);
@@ -1020,7 +1040,6 @@
                     ctx.beginPath(); ctx.moveTo(p.x + 20, p.y + 16 + bounce); ctx.lineTo(p.x + 24, p.y + 16 + bounce); ctx.stroke();
                 }
 
-                // White AirPod / Earpiece (Kai Jie has white earpiece from Photo)
                 if (p.earpiece) {
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
@@ -1029,24 +1048,19 @@
                     ctx.fillRect(p.x + (p.facing === 1 ? 37 : 5), p.y + 22 + bounce, 2.5, 6);
                 }
 
-                // Face / Eyes
                 const eyeX = p.facing === 1 ? 26 : 14;
                 ctx.fillStyle = '#000';
                 ctx.beginPath();
                 ctx.arc(p.x + eyeX, p.y + 18 + bounce, 2.5, 0, Math.PI*2);
                 ctx.fill();
 
-                // Tongue Out Expression (John from Photo!)
                 if (p.tongueOut) {
-                    // Open playful mouth
                     ctx.fillStyle = '#000';
                     ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + 26 + bounce, 5, 0, Math.PI); ctx.fill();
-                    // Pink tongue sticking out
                     ctx.fillStyle = '#f43f5e';
                     ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + 29 + bounce, 4, 0, Math.PI); ctx.fill();
                 }
 
-                // Interactive Shot Gauge Meter (With Green Release Line)
                 if (p.isCharging && ball.holder === p) {
                     const meterW = 54;
                     const meterH = 9;
@@ -1056,12 +1070,10 @@
                     ctx.fillStyle = 'rgba(0,0,0,0.85)';
                     ctx.fillRect(meterX, meterY, meterW, meterH);
 
-                    // Green Center Sweet Spot Window
                     ctx.fillStyle = '#22c55e';
                     const greenStart = meterW * (0.45 - 0.10);
                     ctx.fillRect(meterX + greenStart, meterY, meterW * 0.20, meterH);
 
-                    // Active moving bar
                     const fillRatio = Math.min(1.0, p.chargeTimer / 0.85);
                     const isCurrentlyGreen = Math.abs(p.chargeTimer - 0.45) <= 0.10;
                     ctx.fillStyle = isCurrentlyGreen ? '#22c55e' : (fillRatio > 0.8 ? '#ef4444' : '#facc15');
@@ -1072,7 +1084,6 @@
                 }
             });
 
-            // 4. Basketball
             ctx.save();
             ctx.translate(ball.x, ball.y);
             ctx.rotate(ball.rotation);
@@ -1090,7 +1101,6 @@
             ctx.restore();
         }
 
-        // Loop
         let lastTime = performance.now();
         function loop(time) {
             requestAnimationFrame(loop);
