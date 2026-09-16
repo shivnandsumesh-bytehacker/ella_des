@@ -508,6 +508,14 @@
         let lastTime = 0;
         let isSoftDropping = false;
 
+        // Custom DAS (Delayed Auto Shift) and ARR (Auto Repeat Rate) parameters
+        let isMovingLeft = false;
+        let isMovingRight = false;
+        let dasTimer = 0;
+        let arrTimer = 0;
+        const DAS_DELAY = 160;     // Initial delay before continuous shifting begins (ms)
+        const ARR_INTERVAL = 35;   // Interval between repeated movements during hold (ms)
+
         function calculateNormalDropInterval() {
             const diffConfig = DIFFICULTIES[currentDifficulty];
             return Math.max(60, diffConfig.baseInterval - (lines * diffConfig.lineDec));
@@ -559,6 +567,14 @@
                 }
             }
             return false;
+        }
+
+        function moveHorizontal(dir) {
+            if (gameOver || !currentPiece) return;
+            if (!checkCollision(currentPiece, dir, 0)) {
+                currentPiece.x += dir;
+                playTone(220, 'sine', 0.04, 0.1);
+            }
         }
 
         function lockPiece() {
@@ -691,6 +707,10 @@
         function triggerGameOver() {
             gameOver = true;
             isSoftDropping = false;
+            isMovingLeft = false;
+            isMovingRight = false;
+            dasTimer = 0;
+            arrTimer = 0;
             playTone(180, 'sawtooth', 0.6, 0.3);
             const reward = Math.floor((score / 50) * DIFFICULTIES[currentDifficulty].scoreMult);
             if (reward > 0) addCoins(reward);
@@ -711,6 +731,10 @@
             canHold = true;
             gameOver = false;
             isSoftDropping = false;
+            isMovingLeft = false;
+            isMovingRight = false;
+            dasTimer = 0;
+            arrTimer = 0;
             currentPiece = getNextFromBag();
             document.getElementById('gameover-modal').style.display = 'none';
             updateHUD();
@@ -803,6 +827,18 @@
             lastTime = time;
 
             if (!gameOver) {
+                // Handle continuous horizontal auto-repeat (DAS/ARR)
+                if (isMovingLeft || isMovingRight) {
+                    dasTimer += deltaTime;
+                    if (dasTimer >= DAS_DELAY) {
+                        arrTimer += deltaTime;
+                        while (arrTimer >= ARR_INTERVAL) {
+                            moveHorizontal(isMovingLeft ? -1 : 1);
+                            arrTimer -= ARR_INTERVAL;
+                        }
+                    }
+                }
+
                 if (isSoftDropping) {
                     softDropCounter += deltaTime;
                     // Rapid 32ms soft-drop tick rate
@@ -846,14 +882,20 @@
             if (code === "ArrowDown" || code === "KeyS") {
                 isSoftDropping = true;
             } else if (code === "ArrowLeft" || code === "KeyA") {
-                if (!checkCollision(currentPiece, -1, 0)) {
-                    currentPiece.x--;
-                    playTone(220, 'sine', 0.04, 0.1);
+                if (!isMovingLeft) {
+                    isMovingLeft = true;
+                    isMovingRight = false;
+                    dasTimer = 0;
+                    arrTimer = 0;
+                    moveHorizontal(-1);
                 }
             } else if (code === "ArrowRight" || code === "KeyD") {
-                if (!checkCollision(currentPiece, 1, 0)) {
-                    currentPiece.x++;
-                    playTone(220, 'sine', 0.04, 0.1);
+                if (!isMovingRight) {
+                    isMovingRight = true;
+                    isMovingLeft = false;
+                    dasTimer = 0;
+                    arrTimer = 0;
+                    moveHorizontal(1);
                 }
             } else if (code === "ArrowUp" || code === "KeyW" || code === "KeyX") {
                 const rotated = rotateMatrix(currentPiece.shape);
@@ -873,6 +915,14 @@
             if (code === "ArrowDown" || code === "KeyS") {
                 isSoftDropping = false;
                 softDropCounter = 0;
+            } else if (code === "ArrowLeft" || code === "KeyA") {
+                isMovingLeft = false;
+                dasTimer = 0;
+                arrTimer = 0;
+            } else if (code === "ArrowRight" || code === "KeyD") {
+                isMovingRight = false;
+                dasTimer = 0;
+                arrTimer = 0;
             }
         });
 
