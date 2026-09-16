@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rail Sim Pro 3D - High Speed Express</title>
+    <title>World Railways 3D - Pro Driver Simulator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         :root {
@@ -12,283 +12,461 @@
             --emerald: #10b981;
             --amber: #f59e0b;
             --danger: #ef4444;
-            --panel-bg: rgba(15, 23, 42, 0.88);
+            --card: rgba(11, 19, 41, 0.94);
         }
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        * { box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
         body {
-            background: #020617;
+            background: #030712;
             color: #fff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             text-align: center;
             margin: 0;
-            padding: 4px;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
             touch-action: none;
         }
 
         #game-wrapper {
-            width: 100%;
-            max-width: 1320px;
-            height: calc(100vh - 12px);
-            max-height: 760px;
-            border: 2px solid #334155;
-            border-radius: 14px;
             position: relative;
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
-            background: #38bdf8;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            background: #7dd3fc;
         }
         #webgl-canvas { width: 100% !important; height: 100% !important; display: block; }
 
-        /* Modern Flight-Simulator Style HUD (Inspired by Reference) */
-        #top-route-bar {
+        /* Top Bar Overlay */
+        .hud-top {
             position: absolute;
             top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0 16px;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .hud-card {
+            background: var(--card);
+            border: 1.5px solid rgba(0, 243, 255, 0.4);
+            border-radius: 10px;
+            padding: 8px 14px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            pointer-events: auto;
+            backdrop-filter: blur(8px);
+        }
+
+        .station-hud {
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 10px;
-            padding: 4px 28px;
-            backdrop-filter: blur(8px);
-            pointer-events: none;
-            z-index: 10;
+            text-align: center;
         }
-        #next-station-title { font-size: 1.15rem; font-weight: 900; letter-spacing: 1px; color: #fff; }
-        #next-station-sub { font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; }
+        .station-tag { font-size: 0.65rem; color: #94a3b8; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; }
+        .station-title { font-size: 1.3rem; font-weight: 900; color: #fff; letter-spacing: 1px; text-transform: uppercase; }
+        .station-sub { font-size: 0.75rem; color: var(--gold); font-family: monospace; font-weight: bold; }
 
-        /* Speedometer & Speed Limit Dial */
-        #speed-cluster {
+        .speed-hud {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        .speed-val { font-size: 2.2rem; font-weight: 900; line-height: 1; color: #fff; font-family: monospace; }
+        .speed-unit { font-size: 0.65rem; color: #94a3b8; font-weight: bold; }
+        .limit-pill {
+            background: var(--gold);
+            color: #000;
+            font-weight: 900;
+            font-size: 0.78rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+            font-family: monospace;
+        }
+
+        /* Left Signals Alerts */
+        .signal-alerts {
             position: absolute;
-            top: 12px;
-            right: 14px;
+            top: 90px;
+            left: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .alert-pill {
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(15, 23, 42, 0.85);
-            border: 1.5px solid rgba(255,255,255,0.15);
-            border-radius: 10px;
-            padding: 6px 14px;
-            backdrop-filter: blur(8px);
-            pointer-events: none;
-            z-index: 10;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.76rem;
+            font-weight: bold;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.5);
         }
-        .speed-readout { font-size: 2.2rem; font-weight: 900; font-family: monospace; color: #fff; line-height: 1; }
-        .speed-unit { font-size: 0.65rem; color: #94a3b8; font-weight: bold; text-align: left; }
-        .limit-badge {
-            background: #000;
-            border: 3px solid var(--danger);
-            color: #fff;
-            font-size: 1.1rem;
-            font-weight: 900;
-            width: 44px;
-            height: 44px;
+        .alert-icon {
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+            font-size: 0.7rem;
+            font-weight: 900;
         }
 
-        /* Left Action & Signaling Alerts */
-        .alerts-panel {
+        /* Tactical Right Throttle Lever (iPad & Desktop Slider) */
+        #throttle-container {
             position: absolute;
-            top: 14px;
-            left: 14px;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 58px;
+            height: 220px;
+            background: rgba(15, 23, 42, 0.88);
+            border: 2px solid #334155;
+            border-radius: 30px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            pointer-events: none;
-            z-index: 10;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            z-index: 30;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+            touch-action: none;
         }
-        .alert-card {
+        #throttle-track {
+            position: relative;
+            width: 12px;
+            height: 150px;
+            background: #020617;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        #throttle-handle {
+            position: absolute;
+            left: 50%;
+            bottom: 0px;
+            transform: translateX(-50%);
+            width: 48px;
+            height: 38px;
+            background: linear-gradient(180deg, #475569, #1e293b);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            cursor: grab;
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: rgba(15, 23, 42, 0.88);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 0.76rem;
-            font-weight: 700;
-            backdrop-filter: blur(8px);
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 243, 255, 0.4);
         }
-        .alert-dot { width: 12px; height: 12px; border-radius: 50%; }
-        .alert-dot.green { background: var(--emerald); box-shadow: 0 0 8px var(--emerald); }
-        .alert-dot.yellow { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
-
-        /* Floating Passenger Cash & Dialogue Popups */
-        #fare-feedback {
-            position: absolute;
-            top: 75px;
-            left: 50%;
-            transform: translateX(-50%) scale(0);
-            background: var(--emerald);
-            color: #000;
-            font-size: 1.3rem;
-            font-weight: 900;
-            padding: 8px 24px;
-            border-radius: 30px;
-            box-shadow: 0 0 25px rgba(16, 185, 129, 0.8);
-            pointer-events: none;
-            z-index: 30;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        #throttle-handle::after {
+            content: '';
+            width: 20px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
         }
 
-        /* Bottom Driver Desk Control Bar */
+        /* Bottom Driver Console Desk */
         .hud-bottom {
             position: absolute;
-            bottom: 10px;
+            bottom: 12px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            align-items: center;
             gap: 8px;
-            background: rgba(15, 23, 42, 0.94);
-            border: 1.5px solid rgba(255,255,255,0.15);
-            border-radius: 12px;
-            padding: 6px 16px;
-            backdrop-filter: blur(10px);
-            z-index: 10;
-        }
-        .ctrl-btn {
-            background: #1e293b;
-            border: 1px solid #334155;
-            color: #fff;
+            align-items: center;
+            background: rgba(11, 19, 41, 0.95);
+            border: 1.5px solid rgba(0, 243, 255, 0.3);
+            border-radius: 14px;
             padding: 6px 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            z-index: 25;
+            max-width: 95vw;
+            overflow-x: auto;
+        }
+        .desk-btn {
+            background: #1e293b;
+            border: 1.5px solid #334155;
+            color: #fff;
+            padding: 8px 12px;
             border-radius: 8px;
-            font-size: 0.74rem;
-            font-weight: 800;
-            cursor: pointer;
+            font-size: 0.72rem;
+            font-weight: bold;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2px;
-            transition: all 0.12s;
+            gap: 3px;
+            cursor: pointer;
+            min-width: 58px;
+            transition: all 0.1s;
         }
-        .ctrl-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
-        .ctrl-btn.active { background: rgba(16, 185, 129, 0.3); border-color: var(--emerald); }
-        .ctrl-val { font-size: 0.95rem; color: var(--gold); }
+        .desk-btn:active, .desk-btn.active {
+            background: var(--primary);
+            color: #000;
+            border-color: #fff;
+            transform: scale(0.95);
+        }
+        .desk-btn.danger { border-color: var(--danger); color: var(--danger); }
+        .desk-btn.danger:active { background: var(--danger); color: #fff; }
 
-        #minimap-canvas {
-            width: 70px !important;
-            height: 70px !important;
-            border-radius: 50%;
+        /* Floating Passenger Fare Popups */
+        .fare-popup {
+            position: absolute;
+            color: var(--gold);
+            font-size: 1.4rem;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(250, 204, 21, 0.8), 2px 2px #000;
+            pointer-events: none;
+            z-index: 50;
+            animation: floatUp 1.2s forwards cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+            30% { opacity: 1; transform: translate(-50%, -25px) scale(1.1); }
+            100% { opacity: 0; transform: translate(-50%, -70px) scale(1); }
+        }
+
+        #dialogue-box {
+            position: absolute;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(11, 19, 41, 0.96);
+            border: 2px solid var(--gold);
+            color: #fff;
+            padding: 8px 24px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: bold;
+            display: none;
+            z-index: 40;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+
+        /* Modals */
+        .modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.94);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 16px;
+        }
+        .modal-card {
+            background: var(--card);
             border: 2px solid var(--primary);
-            background: #020617;
-            display: block;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 680px;
+            width: 90%;
+            text-align: left;
+        }
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 14px; }
+        .btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px;
+            font-weight: 800;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            font-family: inherit;
         }
     </style>
 </head>
 <body>
-
     <div id="game-wrapper">
         <canvas id="webgl-canvas"></canvas>
 
-        <div id="top-route-bar">
-            <div id="next-station-title">PENKARN CENTRAL</div>
-            <div id="next-station-sub">DISTANCE: <span id="dist-counter" style="color:var(--gold);">450 M</span> | TRACK 1 EXPRESS</div>
-        </div>
+        <div class="hud-top">
+            <div class="hud-card" style="display:flex; align-items:center; gap:10px;">
+                <button class="btn" style="padding:4px 10px; font-size:0.75rem;" onclick="toggleModal('map-modal', true)">🗺️ Territory</button>
+                <button class="btn" style="padding:4px 10px; font-size:0.75rem;" onclick="toggleModal('depot-modal', true)">🚆 Fleet</button>
+                <span style="font-size:0.85rem; font-weight:bold; color:var(--gold);">💷 £<span id="cash-count">2,500</span></span>
+            </div>
 
-        <div id="speed-cluster">
-            <div>
-                <div class="speed-readout" id="speed-val">0</div>
-                <div class="speed-unit">KMPH</div>
+            <div class="station-hud">
+                <span class="station-tag">Next Stop</span>
+                <span class="station-title" id="station-name-hud">ARAKKONAM VIADUCT</span>
+                <span class="station-sub" id="station-dist-hud">450 M</span>
             </div>
-            <div class="limit-badge" id="speed-limit">75</div>
-        </div>
 
-        <div class="alerts-panel">
-            <div class="alert-card">
-                <div class="alert-dot green" id="aspect-dot"></div>
-                <span>LINE SIGNAL: CLEAR</span>
-            </div>
-            <div class="alert-card">
-                🪙 FARES COLLECTED: £<span id="cash-counter" style="color:var(--gold);">1,500</span>
-            </div>
-            <div class="alert-card">
-                👥 ONBOARD PAX: <span id="pax-counter" style="color:var(--primary);">28</span>
+            <div class="speed-hud">
+                <span class="speed-val" id="speed-display">0</span>
+                <span class="speed-unit">KMPH</span>
+                <div class="limit-pill" id="limit-display">LIMIT: 70</div>
             </div>
         </div>
 
-        <div id="fare-feedback">+£450 PASSENGER FARES!</div>
+        <div class="signal-alerts">
+            <div class="alert-pill">
+                <div class="alert-icon" style="background:#22c55e;">●</div>
+                <span>LINE CLEAR (ASPECT: GREEN)</span>
+            </div>
+            <div class="alert-pill">
+                <div class="alert-icon" style="background:var(--amber);">⚠️</div>
+                <span id="curve-warning-text">TRACK SPEED 70 KMPH</span>
+            </div>
+        </div>
 
-        <!-- Driver Desk Dashboard Hotbar -->
+        <div id="throttle-container">
+            <span style="font-size:0.6rem; font-weight:900; color:#94a3b8;">PWR</span>
+            <div id="throttle-track">
+                <div id="throttle-handle"></div>
+            </div>
+            <span style="font-size:0.6rem; font-weight:900; color:#94a3b8;">BRK</span>
+        </div>
+
+        <div id="dialogue-box"></div>
+
+        <!-- Hotbar Console -->
         <div class="hud-bottom">
-            <div class="ctrl-btn" id="btn-key" onclick="toggleMasterKey()"><span class="ctrl-val" id="val-key">OFF</span>[K] Master</div>
-            <div class="ctrl-btn" id="btn-rev" onclick="cycleReverser()"><span class="ctrl-val" id="val-rev">FWD</span>[R] Reverser</div>
-            <div class="ctrl-btn" id="btn-doors" onclick="toggleDoors()"><span class="ctrl-val" id="val-doors">CLOSED</span>[T] Doors</div>
-            <div class="ctrl-btn" id="btn-wiper" onclick="toggleWiper()"><span class="ctrl-val" id="val-wiper">OFF</span>[V] Wiper</div>
-            <div class="ctrl-btn" onclick="soundHorn()"><span class="ctrl-val">📯</span>[H] Horn</div>
-            <div class="ctrl-btn" onclick="cycleCamera()"><span class="ctrl-val" id="val-cam">CAB</span>[C] Camera</div>
-            <canvas id="minimap-canvas" width="70" height="70"></canvas>
+            <button class="desk-btn danger" onclick="applyEmergencyBrake()">🛑<br>E-STOP</button>
+            <button class="desk-btn" id="btn-master" onclick="toggleMasterKey()">🔑<br>KEY</button>
+            <button class="desk-btn" id="btn-reverser" onclick="cycleReverser()">🔄<br>FWD</button>
+            <button class="desk-btn" id="btn-doors" onclick="toggleDoors()">🚪<br>DOORS</button>
+            <button class="desk-btn" onclick="soundHorn()">📯<br>HORN</button>
+            <button class="desk-btn" id="btn-wiper" onclick="toggleWiper()">🌧️<br>WIPER</button>
+            <button class="desk-btn" onclick="cycleCamera()">🎥<br>CAM</button>
+            <button class="desk-btn" onclick="acknowledgeAWS()">⚠️<br>AWS</button>
+        </div>
+
+        <!-- Fleet Modal -->
+        <div id="depot-modal" class="modal">
+            <div class="modal-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="color:var(--primary); margin:0;">🚆 INTERNATIONAL FLEET DEPOT</h2>
+                    <button class="btn" style="padding:4px 8px;" onclick="toggleModal('depot-modal', false)">✕</button>
+                </div>
+                <div class="btn-grid">
+                    <button class="btn" onclick="selectTrain('WAP7')">🇮🇳 WAP-7 High-Speed Electric<br><small>140 KMPH Express | FREE</small></button>
+                    <button class="btn" onclick="selectTrain('Class142')">🇬🇧 BR Class 142 Pacer<br><small>Regional Commuter | FREE</small></button>
+                    <button class="btn" onclick="selectTrain('Shinkansen')">🇯🇵 Shinkansen N700S<br><small>285 KMPH Bullet Train | £12,000</small></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Modal -->
+        <div id="map-modal" class="modal">
+            <div class="modal-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="color:var(--gold); margin:0;">🗺️ TERRITORY SELECTOR</h2>
+                    <button class="btn" style="padding:4px 8px;" onclick="toggleModal('map-modal', false)">✕</button>
+                </div>
+                <div class="btn-grid">
+                    <button class="btn" onclick="selectMap('IN')">🇮🇳 Arakkonam Lake Viaduct<br><small>Deep Water Bridges, Distant Peaks & Oncoming Freight</small></button>
+                    <button class="btn" onclick="selectMap('UK')">🇬🇧 British Pennine Line<br><small>Rolling Hills, Double Ballast & Stone Archways</small></button>
+                    <button class="btn" onclick="selectMap('JP')">🇯🇵 Tokaido Coastal Line<br><small>Elevated High Speed Slabs & Blossom Valleys</small></button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // High-Fidelity Web Audio Synthesizer (Pneumatics, Traction, & Rail Joints)
+        // High-Fidelity Web Audio Synthesizer (Motor, Air Brakes, Track Joints, Horn)
         let audioCtx = null;
-        let motorOsc1 = null, motorOsc2 = null, motorGain = null;
+        let motorGain = null, motorOsc = null;
+        let brakeNoiseNode = null;
         let lastJointDistance = 0;
 
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
             return audioCtx;
         }
 
-        // Realistic Air Brake Purge Hiss
-        function playAirBrakeHiss() {
+        function initTractionAcoustics() {
             try {
                 const ctx = getAudioContext();
-                const bSize = ctx.sampleRate * 0.35;
-                const buffer = ctx.createBuffer(1, bSize, ctx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bSize; i++) data[i] = (Math.random() * 2 - 1) * 0.4;
-                const src = ctx.createBufferSource();
-                src.buffer = buffer;
-                const filter = ctx.createBiquadFilter();
-                filter.type = 'highpass';
-                filter.frequency.value = 1800;
-                const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.35, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-                src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-                src.start();
+                if (!ctx || motorGain) return;
+
+                motorGain = ctx.createGain();
+                motorGain.gain.setValueAtTime(0.001, ctx.currentTime);
+                motorGain.connect(ctx.destination);
+
+                motorOsc = ctx.createOscillator();
+                motorOsc.type = 'sawtooth';
+                motorOsc.frequency.value = 45;
+                motorOsc.connect(motorGain);
+                motorOsc.start();
             } catch(e){}
         }
 
-        // Speed-Synchronized Rail Joint Double Thud
-        function playRailJointSound() {
+        function updateMotorSound(speedRatio, throttleRatio) {
+            if (!motorGain) return;
+            const ctx = getAudioContext();
+            if (train.masterKeyOn && !train.doorsOpen) {
+                const targetFreq = 42 + (speedRatio * 180) + (throttleRatio * 95);
+                motorOsc.frequency.setTargetAtTime(targetFreq, ctx.currentTime, 0.08);
+                motorGain.gain.setTargetAtTime(0.015 + (throttleRatio * 0.06), ctx.currentTime, 0.08);
+            } else {
+                motorGain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.15);
+            }
+        }
+
+        function playAirBrakeHiss() {
             try {
                 const ctx = getAudioContext();
-                [0, 0.08].forEach(dt => {
+                if (!ctx) return;
+                const bufferSize = ctx.sampleRate * 0.45;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1600;
+
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+
+                noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+                noise.start();
+            } catch(e){}
+        }
+
+        function playRailJointClatter() {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                [0, 0.07].forEach(del => {
                     const osc = ctx.createOscillator();
                     const g = ctx.createGain();
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(75, ctx.currentTime + dt);
-                    osc.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + dt + 0.05);
-                    g.gain.setValueAtTime(0.18, ctx.currentTime + dt);
-                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dt + 0.05);
+                    osc.frequency.setValueAtTime(80, ctx.currentTime + del);
+                    osc.frequency.exponentialRampToValueAtTime(28, ctx.currentTime + del + 0.05);
+                    g.gain.setValueAtTime(0.12, ctx.currentTime + del);
+                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + del + 0.05);
                     osc.connect(g); g.connect(ctx.destination);
-                    osc.start(ctx.currentTime + dt);
-                    osc.stop(ctx.currentTime + dt + 0.05);
+                    osc.start(ctx.currentTime + del);
+                    osc.stop(ctx.currentTime + del + 0.05);
                 });
             } catch(e){}
         }
 
-        // Dual Tone Locomotive Horn
-        function playHornSound() {
+        function playDualAirHorn() {
             try {
                 const ctx = getAudioContext();
-                [311.13, 370.00].forEach(f => {
+                if (!ctx) return;
+                [293.66, 369.99].forEach(f => {
                     const osc = ctx.createOscillator();
                     const g = ctx.createGain();
                     osc.type = 'sawtooth';
@@ -301,353 +479,430 @@
             } catch(e){}
         }
 
-        function initTractionSound() {
+        function playCoinChime() {
             try {
                 const ctx = getAudioContext();
-                if (motorGain) return;
-                motorGain = ctx.createGain();
-                motorGain.gain.setValueAtTime(0.0001, ctx.currentTime);
-                motorGain.connect(ctx.destination);
-
-                motorOsc1 = ctx.createOscillator();
-                motorOsc1.type = 'sawtooth';
-                motorOsc1.frequency.value = 55;
-                motorOsc1.connect(motorGain);
-                motorOsc1.start();
-
-                motorOsc2 = ctx.createOscillator();
-                motorOsc2.type = 'triangle';
-                motorOsc2.frequency.value = 110;
-                motorOsc2.connect(motorGain);
-                motorOsc2.start();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const g = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, ctx.currentTime);
+                osc.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.08);
+                g.gain.setValueAtTime(0.2, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                osc.connect(g); g.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + 0.4);
             } catch(e){}
         }
 
-        function updateTractionSound(power, speedRatio) {
-            if (!motorGain) return;
-            const ctx = getAudioContext();
-            if (train.masterKeyOn && Math.abs(train.velocity) > 0.1) {
-                const f = 60 + speedRatio * 320;
-                motorOsc1.frequency.setTargetAtTime(f, ctx.currentTime, 0.08);
-                motorOsc2.frequency.setTargetAtTime(f * 1.5, ctx.currentTime, 0.08);
-                motorGain.gain.setTargetAtTime(0.02 + power * 0.12, ctx.currentTime, 0.08);
-            } else {
-                motorGain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.2);
-            }
-        }
+        // 3D Scene Architecture & Materials
+        let scene, camera, renderer;
+        let trainRig = null, opposingTrainRig = null;
+        let cabInteriorGroup = null;
+        let wiperMeshL = null, wiperMeshR = null;
+        let speedNeedle = null;
+        let animatedPassengers = [];
 
-        // Global Game State
-        let scene, camera, renderer, trainGroup = null;
-        let opposingTrainGroup = null;
-        let cameraMode = 0; // 0: Cab, 1: Chase, 2: Window
-        let driverCash = 1500;
-        let passengerCount = 28;
+        let currentMap = 'IN';
+        let currentTrain = 'WAP7';
+        let driverFares = 2500;
+        let cameraMode = 0; // 0: Cab View, 1: Nose Buffer, 2: 3rd Person Follow, 3: Window View
         let wiperActive = false;
-        let wiperAngle = 0;
-        let wiperDirection = 1;
-
-        // 3D Cab Dials & Needles
-        let speedoNeedle = null;
-        let brakeNeedle = null;
-        let wiperMesh = null;
 
         const train = {
             distance: 0,
             velocity: 0,
             speedKMPH: 0,
-            speedLimit: 75,
+            speedLimitKMPH: 70,
             powerNotch: 0.0,
             brakeNotch: 1.0,
-            reverser: 1,
+            reverser: 1, // 1 = FWD, -1 = REV
             masterKeyOn: false,
             doorsOpen: false,
-            weight: 85000,
-            acceleration: 320000
+            weight: 120000,
+            maxSpeedKMPH: 140,
+            tractionForce: 360000
         };
 
-        const opposingTrain = {
-            distance: 5200,
-            speed: 28,
-            passed: false
+        const opposingAI = {
+            distance: 3800,
+            speed: 22 // Opposing train traveling ~80 KMPH
         };
 
-        const keys = { w: false, s: false };
-
-        // Scenic Track Spline (Crossing over a River Viaduct & Mountain Pass)
+        // Curved Spline over Water Viaduct
         const trackPoints = [
-            new THREE.Vector3(0, 0, 0),
-            new THREE.Vector3(0, 0, 1000),
-            new THREE.Vector3(60, 4, 2200),
-            new THREE.Vector3(140, 8, 3800),
-            new THREE.Vector3(80, 8, 5400),
-            new THREE.Vector3(-100, 2, 7000),
-            new THREE.Vector3(-40, 0, 8800),
-            new THREE.Vector3(40, 0, 10500),
-            new THREE.Vector3(0, 0, 12000)
+            new THREE.Vector3(0, 5, 0),
+            new THREE.Vector3(0, 5, 1200),
+            new THREE.Vector3(120, 5, 2600),
+            new THREE.Vector3(240, 5, 4200),
+            new THREE.Vector3(180, 5, 6000),
+            new THREE.Vector3(-140, 5, 7800),
+            new THREE.Vector3(-60, 5, 9600),
+            new THREE.Vector3(0, 5, 12000)
         ];
-        const trackSpline = new THREE.CatmullRomCurve3(trackPoints, false, 'catmullrom', 0.15);
-        const TRACK_LENGTH = trackSpline.getLength();
+        const spline = new THREE.CatmullRomCurve3(trackPoints, false, 'catmullrom', 0.15);
+        const TRACK_LENGTH = spline.getLength();
 
-        const stations = [
-            { name: 'Penkarn Central', dist: 450 },
-            { name: 'Arakkonam Viaduct', dist: 3800 },
-            { name: 'Roseberry Junction', dist: 7200 },
-            { name: 'Aan Hill Terminus', dist: 11500 }
-        ];
+        const STATIONS = {
+            'IN': [
+                { name: 'ARAKKONAM VIADUCT', dist: 450, limit: 70 },
+                { name: 'KATPADI JUNCTION', dist: 3500, limit: 110 },
+                { name: 'JOLARPETTAI EXPRESS', dist: 7400, limit: 130 },
+                { name: 'SALEM CENTRAL TERMINUS', dist: 11500, limit: 60 }
+            ],
+            'UK': [
+                { name: 'PENKARN MEADOWS', dist: 450, limit: 75 },
+                { name: 'MILLBRIDGE RIDGE', dist: 3500, limit: 90 },
+                { name: 'BRIMMOUTH VALLEY', dist: 7400, limit: 125 },
+                { name: 'AAN HILL TERMINUS', dist: 11500, limit: 45 }
+            ],
+            'JP': [
+                { name: 'SHIN-YOKOHAMA BAY', dist: 450, limit: 110 },
+                { name: 'ODAWARA EXPRESSWAY', dist: 3500, limit: 210 },
+                { name: 'SHIZUOKA COAST', dist: 7400, limit: 285 },
+                { name: 'NAGOYA TERMINAL', dist: 11500, limit: 90 }
+            ]
+        };
 
-        // Platform Passenger Entities
-        const platformPassengers = [];
+        function showDialogue(text) {
+            const el = document.getElementById("dialogue-box");
+            el.innerText = text;
+            el.style.display = "block";
+            setTimeout(() => { el.style.display = "none"; }, 3500);
+        }
 
-        // Build Realistic 3D Locomotive Cab (Matching Image Viewport)
+        function toggleModal(id, open) {
+            document.getElementById(id).style.display = open ? 'flex' : 'none';
+        }
+
+        function spawnFarePopups(count) {
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const el = document.createElement("div");
+                    el.className = "fare-popup";
+                    el.innerText = `+£35 🪙`;
+                    el.style.left = `${45 + (Math.random() * 10)}%`;
+                    el.style.top = `${55 + (Math.random() * 10)}%`;
+                    document.getElementById("game-wrapper").appendChild(el);
+                    playCoinChime();
+                    setTimeout(() => el.remove(), 1200);
+                }, i * 160);
+            }
+        }
+
+        // Build Realistic 3D Locomotive Cab (Matches Screenshot)
         function buildCabCockpit() {
-            const cabGroup = new THREE.Group();
+            if (cabInteriorGroup) camera.remove(cabInteriorGroup);
+            cabInteriorGroup = new THREE.Group();
 
-            // Cockpit Frame / Dash Material
-            const dashColor = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.6 });
-            const bezelMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
-            const dialFaceMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
-            const needleMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+            const frameMat = new THREE.MeshStandardMaterial({ color: 0x2e3842, roughness: 0.8 });
+            const deskMat = new THREE.MeshStandardMaterial({ color: 0x486571, roughness: 0.6 }); // Teal-green Indian/British desk
+            const blackConsole = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.7 });
 
-            // Curved Front Cockpit Desk Console
-            const desk = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.0, 1.8), dashColor);
-            desk.position.set(0, -0.65, -1.0);
-            cabGroup.add(desk);
+            // Dashboard Console Base
+            const desk = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.9, 1.8), deskMat);
+            desk.position.set(0, -0.65, -1.3);
+            cabInteriorGroup.add(desk);
 
-            // Left & Right Windshield Pillars (Framing the Front Viewport)
-            const pillarL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.4, 0.2), dashColor);
-            pillarL.position.set(-1.45, 0.4, -0.9);
-            pillarL.rotation.z = -0.22;
-            cabGroup.add(pillarL);
+            // Left & Right MFD Display Screens
+            [-1.15, 1.15].forEach(x => {
+                const screen = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.55, 0.05), blackConsole);
+                screen.position.set(x, -0.38, -1.05);
+                screen.rotation.x = -0.35;
+                cabInteriorGroup.add(screen);
+            });
 
-            const pillarR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.4, 0.2), dashColor);
-            pillarR.position.set(1.45, 0.4, -0.9);
-            pillarR.rotation.z = 0.22;
-            cabGroup.add(pillarR);
+            // Center Speedometer Gauge Housing
+            const dialHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.06, 24), blackConsole);
+            dialHousing.rotation.x = Math.PI / 2 - 0.35;
+            dialHousing.position.set(-0.35, -0.36, -1.02);
+            cabInteriorGroup.add(dialHousing);
 
-            const roofBeam = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.3, 0.3), dashColor);
-            roofBeam.position.set(0, 1.45, -0.9);
-            cabGroup.add(roofBeam);
+            // 3D Moving Speedometer Needle
+            speedNeedle = new THREE.Mesh(
+                new THREE.BoxGeometry(0.015, 0.16, 0.01),
+                new THREE.MeshBasicMaterial({ color: 0xef4444 })
+            );
+            speedNeedle.position.set(-0.35, -0.36, -1.0);
+            cabInteriorGroup.add(speedNeedle);
 
-            // Working Analog Speedometer Dial
-            const speedoBezel = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.08, 24), bezelMat);
-            speedoBezel.rotation.x = Math.PI / 3;
-            speedoBezel.position.set(-0.25, -0.15, -0.85);
-            cabGroup.add(speedoBezel);
+            // Center Brake Pressure Gauge
+            const brakeGauge = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.05, 20), blackConsole);
+            brakeGauge.rotation.x = Math.PI / 2 - 0.35;
+            brakeGauge.position.set(0.25, -0.36, -1.02);
+            cabInteriorGroup.add(brakeGauge);
 
-            const dialFace = new THREE.Mesh(new THREE.CircleGeometry(0.26, 24), dialFaceMat);
-            dialFace.rotation.x = -Math.PI / 6;
-            dialFace.position.set(-0.25, -0.12, -0.82);
-            cabGroup.add(dialFace);
+            // Big Red Emergency Stop Button
+            const eStopBtn = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.08, 0.09, 0.06, 16),
+                new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.3 })
+            );
+            eStopBtn.rotation.x = -0.35;
+            eStopBtn.position.set(-0.65, -0.48, -0.9);
+            cabInteriorGroup.add(eStopBtn);
 
-            // Rotating Needle for Speedometer
-            speedoNeedle = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.22, 0.02), needleMat);
-            speedoNeedle.position.set(-0.25, -0.12, -0.81);
-            cabGroup.add(speedoNeedle);
+            // Angled Windshield Outer Structural Frame (Pillars & Roof)
+            const pillarL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.2, 0.18), frameMat);
+            pillarL.position.set(-1.65, 0.35, -1.15);
+            pillarL.rotation.z = -0.15;
+            cabInteriorGroup.add(pillarL);
 
-            // Working Brake Pressure Dial
-            const brakeBezel = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.08, 24), bezelMat);
-            brakeBezel.rotation.x = Math.PI / 3;
-            brakeBezel.position.set(0.4, -0.15, -0.85);
-            cabGroup.add(brakeBezel);
+            const pillarR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.2, 0.18), frameMat);
+            pillarR.position.set(1.65, 0.35, -1.15);
+            pillarR.rotation.z = 0.15;
+            cabInteriorGroup.add(pillarR);
 
-            brakeNeedle = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.18, 0.02), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-            brakeNeedle.position.set(0.4, -0.12, -0.81);
-            cabGroup.add(brakeNeedle);
+            const roofBeam = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.4, 0.3), frameMat);
+            roofBeam.position.set(0, 1.25, -1.15);
+            cabInteriorGroup.add(roofBeam);
 
-            // Operational Windshield Wiper
-            wiperMesh = new THREE.Mesh(new THREE.BoxGeometry(0.03, 1.1, 0.03), new THREE.MeshBasicMaterial({ color: 0x111827 }));
-            wiperMesh.position.set(0.4, 0.2, -1.02);
-            cabGroup.add(wiperMesh);
+            // Functional Animated Windshield Wipers
+            const wiperMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5 });
+            wiperMeshL = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.85, 0.02), wiperMat);
+            wiperMeshL.position.set(-0.7, 0.4, -1.18);
+            cabInteriorGroup.add(wiperMeshL);
 
-            return cabGroup;
+            wiperMeshR = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.85, 0.02), wiperMat);
+            wiperMeshR.position.set(0.7, 0.4, -1.18);
+            cabInteriorGroup.add(wiperMeshR);
+
+            camera.add(cabInteriorGroup);
         }
 
-        // Build Realistic 3D Train Rig (Locomotive & Passenger Coaches)
+        // Build Realistic Player Train Models
         function buildPlayerTrain() {
-            if (trainGroup) scene.remove(trainGroup);
-            trainGroup = new THREE.Group();
+            if (trainRig) scene.remove(trainRig);
+            trainRig = new THREE.Group();
 
-            const bodyWhite = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.35 });
-            const stripeRed = new THREE.MeshStandardMaterial({ color: 0xdc2626 });
-            const darkMetal = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
             const glassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, transparent: true, opacity: 0.65 });
+            const darkMetal = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 });
 
-            // Aerodynamic Leading Locomotive
-            const loco = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(2.9, 2.8, 19), bodyWhite);
-            body.position.set(0, 2.1, 0);
-            loco.add(body);
+            if (currentTrain === 'WAP7') {
+                // Indian WAP-7 High Horsepower Electric Locomotive
+                const wapWhite = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.3 });
+                const redBand = new THREE.MeshStandardMaterial({ color: 0xb91c1c });
 
-            const redStripe = new THREE.Mesh(new THREE.BoxGeometry(2.92, 0.45, 18.8), stripeRed);
-            redStripe.position.set(0, 1.4, 0);
-            loco.add(redStripe);
+                const body = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.2, 21), wapWhite);
+                body.position.set(0, 2.2, 0);
+                trainRig.add(body);
 
-            // Curved Nose (+Z direction is forward)
-            const nose = new THREE.Mesh(new THREE.BoxGeometry(2.9, 2.7, 2.4), new THREE.MeshStandardMaterial({ color: 0xef4444 }));
-            nose.position.set(0, 2.05, 10.2);
-            loco.add(nose);
+                const stripe = new THREE.Mesh(new THREE.BoxGeometry(3.02, 0.45, 20.8), redBand);
+                stripe.position.set(0, 1.6, 0);
+                trainRig.add(stripe);
 
-            // Front Windshield
-            const screen = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.9, 0.1), glassMat);
-            screen.position.set(0, 2.5, 11.42);
-            loco.add(screen);
+                // Distinct Slanted Nose Cab
+                const nose = new THREE.Mesh(new THREE.BoxGeometry(2.95, 2.8, 2.2), wapWhite);
+                nose.position.set(0, 2.1, 11.2);
+                trainRig.add(nose);
+            } else if (currentTrain === 'Class142') {
+                // British Rail Regional Railways
+                const bodyWhite = new THREE.MeshStandardMaterial({ color: 0xf8fafc });
+                const railBlue = new THREE.MeshStandardMaterial({ color: 0x0284c7 });
+                const warnYellow = new THREE.MeshStandardMaterial({ color: 0xfacc15 });
 
-            // Pantograph on Roof
-            const panto = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 2.0), new THREE.MeshStandardMaterial({ color: 0xd97706 }));
-            panto.position.set(0, 3.8, -4.0);
-            loco.add(panto);
+                const body = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.7, 18), bodyWhite);
+                body.position.set(0, 2.0, 0);
+                trainRig.add(body);
 
-            trainGroup.add(loco);
+                const stripe = new THREE.Mesh(new THREE.BoxGeometry(2.82, 0.5, 17.8), railBlue);
+                stripe.position.set(0, 1.4, 0);
+                trainRig.add(stripe);
 
-            // Attach 3D Cab Cockpit (Active in Cab Mode)
-            const cab = buildCabCockpit();
-            cab.position.set(0, 2.5, 9.8);
-            trainGroup.add(cab);
+                const nose = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.68, 2.0), warnYellow);
+                nose.position.set(0, 2.0, 9.8);
+                trainRig.add(nose);
+            } else {
+                // Japanese Shinkansen N700S
+                const bulletWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
+                const jrBlue = new THREE.MeshStandardMaterial({ color: 0x1d4ed8 });
 
-            // Trailing Coach
-            const coach = new THREE.Mesh(new THREE.BoxGeometry(2.9, 2.8, 20), bodyWhite);
-            coach.position.set(0, 2.1, -21);
-            trainGroup.add(coach);
+                const body = new THREE.Mesh(new THREE.BoxGeometry(2.9, 2.7, 22), bulletWhite);
+                body.position.set(0, 2.0, 0);
+                trainRig.add(body);
 
-            scene.add(trainGroup);
+                const stripe = new THREE.Mesh(new THREE.BoxGeometry(2.92, 0.35, 21.8), jrBlue);
+                stripe.position.set(0, 1.4, 0);
+                trainRig.add(stripe);
+
+                const nose = new THREE.Mesh(new THREE.ConeGeometry(1.4, 5.5, 16), bulletWhite);
+                nose.rotation.x = Math.PI / 2;
+                nose.position.set(0, 1.8, 13.5);
+                trainRig.add(nose);
+            }
+
+            // Dual Headlight Beams (Front at Z = 11.5)
+            [-0.9, 0.9].forEach(x => {
+                const light = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.1, 16), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                light.rotation.x = Math.PI / 2;
+                light.position.set(x, 1.25, 11.5);
+                trainRig.add(light);
+            });
+
+            // Bogies
+            [-6.5, 6.5].forEach(z => {
+                const bogie = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.5, 4.0), darkMetal);
+                bogie.position.set(0, 0.5, z);
+                trainRig.add(bogie);
+            });
+
+            scene.add(trainRig);
         }
 
-        // Oncoming Express AI Train (Track 2)
+        // Build Opposing Oncoming AI Train (As Seen in Screenshot!)
         function buildOpposingTrain() {
-            if (opposingTrainGroup) scene.remove(opposingTrainGroup);
-            opposingTrainGroup = new THREE.Group();
+            if (opposingTrainRig) scene.remove(opposingTrainRig);
+            opposingTrainRig = new THREE.Group();
 
-            const aiBody = new THREE.Mesh(new THREE.BoxGeometry(2.9, 2.8, 38), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
-            aiBody.position.set(0, 2.1, 0);
-            opposingTrainGroup.add(aiBody);
+            const wapBody = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.2, 22), new THREE.MeshStandardMaterial({ color: 0xf1f5f9 }));
+            wapBody.position.set(0, 2.2, 0);
+            opposingTrainRig.add(wapBody);
 
-            const aiNose = new THREE.Mesh(new THREE.BoxGeometry(2.9, 2.7, 2.4), new THREE.MeshStandardMaterial({ color: 0xfacc15 }));
-            aiNose.position.set(0, 2.05, -19.5);
-            opposingTrainGroup.add(aiNose);
+            const redStripe = new THREE.Mesh(new THREE.BoxGeometry(3.02, 0.45, 21.8), new THREE.MeshStandardMaterial({ color: 0xb91c1c }));
+            redStripe.position.set(0, 1.6, 0);
+            opposingTrainRig.add(redStripe);
 
-            scene.add(opposingTrainGroup);
+            // Trailing Passenger Coaches
+            for (let c = 1; c <= 4; c++) {
+                const coach = new THREE.Mesh(new THREE.BoxGeometry(2.9, 3.1, 24), new THREE.MeshStandardMaterial({ color: 0x1d4ed8 }));
+                coach.position.set(0, 2.2, c * 25.5);
+                opposingTrainRig.add(coach);
+            }
+
+            scene.add(opposingTrainRig);
         }
 
-        // Build Scenery, Viaduct Bridge Over Water, Catenary Masts, and 3D Commuters
-        function buildWorldEnvironment() {
-            const trackMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9 });
-            const ballastMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.95 });
+        // Detailed Map & Scenery (Water Viaduct, Mountains, Platforms & Passengers)
+        function buildTerritoryMap() {
+            const toRemove = [];
+            scene.traverse(obj => { if (obj.userData && obj.userData.isMap) toRemove.push(obj); });
+            toRemove.forEach(obj => scene.remove(obj));
+            animatedPassengers = [];
+
+            // 1. Deep Blue Water Body Beneath Viaduct
             const waterMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.8 });
-            const mastMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8 });
+            const water = new THREE.Mesh(new THREE.PlaneGeometry(16000, 16000), waterMat);
+            water.rotation.x = -Math.PI / 2;
+            water.position.y = -0.5;
+            water.userData.isMap = true;
+            scene.add(water);
 
-            // River Water Body Under Viaduct (Between track points 3000m and 5500m)
-            const river = new THREE.Mesh(new THREE.PlaneGeometry(16000, 3000), waterMat);
-            river.rotation.x = -Math.PI / 2;
-            river.position.set(0, -2.5, 4500);
-            scene.add(river);
+            // 2. Distant Mountain Ranges (Screenshot Aesthetics)
+            const mtnMat = new THREE.MeshStandardMaterial({ color: 0x1e3a29, roughness: 0.95 });
+            for (let m = 0; m < 16; m++) {
+                const height = 400 + Math.random() * 600;
+                const mtn = new THREE.Mesh(new THREE.ConeGeometry(500 + Math.random() * 300, height, 7), mtnMat);
+                const ang = (m / 16) * Math.PI * 2;
+                mtn.position.set(Math.cos(ang) * 4800, height / 2, Math.sin(ang) * 4800);
+                mtn.userData.isMap = true;
+                scene.add(mtn);
+            }
 
-            const steps = 480;
+            // 3. Double-Track Viaduct Bridge Deck & Concrete Railings
+            const steps = 400;
+            const pierMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 });
+            const railMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9 });
+            const sleeperMat = new THREE.MeshStandardMaterial({ color: 0x334155 });
+
             for (let i = 0; i < steps; i++) {
                 const u1 = i / steps;
                 const u2 = (i + 1) / steps;
-                const p1 = trackSpline.getPointAt(u1);
-                const p2 = trackSpline.getPointAt(u2);
+                const p1 = spline.getPointAt(u1);
+                const p2 = spline.getPointAt(u2);
                 const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
-                const segLen = p1.distanceTo(p2);
+                const len = p1.distanceTo(p2);
+                const tan = spline.getTangentAt(u1).normalize();
+                const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
 
-                // Ballasted Track Bed
-                const ballast = new THREE.Mesh(new THREE.BoxGeometry(11.0, 0.4, segLen + 0.5), ballastMat);
-                ballast.position.copy(mid);
-                ballast.position.y += 0.2;
-                ballast.lookAt(p2);
-                scene.add(ballast);
+                // Solid Viaduct Deck
+                const deck = new THREE.Mesh(new THREE.BoxGeometry(11.0, 1.2, len + 0.6), pierMat);
+                deck.position.copy(mid);
+                deck.position.y = p1.y - 0.6;
+                deck.lookAt(p2);
+                deck.userData.isMap = true;
+                scene.add(deck);
 
-                // Concrete Viaduct Bridge Piers when traversing over water
-                if (p1.y >= 5.0 && i % 8 === 0) {
-                    const pier = new THREE.Mesh(new THREE.BoxGeometry(3.0, p1.y + 4.0, 3.0), ballastMat);
+                // Concrete Piers into Water
+                if (i % 8 === 0) {
+                    const pier = new THREE.Mesh(new THREE.BoxGeometry(3.5, 12, 3.5), pierMat);
                     pier.position.copy(p1);
-                    pier.position.y = (p1.y - 2.5) / 2;
+                    pier.position.y = -1;
+                    pier.userData.isMap = true;
                     scene.add(pier);
+
+                    // Overhead Electric Catenary Masts
+                    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 7.5), pierMat);
+                    mast.position.copy(p1).addScaledVector(norm, 5.2);
+                    mast.position.y = 8.5;
+                    mast.userData.isMap = true;
+                    scene.add(mast);
                 }
 
-                // 4 Parallel Rails (Track 1 and Track 2)
-                [-2.0, -0.6, 0.6, 2.0].forEach(rx => {
-                    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.22, segLen + 0.5), trackMat);
+                // Viaduct Safety Railings
+                [-5.4, 5.4].forEach(offset => {
+                    const railing = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.9, len + 0.4), pierMat);
+                    railing.position.copy(mid).addScaledVector(norm, offset);
+                    railing.position.y = p1.y + 0.45;
+                    railing.lookAt(p2.clone().addScaledVector(norm, offset));
+                    railing.userData.isMap = true;
+                    scene.add(railing);
+                });
+
+                // 4 Parallel Steel Rails (Track 1 Player, Track 2 Oncoming AI)
+                [-2.2, -0.8, 0.8, 2.2].forEach(rx => {
+                    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.22, len + 0.4), railMat);
                     rail.position.set(rx, 0.35, 0);
                     const rg = new THREE.Group();
                     rg.position.copy(mid);
                     rg.lookAt(p2);
                     rg.add(rail);
+                    rg.userData.isMap = true;
                     scene.add(rg);
                 });
-
-                // Overhead Catenary Electric Wires & Gantries (Every 16 segments)
-                if (i % 16 === 0) {
-                    const tan = trackSpline.getTangentAt(u1);
-                    const gantry = new THREE.Group();
-
-                    const postL = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 6.5), mastMat);
-                    postL.position.set(-4.5, 3.25, 0);
-                    gantry.add(postL);
-
-                    const postR = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 6.5), mastMat);
-                    postR.position.set(4.5, 3.25, 0);
-                    gantry.add(postR);
-
-                    const beam = new THREE.Mesh(new THREE.BoxGeometry(9.4, 0.2, 0.2), mastMat);
-                    beam.position.set(0, 6.4, 0);
-                    gantry.add(beam);
-
-                    gantry.position.copy(p1);
-                    gantry.lookAt(p1.clone().add(tan));
-                    scene.add(gantry);
-                }
             }
 
-            // High-Detail Passenger Station Platforms
-            stations.forEach(st => {
+            // 4. Stations & 3D Interactive Passengers
+            const stationsList = STATIONS[currentMap];
+            stationsList.forEach(st => {
                 const u = st.dist / TRACK_LENGTH;
-                const pos = trackSpline.getPointAt(u);
-                const tan = trackSpline.getTangentAt(u).normalize();
+                const pos = spline.getPointAt(u);
+                const tan = spline.getTangentAt(u).normalize();
                 const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
 
                 const stGroup = new THREE.Group();
+                const platform = new THREE.Mesh(new THREE.BoxGeometry(5.5, 1.4, 180), new THREE.MeshStandardMaterial({ color: 0x475569 }));
+                platform.position.set(0, 0.7, 0);
+                stGroup.add(platform);
 
-                // Platform Concrete Deck
-                const plat = new THREE.Mesh(new THREE.BoxGeometry(5.5, 1.3, 190), new THREE.MeshStandardMaterial({ color: 0x334155 }));
-                plat.position.set(0, 0.65, 0);
-                stGroup.add(plat);
-
-                // Tactile Yellow Boarding Edge
-                const edge = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 190), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
-                edge.position.set(-2.4, 1.32, 0);
-                stGroup.add(edge);
-
-                // Spawn 3D Commuters along the platform
-                for (let j = -70; j <= 70; j += 18) {
-                    const pax = createPassengerMesh();
-                    pax.position.set(-1.8, 1.35, j);
+                // Waiting 3D Passengers
+                for (let p = -70; p <= 70; p += 16) {
+                    const pax = create3DPassenger();
+                    pax.position.set(-1.0 + (Math.random() - 0.5) * 1.5, 1.4, p);
+                    pax.rotation.y = Math.PI / 2;
                     stGroup.add(pax);
-                    platformPassengers.push({ mesh: pax, stationDist: st.dist, boarded: false });
+                    animatedPassengers.push(pax);
                 }
 
-                stGroup.position.copy(pos).addScaledVector(norm, -4.6);
-                stGroup.lookAt(pos.clone().add(tan).addScaledVector(norm, -4.6));
+                stGroup.position.copy(pos).addScaledVector(norm, -5.2);
+                stGroup.lookAt(pos.clone().add(tan).addScaledVector(norm, -5.2));
+                stGroup.userData.isMap = true;
                 scene.add(stGroup);
             });
         }
 
-        // Procedural 3D Commuter Figure
-        function createPassengerMesh() {
-            const pGroup = new THREE.Group();
+        function create3DPassenger() {
+            const p = new THREE.Group();
             const skin = new THREE.MeshLambertMaterial({ color: 0xffdbac });
-            const colors = [0xdc2626, 0x2563eb, 0x16a34a, 0xd97706, 0x7c3aed];
-            const shirt = new THREE.MeshLambertMaterial({ color: colors[Math.floor(Math.random() * colors.length)] });
+            const shirt = new THREE.MeshLambertMaterial({ color: [0xef4444, 0x3b82f6, 0x10b981, 0xf59e0b][Math.floor(Math.random()*4)] });
 
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.65, 0.3), shirt);
-            torso.position.y = 0.65;
-            pGroup.add(torso);
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.6, 0.3), shirt);
+            torso.position.y = 0.6;
+            p.add(torso);
 
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.28, 0.28), skin);
-            head.position.y = 1.15;
-            pGroup.add(head);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), skin);
+            head.position.y = 1.05;
+            p.add(head);
 
-            return pGroup;
+            return p;
         }
 
         function init3D() {
@@ -656,33 +911,30 @@
             const h = container.clientHeight;
 
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x7dd3fc); // Atmospheric blue sky
-            scene.fog = new THREE.FogExp2(0x7dd3fc, 0.00032);
+            scene.background = new THREE.Color(0x93c5fd);
+            scene.fog = new THREE.FogExp2(0x93c5fd, 0.00032);
 
-            camera = new THREE.PerspectiveCamera(58, w / h, 0.1, 7500);
+            camera = new THREE.PerspectiveCamera(56, w / h, 0.1, 8000);
             scene.add(camera);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, canvas: document.getElementById("webgl-canvas") });
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(w, h);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+            renderer.domElement.id = "webgl-canvas";
+            container.appendChild(renderer.domElement);
 
-            // Realistic Daylight & Sun Shadows
-            const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.88);
             scene.add(ambient);
 
-            const sun = new THREE.DirectionalLight(0xfffaed, 1.25);
-            sun.position.set(400, 900, 300);
+            const sun = new THREE.DirectionalLight(0xfffaed, 1.3);
+            sun.position.set(400, 900, 350);
             scene.add(sun);
 
-            // Rolling Countryside Green Hills
-            const terrain = new THREE.Mesh(new THREE.PlaneGeometry(16000, 16000), new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.9 }));
-            terrain.rotation.x = -Math.PI / 2;
-            terrain.position.y = -0.1;
-            scene.add(terrain);
-
-            buildWorldEnvironment();
+            buildTerritoryMap();
             buildPlayerTrain();
             buildOpposingTrain();
+            buildCabCockpit();
+            setupTouchSlider();
 
             window.addEventListener('resize', () => {
                 const nw = container.clientWidth;
@@ -693,143 +945,154 @@
             });
         }
 
-        // Camera Tracking
-        function updateCamera() {
-            if (!trainGroup) return;
-            trainGroup.updateMatrixWorld(true);
+        // iPad / Mobile Touch Throttle Slider Drag Logic
+        function setupTouchSlider() {
+            const track = document.getElementById("throttle-track");
+            const handle = document.getElementById("throttle-handle");
+            let isDragging = false;
 
-            if (cameraMode === 0) {
-                // 1. DRIVER CAB VIEW (Placed inside looking directly forward through the windshield)
-                const cabEye = trainGroup.localToWorld(new THREE.Vector3(0.35, 2.55, 9.6));
-                const cabTarget = trainGroup.localToWorld(new THREE.Vector3(0.35, 2.55, 90.0));
-                camera.position.copy(cabEye);
-                camera.lookAt(cabTarget);
-            } else if (cameraMode === 1) {
-                // 2. 3RD PERSON CHASE CAM
-                const chasePos = trainGroup.localToWorld(new THREE.Vector3(0, 8.5, -42.0));
-                const chaseTarget = trainGroup.localToWorld(new THREE.Vector3(0, 2.0, 15.0));
-                camera.position.lerp(chasePos, 0.18);
-                camera.lookAt(chaseTarget);
-            } else {
-                // 3. PASSENGER WINDOW VIEW
-                const winPos = trainGroup.localToWorld(new THREE.Vector3(-1.3, 2.2, -8.0));
-                const winTarget = trainGroup.localToWorld(new THREE.Vector3(-35.0, 2.0, -8.0));
-                camera.position.copy(winPos);
-                camera.lookAt(winTarget);
+            function updateSlider(clientY) {
+                const rect = track.getBoundingClientRect();
+                let ratio = 1 - ((clientY - rect.top) / rect.height);
+                ratio = Math.max(0, Math.min(1, ratio));
+
+                handle.style.bottom = `${ratio * (rect.height - 38)}px`;
+
+                if (ratio > 0.55) {
+                    train.powerNotch = (ratio - 0.55) / 0.45;
+                    train.brakeNotch = 0;
+                } else if (ratio < 0.45) {
+                    train.brakeNotch = (0.45 - ratio) / 0.45;
+                    train.powerNotch = 0;
+                    if (train.brakeNotch > 0.3) playAirBrakeHiss();
+                } else {
+                    train.powerNotch = 0;
+                    train.brakeNotch = 0;
+                }
             }
+
+            track.parentElement.addEventListener("touchstart", e => {
+                isDragging = true;
+                getAudioContext();
+                initTractionAcoustics();
+                updateSlider(e.touches[0].clientY);
+            }, { passive: false });
+
+            window.addEventListener("touchmove", e => {
+                if (isDragging) updateSlider(e.touches[0].clientY);
+            }, { passive: false });
+
+            window.addEventListener("touchend", () => { isDragging = false; });
         }
 
-        // Player Controls
+        // Driver Controls
         function toggleMasterKey() {
             getAudioContext();
-            initTractionSound();
+            initTractionAcoustics();
             train.masterKeyOn = !train.masterKeyOn;
-            document.getElementById("val-key").innerText = train.masterKeyOn ? "ON" : "OFF";
-            document.getElementById("btn-key").classList.toggle("active", train.masterKeyOn);
-            playAirBrakeHiss();
+            const btn = document.getElementById("btn-master");
+            btn.classList.toggle("active", train.masterKeyOn);
+            showDialogue(train.masterKeyOn ? "🔑 Master Key Inserted! Throttle Enabled." : "🛑 Desk Isolated.");
         }
 
         function cycleReverser() {
-            if (!train.masterKeyOn) return;
-            if (Math.abs(train.velocity) > 0.5) return;
+            if (!train.masterKeyOn) return showDialogue("⚠️ Insert Master Key first!");
+            if (Math.abs(train.velocity) > 0.5) return showDialogue("⚠️ Full stop required to reverse!");
+
             train.reverser = train.reverser === 1 ? -1 : 1;
-            document.getElementById("val-rev").innerText = train.reverser === 1 ? "FWD" : "REV";
+            document.getElementById("btn-reverser").innerHTML = `🔄<br>${train.reverser === 1 ? 'FWD' : 'REV'}`;
+            showDialogue(`🔄 Reverser: ${train.reverser === 1 ? 'FORWARD' : 'REVERSE'}`);
         }
 
-        // Passenger Boarding & Fare Collection System
         function toggleDoors() {
-            if (Math.abs(train.velocity) > 0.5) return;
+            if (Math.abs(train.velocity) > 0.5) return showDialogue("⚠️ Train must be halted to open doors!");
             train.doorsOpen = !train.doorsOpen;
-            document.getElementById("val-doors").innerText = train.doorsOpen ? "OPEN" : "CLOSED";
             document.getElementById("btn-doors").classList.toggle("active", train.doorsOpen);
 
             if (train.doorsOpen) {
-                playAirBrakeHiss();
-
-                // Check for passengers at the current station platform
-                let boardingCount = 0;
-                platformPassengers.forEach(p => {
-                    if (Math.abs(p.stationDist - train.distance) < 90 && !p.boarded) {
-                        p.boarded = true;
-                        boardingCount += 4;
-                        // Animate walking towards train
-                        p.mesh.position.x += 1.2;
-                    }
-                });
-
-                if (boardingCount > 0) {
-                    passengerCount += boardingCount;
-                    const fareCollected = boardingCount * 45;
-                    driverCash += fareCollected;
-
-                    document.getElementById("cash-counter").innerText = driverCash.toLocaleString();
-                    document.getElementById("pax-counter").innerText = passengerCount;
-
-                    // Floating banner feedback
-                    const fb = document.getElementById("fare-feedback");
-                    fb.innerText = `+£${fareCollected} FARES COLLECTED (${boardingCount} PAX)`;
-                    fb.style.transform = 'translateX(-50%) scale(1.15)';
-                    setTimeout(() => { fb.style.transform = 'translateX(-50%) scale(0)'; }, 1400);
-                }
+                showDialogue("🚪 Passenger Doors Open! Fares Collecting...");
+                spawnFarePopups(6);
+                driverFares += 350;
+                document.getElementById("cash-count").innerText = driverFares.toLocaleString();
             } else {
-                playAirBrakeHiss();
+                showDialogue("🚪 Doors Closed & Interlocked.");
             }
         }
+
+        function applyEmergencyBrake() {
+            train.powerNotch = 0;
+            train.brakeNotch = 1.0;
+            playAirBrakeHiss();
+            document.getElementById("throttle-handle").style.bottom = "0px";
+            showDialogue("🛑 EMERGENCY BRAKE APPLIED!");
+        }
+
+        function soundHorn() { playDualAirHorn(); }
 
         function toggleWiper() {
             wiperActive = !wiperActive;
-            document.getElementById("val-wiper").innerText = wiperActive ? "ON" : "OFF";
             document.getElementById("btn-wiper").classList.toggle("active", wiperActive);
-        }
-
-        function soundHorn() {
-            playHornSound();
+            showDialogue(wiperActive ? "🌧️ Wipers Active" : "Wipers Off");
         }
 
         function cycleCamera() {
-            cameraMode = (cameraMode + 1) % 3;
-            const names = ["CAB", "CHASE", "WINDOW"];
-            document.getElementById("val-cam").innerText = names[cameraMode];
+            cameraMode = (cameraMode + 1) % 4;
+            const names = ["CAB COCKPIT", "NOSE BUFFER", "3RD PERSON CHASE", "WINDOW VIEW"];
+            showDialogue(`🎥 ${names[cameraMode]}`);
         }
 
+        function acknowledgeAWS() {
+            showDialogue("⚠️ AWS Acknowledged.");
+        }
+
+        function selectTrain(name) {
+            currentTrain = name;
+            buildPlayerTrain();
+            toggleModal("depot-modal", false);
+            showDialogue(`🚆 Selected ${name}`);
+        }
+
+        function selectMap(code) {
+            currentMap = code;
+            train.distance = 0;
+            train.velocity = 0;
+            buildTerritoryMap();
+            buildPlayerTrain();
+            buildOpposingTrain();
+            toggleModal("map-modal", false);
+            showDialogue(`🗺️ Loaded Map: ${code}`);
+        }
+
+        // Keyboard Binds
         window.addEventListener("keydown", e => {
             const c = e.code;
-            if (["KeyW","KeyS","KeyK","KeyR","KeyT","KeyV","KeyH","KeyC","ArrowUp","ArrowDown"].includes(c)) e.preventDefault();
-            if (c === "KeyW" || c === "ArrowUp") keys.w = true;
-            if (c === "KeyS" || c === "ArrowDown") keys.s = true;
+            if (["KeyW","KeyS","KeyA","KeyD","KeyK","KeyR","KeyT","KeyH","KeyC","KeyV","Space","ArrowUp","ArrowDown"].includes(c)) e.preventDefault();
+            if (c === "KeyW" || c === "ArrowUp") {
+                train.powerNotch = Math.min(1.0, train.powerNotch + 0.1);
+                train.brakeNotch = 0;
+            }
+            if (c === "KeyS" || c === "ArrowDown") {
+                train.brakeNotch = Math.min(1.0, train.brakeNotch + 0.15);
+                train.powerNotch = 0;
+                if (train.brakeNotch > 0.4) playAirBrakeHiss();
+            }
             if (c === "KeyK") toggleMasterKey();
             if (c === "KeyR") cycleReverser();
             if (c === "KeyT") toggleDoors();
+            if (c === "KeyH" || c === "Space") soundHorn();
             if (c === "KeyV") toggleWiper();
-            if (c === "KeyH") soundHorn();
             if (c === "KeyC") cycleCamera();
         });
 
-        window.addEventListener("keyup", e => {
-            if (e.code === "KeyW" || e.code === "ArrowUp") keys.w = false;
-            if (e.code === "KeyS" || e.code === "ArrowDown") keys.s = false;
-        });
-
-        // Main Physics & Dashboard Needle Updates
+        // Main Loop
         function updatePhysics(dt) {
-            if (!trainGroup) return;
-
-            if (train.masterKeyOn && !train.doorsOpen) {
-                if (keys.w) {
-                    train.powerNotch = Math.min(1.0, train.powerNotch + dt * 0.45);
-                    train.brakeNotch = Math.max(0.0, train.brakeNotch - dt * 0.7);
-                }
-                if (keys.s) {
-                    train.brakeNotch = Math.min(1.0, train.brakeNotch + dt * 0.45);
-                    train.powerNotch = Math.max(0.0, train.powerNotch - dt * 0.7);
-                }
-            }
+            if (!trainRig) return;
 
             const currentSpeed = Math.abs(train.velocity);
-            const tractiveForce = (train.powerNotch * train.acceleration - train.brakeNotch * 220000) * train.reverser;
-            const resistance = 0.0025 * train.weight * 9.81 + (0.0004 * currentSpeed * currentSpeed);
+            const accelForce = (train.powerNotch * train.tractionForce - train.brakeNotch * 240000) * train.reverser;
+            const resistance = 0.0028 * train.weight * 9.81 + (0.00045 * currentSpeed * currentSpeed);
 
-            const accel = (tractiveForce - Math.sign(train.velocity) * resistance) / train.weight;
+            let accel = (accelForce - Math.sign(train.velocity) * resistance) / train.weight;
             train.velocity += accel * dt;
 
             if (train.powerNotch === 0 && train.brakeNotch > 0.2 && currentSpeed < 0.25) {
@@ -840,102 +1103,109 @@
             train.distance = Math.max(0, Math.min(TRACK_LENGTH, train.distance));
             train.speedKMPH = Math.round(Math.abs(train.velocity) * 3.6);
 
-            // Rail Joint Sound Trigger every 35 meters
-            if (Math.abs(train.distance - lastJointDistance) > 35 && currentSpeed > 3) {
+            // Rail Joint Sound Trigger
+            if (Math.abs(train.distance - lastJointDistance) > 30 && currentSpeed > 3) {
                 lastJointDistance = train.distance;
-                playRailJointSound();
+                playRailJointClatter();
             }
 
-            // Animate Physical Dashboard Gauges
-            if (speedoNeedle && brakeNeedle) {
-                speedoNeedle.rotation.z = -((train.speedKMPH / 160) * Math.PI * 1.4);
-                brakeNeedle.rotation.z = -(train.brakeNotch * Math.PI * 1.2);
-            }
-
-            // Animate Windshield Wiper Sweep
-            if (wiperMesh && wiperActive) {
-                wiperAngle += wiperDirection * dt * 4.5;
-                if (wiperAngle > 0.85) wiperDirection = -1;
-                if (wiperAngle < -0.2) wiperDirection = 1;
-                wiperMesh.rotation.z = wiperAngle;
-            }
-
-            // Position Train onto Spline
+            // Move Player Train on Track
             const u = Math.min(1.0, Math.max(0.0, train.distance / TRACK_LENGTH));
-            const trainPos = trackSpline.getPointAt(u);
-            const trainTangent = trackSpline.getTangentAt(u).normalize();
-            const norm = new THREE.Vector3(-trainTangent.z, 0, trainTangent.x).normalize();
+            const pos = spline.getPointAt(u);
+            const tan = spline.getTangentAt(u).normalize();
+            const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
 
-            trainGroup.position.copy(trainPos).addScaledVector(norm, 1.3);
-            trainGroup.lookAt(trainPos.clone().add(trainTangent).addScaledVector(norm, 1.3));
+            trainRig.position.copy(pos).addScaledVector(norm, 1.5);
+            trainRig.lookAt(pos.clone().add(tan).addScaledVector(norm, 1.5));
 
-            // Oncoming Opposing AI Train (Track 2)
-            if (opposingTrainGroup) {
-                opposingTrain.distance -= opposingTrain.speed * dt;
-                if (opposingTrain.distance < 0) opposingTrain.distance = TRACK_LENGTH;
+            // Move Opposing AI Train (On Track 2)
+            if (opposingTrainRig) {
+                opposingAI.distance -= opposingAI.speed * dt;
+                if (opposingAI.distance < 0) opposingAI.distance = TRACK_LENGTH;
 
-                const aiU = opposingTrain.distance / TRACK_LENGTH;
-                const aiPos = trackSpline.getPointAt(aiU);
-                const aiTan = trackSpline.getTangentAt(aiU).normalize();
+                const aiU = Math.min(1.0, Math.max(0.0, opposingAI.distance / TRACK_LENGTH));
+                const aiPos = spline.getPointAt(aiU);
+                const aiTan = spline.getTangentAt(aiU).normalize();
 
-                opposingTrainGroup.position.copy(aiPos).addScaledVector(norm, -1.3);
-                opposingTrainGroup.lookAt(aiPos.clone().sub(aiTan).addScaledVector(norm, -1.3));
+                opposingTrainRig.position.copy(aiPos).addScaledVector(norm, -1.5);
+                opposingTrainRig.lookAt(aiPos.clone().sub(aiTan).addScaledVector(norm, -1.5));
 
-                // Oncoming crossing horn
-                if (Math.abs(train.distance - opposingTrain.distance) < 90 && !opposingTrain.passed) {
-                    opposingTrain.passed = true;
-                    playHornSound();
+                if (Math.abs(train.distance - opposingAI.distance) < 90 && Math.abs(train.distance - opposingAI.distance) > 70) {
+                    playDualAirHorn();
                 }
-                if (Math.abs(train.distance - opposingTrain.distance) > 160) opposingTrain.passed = false;
             }
 
-            // HUD & Dashboard Updates
-            document.getElementById("speed-val").innerText = train.speedKMPH;
-            updateTractionSound(train.powerNotch, currentSpeed / 40);
+            // Animate Wipers & Speed Needle
+            if (wiperActive && wiperMeshL && wiperMeshR) {
+                const ang = Math.sin(performance.now() * 0.008) * 0.7;
+                wiperMeshL.rotation.z = ang;
+                wiperMeshR.rotation.z = ang;
+            }
+            if (speedNeedle) {
+                speedNeedle.rotation.z = -(train.speedKMPH / train.maxSpeedKMPH) * Math.PI * 1.2;
+            }
 
-            const nextSt = stations.find(s => s.dist > train.distance - 20) || stations[stations.length - 1];
-            document.getElementById("next-station-title").innerText = nextSt.name.toUpperCase();
-            document.getElementById("dist-counter").innerText = Math.max(0, Math.round(nextSt.dist - train.distance)) + " M";
+            // Update Engine Pitch
+            updateMotorSound(currentSpeed / 40, train.powerNotch);
+
+            // Update HUD
+            document.getElementById("speed-display").innerText = train.speedKMPH;
+            const currentStations = STATIONS[currentMap];
+            const nextSt = currentStations.find(s => s.dist > train.distance - 20) || currentStations[currentStations.length - 1];
+            document.getElementById("station-name-hud").innerText = nextSt.name;
+            document.getElementById("station-dist-hud").innerText = `${Math.max(0, Math.round(nextSt.dist - train.distance))} M`;
+            document.getElementById("limit-display").innerText = `LIMIT: ${nextSt.limit}`;
         }
 
-        function updateMinimap() {
-            const canvas = document.getElementById("minimap-canvas");
-            const ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        function updateCamera() {
+            if (!trainRig) return;
+            trainRig.updateMatrixWorld(true);
 
-            ctx.strokeStyle = "#334155";
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            for (let i = 0; i <= 30; i++) {
-                const p = trackSpline.getPointAt(i / 30);
-                const mx = 35 + (p.x / 300) * 22;
-                const my = 10 + (p.z / TRACK_LENGTH) * 50;
-                if (i === 0) ctx.moveTo(mx, my); else ctx.lineTo(mx, my);
+            if (cameraMode === 0) {
+                // 1. Realistic Cab Interior View (Cockpit frame visible)
+                if (cabInteriorGroup) cabInteriorGroup.visible = true;
+                const eye = trainRig.localToWorld(new THREE.Vector3(0.45, 2.55, 9.4));
+                const target = trainRig.localToWorld(new THREE.Vector3(0.45, 2.55, 80.0));
+                camera.position.copy(eye);
+                camera.lookAt(target);
+            } else if (cameraMode === 1) {
+                // 2. Buffer Nose Cam
+                if (cabInteriorGroup) cabInteriorGroup.visible = false;
+                const eye = trainRig.localToWorld(new THREE.Vector3(0, 1.8, 12.5));
+                const target = trainRig.localToWorld(new THREE.Vector3(0, 1.8, 80.0));
+                camera.position.copy(eye);
+                camera.lookAt(target);
+            } else if (cameraMode === 2) {
+                // 3. 3rd Person Follow Chase
+                if (cabInteriorGroup) cabInteriorGroup.visible = false;
+                const eye = trainRig.localToWorld(new THREE.Vector3(0, 7.5, -34.0));
+                const target = trainRig.localToWorld(new THREE.Vector3(0, 2.0, 10.0));
+                camera.position.lerp(eye, 0.18);
+                camera.lookAt(target);
+            } else {
+                // 4. Passenger Window View
+                if (cabInteriorGroup) cabInteriorGroup.visible = false;
+                const eye = trainRig.localToWorld(new THREE.Vector3(-1.3, 2.2, -4.0));
+                const target = trainRig.localToWorld(new THREE.Vector3(-30.0, 2.0, -4.0));
+                camera.position.copy(eye);
+                camera.lookAt(target);
             }
-            ctx.stroke();
-
-            const curP = trackSpline.getPointAt(Math.min(1.0, train.distance / TRACK_LENGTH));
-            ctx.fillStyle = "#00f3ff";
-            ctx.beginPath();
-            ctx.arc(35 + (curP.x / 300) * 22, 10 + (curP.z / TRACK_LENGTH) * 50, 4, 0, Math.PI * 2);
-            ctx.fill();
         }
 
         let lastTime = performance.now();
-        function mainLoop(now) {
-            requestAnimationFrame(mainLoop);
+        function loop(now) {
+            requestAnimationFrame(loop);
             const dt = Math.min((now - lastTime) / 1000, 0.02);
             lastTime = now;
 
             updatePhysics(dt);
             updateCamera();
-            updateMinimap();
             renderer.render(scene, camera);
         }
 
         document.addEventListener("DOMContentLoaded", () => {
             init3D();
-            requestAnimationFrame(mainLoop);
+            requestAnimationFrame(loop);
         });
     </script>
 </body>
