@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>British Railway 3D - Regional Railways Simulator</title>
+    <title>World Railways 3D - Global Rail Simulator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         :root {
             --primary: #00f3ff;
-            --primary-glow: rgba(0, 243, 255, 0.35);
+            --primary-glow: rgba(0, 243, 255, 0.4);
             --accent: #ff007f;
             --gold: #facc15;
             --emerald: #10b981;
@@ -18,7 +18,7 @@
             --card: #0b1329;
             --panel-bg: rgba(11, 19, 41, 0.94);
         }
-        * { box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
         body {
             background: var(--bg);
             color: #fff;
@@ -60,10 +60,9 @@
             box-shadow: 0 0 35px rgba(0, 243, 255, 0.2);
             position: relative;
             overflow: hidden;
-            background: #7dd3fc;
-            touch-action: none;
+            background: #020617;
         }
-        #webgl-canvas { width: 100% !important; height: 100% !important; display: block; touch-action: none; }
+        #webgl-canvas { width: 100% !important; height: 100% !important; display: block; }
 
         .hud-top-left, .hud-top-right {
             position: absolute;
@@ -96,8 +95,8 @@
             transform: translateX(-50%);
             display: flex;
             align-items: center;
-            gap: 14px;
-            background: rgba(11, 19, 41, 0.92);
+            gap: 12px;
+            background: rgba(11, 19, 41, 0.94);
             border: 1.5px solid rgba(0, 243, 255, 0.5);
             border-radius: 8px;
             padding: 4px 18px;
@@ -109,39 +108,6 @@
         .dmi-val { font-size: 1.25rem; font-weight: bold; color: var(--primary); font-family: monospace; }
         .dmi-lbl { font-size: 0.6rem; color: #94a3b8; text-transform: uppercase; }
 
-        .aws-sunflower {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 2px solid #334155;
-            background: radial-gradient(circle, #000 35%, #facc15 36% 65%, #000 66%);
-            display: none;
-            box-shadow: 0 0 10px var(--gold);
-        }
-
-        .signal-indicator { display: flex; gap: 4px; align-items: center; }
-        .signal-bulb {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #1e293b;
-            border: 1px solid #334155;
-        }
-        .signal-bulb.green { background: var(--emerald); box-shadow: 0 0 10px var(--emerald); }
-        .signal-bulb.yellow { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
-        .signal-bulb.red { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
-
-        #minimap-canvas {
-            width: 80px !important;
-            height: 80px !important;
-            border-radius: 50%;
-            border: 2px solid var(--primary);
-            background: rgba(5, 8, 17, 0.9);
-            display: block;
-            margin-top: 4px;
-        }
-
-        /* Hotbar */
         .hud-bottom {
             position: absolute;
             bottom: 8px;
@@ -183,20 +149,70 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.8);
         }
 
+        .modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.94);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 16px;
+        }
+        .modal-card {
+            background: var(--card);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 760px;
+            width: 92%;
+            text-align: left;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.2);
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--primary); }
+
+        #minimap-canvas {
+            width: 80px !important;
+            height: 80px !important;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            background: rgba(5, 8, 17, 0.9);
+            display: block;
+            margin-top: 4px;
+        }
         .controls-info { margin-top: 5px; font-size: 0.78rem; color: #94a3b8; max-width: 1320px; }
     </style>
 </head>
 <body>
     <header>
         <a href="index.html" class="nav">← Hub</a>
-        <div>🚆 <strong>BRITISH RAILWAY 3D</strong> | Regional Railways Class 142 Pacer</div>
+        <div>🚆 <strong>WORLD RAILWAYS 3D</strong> | Territory: <span id="map-label" style="color:var(--primary);">British Mainland</span></div>
         <div class="stats">
-            <span>💷 Fares: £<span id="cash-count">1,500</span></span>
-            <span>👥 Boarded: <span id="pax-count" style="color:#fff;">28</span></span>
+            <span>💷 Fares: £<span id="cash-count">2,500</span></span>
+            <span>🚆 Train: <span id="active-train-name" style="color:var(--accent);">Class 142 Pacer</span></span>
         </div>
     </header>
 
     <div id="game-wrapper">
+        <!-- DMI HUD -->
         <div id="dmi-hud">
             <div class="dmi-item"><div class="dmi-val" id="dmi-spd">0</div><div class="dmi-lbl">SPEED (MPH)</div></div>
             <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
@@ -206,25 +222,13 @@
             <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
             <div class="dmi-item"><div class="dmi-val" id="dmi-brake">100%</div><div class="dmi-lbl">BRAKE</div></div>
             <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
-            <div class="dmi-item" style="display:flex; flex-direction:column; align-items:center;">
-                <div class="signal-indicator">
-                    <div class="signal-bulb green" id="hud-sig-green"></div>
-                    <div class="signal-bulb" id="hud-sig-yellow"></div>
-                    <div class="signal-bulb" id="hud-sig-red"></div>
-                </div>
-                <div class="dmi-lbl" style="margin-top:2px;">SIGNAL</div>
-            </div>
-            <div style="width: 1px; height: 24px; background: rgba(0, 243, 255, 0.3);"></div>
-            <div class="dmi-item" style="display:flex; flex-direction:column; align-items:center;">
-                <div class="aws-sunflower" id="hud-aws"></div>
-                <div class="dmi-lbl" style="margin-top:2px;">AWS</div>
-            </div>
+            <div class="dmi-item"><div class="dmi-val" id="dmi-rev" style="color:var(--emerald);">FWD</div><div class="dmi-lbl">DIR</div></div>
         </div>
 
         <div class="hud-top-left">
             <div class="hud-panel">
                 <div style="font-weight:bold; color:var(--primary);">🎯 NEXT STATION:</div>
-                <div id="route-status" style="color:#facc15; margin-top:2px;">Penkarn Central (Platform 1)</div>
+                <div id="route-status" style="color:#facc15; margin-top:2px;">Penkarn Central</div>
                 <div id="station-dist" style="color:#94a3b8; font-size:0.72rem; margin-top:1px;">Distance: 450 m | Speed Limit: 75 MPH</div>
             </div>
         </div>
@@ -232,33 +236,89 @@
         <div class="hud-top-right">
             <div class="hud-panel" style="display:flex; flex-direction:column; align-items:flex-end;">
                 <div style="font-size:0.75rem; color:#38bdf8;">CAM: <span id="cam-mode-text">CAB DRIVER VIEW</span></div>
-                <div style="font-size:0.72rem; color:#94a3b8;">DOORS: <span id="doors-status" style="color:var(--emerald); font-weight:bold;">CLOSED</span></div>
+                <div style="font-size:0.72rem; color:#94a3b8;">WEATHER: <span id="weather-text" style="color:var(--gold);">CLEAR DAY</span></div>
                 <canvas id="minimap-canvas" width="80" height="80"></canvas>
             </div>
         </div>
 
         <div id="dialogue-box"></div>
 
+        <!-- Train Fleet Depot Modal -->
+        <div id="depot-modal" class="modal" style="display: none;">
+            <div class="modal-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="color:var(--primary); margin:0;">🚆 INTERNATIONAL TRAIN FLEET</h2>
+                    <button class="btn" style="padding:4px 10px;" onclick="toggleDepot(false)">✕ Close</button>
+                </div>
+                <div class="btn-grid">
+                    <button class="btn" onclick="selectTrain('Class142')">🇬🇧 BR Class 142 Pacer<br><small>Regional Railbus | FREE</small></button>
+                    <button class="btn" id="btn-buy-mrt" onclick="buyOrSelect('C151_MRT', 6500)">🇸🇬 Singapore C151 MRT<br><small>High Acceleration Metro | £6,500</small></button>
+                    <button class="btn" id="btn-buy-shinkansen" onclick="buyOrSelect('ShinkansenN700', 14000)">🇯🇵 Shinkansen N700S Series<br><small>185 MPH Bullet Train | £14,000</small></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Selector Modal -->
+        <div id="map-modal" class="modal" style="display: none;">
+            <div class="modal-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="color:var(--gold); margin:0;">🗺️ WORLD MAPS & NETWORKS</h2>
+                    <button class="btn" style="padding:4px 10px;" onclick="toggleMapModal(false)">✕ Close</button>
+                </div>
+                <div class="btn-grid">
+                    <button class="btn" onclick="switchMap('UK')">🇬🇧 British Country Mainline<br><small>Rolling Hills, Double Ballast & Brick Platforms</small></button>
+                    <button class="btn" onclick="switchMap('JAPAN')">🇯🇵 Tokaido Shinkansen Route<br><small>Cherry Blossoms, Slab Tracks & Bullet Speedways</small></button>
+                    <button class="btn" onclick="switchMap('SG')">🇸🇬 Singapore East-West Viaduct<br><small>Elevated Concrete Pillars & Tropical Palms</small></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hotbar -->
         <div class="hud-bottom">
             <div class="slot" id="slot-key" onclick="toggleMasterKey()"><div class="slot-val" id="val-key">OFF</div>[K] Key</div>
             <div class="slot" id="slot-rev" onclick="cycleReverser()"><div class="slot-val" id="val-rev">FWD</div>[R] Rev</div>
             <div class="slot" id="slot-doors" onclick="toggleDoors()"><div class="slot-val" id="val-doors">CLOSED</div>[T] Doors</div>
             <div class="slot" onclick="soundHorn()"><div class="slot-val" style="color:var(--gold);">[H]</div>Horn</div>
-            <div class="slot" onclick="acknowledgeAWS()"><div class="slot-val" style="color:var(--accent);">[Q]</div>AWS</div>
+            <div class="slot" onclick="cycleWeather()"><div class="slot-val" style="color:var(--emerald);">[V]</div>Weather</div>
             <div class="slot" onclick="cycleCameraMode()"><div class="slot-val" id="val-cam">CAB</div>[C] Cam</div>
+            <div class="slot" onclick="toggleMapModal(true)"><div class="slot-val" style="color:var(--gold);">🗺️</div>Maps</div>
+            <div class="slot" onclick="toggleDepot(true)"><div class="slot-val" style="color:var(--primary);">🚆</div>Fleet</div>
         </div>
     </div>
 
     <div class="controls-info">
-        <strong>Controls:</strong> [W] Power Up | [S] Apply Brakes | [R] Reverser (FWD/REV) | [K] Master Key | [C] Camera Modes | [H] Horn | [T] Doors | [Q] AWS
+        <strong>Drive:</strong> [W] Throttle Notch | [S] Brake Notch | [R] Reverser | [K] Master Key | [C] Camera | [V] Weather / Rain | [H] Horn | [T] Doors
     </div>
 
     <script>
+        // Web Audio Synthesizer Engine
         let audioCtx = null;
+        let tractionGain = null, tractionOsc1 = null;
+        let lastJointDist = 0;
+
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
             return audioCtx;
+        }
+
+        function playRailJointSound() {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                [0, 0.08].forEach(offset => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(68, ctx.currentTime + offset);
+                    osc.frequency.exponentialRampToValueAtTime(32, ctx.currentTime + offset + 0.04);
+                    gain.gain.setValueAtTime(0.09, ctx.currentTime + offset);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.04);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + offset);
+                    osc.stop(ctx.currentTime + offset + 0.04);
+                });
+            } catch(e){}
         }
 
         function playTwoToneHorn() {
@@ -269,34 +329,29 @@
                     const gain = ctx.createGain();
                     osc.type = 'sawtooth';
                     osc.frequency.setValueAtTime(freq, ctx.currentTime);
-                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.55);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
                     osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.55);
+                    osc.start(); osc.stop(ctx.currentTime + 0.6);
                 });
-            } catch(e){}
-        }
-
-        function playDoorChime() {
-            try {
-                const ctx = getAudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(659.25, ctx.currentTime);
-                osc.frequency.setValueAtTime(523.25, ctx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.08, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
-                osc.connect(gain); gain.connect(ctx.destination);
-                osc.start(); osc.stop(ctx.currentTime + 0.4);
             } catch(e){}
         }
 
         // Global Simulation State
         let scene, camera, renderer, trainGroup = null;
-        let driverCash = 1500;
-        let cameraMode = 0; // 0: Cab Driver, 1: Front Buffer, 2: 3rd Person Chase, 3: Window View, 4: Trackside
+        let opposingTrainGroup = null;
+        let weatherParticles = null;
+        let driverCash = 2500;
+        let activeTrainType = 'Class142';
+        let ownedTrains = ['Class142'];
+        let currentMap = 'UK';
+        let cameraMode = 0; // 0: Cab, 1: Buffer, 2: Chase, 3: Window, 4: Trackside
+        let weatherMode = 0; // 0: Daylight, 1: Night, 2: Rain
         let totalBoardedPax = 28;
+
+        // Interactive 3D Cab Levers
+        let throttleLever = null;
+        let brakeLever = null;
 
         const train = {
             distance: 0,
@@ -308,159 +363,243 @@
             reverser: 1, // 1 = FWD, -1 = REV
             masterKeyOn: false,
             doorsOpen: false,
-            awsWarningActive: false,
             weight: 78000,
-            maxSpeedMPH: 75
+            maxSpeedMPH: 75,
+            accelerationPower: 260000
+        };
+
+        // Opposing AI Train System
+        const opposingTrain = {
+            distance: 5000,
+            speed: 28, // ~62 MPH opposing
+            passedPlayer: false
         };
 
         const keys = { w: false, s: false };
 
-        // Curved Track Spline Nodes
+        // Spline Path Generation
         const trackControlPoints = [
             new THREE.Vector3(0, 0, 0),
             new THREE.Vector3(0, 0, 1000),
-            new THREE.Vector3(80, 0, 2000),
-            new THREE.Vector3(160, 0, 3200),
-            new THREE.Vector3(80, 0, 4800),
+            new THREE.Vector3(80, 0, 2200),
+            new THREE.Vector3(160, 0, 3600),
+            new THREE.Vector3(60, 0, 5000),
             new THREE.Vector3(-120, 0, 6400),
             new THREE.Vector3(-60, 0, 8000),
-            new THREE.Vector3(60, 0, 9600),
+            new THREE.Vector3(40, 0, 9600),
             new THREE.Vector3(0, 0, 12000)
         ];
         const trackSpline = new THREE.CatmullRomCurve3(trackControlPoints, false, 'catmullrom', 0.15);
         const TOTAL_TRACK_LENGTH = trackSpline.getLength();
 
-        const stations = [
-            { name: 'Penkarn Central', dist: 450 },
-            { name: 'Millbridge Parkway', dist: 3000 },
-            { name: 'Brimmouth Viaduct', dist: 6200 },
-            { name: 'Aan Hill Terminus', dist: 11500 }
-        ];
+        // Territory Stations Database
+        const MAP_STATIONS = {
+            'UK': [
+                { name: 'Penkarn Central', dist: 450, limit: 75 },
+                { name: 'Millbridge Parkway', dist: 3200, limit: 60 },
+                { name: 'Brimmouth Viaduct', dist: 6600, limit: 80 },
+                { name: 'Aan Hill Terminus', dist: 11500, limit: 45 }
+            ],
+            'JAPAN': [
+                { name: 'Tokyo Shinkansen Terminal', dist: 450, limit: 110 },
+                { name: 'Shin-Yokohama Express', dist: 3500, limit: 185 },
+                { name: 'Kyoto Heritage Gateway', dist: 7200, limit: 160 },
+                { name: 'Shin-Osaka Central', dist: 11500, limit: 70 }
+            ],
+            'SG': [
+                { name: 'Jurong East Interchange', dist: 450, limit: 55 },
+                { name: 'Buona Vista Tech Hub', dist: 3200, limit: 65 },
+                { name: 'City Hall Central', dist: 6800, limit: 60 },
+                { name: 'Changi Airport Terminal', dist: 11500, limit: 50 }
+            ]
+        };
 
         function showDialogue(txt) {
             const d = document.getElementById("dialogue-box");
             d.innerText = txt; d.style.display = "block";
-            setTimeout(() => { d.style.display = "none"; }, 3200);
+            setTimeout(() => { d.style.display = "none"; }, 3400);
         }
 
-        // Build British Rail Class 142 Pacer (Regional Railways Livery)
-        function buildRegionalPacer() {
+        function toggleDepot(force) {
+            const el = document.getElementById("depot-modal");
+            el.style.display = force ? "flex" : "none";
+        }
+
+        function toggleMapModal(force) {
+            const el = document.getElementById("map-modal");
+            el.style.display = force ? "flex" : "none";
+        }
+
+        function selectTrain(type) {
+            activeTrainType = type;
+            const names = {
+                'Class142': 'Class 142 Pacer',
+                'C151_MRT': 'Singapore C151 MRT',
+                'ShinkansenN700': 'Shinkansen N700S Series'
+            };
+            document.getElementById("active-train-name").innerText = names[type];
+
+            if (type === 'Class142') {
+                train.maxSpeedMPH = 75; train.accelerationPower = 240000; train.weight = 76000;
+            } else if (type === 'C151_MRT') {
+                train.maxSpeedMPH = 65; train.accelerationPower = 440000; train.weight = 120000;
+            } else if (type === 'ShinkansenN700') {
+                train.maxSpeedMPH = 185; train.accelerationPower = 680000; train.weight = 360000;
+            }
+
+            buildPlayerTrain();
+            toggleDepot(false);
+            showDialogue(`🚆 Deployed ${names[type]}!`);
+        }
+
+        function buyOrSelect(type, cost) {
+            if (ownedTrains.includes(type)) {
+                selectTrain(type);
+            } else if (driverCash >= cost) {
+                driverCash -= cost;
+                ownedTrains.push(type);
+                document.getElementById('cash-count').innerText = driverCash.toLocaleString();
+                const btn = document.getElementById(type === 'C151_MRT' ? 'btn-buy-mrt' : 'btn-buy-shinkansen');
+                btn.innerText = `🚆 Select (OWNED)`;
+                selectTrain(type);
+            } else {
+                showDialogue("⚠️ Insufficient fares! Complete station runs.");
+            }
+        }
+
+        function switchMap(mapId) {
+            currentMap = mapId;
+            const titles = { 'UK': 'British Mainland', 'JAPAN': 'Tokaido Shinkansen Route', 'SG': 'Singapore East-West Viaduct' };
+            document.getElementById("map-label").innerText = titles[mapId];
+
+            train.distance = 0;
+            train.velocity = 0;
+            opposingTrain.distance = 5500;
+
+            toggleMapModal(false);
+            buildWorldEnvironment();
+            buildPlayerTrain();
+            buildOpposingAITrain();
+            showDialogue(`🗺️ Switched Territory to: ${titles[mapId]}`);
+        }
+
+        // 3D Model Building (Trainsets)
+        function buildPlayerTrain() {
             if (trainGroup) scene.remove(trainGroup);
             trainGroup = new THREE.Group();
 
-            const warningYellow = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.4 });
-            const railBlue = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.35 });
-            const bodyWhite = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
-            const roofGrey = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
-            const glassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, transparent: true, opacity: 0.65 });
             const darkMetal = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
-            const lightGlow = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            const redGlow = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, transparent: true, opacity: 0.65 });
 
-            // Lead Driving Car (Local +Z faces forward down the track)
-            const leadCar = new THREE.Group();
+            if (activeTrainType === 'Class142') {
+                // British Rail Class 142 Livery
+                const bodyWhite = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
+                const railBlue = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4 });
+                const warnYellow = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.4 });
 
-            // Main Car Body
-            const mainBody = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.7, 18), bodyWhite);
-            mainBody.position.set(0, 2.0, 0);
-            leadCar.add(mainBody);
+                const car = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.7, 18), bodyWhite);
+                car.position.set(0, 2.0, 0);
+                trainGroup.add(car);
 
-            // Regional Railways Blue Stripe & Lower Skirt
-            const blueStripe = new THREE.Mesh(new THREE.BoxGeometry(2.82, 0.55, 17.8), railBlue);
-            blueStripe.position.set(0, 1.4, 0);
-            leadCar.add(blueStripe);
+                const stripe = new THREE.Mesh(new THREE.BoxGeometry(2.82, 0.5, 17.8), railBlue);
+                stripe.position.set(0, 1.4, 0);
+                trainGroup.add(stripe);
 
-            // Roof
-            const roof = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.4, 18.2), roofGrey);
-            roof.position.set(0, 3.45, 0);
-            leadCar.add(roof);
+                const nose = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.68, 2.0), warnYellow);
+                nose.position.set(0, 2.0, 9.8);
+                trainGroup.add(nose);
+            } else if (activeTrainType === 'C151_MRT') {
+                // Singapore MRT Silver & Red Livery
+                const silverMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.6, roughness: 0.3 });
+                const redStripeMat = new THREE.MeshStandardMaterial({ color: 0xdc2626 });
+                const blackNoseMat = new THREE.MeshStandardMaterial({ color: 0x111827 });
 
-            // Yellow Warning Front Face (+Z)
-            const frontNose = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.68, 2.2), warningYellow);
-            frontNose.position.set(0, 2.0, 9.8);
-            leadCar.add(frontNose);
+                const car = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.8, 20), silverMat);
+                car.position.set(0, 2.0, 0);
+                trainGroup.add(car);
 
-            // Front Windscreen Looking Forward (+Z)
-            [-0.65, 0.65].forEach(x => {
-                const screen = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.85, 0.1), glassMat);
-                screen.position.set(x, 2.45, 10.92);
-                leadCar.add(screen);
-            });
+                const stripe = new THREE.Mesh(new THREE.BoxGeometry(3.02, 0.4, 19.8), redStripeMat);
+                stripe.position.set(0, 1.6, 0);
+                trainGroup.add(stripe);
 
-            // Headlights on Front Bumper (+Z = 10.95)
-            [-0.95, 0.95].forEach(x => {
-                const light = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.1, 12), lightGlow);
-                light.rotation.x = Math.PI / 2;
-                light.position.set(x, 1.25, 10.95);
-                leadCar.add(light);
-            });
+                const nose = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.75, 2.5), blackNoseMat);
+                nose.position.set(0, 2.0, 10.8);
+                trainGroup.add(nose);
+            } else {
+                // Japanese Shinkansen N700S Aerodynamic Bullet Nose
+                const bulletWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, metalness: 0.3 });
+                const jrBlue = new THREE.MeshStandardMaterial({ color: 0x1d4ed8 });
 
-            // 3D Interior Driver Desk & Seat
-            const desk = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.8, 1.3), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+                const car = new THREE.Mesh(new THREE.BoxGeometry(2.9, 2.6, 22), bulletWhite);
+                car.position.set(0, 2.0, 0);
+                trainGroup.add(car);
+
+                const stripe = new THREE.Mesh(new THREE.BoxGeometry(2.92, 0.3, 21.8), jrBlue);
+                stripe.position.set(0, 1.4, 0);
+                trainGroup.add(stripe);
+
+                const bulletNose = new THREE.Mesh(new THREE.ConeGeometry(1.4, 6.0, 16), bulletWhite);
+                bulletNose.rotation.x = Math.PI / 2;
+                bulletNose.position.set(0, 1.8, 13.8);
+                trainGroup.add(bulletNose);
+            }
+
+            // Windscreen & Driver Console Desk
+            const screen = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.9, 0.1), glassMat);
+            screen.position.set(0, 2.45, 10.95);
+            trainGroup.add(screen);
+
+            const desk = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.8, 1.3), darkMetal);
             desk.position.set(0, 1.6, 9.6);
-            leadCar.add(desk);
+            trainGroup.add(desk);
 
-            const seat = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.0, 0.7), new THREE.MeshStandardMaterial({ color: 0x1e3a8a }));
-            seat.position.set(0.65, 1.7, 8.4);
-            leadCar.add(seat);
+            // Interactive 3D Levers
+            const leverMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b });
+            throttleLever = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.4), leverMat);
+            throttleLever.position.set(-0.5, 2.1, 9.6);
+            trainGroup.add(throttleLever);
 
-            // Bogies
-            [-6.0, 6.0].forEach(z => {
-                const bogie = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.5, 3.2), darkMetal);
-                bogie.position.set(0, 0.5, z);
-                leadCar.add(bogie);
-            });
+            brakeLever = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.4), new THREE.MeshStandardMaterial({ color: 0xef4444 }));
+            brakeLever.position.set(0.5, 2.1, 9.6);
+            trainGroup.add(brakeLever);
 
-            trainGroup.add(leadCar);
-
-            // Trailing Car (Coupled behind along -Z)
-            const trailCar = new THREE.Group();
-            trailCar.position.set(0, 0, -19.5);
-
-            const tBody = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.7, 18), bodyWhite);
-            tBody.position.set(0, 2.0, 0);
-            trailCar.add(tBody);
-
-            const tStripe = new THREE.Mesh(new THREE.BoxGeometry(2.82, 0.55, 17.8), railBlue);
-            tStripe.position.set(0, 1.4, 0);
-            trailCar.add(tStripe);
-
-            const tRoof = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.4, 18.2), roofGrey);
-            tRoof.position.set(0, 3.45, 0);
-            trailCar.add(tRoof);
-
-            // Yellow Rear Warning Face (-Z)
-            const rearNose = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.68, 1.2), warningYellow);
-            rearNose.position.set(0, 2.0, -9.2);
-            trailCar.add(rearNose);
-
-            // Rear Red Marker Lights
+            // Headlights
             [-0.95, 0.95].forEach(x => {
-                const tailLight = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.1, 12), redGlow);
-                tailLight.rotation.x = Math.PI / 2;
-                tailLight.position.set(x, 1.25, -9.85);
-                trailCar.add(tailLight);
+                const light = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.1, 12), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                light.rotation.x = Math.PI / 2;
+                light.position.set(x, 1.25, 11.0);
+                trainGroup.add(light);
             });
 
-            [-6.0, 6.0].forEach(z => {
-                const bogie = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.5, 3.2), darkMetal);
-                bogie.position.set(0, 0.5, z);
-                trailCar.add(bogie);
-            });
-
-            trainGroup.add(trailCar);
             scene.add(trainGroup);
         }
 
-        // Build Environment, Double Tracks, Platforms & Scenery
-        function buildWorld() {
-            const trackMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9, roughness: 0.2 });
-            const ballastMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.95 });
-            const sleeperMat = new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.9 });
-            const treeLeafMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8 });
-            const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.9 });
+        function buildOpposingAITrain() {
+            if (opposingTrainGroup) scene.remove(opposingTrainGroup);
+            opposingTrainGroup = new THREE.Group();
 
-            const steps = 500;
+            const aiBody = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.7, 36), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
+            aiBody.position.set(0, 2.0, 0);
+            opposingTrainGroup.add(aiBody);
+
+            const aiNose = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.68, 2.0), new THREE.MeshStandardMaterial({ color: 0xfacc15 }));
+            aiNose.position.set(0, 2.0, -18.5);
+            opposingTrainGroup.add(aiNose);
+
+            scene.add(opposingTrainGroup);
+        }
+
+        // Territory Procedural Environment
+        function buildWorldEnvironment() {
+            // Remove previous map objects
+            const toRemove = [];
+            scene.traverse(obj => { if (obj.userData && obj.userData.isEnvironment) toRemove.push(obj); });
+            toRemove.forEach(obj => scene.remove(obj));
+
+            const steps = 450;
+            const ballastMat = new THREE.MeshStandardMaterial({ color: currentMap === 'SG' ? 0x64748b : 0x475569 });
+            const railMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9 });
+
             for (let i = 0; i < steps; i++) {
                 const u1 = i / steps;
                 const u2 = (i + 1) / steps;
@@ -469,75 +608,90 @@
                 const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
                 const len = p1.distanceTo(p2);
 
-                // Ballast Bed for Double Track
+                // Double Track Roadbed
                 const ballast = new THREE.Mesh(new THREE.BoxGeometry(11.0, 0.4, len + 0.6), ballastMat);
                 ballast.position.copy(mid);
                 ballast.position.y = 0.2;
                 ballast.lookAt(p2);
+                ballast.userData.isEnvironment = true;
                 scene.add(ballast);
 
+                // Viaduct Pillars for Singapore MRT
+                if (currentMap === 'SG' && i % 10 === 0) {
+                    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 12, 12), ballastMat);
+                    pillar.position.copy(p1);
+                    pillar.position.y = -6.0;
+                    pillar.userData.isEnvironment = true;
+                    scene.add(pillar);
+                }
+
                 // 4 Rails (Up & Down Lines)
-                [-2.0, -0.6, 0.6, 2.0].forEach(offset => {
-                    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.22, len + 0.5), trackMat);
-                    rail.position.set(offset, 0.35, 0);
-
-                    const g = new THREE.Group();
-                    g.position.copy(mid);
-                    g.lookAt(p2);
-                    g.add(rail);
-                    scene.add(g);
+                [-2.0, -0.6, 0.6, 2.0].forEach(rx => {
+                    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.22, len + 0.5), railMat);
+                    rail.position.set(rx, 0.35, 0);
+                    const rg = new THREE.Group();
+                    rg.position.copy(mid);
+                    rg.lookAt(p2);
+                    rg.add(rail);
+                    rg.userData.isEnvironment = true;
+                    scene.add(rg);
                 });
 
-                // Wooden Sleepers
-                [-1.3, 1.3].forEach(cx => {
-                    const sleeper = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.18, 0.8), sleeperMat);
-                    sleeper.position.set(cx, 0.3, 0);
-                    const sg = new THREE.Group();
-                    sg.position.copy(p1);
-                    sg.lookAt(p2);
-                    sg.add(sleeper);
-                    scene.add(sg);
-                });
-
-                // Line-side Trees
-                if (i % 8 === 0) {
-                    const tangent = trackSpline.getTangentAt(u1);
-                    const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+                // Territory Trees
+                if (i % 9 === 0) {
+                    const tan = trackSpline.getTangentAt(u1);
+                    const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
                     [-14, 14].forEach(side => {
                         const tree = new THREE.Group();
-                        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 3.5, 6), treeTrunkMat);
-                        trunk.position.y = 1.75;
-                        tree.add(trunk);
-
-                        const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(2.4, 1), treeLeafMat);
-                        crown.position.y = 4.4;
-                        tree.add(crown);
-
-                        tree.position.copy(p1).addScaledVector(normal, side + (Math.random() - 0.5) * 4);
+                        if (currentMap === 'JAPAN') {
+                            // Pink Cherry Blossoms
+                            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 3.5, 6), new THREE.MeshStandardMaterial({ color: 0x582f0e }));
+                            trunk.position.y = 1.75;
+                            tree.add(trunk);
+                            const cherryCrown = new THREE.Mesh(new THREE.DodecahedronGeometry(2.4), new THREE.MeshStandardMaterial({ color: 0xfbcfe8 }));
+                            cherryCrown.position.y = 4.4;
+                            tree.add(cherryCrown);
+                        } else if (currentMap === 'SG') {
+                            // Tropical Palms
+                            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 5.5, 6), new THREE.MeshStandardMaterial({ color: 0x78350f }));
+                            trunk.position.y = 2.75;
+                            tree.add(trunk);
+                            const palmLeaves = new THREE.Mesh(new THREE.ConeGeometry(2.2, 1.8, 8), new THREE.MeshStandardMaterial({ color: 0x15803d }));
+                            palmLeaves.position.y = 5.6;
+                            tree.add(palmLeaves);
+                        } else {
+                            // British Oak
+                            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 3.5, 6), new THREE.MeshStandardMaterial({ color: 0x582f0e }));
+                            trunk.position.y = 1.75;
+                            tree.add(trunk);
+                            const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(2.5), new THREE.MeshStandardMaterial({ color: 0x166534 }));
+                            crown.position.y = 4.4;
+                            tree.add(crown);
+                        }
+                        tree.position.copy(p1).addScaledVector(norm, side + (Math.random() - 0.5) * 4);
+                        tree.userData.isEnvironment = true;
                         scene.add(tree);
                     });
                 }
             }
 
-            // Stations with British Brick Platforms
-            stations.forEach(st => {
+            // Stations
+            const currentStations = MAP_STATIONS[currentMap];
+            currentStations.forEach(st => {
                 const u = st.dist / TOTAL_TRACK_LENGTH;
                 const pos = trackSpline.getPointAt(u);
-                const tangent = trackSpline.getTangentAt(u).normalize();
-                const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+                const tan = trackSpline.getTangentAt(u).normalize();
+                const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
 
-                const platformGroup = new THREE.Group();
-                const platform = new THREE.Mesh(new THREE.BoxGeometry(5.0, 1.2, 180), new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.9 }));
+                const stGroup = new THREE.Group();
+                const platform = new THREE.Mesh(new THREE.BoxGeometry(5.0, 1.2, 180), new THREE.MeshStandardMaterial({ color: currentMap === 'SG' ? 0x0284c7 : 0x991b1b }));
                 platform.position.set(0, 0.6, 0);
-                platformGroup.add(platform);
+                stGroup.add(platform);
 
-                const edge = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.05, 180), new THREE.MeshStandardMaterial({ color: 0xfacc15 }));
-                edge.position.set(-2.2, 1.22, 0);
-                platformGroup.add(edge);
-
-                platformGroup.position.copy(pos).addScaledVector(normal, -4.5);
-                platformGroup.lookAt(pos.clone().add(tangent).addScaledVector(normal, -4.5));
-                scene.add(platformGroup);
+                stGroup.position.copy(pos).addScaledVector(norm, -4.5);
+                stGroup.lookAt(pos.clone().add(tan).addScaledVector(norm, -4.5));
+                stGroup.userData.isEnvironment = true;
+                scene.add(stGroup);
             });
         }
 
@@ -547,7 +701,7 @@
             const h = container.clientHeight || 680;
 
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x93c5fd); // British daylight sky
+            scene.background = new THREE.Color(0x93c5fd);
             scene.fog = new THREE.FogExp2(0x93c5fd, 0.00035);
 
             camera = new THREE.PerspectiveCamera(58, w / h, 0.1, 7000);
@@ -566,13 +720,15 @@
             sun.position.set(400, 800, 300);
             scene.add(sun);
 
+            // Ground Terrain
             const grass = new THREE.Mesh(new THREE.PlaneGeometry(16000, 16000), new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.9 }));
             grass.rotation.x = -Math.PI / 2;
             grass.position.y = -0.05;
             scene.add(grass);
 
-            buildWorld();
-            buildRegionalPacer();
+            buildWorldEnvironment();
+            buildPlayerTrain();
+            buildOpposingAITrain();
 
             window.addEventListener('resize', () => {
                 const nw = container.clientWidth;
@@ -589,31 +745,31 @@
             trainGroup.updateMatrixWorld(true);
 
             if (cameraMode === 0) {
-                // 1. CAB DRIVER VIEW: Positioned inside cab looking forward out through windscreen
+                // Cab Driver View (Looking through forward windshield)
                 const cabEye = trainGroup.localToWorld(new THREE.Vector3(0.65, 2.45, 8.4));
                 const cabTarget = trainGroup.localToWorld(new THREE.Vector3(0.65, 2.45, 80.0));
                 camera.position.copy(cabEye);
                 camera.lookAt(cabTarget);
             } else if (cameraMode === 1) {
-                // 2. FRONT BUFFER CAM: Clear view right on the front nose
+                // Front Nose Buffer
                 const bufferEye = trainGroup.localToWorld(new THREE.Vector3(0, 1.8, 12.2));
                 const targetAhead = trainGroup.localToWorld(new THREE.Vector3(0, 1.8, 100.0));
                 camera.position.copy(bufferEye);
                 camera.lookAt(targetAhead);
             } else if (cameraMode === 2) {
-                // 3. 3RD PERSON CHASE CAM: Elevated behind train looking forward
+                // 3rd Person Follow
                 const chasePos = trainGroup.localToWorld(new THREE.Vector3(0, 8.5, -42.0));
                 const chaseTarget = trainGroup.localToWorld(new THREE.Vector3(0, 2.0, 10.0));
                 camera.position.lerp(chasePos, 0.18);
                 camera.lookAt(chaseTarget);
             } else if (cameraMode === 3) {
-                // 4. PASSENGER WINDOW VIEW: Inside coach looking out across the countryside
+                // Passenger Window
                 const winPos = trainGroup.localToWorld(new THREE.Vector3(-1.3, 2.2, -6.0));
                 const winTarget = trainGroup.localToWorld(new THREE.Vector3(-35.0, 2.0, -6.0));
                 camera.position.copy(winPos);
                 camera.lookAt(winTarget);
             } else {
-                // 5. TRACKSIDE SPOTTER CAM
+                // Trackside Spotter
                 const flybyU = Math.min(1.0, (Math.floor(train.distance / 350) * 350 + 100) / TOTAL_TRACK_LENGTH);
                 const flybyPos = trackSpline.getPointAt(flybyU).add(new THREE.Vector3(8.0, 2.4, 0));
                 camera.position.copy(flybyPos);
@@ -627,20 +783,21 @@
             train.masterKeyOn = !train.masterKeyOn;
             document.getElementById("val-key").innerText = train.masterKeyOn ? "ON" : "OFF";
             document.getElementById("slot-key").classList.toggle("active", train.masterKeyOn);
-            showDialogue(train.masterKeyOn ? "🔑 Master Key Inserted! Press [W] to power up." : "🛑 Master Key Off.");
+            showDialogue(train.masterKeyOn ? "🔑 Master Key Inserted! Throttle [W] enabled." : "🛑 Desk Isolated.");
         }
 
         function cycleReverser() {
             if (!train.masterKeyOn) return showDialogue("⚠️ Insert Master Key first!");
-            if (Math.abs(train.velocity) > 0.5) return showDialogue("⚠️ Stop train before switching reverser!");
+            if (Math.abs(train.velocity) > 0.5) return showDialogue("⚠️ Bring train to full stop before reversing!");
 
             train.reverser = train.reverser === 1 ? -1 : 1;
             document.getElementById("val-rev").innerText = train.reverser === 1 ? "FWD" : "REV";
+            document.getElementById("dmi-rev").innerText = train.reverser === 1 ? "FWD" : "REV";
             showDialogue(`🔄 Reverser: ${train.reverser === 1 ? 'FORWARD' : 'REVERSE'}`);
         }
 
         function toggleDoors() {
-            if (Math.abs(train.velocity) > 0.5) return showDialogue("⚠️ Stop train to operate doors!");
+            if (Math.abs(train.velocity) > 0.5) return showDialogue("⚠️ Stop train to open doors!");
             train.doorsOpen = !train.doorsOpen;
             document.getElementById("val-doors").innerText = train.doorsOpen ? "OPEN" : "CLOSED";
             document.getElementById("doors-status").innerText = train.doorsOpen ? "OPEN" : "CLOSED";
@@ -648,24 +805,15 @@
             document.getElementById("slot-doors").classList.toggle("active", train.doorsOpen);
 
             if (train.doorsOpen) {
-                playDoorChime();
-                totalBoardedPax += 12;
-                driverCash += 300;
+                totalBoardedPax += 14;
+                driverCash += 350;
                 document.getElementById("cash-count").innerText = driverCash.toLocaleString();
                 document.getElementById("pax-count").innerText = totalBoardedPax;
-                showDialogue("🚪 Doors Open! Passenger boarding (+£300 Fares)");
+                showDialogue("🚪 Passenger Doors Open! (+£350 Fares)");
             }
         }
 
         function soundHorn() { playTwoToneHorn(); }
-
-        function acknowledgeAWS() {
-            if (train.awsWarningActive) {
-                train.awsWarningActive = false;
-                document.getElementById("hud-aws").style.display = "none";
-                showDialogue("⚠️ AWS Acknowledged.");
-            }
-        }
 
         function cycleCameraMode() {
             cameraMode = (cameraMode + 1) % 5;
@@ -675,9 +823,27 @@
             showDialogue(`🎥 ${names[cameraMode]}`);
         }
 
+        function cycleWeather() {
+            weatherMode = (weatherMode + 1) % 3;
+            const labels = ["CLEAR DAY", "NIGHT PASS", "HEAVY RAIN"];
+            document.getElementById("weather-text").innerText = labels[weatherMode];
+
+            if (weatherMode === 1) {
+                scene.background.setHex(0x020617);
+                scene.fog.color.setHex(0x020617);
+            } else if (weatherMode === 2) {
+                scene.background.setHex(0x475569);
+                scene.fog.color.setHex(0x475569);
+            } else {
+                scene.background.setHex(0x93c5fd);
+                scene.fog.color.setHex(0x93c5fd);
+            }
+            showDialogue(`⛅ Weather: ${labels[weatherMode]}`);
+        }
+
         window.addEventListener("keydown", e => {
             const c = e.code;
-            if (["KeyW","KeyS","KeyK","KeyR","KeyT","KeyH","KeyC","KeyQ","ArrowUp","ArrowDown"].includes(c)) e.preventDefault();
+            if (["KeyW","KeyS","KeyK","KeyR","KeyT","KeyH","KeyC","KeyV","ArrowUp","ArrowDown"].includes(c)) e.preventDefault();
             if (c === "KeyW" || c === "ArrowUp") keys.w = true;
             if (c === "KeyS" || c === "ArrowDown") keys.s = true;
             if (c === "KeyK") toggleMasterKey();
@@ -685,7 +851,7 @@
             if (c === "KeyT") toggleDoors();
             if (c === "KeyH") soundHorn();
             if (c === "KeyC") cycleCameraMode();
-            if (c === "KeyQ") acknowledgeAWS();
+            if (c === "KeyV") cycleWeather();
         });
 
         window.addEventListener("keyup", e => {
@@ -693,26 +859,32 @@
             if (e.code === "KeyS" || e.code === "ArrowDown") keys.s = false;
         });
 
-        // Physics & Spline Alignment
+        // Dynamic Physics & Opposing Traffic Loop
         function updatePhysics(dt) {
             if (!trainGroup) return;
 
             if (train.masterKeyOn && !train.doorsOpen) {
                 if (keys.w) {
-                    train.powerNotch = Math.min(1.0, train.powerNotch + dt * 0.5);
-                    train.brakeNotch = Math.max(0.0, train.brakeNotch - dt * 0.8);
+                    train.powerNotch = Math.min(1.0, train.powerNotch + dt * 0.45);
+                    train.brakeNotch = Math.max(0.0, train.brakeNotch - dt * 0.7);
                 }
                 if (keys.s) {
-                    train.brakeNotch = Math.min(1.0, train.brakeNotch + dt * 0.5);
-                    train.powerNotch = Math.max(0.0, train.powerNotch - dt * 0.8);
+                    train.brakeNotch = Math.min(1.0, train.brakeNotch + dt * 0.45);
+                    train.powerNotch = Math.max(0.0, train.powerNotch - dt * 0.7);
                 }
             }
 
+            // Animate Physical Levers on Driver Desk
+            if (throttleLever && brakeLever) {
+                throttleLever.rotation.x = -train.powerNotch * 0.8;
+                brakeLever.rotation.x = (1.0 - train.brakeNotch) * 0.8;
+            }
+
             const currentSpeed = Math.abs(train.velocity);
-            const accelForce = (train.powerNotch * 240000 - train.brakeNotch * 180000) * train.reverser;
+            const accelForce = (train.powerNotch * train.accelerationPower - train.brakeNotch * 200000) * train.reverser;
             const resistance = 0.0025 * train.weight * 9.81 + (0.0004 * currentSpeed * currentSpeed);
 
-            let accel = (accelForce - Math.sign(train.velocity) * resistance) / train.weight;
+            const accel = (accelForce - Math.sign(train.velocity) * resistance) / train.weight;
             train.velocity += accel * dt;
 
             if (train.powerNotch === 0 && train.brakeNotch > 0.2 && currentSpeed < 0.25) {
@@ -723,21 +895,52 @@
             train.distance = Math.max(0, Math.min(TOTAL_TRACK_LENGTH, train.distance));
             train.speedMPH = Math.round(Math.abs(train.velocity) * 2.23694);
 
-            // Position & Face Train Along Spline (+Z faces forward)
+            // Rail Joint Sound Trigger every 30 meters traveled
+            if (Math.abs(train.distance - lastJointDist) > 30 && currentSpeed > 4) {
+                lastJointDist = train.distance;
+                playRailJointSound();
+            }
+
+            // Position Player Train
             const u = Math.min(1.0, Math.max(0.0, train.distance / TOTAL_TRACK_LENGTH));
             const trainPos = trackSpline.getPointAt(u);
             const trainTangent = trackSpline.getTangentAt(u).normalize();
+            const norm = new THREE.Vector3(-trainTangent.z, 0, trainTangent.x).normalize();
 
-            trainGroup.position.copy(trainPos);
-            trainGroup.lookAt(trainPos.clone().add(trainTangent));
+            trainGroup.position.copy(trainPos).addScaledVector(norm, 1.3);
+            trainGroup.lookAt(trainPos.clone().add(trainTangent).addScaledVector(norm, 1.3));
 
+            // Move Opposing AI Traffic (Running opposite on Track 2)
+            if (opposingTrainGroup) {
+                opposingTrain.distance -= opposingTrain.speed * dt;
+                if (opposingTrain.distance < 0) opposingTrain.distance = TOTAL_TRACK_LENGTH;
+
+                const aiU = Math.min(1.0, Math.max(0.0, opposingTrain.distance / TOTAL_TRACK_LENGTH));
+                const aiPos = trackSpline.getPointAt(aiU);
+                const aiTan = trackSpline.getTangentAt(aiU).normalize();
+
+                opposingTrainGroup.position.copy(aiPos).addScaledVector(norm, -1.3);
+                opposingTrainGroup.lookAt(aiPos.clone().sub(aiTan).addScaledVector(norm, -1.3));
+
+                // Passing horn trigger
+                if (Math.abs(train.distance - opposingTrain.distance) < 80 && !opposingTrain.passedPlayer) {
+                    opposingTrain.passedPlayer = true;
+                    playTwoToneHorn();
+                    showDialogue("⚠️ Oncoming Traffic Passing on Track 2!");
+                }
+                if (Math.abs(train.distance - opposingTrain.distance) > 150) opposingTrain.passedPlayer = false;
+            }
+
+            // HUD Updates
             document.getElementById("dmi-spd").innerText = (train.velocity < -0.1 ? "R " : "") + train.speedMPH;
             document.getElementById("dmi-power").innerText = Math.round(train.powerNotch * 100) + "%";
             document.getElementById("dmi-brake").innerText = Math.round(train.brakeNotch * 100) + "%";
 
-            const nextStation = stations.find(s => s.dist > train.distance - 20) || stations[stations.length - 1];
+            const currentStations = MAP_STATIONS[currentMap];
+            const nextStation = currentStations.find(s => s.dist > train.distance - 20) || currentStations[currentStations.length - 1];
             document.getElementById("route-status").innerText = nextStation.name;
-            document.getElementById("station-dist").innerText = `Distance: ${Math.max(0, Math.round(nextStation.dist - train.distance))} m | Limit: 75 MPH`;
+            document.getElementById("station-dist").innerText = `Distance: ${Math.max(0, Math.round(nextStation.dist - train.distance))} m | Limit: ${nextStation.limit} MPH`;
+            document.getElementById("dmi-limit").innerText = nextStation.limit;
         }
 
         function updateMinimap() {
