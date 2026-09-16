@@ -93,7 +93,7 @@
             transition: transform 0.16s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Touch Controls */
+        /* Touch Controls for iPad/Mobile */
         .touch-zone {
             position: absolute;
             bottom: 10px;
@@ -305,7 +305,7 @@
     </div>
 
     <div class="controls-bar">
-        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Shoot / Tap near rival to <strong>STEAL & CLAMP</strong></div>
+        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Shoot / Tap near rival to <strong>RIP STEAL</strong></div>
         <div><strong>P2:</strong> [◀]/[▶] Move | [▲] Jump | [L/ENTER] Shoot / Steal</div>
     </div>
 
@@ -335,18 +335,18 @@
                     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
                     const src = ctx.createBufferSource(); src.buffer = b;
                     const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1800;
-                    const g = ctx.createGain(); g.gain.setValueAtTime(0.2, t);
+                    const g = ctx.createGain(); g.gain.setValueAtTime(0.25, t);
                     g.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
                     src.connect(f); f.connect(g); g.connect(ctx.destination);
                     src.start();
                 } else if (type === 'steal') {
                     const o = ctx.createOscillator(); const g = ctx.createGain();
                     o.type = 'triangle';
-                    o.frequency.setValueAtTime(520, t);
-                    o.frequency.exponentialRampToValueAtTime(980, t + 0.12);
-                    g.gain.setValueAtTime(0.45, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+                    o.frequency.setValueAtTime(580, t);
+                    o.frequency.exponentialRampToValueAtTime(1100, t + 0.14);
+                    g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.14);
                     o.connect(g); g.connect(ctx.destination);
-                    o.start(); o.stop(t + 0.12);
+                    o.start(); o.stop(t + 0.14);
                 } else if (type === 'swish') {
                     const b = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
                     const d = b.getChannelData(0);
@@ -374,12 +374,13 @@
                 id: 'kaijie',
                 name: 'KAI JIE',
                 role: '100% Sniper',
+                heightCm: 180,
                 speed: 220,
-                jumpForce: 645,      // Rating 80 jump (under John's 670 and Shivnand's 740)
+                jumpForce: 645,      // Rating 80 jump (under John 85 and Shivnand 95)
                 shotAccuracy: 1.0,   // 100% sniper
                 dunkReach: 0,
-                stealStat: 0.52,
-                defenseRating: 64,
+                stealStat: 0.55,
+                defenseRating: 66,
                 skin: '#fed7aa',
                 hair: 'parted',
                 glasses: false,
@@ -392,6 +393,7 @@
                 id: 'john',
                 name: 'JOHN',
                 role: 'Speed & Dunk Demon',
+                heightCm: 180,
                 speed: 400,
                 jumpForce: 670,      // Rating 85 jump
                 shotAccuracy: 0.42,
@@ -410,12 +412,13 @@
                 id: 'shivnand',
                 name: 'SHIVNAND',
                 role: 'Lockdown Clamp God',
+                heightCm: 165,
                 speed: 410,
                 jumpForce: 740,      // Peak jump (95+)
                 shotAccuracy: 0.45,
                 dunkReach: 195,
-                stealStat: 0.98,     // Ultimate steal
-                defenseRating: 99,   // Ultimate clamps
+                stealStat: 0.98,     // Ultimate strip master
+                defenseRating: 99,   // Ultimate perimeter defense
                 skin: '#c2410c',
                 hair: 'athletic',
                 glasses: false,
@@ -428,6 +431,7 @@
                 id: 'julius',
                 name: 'JULIUS',
                 role: 'Speed Demon Slasher',
+                heightCm: 165,
                 speed: 420,          // Fastest player on the court
                 jumpForce: 630,      // Rating 78 jump
                 shotAccuracy: 0.86,  // Reliable shooter
@@ -445,13 +449,14 @@
             {
                 id: 'ritvik',
                 name: 'RITVIK',
-                role: 'Balanced Bench Player',
-                speed: 310,
-                jumpForce: 530,      // Rating 65 jump
-                shotAccuracy: 0.58,  // Meh shooting
-                dunkReach: 0,        // Layups only
-                stealStat: 0.55,
-                defenseRating: 60,
+                role: 'High-Flying Slasher',
+                heightCm: 178,
+                speed: 290,          // Nerfed speed
+                jumpForce: 660,      // Buffed jump (82 rating)
+                shotAccuracy: 0.46,  // Nerfed shooting
+                dunkReach: 175,      // Can now dunk
+                stealStat: 0.52,
+                defenseRating: 62,
                 skin: '#d97706',
                 hair: 'crop',
                 glasses: false,
@@ -464,6 +469,7 @@
                 id: 'lebron',
                 name: 'LEBRON JAMES',
                 role: 'Freight Train',
+                heightCm: 206,
                 speed: 350,
                 jumpForce: 640,
                 shotAccuracy: 0.84,
@@ -482,6 +488,7 @@
                 id: 'curry',
                 name: 'CHEF CURRY',
                 role: 'Deep Assassin',
+                heightCm: 188,
                 speed: 360,
                 jumpForce: 590,
                 shotAccuracy: 0.98,
@@ -500,6 +507,7 @@
                 id: 'kd',
                 name: 'KEVIN DURANT',
                 role: 'Slim Reaper',
+                heightCm: 208,
                 speed: 345,
                 jumpForce: 630,
                 shotAccuracy: 0.94,
@@ -518,6 +526,7 @@
                 id: 'jordan',
                 name: 'AIR JORDAN',
                 role: 'Hangtime Legend',
+                heightCm: 198,
                 speed: 380,
                 jumpForce: 700,
                 shotAccuracy: 0.90,
@@ -570,11 +579,12 @@
             const card = document.createElement('div');
             card.className = 'roster-card';
             card.id = `card-${idx}`;
-            const jumpLabel = (p.id === 'kaijie') ? '80' : (p.jumpForce > 690 ? '90+' : (p.jumpForce > 650 ? '85' : (p.jumpForce > 600 ? '78' : '65')));
+            const jumpLabel = (p.id === 'kaijie') ? '80' : (p.jumpForce > 690 ? '95+' : (p.jumpForce > 650 ? '85' : (p.jumpForce > 600 ? '78' : '65')));
             card.innerHTML = `
                 <div class="badge-container"></div>
                 <div class="card-name">${p.name}</div>
                 <div class="card-type">${p.role}</div>
+                <div class="card-stat">📏 Ht: <strong>${p.heightCm} cm</strong></div>
                 <div class="card-stat">⚡ Spd: <strong>${Math.round(p.speed / 4)}</strong></div>
                 <div class="card-stat">🚀 Jump: <strong>${jumpLabel}</strong></div>
                 <div class="card-stat">🎯 3PT: <strong>${Math.round(p.shotAccuracy * 100)}%</strong></div>
@@ -609,20 +619,23 @@
         let screenShake = 0;
 
         function createEntity(data, startX, facing) {
+            // Dynamic height scaling (165cm -> 85px, 180cm -> 93px, 206cm -> 106px)
+            const scaledH = Math.round(data.heightCm * 0.515);
             return {
                 ...data,
                 x: startX,
-                y: COURT_Y - 95,
+                height: scaledH,
+                width: Math.round(scaledH * 0.46),
+                y: COURT_Y - scaledH,
                 vx: 0,
                 vy: 0,
-                width: 44,
-                height: 95,
                 facing: facing,
                 onGround: true,
                 isCharging: false,
                 chargeTimer: 0,
                 isDunking: false,
                 stealCooldown: 0,
+                pickupLockout: 0,      // Prevents victim from instantly grabbing stolen ball back
                 swipeVisualTimer: 0,
                 isClamping: false,
                 aiDecisionTimer: 0
@@ -649,28 +662,34 @@
             { side: 'right', bbX: 940, bbY: 210, bbH: 110, rimX: 892, rimY: 288, rimW: 46, netWiggle: 0 }
         ];
 
+        // Reworked Steal Mechanic: Directly rips possession into stealer's hands on success
         function attemptSteal(stealer, target) {
             if (stealer.stealCooldown > 0) return;
-            stealer.stealCooldown = 0.38;
+            stealer.stealCooldown = 0.32;
             stealer.swipeVisualTimer = 0.18;
             playSound('swipe');
 
+            // Quick forward thrust into the defender
             const dir = (target.x > stealer.x) ? 1 : -1;
-            stealer.vx = dir * 200;
+            stealer.vx = dir * 210;
 
             if (ball.holder !== target) return;
 
             const dist = Math.hypot((stealer.x + stealer.width/2) - (target.x + target.width/2), stealer.y - target.y);
-            if (dist < 92) {
-                const successProb = stealer.stealStat * (stealer.id === 'shivnand' && target.id === 'kaijie' ? 0.98 : 0.74);
+            if (dist < 94) {
+                const successProb = stealer.stealStat * (stealer.id === 'shivnand' && target.id === 'kaijie' ? 0.98 : 0.78);
                 if (Math.random() < successProb) {
-                    ball.holder = null;
+                    // Clean possession rip directly to stealer
+                    ball.holder = stealer;
                     ball.lastTouchedBy = stealer;
-                    ball.vx = dir * 210;
-                    ball.vy = -300;
-                    screenShake = 7;
+                    target.isCharging = false;
+                    stealer.isCharging = false;
+                    target.pickupLockout = 0.65; // Lockout victim from counter-swiping immediately
+                    target.vx = -dir * 120;      // Stagger victim backward
+
+                    screenShake = 9;
                     playSound('steal');
-                    triggerBanner(`${stealer.name} POCKET PICK! ⚡`);
+                    triggerBanner(`${stealer.name} CLEAN STRIP! ⚡`);
                 }
             }
         }
@@ -830,7 +849,7 @@
             const distToPlayer = Math.abs(p2.x - p1.x);
 
             if (ball.holder === p2) {
-                if (p2.id === 'john' || p2.id === 'julius') {
+                if (p2.id === 'john' || p2.id === 'julius' || p2.id === 'ritvik') {
                     p2.vx = -p2.speed;
                     p2.facing = -1;
                     if (distToRim < p2.dunkReach && p2.onGround) {
@@ -885,7 +904,7 @@
                 else if (guardDist < -45) { p2.vx = p2.speed; p2.facing = 1; }
                 else {
                     p2.vx = 0;
-                    if (p2.stealCooldown <= 0 && Math.random() < 0.52) {
+                    if (p2.stealCooldown <= 0 && Math.random() < 0.54) {
                         attemptSteal(p2, p1);
                     }
                     if ((!p1.onGround || p1.isCharging) && p2.onGround && Math.random() < 0.88) {
@@ -992,6 +1011,8 @@
             if (screenShake > 0.5) screenShake *= 0.88;
             if (p1.stealCooldown > 0) p1.stealCooldown -= dt;
             if (p2.stealCooldown > 0) p2.stealCooldown -= dt;
+            if (p1.pickupLockout > 0) p1.pickupLockout -= dt;
+            if (p2.pickupLockout > 0) p2.pickupLockout -= dt;
             if (p1.swipeVisualTimer > 0) p1.swipeVisualTimer -= dt;
             if (p2.swipeVisualTimer > 0) p2.swipeVisualTimer -= dt;
 
@@ -1031,8 +1052,8 @@
 
             if (ball.holder) {
                 const h = ball.holder;
-                ball.x = h.x + (h.facing === 1 ? 36 : 8);
-                ball.y = h.isDunking ? h.y - 12 : h.y + 40;
+                ball.x = h.x + (h.facing === 1 ? h.width - 6 : 6);
+                ball.y = h.isDunking ? h.y - 12 : h.y + Math.round(h.height * 0.45);
                 ball.vx = 0; ball.vy = 0;
             } else {
                 ball.vy += GRAVITY * dt;
@@ -1092,17 +1113,20 @@
                 });
 
                 [p1, p2].forEach(p => {
-                    const cx = p.x + p.width / 2;
-                    const cy = p.y + p.height / 2;
-                    if (Math.hypot(cx - ball.x, cy - ball.y) < 46 && ball.vy > -140) {
-                        ball.holder = p;
-                        ball.lastTouchedBy = p;
-                        ball.isFireball = false;
+                    if (p.pickupLockout <= 0) {
+                        const cx = p.x + p.width / 2;
+                        const cy = p.y + p.height / 2;
+                        if (Math.hypot(cx - ball.x, cy - ball.y) < (p.width * 0.95) && ball.vy > -140) {
+                            ball.holder = p;
+                            ball.lastTouchedBy = p;
+                            ball.isFireball = false;
+                        }
                     }
                 });
             }
         }
 
+        // Render Frame with Dynamic Character Heights
         function render() {
             ctx.save();
             if (screenShake > 0.5) {
@@ -1149,8 +1173,11 @@
                 ctx.stroke();
             });
 
-            [p1, p2].forEach((p, idx) => {
+            [p1, p2].forEach((p) => {
                 const bounce = Math.sin(performance.now() * 0.009) * 2;
+                const headRadius = Math.round(p.height * 0.22);
+                const torsoHeight = Math.round(p.height * 0.42);
+                const legHeight = Math.round(p.height * 0.36);
 
                 if (p.isClamping) {
                     ctx.save();
@@ -1158,120 +1185,125 @@
                     ctx.lineWidth = 3;
                     ctx.setLineDash([6, 4]);
                     ctx.beginPath();
-                    ctx.ellipse(p.x + p.width/2, COURT_Y - 4, 34, 11, 0, 0, Math.PI*2);
+                    ctx.ellipse(p.x + p.width/2, COURT_Y - 4, p.width * 0.8, 11, 0, 0, Math.PI*2);
                     ctx.stroke();
                     ctx.restore();
                 } else {
                     ctx.fillStyle = 'rgba(0,0,0,0.35)';
                     ctx.beginPath();
-                    ctx.ellipse(p.x + p.width/2, COURT_Y - 4, 25, 7, 0, 0, Math.PI*2);
+                    ctx.ellipse(p.x + p.width/2, COURT_Y - 4, p.width * 0.65, 7, 0, 0, Math.PI*2);
                     ctx.fill();
                 }
 
+                // Shoes / Legs scaled to player height
                 ctx.fillStyle = '#ffffff';
-                ctx.fillRect(p.x + (p.facing === 1 ? 4 : 22), p.y + p.height - 14, 18, 12);
+                ctx.fillRect(p.x + (p.facing === 1 ? 4 : p.width - 20), p.y + p.height - 12, 18, 12);
 
+                // Jersey / School Polo
                 ctx.fillStyle = p.shirtColor;
                 ctx.beginPath();
-                ctx.roundRect(p.x + 8, p.y + 36 + bounce, 28, 40, 6);
+                ctx.roundRect(p.x + 6, p.y + headRadius * 1.6 + bounce, p.width - 12, torsoHeight, 6);
                 ctx.fill();
 
                 if (p.shirtColor === '#38bdf8') {
                     ctx.fillStyle = '#0284c7';
-                    ctx.fillRect(p.x + 18, p.y + 36 + bounce, 8, 14);
-                    ctx.beginPath();
-                    ctx.moveTo(p.x + 14, p.y + 36 + bounce);
-                    ctx.lineTo(p.x + 18, p.y + 44 + bounce);
-                    ctx.lineTo(p.x + 22, p.y + 36 + bounce);
-                    ctx.fill();
+                    ctx.fillRect(p.x + p.width/2 - 4, p.y + headRadius * 1.6 + bounce, 8, 14);
                 }
 
+                // Head
                 ctx.fillStyle = p.skin;
                 ctx.beginPath();
-                ctx.arc(p.x + 22, p.y + 20 + bounce, 22, 0, Math.PI*2);
+                ctx.arc(p.x + p.width/2, p.y + headRadius + bounce, headRadius, 0, Math.PI*2);
                 ctx.fill();
 
                 if (p.beard) {
                     ctx.fillStyle = '#171717';
                     ctx.beginPath();
-                    ctx.arc(p.x + 22, p.y + 25 + bounce, 15, 0, Math.PI);
+                    ctx.arc(p.x + p.width/2, p.y + headRadius * 1.25 + bounce, headRadius * 0.7, 0, Math.PI);
                     ctx.fill();
                 }
 
+                // Accurate Hair & Accessories
                 ctx.fillStyle = '#171717';
                 if (p.hair === 'parted') {
+                    // Kai Jie / Julius: Sleek curtain bangs / center-parted fringe
                     ctx.beginPath();
-                    ctx.arc(p.x + 22, p.y + 14 + bounce, 23, Math.PI * 0.9, 0.1);
+                    ctx.arc(p.x + p.width/2, p.y + headRadius * 0.7 + bounce, headRadius * 1.05, Math.PI * 0.9, 0.1);
                     ctx.fill();
-                    ctx.fillRect(p.x + 2, p.y + 10 + bounce, 10, 16);
-                    ctx.fillRect(p.x + 32, p.y + 10 + bounce, 10, 16);
-                    ctx.clearRect(p.x + 20, p.y + 12 + bounce, 4, 8);
+                    ctx.fillRect(p.x + 2, p.y + headRadius * 0.5 + bounce, 9, 15);
+                    ctx.fillRect(p.x + p.width - 11, p.y + headRadius * 0.5 + bounce, 9, 15);
                 } else if (p.hair === 'wavy') {
+                    // John: Fluffy textured bangs from photo
                     ctx.beginPath();
-                    ctx.arc(p.x + 22, p.y + 12 + bounce, 24, Math.PI, 0);
-                    ctx.arc(p.x + 10, p.y + 15 + bounce, 9, 0, Math.PI*2);
-                    ctx.arc(p.x + 22, p.y + 14 + bounce, 9, 0, Math.PI*2);
-                    ctx.arc(p.x + 34, p.y + 15 + bounce, 9, 0, Math.PI*2);
+                    ctx.arc(p.x + p.width/2, p.y + headRadius * 0.6 + bounce, headRadius * 1.1, Math.PI, 0);
+                    ctx.arc(p.x + 8, p.y + headRadius * 0.7 + bounce, 8, 0, Math.PI*2);
+                    ctx.arc(p.x + p.width/2, p.y + headRadius * 0.65 + bounce, 8, 0, Math.PI*2);
+                    ctx.arc(p.x + p.width - 8, p.y + headRadius * 0.7 + bounce, 8, 0, Math.PI*2);
                     ctx.fill();
                 } else if (p.hair === 'athletic') {
+                    // Shivnand: Athletic fade
                     ctx.beginPath();
-                    ctx.arc(p.x + 22, p.y + 13 + bounce, 22, Math.PI, 0);
+                    ctx.arc(p.x + p.width/2, p.y + headRadius * 0.65 + bounce, headRadius * 1.02, Math.PI, 0);
                     ctx.fill();
-                    ctx.fillRect(p.x + 5, p.y + 5 + bounce, 34, 7);
+                    ctx.fillRect(p.x + 4, p.y + 2 + bounce, p.width - 8, 7);
                 } else {
-                    ctx.fillRect(p.x + 2, p.y - 2 + bounce, 40, 10);
+                    ctx.fillRect(p.x + 3, p.y - 2 + bounce, p.width - 6, 9);
                 }
 
+                // John's Glasses
                 if (p.glasses) {
                     ctx.strokeStyle = '#000000'; ctx.lineWidth = 2.4;
-                    ctx.strokeRect(p.x + 10, p.y + 12 + bounce, 10, 8);
-                    ctx.strokeRect(p.x + 24, p.y + 12 + bounce, 10, 8);
-                    ctx.beginPath(); ctx.moveTo(p.x + 20, p.y + 16 + bounce); ctx.lineTo(p.x + 24, p.y + 16 + bounce); ctx.stroke();
+                    ctx.strokeRect(p.x + 8, p.y + headRadius * 0.6 + bounce, 9, 8);
+                    ctx.strokeRect(p.x + p.width - 17, p.y + headRadius * 0.6 + bounce, 9, 8);
+                    ctx.beginPath(); ctx.moveTo(p.x + 17, p.y + headRadius * 0.8 + bounce); ctx.lineTo(p.x + p.width - 17, p.y + headRadius * 0.8 + bounce); ctx.stroke();
                 }
 
+                // Kai Jie's White Earpiece (AirPod in left ear)
                 if (p.earpiece) {
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
-                    ctx.arc(p.x + (p.facing === 1 ? 38 : 6), p.y + 19 + bounce, 4.5, 0, Math.PI*2);
+                    ctx.arc(p.x + (p.facing === 1 ? p.width - 4 : 4), p.y + headRadius * 0.95 + bounce, 4.5, 0, Math.PI*2);
                     ctx.fill();
-                    ctx.fillRect(p.x + (p.facing === 1 ? 37 : 5), p.y + 22 + bounce, 2.5, 7);
+                    ctx.fillRect(p.x + (p.facing === 1 ? p.width - 5 : 3), p.y + headRadius * 1.1 + bounce, 2.5, 7);
                 }
 
-                const eyeX = p.facing === 1 ? 26 : 14;
+                const eyeX = p.facing === 1 ? p.width/2 + 5 : p.width/2 - 7;
                 ctx.fillStyle = '#000';
                 ctx.beginPath();
-                ctx.arc(p.x + eyeX, p.y + 18 + bounce, 2.5, 0, Math.PI*2);
+                ctx.arc(p.x + eyeX, p.y + headRadius * 0.9 + bounce, 2.5, 0, Math.PI*2);
                 ctx.fill();
 
+                // John's Tongue-Out Expression from Photo
                 if (p.tongueOut) {
                     ctx.fillStyle = '#000';
-                    ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + 26 + bounce, 5, 0, Math.PI); ctx.fill();
+                    ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + headRadius * 1.3 + bounce, 5, 0, Math.PI); ctx.fill();
                     ctx.fillStyle = '#fb7185';
-                    ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + 29 + bounce, 4, 0, Math.PI); ctx.fill();
+                    ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + headRadius * 1.45 + bounce, 4, 0, Math.PI); ctx.fill();
                 }
 
-                // Visual Swipe Slash for Steal Attempt
+                // Visual Swipe Slash
                 if (p.swipeVisualTimer > 0) {
                     ctx.save();
                     ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3.5;
-                    const armStartX = p.x + (p.facing === 1 ? 28 : 16);
+                    const armStartX = p.x + (p.facing === 1 ? p.width - 12 : 12);
                     const armEndX = armStartX + (p.facing * 38);
                     ctx.beginPath();
-                    ctx.moveTo(armStartX, p.y + 42 + bounce);
-                    ctx.lineTo(armEndX, p.y + 34 + bounce);
+                    ctx.moveTo(armStartX, p.y + headRadius * 2 + bounce);
+                    ctx.lineTo(armEndX, p.y + headRadius * 1.6 + bounce);
                     ctx.stroke();
 
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
                     ctx.beginPath();
-                    ctx.arc(armEndX, p.y + 34 + bounce, 14, -0.6, 0.6);
+                    ctx.arc(armEndX, p.y + headRadius * 1.6 + bounce, 14, -0.6, 0.6);
                     ctx.stroke();
                     ctx.restore();
                 }
 
+                // Shot Gauge Meter
                 if (p.isCharging && ball.holder === p) {
                     const meterW = 54;
                     const meterH = 9;
-                    const meterX = p.x - 5;
+                    const meterX = p.x + (p.width - meterW) / 2;
                     const meterY = p.y - 22;
 
                     ctx.fillStyle = 'rgba(0,0,0,0.85)';
