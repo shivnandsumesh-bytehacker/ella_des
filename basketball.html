@@ -45,7 +45,6 @@
         }
         #game-canvas { width: 100%; height: 100%; display: block; }
 
-        /* Scoreboard */
         #scoreboard {
             position: absolute;
             top: 8px;
@@ -94,7 +93,6 @@
             transition: transform 0.16s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Touch Controls */
         .touch-zone {
             position: absolute;
             bottom: 10px;
@@ -388,6 +386,14 @@
                     g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
                     o.connect(g); g.connect(ctx.destination);
                     o.start(); o.stop(t + 0.25);
+                } else if (type === 'block') {
+                    const o = ctx.createOscillator(); const g = ctx.createGain();
+                    o.type = 'square';
+                    o.frequency.setValueAtTime(180, t);
+                    o.frequency.exponentialRampToValueAtTime(60, t + 0.15);
+                    g.gain.setValueAtTime(0.45, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+                    o.connect(g); g.connect(ctx.destination);
+                    o.start(); o.stop(t + 0.15);
                 }
             } catch(e){}
         }
@@ -396,16 +402,16 @@
             {
                 id: 'kaijie',
                 name: 'KAI JIE',
-                role: 'The Complete GOAT',
+                role: 'Two-Way Weapon',
                 heightCm: 180,
-                speed: 430,          // Buffed to top speed
-                jumpForce: 760,      // Jump buffed (above 80)
-                shotAccuracy: 0.65,  // Nerfed to exactly 65%
-                dunkReach: 185,      // Can dunk now
+                speed: 430,
+                jumpForce: 750,
+                shotAccuracy: 0.65,
+                dunkReach: 185,
                 stealStat: 0.88,
                 defenseRating: 95,
                 skillName: 'Zone Overdrive',
-                skillDesc: 'Surge +25% speed & auto-green window',
+                skillDesc: 'Automatic Green Release window for 4.5s',
                 unlockCost: 800,
                 skin: '#fed7aa',
                 hair: 'parted',
@@ -420,14 +426,14 @@
                 name: 'JOHN',
                 role: 'Speed & Dunk Demon',
                 heightCm: 180,
-                speed: 395,          // Balanced
-                jumpForce: 670,      // 85 jump
+                speed: 395,
+                jumpForce: 670,
                 shotAccuracy: 0.42,
-                dunkReach: 210,      // 90 dunk
+                dunkReach: 210,
                 stealStat: 0.68,
                 defenseRating: 70,
                 skillName: 'Meteor Slam',
-                skillDesc: 'Rocket launch dunk from deep',
+                skillDesc: 'Takes off for a flaming dunk from deep',
                 unlockCost: 0,
                 skin: '#fdba74',
                 hair: 'wavy',
@@ -443,13 +449,13 @@
                 role: 'Lockdown Clamp God',
                 heightCm: 165,
                 speed: 410,
-                jumpForce: 740,      // Peak jump (95+)
-                shotAccuracy: 0.45,  // Not the best shooting
+                jumpForce: 740,
+                shotAccuracy: 0.45,
                 dunkReach: 195,
-                stealStat: 0.98,     // Ultimate strip master
-                defenseRating: 99,   // Ultimate clamps
+                stealStat: 0.98,
+                defenseRating: 99,
                 skillName: 'Magnet Clamps',
-                skillDesc: 'Guaranteed point-blank steal',
+                skillDesc: 'Instantly rips the ball & freezes rival',
                 unlockCost: 0,
                 skin: '#c2410c',
                 hair: 'athletic',
@@ -464,14 +470,14 @@
                 name: 'JULIUS',
                 role: 'Speed Demon Slasher',
                 heightCm: 165,
-                speed: 420,          // Blazing pace
-                jumpForce: 630,      // 78 jump
-                shotAccuracy: 0.86,  // Great shooter
+                speed: 420,
+                jumpForce: 630,
+                shotAccuracy: 0.86,
                 dunkReach: 170,
                 stealStat: 0.72,
                 defenseRating: 75,
                 skillName: 'Warp Dash',
-                skillDesc: 'Teleports forward past defender',
+                skillDesc: 'Instant teleport dash behind opponent',
                 unlockCost: 0,
                 skin: '#fde047',
                 hair: 'parted',
@@ -486,14 +492,14 @@
                 name: 'JASON',
                 role: 'Quick Crossover Guard',
                 heightCm: 166,
-                speed: 415,          // Fast like Julius
+                speed: 415,
                 jumpForce: 620,
-                shotAccuracy: 0.76,  // Slightly worse shooting than Julius
+                shotAccuracy: 0.76,
                 dunkReach: 160,
                 stealStat: 0.70,
                 defenseRating: 73,
                 skillName: 'Ankle Breaker',
-                skillDesc: 'Crossover burst that stuns opponent',
+                skillDesc: 'Crossover lunge that trips opponent',
                 unlockCost: 0,
                 skin: '#fde047',
                 hair: 'crop',
@@ -506,16 +512,16 @@
             {
                 id: 'ritvik',
                 name: 'RITVIK',
-                role: 'High-Flying Slasher',
+                role: 'Balanced Rim Finisher',
                 heightCm: 178,
                 speed: 290,
-                jumpForce: 660,      // 82 jump
-                shotAccuracy: 0.46,  // Meh shooting
-                dunkReach: 175,      // Can dunk
+                jumpForce: 660,
+                shotAccuracy: 0.46,
+                dunkReach: 175,
                 stealStat: 0.52,
                 defenseRating: 62,
                 skillName: 'Sky Glide',
-                skillDesc: 'Extends hangtime mid-air',
+                skillDesc: 'Extended hangtime during jump shots',
                 unlockCost: 0,
                 skin: '#d97706',
                 hair: 'crop',
@@ -528,16 +534,16 @@
             {
                 id: 'alvin',
                 name: 'ALVIN',
-                role: 'High-Altitude Rim Finisher',
+                role: 'High-Altitude Slasher',
                 heightCm: 176,
-                speed: 295,          // Around Ritvik's level
-                jumpForce: 720,      // Jumps noticeably higher than Ritvik
-                shotAccuracy: 0.48,  // Meh shooting like Ritvik
-                dunkReach: 185,      // Big dunks
+                speed: 295,
+                jumpForce: 720,
+                shotAccuracy: 0.48,
+                dunkReach: 185,
                 stealStat: 0.54,
                 defenseRating: 64,
                 skillName: 'Sky Launch',
-                skillDesc: 'Mega vertical leap to rim',
+                skillDesc: 'Rocket jump high above the rim',
                 unlockCost: 0,
                 skin: '#fcd34d',
                 hair: 'wavy',
@@ -559,7 +565,7 @@
                 stealStat: 0.70,
                 defenseRating: 88,
                 skillName: 'Bulldozer',
-                skillDesc: 'Pushes defender back on drive',
+                skillDesc: 'Shoves defender backward on drive',
                 unlockCost: 0,
                 skin: '#854d0e',
                 hair: 'crop',
@@ -581,7 +587,7 @@
                 stealStat: 0.75,
                 defenseRating: 70,
                 skillName: 'Logo Splash',
-                skillDesc: 'Pure green window from deep range',
+                skillDesc: 'Enlarges green window from past half-court',
                 unlockCost: 0,
                 skin: '#ca8a04',
                 hair: 'crop',
@@ -603,7 +609,7 @@
                 stealStat: 0.65,
                 defenseRating: 80,
                 skillName: 'Uncontestable',
-                skillDesc: 'High release completely ignores contests',
+                skillDesc: 'Completely ignores shot contests for 4.5s',
                 unlockCost: 0,
                 skin: '#78350f',
                 hair: 'crop',
@@ -625,7 +631,7 @@
                 stealStat: 0.85,
                 defenseRating: 95,
                 skillName: 'Air Walk',
-                skillDesc: 'Takes off for slam from 3pt line',
+                skillDesc: 'Takes off for a slam from the free-throw line',
                 unlockCost: 0,
                 skin: '#78350f',
                 hair: 'crop',
@@ -637,8 +643,8 @@
             }
         ];
 
-        let selectedP1Idx = 1; // Default John
-        let selectedP2Idx = 2; // Default Shivnand
+        let selectedP1Idx = 1;
+        let selectedP2Idx = 2;
         let currentActivePicker = 1;
 
         function isPlayerUnlocked(player) {
@@ -657,7 +663,7 @@
                 updateCoinsDisplay();
                 refreshRosterCardsUI();
             } else {
-                alert(`You need ${player.unlockCost} Coins to unlock ${player.name}! You only have ${coins}.`);
+                alert(`You need ${player.unlockCost} Coins to unlock ${player.name}! You have ${coins}.`);
             }
         }
 
@@ -703,7 +709,7 @@
             const card = document.createElement('div');
             card.className = 'roster-card';
             card.id = `card-${idx}`;
-            const jumpLabel = (p.id === 'kaijie') ? '80+' : (p.jumpForce > 690 ? '95+' : (p.jumpForce > 650 ? '85' : (p.jumpForce > 600 ? '78' : '65')));
+            const jumpLabel = (p.jumpForce > 730) ? '95+' : ((p.jumpForce > 690) ? '90' : ((p.jumpForce > 650) ? '85' : '75'));
             card.innerHTML = `
                 <div class="badge-container"></div>
                 <div class="card-name">${p.name}</div>
@@ -768,11 +774,14 @@
                 isDunking: false,
                 stealCooldown: 0,
                 pickupLockout: 0,
+                stunTimer: 0,
                 swipeVisualTimer: 0,
                 isClamping: false,
-                skillCooldown: 0,     // 10s cooldown
-                skillActiveTimer: 0,   // Active duration
-                aiDecisionTimer: 0
+                skillCooldown: 0,
+                skillActiveTimer: 0,
+                aiDecisionTimer: 0,
+                aiState: 'IDLE',
+                aiTargetX: startX
             };
         }
 
@@ -788,7 +797,8 @@
             holder: null,
             lastTouchedBy: null,
             rotation: 0,
-            isFireball: false
+            isFireball: false,
+            inFlight: false
         };
 
         const hoops = [
@@ -796,42 +806,46 @@
             { side: 'right', bbX: 940, bbY: 210, bbH: 110, rimX: 892, rimY: 288, rimW: 46, netWiggle: 0 }
         ];
 
-        // Trigger Signature Ability
         function activateSkill(user, rival) {
-            if (user.skillCooldown > 0 || !matchActive) return;
-            user.skillCooldown = 10;
+            if (user.skillCooldown > 0 || !matchActive || user.stunTimer > 0) return;
+            user.skillCooldown = 15;
             user.skillActiveTimer = 4.5;
             playSound('skill');
             triggerBanner(`${user.name}: ${user.skillName.toUpperCase()}! ⚡`);
 
             if (user.id === 'shivnand') {
-                // Guaranteed instant strip if rival is anywhere nearby
                 const dist = Math.hypot((user.x + user.width/2) - (rival.x + rival.width/2), user.y - rival.y);
-                if (ball.holder === rival && dist < 140) {
+                if (ball.holder === rival && dist < 170) {
                     ball.holder = user;
                     ball.lastTouchedBy = user;
-                    rival.pickupLockout = 0.8;
+                    ball.inFlight = false;
+                    rival.pickupLockout = 1.0;
+                    rival.stunTimer = 0.8;
                     screenShake = 12;
                     playSound('steal');
                 }
-            } else if (user.id === 'julius' || user.id === 'jason') {
-                // Dash teleport past defender
-                user.x += user.facing * 120;
+            } else if (user.id === 'julius') {
+                user.x += user.facing * 140;
                 user.vx = user.facing * 350;
+            } else if (user.id === 'jason') {
+                const dist = Math.abs((user.x + user.width/2) - (rival.x + rival.width/2));
+                if (dist < 130) {
+                    rival.stunTimer = 1.2;
+                    rival.vx = -user.facing * 180;
+                    triggerBanner('ANKLES BROKEN! 💥');
+                }
             } else if (user.id === 'alvin' || user.id === 'ritvik') {
-                // Sky vertical rocket launch
-                user.vy = -user.jumpForce * 1.15;
+                user.vy = -user.jumpForce * 1.2;
                 user.onGround = false;
             } else if (user.id === 'lebron') {
-                // Knock opponent away
-                rival.vx = user.facing * 400;
-                rival.pickupLockout = 0.5;
+                rival.vx = user.facing * 450;
+                rival.pickupLockout = 0.8;
+                rival.stunTimer = 0.6;
             }
         }
 
-        // Steal Mechanic: Directly transfers possession
         function attemptSteal(stealer, target) {
-            if (stealer.stealCooldown > 0) return;
+            if (stealer.stealCooldown > 0 || stealer.stunTimer > 0) return;
             stealer.stealCooldown = 0.32;
             stealer.swipeVisualTimer = 0.18;
             playSound('swipe');
@@ -849,6 +863,7 @@
                 if (Math.random() < successProb) {
                     ball.holder = stealer;
                     ball.lastTouchedBy = stealer;
+                    ball.inFlight = false;
                     target.isCharging = false;
                     stealer.isCharging = false;
                     target.pickupLockout = 0.65;
@@ -865,7 +880,7 @@
             const dx = targetX - startX;
             const dy = targetY - startY;
             const dist = Math.abs(dx);
-            const flightTime = Math.min(1.15, Math.max(0.72, 0.70 + dist * 0.00065));
+            const flightTime = Math.min(1.25, Math.max(0.70, 0.65 + dist * 0.00075));
             return {
                 vx: dx / flightTime,
                 vy: (dy - 0.5 * gravity * flightTime * flightTime) / flightTime
@@ -873,7 +888,7 @@
         }
 
         function isShotContested(shooter, defender) {
-            if (shooter.skillActiveTimer > 0 && shooter.id === 'kd') return false; // KD unblockable
+            if (shooter.skillActiveTimer > 0 && shooter.id === 'kd') return false;
             const dist = Math.abs((shooter.x + shooter.width/2) - (defender.x + defender.width/2));
             const activeGuard = dist < 82 && (!defender.onGround || defender.defenseRating > 65);
             defender.isClamping = activeGuard;
@@ -883,18 +898,28 @@
         function releaseJumpShot(shooter, targetHoop, defender) {
             ball.holder = null;
             ball.lastTouchedBy = shooter;
+            ball.inFlight = true;
+
+            const targetX = targetHoop.rimX + targetHoop.rimW / 2;
+            const targetY = targetHoop.rimY;
+            const distToHoop = Math.abs(targetX - (shooter.x + shooter.width / 2));
 
             const sweetSpot = 0.45;
             const diff = Math.abs(shooter.chargeTimer - sweetSpot);
             const contested = isShotContested(shooter, defender);
-            let maxAllowedDiff = contested ? (defender.id === 'shivnand' ? 0.03 : 0.065) : 0.12;
-            if (shooter.skillActiveTimer > 0 && (shooter.id === 'kaijie' || shooter.id === 'curry')) {
-                maxAllowedDiff = 0.25; // Massive green window under skill
-            }
-            const isGreen = diff <= maxAllowedDiff;
 
-            const targetX = targetHoop.rimX + targetHoop.rimW / 2;
-            const targetY = targetHoop.rimY;
+            const distPenaltyRatio = Math.min(1.0, distToHoop / 650);
+            let allowedGreenWindow = 0.11 * (1 - (distPenaltyRatio * 0.65));
+
+            if (shooter.skillActiveTimer > 0 && (shooter.id === 'kaijie' || shooter.id === 'curry')) {
+                allowedGreenWindow = 0.35;
+            }
+
+            if (contested) {
+                allowedGreenWindow *= (defender.id === 'shivnand' ? 0.3 : 0.6);
+            }
+
+            const isGreen = diff <= allowedGreenWindow;
             const perfectArc = getArcTrajectory(ball.x, ball.y, targetX, targetY, GRAVITY);
 
             if (isGreen) {
@@ -902,27 +927,27 @@
                 ball.vx = perfectArc.vx;
                 ball.vy = perfectArc.vy;
                 triggerBanner('🔥 PERFECT GREEN!');
-            } else if (shooter.chargeTimer > 0.78) {
+            } else if (shooter.chargeTimer > 0.85 || distToHoop > 750) {
                 ball.isFireball = false;
                 const dir = Math.sign(targetX - ball.x);
-                ball.vx = dir * 180;
-                ball.vy = -680;
+                ball.vx = dir * 210;
+                ball.vy = -640;
                 triggerBanner('BRICK!');
             } else {
                 ball.isFireball = false;
-                let penalty = (1 - shooter.shotAccuracy);
+                let penalty = (1 - shooter.shotAccuracy) + (distPenaltyRatio * 0.5);
                 if (contested) penalty += (defender.defenseRating / 100) * 0.65;
 
-                const spread = (diff * 220 + penalty * 135);
+                const spread = (diff * 260 + penalty * 180);
                 ball.vx = perfectArc.vx + (Math.random() - 0.5) * spread;
-                ball.vy = perfectArc.vy + (Math.random() - 0.5) * (spread * 0.6);
+                ball.vy = perfectArc.vy + (Math.random() - 0.5) * (spread * 0.5);
                 if (contested) triggerBanner('CONTESTED!');
             }
             playSound('bounce');
         }
 
         function executeDunk(player, targetHoop) {
-            if (player.dunkReach <= 0) return;
+            if (player.dunkReach <= 0 || player.stunTimer > 0) return;
 
             player.isDunking = true;
             player.vx = 0; player.vy = -160;
@@ -932,6 +957,7 @@
                 if (!player.isDunking) return;
                 player.isDunking = false;
                 ball.holder = null;
+                ball.inFlight = false;
                 ball.x = targetHoop.rimX + 23;
                 ball.y = targetHoop.rimY + 5;
                 ball.vx = 0; ball.vy = 420;
@@ -989,11 +1015,12 @@
         }
 
         function resetRound(inboundPlayer) {
-            p1.x = 220; p1.y = COURT_Y - p1.height; p1.vx = 0; p1.vy = 0; p1.isDunking = false;
-            p2.x = 740; p2.y = COURT_Y - p2.height; p2.vx = 0; p2.vy = 0; p2.isDunking = false;
+            p1.x = 220; p1.y = COURT_Y - p1.height; p1.vx = 0; p1.vy = 0; p1.isDunking = false; p1.stunTimer = 0;
+            p2.x = 740; p2.y = COURT_Y - p2.height; p2.vx = 0; p2.vy = 0; p2.isDunking = false; p2.stunTimer = 0;
             ball.holder = inboundPlayer;
             ball.vx = 0; ball.vy = 0;
             ball.isFireball = false;
+            ball.inFlight = false;
         }
 
         function finishMatch() {
@@ -1004,7 +1031,6 @@
             document.getElementById('end-title').innerText = winner;
             document.getElementById('final-score-text').innerText = `${p1Score} - ${p2Score}`;
 
-            // Award coins for completing match
             const rewardCoins = p1Score * 10 + 20;
             let currentCoins = parseInt(localStorage.getItem('arcade_coins')) || 0;
             localStorage.setItem('arcade_coins', currentCoins + rewardCoins);
@@ -1019,74 +1045,80 @@
         }
 
         function updateAI(dt) {
-            if (gameMode !== '1P' || !matchActive || p2.isDunking) return;
+            if (gameMode !== '1P' || !matchActive || p2.isDunking || p2.stunTimer > 0) return;
 
             p2.aiDecisionTimer += dt;
             const targetHoop = hoops[0];
             const distToRim = (p2.x + p2.width / 2) - (targetHoop.rimX + 23);
             const distToPlayer = Math.abs(p2.x - p1.x);
 
-            // AI Skill Activation
-            if (p2.skillCooldown <= 0 && Math.random() < 0.25) {
-                activateSkill(p2, p1);
+            if (p2.aiDecisionTimer >= 1.0) {
+                p2.aiDecisionTimer = 0;
+                if (p2.skillCooldown <= 0 && ((p2Score < p1Score) || distToRim < 250) && Math.random() < 0.4) {
+                    activateSkill(p2, p1);
+                }
+
+                if (ball.holder === p2) {
+                    const roll = Math.random();
+                    if (p2.dunkReach > 150 && roll < 0.40) {
+                        p2.aiState = 'DRIVE_DUNK';
+                    } else if (roll < 0.75) {
+                        p2.aiState = 'SHOOT';
+                    } else {
+                        p2.aiState = 'DRIBBLE_RESET';
+                    }
+                }
             }
 
             if (ball.holder === p2) {
-                if (p2.dunkReach > 150) {
-                    p2.vx = -p2.speed;
+                if (p2.aiState === 'DRIVE_DUNK' && p2.dunkReach > 0) {
+                    p2.vx = -p2.speed * 0.95;
                     p2.facing = -1;
                     if (distToRim < p2.dunkReach && p2.onGround) {
                         p2.vy = -p2.jumpForce;
                         p2.onGround = false;
                         setTimeout(() => executeDunk(p2, targetHoop), 110);
                     }
-                } else if (p2.shotAccuracy >= 0.70) {
-                    if (distToRim > 320) {
-                        p2.vx = -p2.speed;
+                } else if (p2.aiState === 'SHOOT') {
+                    if (distToRim > 310) {
+                        p2.vx = -p2.speed * 0.85;
                         p2.facing = -1;
-                    } else if (distToPlayer < 70) {
-                        p2.vx = p2.speed * 0.9;
+                    } else if (distToPlayer < 65) {
+                        p2.vx = p2.speed * 0.75;
                         p2.facing = -1;
                     } else {
                         p2.vx = 0;
-                        if (p2.onGround && p2.aiDecisionTimer > 0.55) {
-                            p2.aiDecisionTimer = 0;
+                        if (p2.onGround) {
                             p2.chargeTimer = 0.45;
                             releaseJumpShot(p2, targetHoop, p1);
+                            p2.aiState = 'IDLE';
                         }
                     }
                 } else {
-                    if (distToRim > 240) p2.vx = -p2.speed;
-                    else {
-                        p2.vx = 0;
-                        if (p2.onGround && p2.aiDecisionTimer > 0.6) {
-                            p2.chargeTimer = 0.45;
-                            releaseJumpShot(p2, targetHoop, p1);
-                            p2.aiDecisionTimer = 0;
-                        }
-                    }
+                    if (distToRim > 220) p2.vx = -p2.speed * 0.65;
+                    else p2.vx = p2.speed * 0.65;
                 }
             } else if (ball.holder === p1) {
                 const guardDist = p2.x - p1.x;
-                if (guardDist > 65) { p2.vx = -p2.speed; p2.facing = -1; }
-                else if (guardDist < -45) { p2.vx = p2.speed; p2.facing = 1; }
+                if (guardDist > 65) { p2.vx = -p2.speed * 0.85; p2.facing = -1; }
+                else if (guardDist < -45) { p2.vx = p2.speed * 0.85; p2.facing = 1; }
                 else {
                     p2.vx = 0;
-                    if (p2.stealCooldown <= 0 && Math.random() < 0.54) {
+                    if (p2.stealCooldown <= 0 && Math.random() < 0.05) {
                         attemptSteal(p2, p1);
                     }
-                    if ((!p1.onGround || p1.isCharging) && p2.onGround && Math.random() < 0.88) {
-                        p2.vy = -p2.jumpForce;
+                    if ((!p1.onGround || p1.isCharging) && p2.onGround && Math.random() < 0.1) {
+                        p2.vy = -p2.jumpForce * 0.95;
                         p2.onGround = false;
                     }
                 }
             } else {
-                if (ball.x < p2.x - 16) { p2.vx = -p2.speed; p2.facing = -1; }
-                else if (ball.x > p2.x + 16) { p2.vx = p2.speed; p2.facing = 1; }
+                if (ball.x < p2.x - 16) { p2.vx = -p2.speed * 0.9; p2.facing = -1; }
+                else if (ball.x > p2.x + 16) { p2.vx = p2.speed * 0.9; p2.facing = 1; }
                 else p2.vx = 0;
 
-                if (ball.y < p2.y && p2.onGround && Math.abs(ball.x - p2.x) < 55) {
-                    p2.vy = -p2.jumpForce * 0.85;
+                if (ball.y < p2.y - 20 && p2.onGround && Math.abs(ball.x - p2.x) < 65) {
+                    p2.vy = -p2.jumpForce * 0.9;
                     p2.onGround = false;
                 }
             }
@@ -1097,17 +1129,15 @@
             getAudioContext();
             keys[e.code] = true;
 
-            if (e.code === 'KeyW' && p1.onGround && !p1.isDunking) {
+            if (e.code === 'KeyW' && p1.onGround && !p1.isDunking && p1.stunTimer <= 0) {
                 p1.vy = -p1.jumpForce;
                 p1.onGround = false;
             }
 
-            if (e.code === 'KeyE') {
-                activateSkill(p1, p2);
-            }
+            if (e.code === 'KeyE') activateSkill(p1, p2);
 
             if (e.code === 'Space' || e.code === 'KeyF') {
-                if (ball.holder === p1 && !p1.isCharging) {
+                if (ball.holder === p1 && !p1.isCharging && p1.stunTimer <= 0) {
                     let reach = p1.dunkReach;
                     if (p1.skillActiveTimer > 0 && (p1.id === 'john' || p1.id === 'jordan')) reach += 160;
                     const distToRim = Math.abs((hoops[1].rimX + 23) - (p1.x + p1.width/2));
@@ -1117,21 +1147,28 @@
                         p1.isCharging = true;
                         p1.chargeTimer = 0;
                     }
+                } else if (!ball.holder) {
+                    const pHandX = p1.x + p1.width / 2;
+                    const pHandY = p1.y + p1.height * 0.2;
+                    if (Math.hypot(pHandX - ball.x, pHandY - ball.y) < 65) {
+                        ball.holder = p1;
+                        ball.lastTouchedBy = p1;
+                        ball.inFlight = false;
+                        playSound('bounce');
+                    }
                 } else {
                     attemptSteal(p1, p2);
                 }
             }
 
             if (gameMode === '2P') {
-                if (e.code === 'ArrowUp' && p2.onGround && !p2.isDunking) {
+                if (e.code === 'ArrowUp' && p2.onGround && !p2.isDunking && p2.stunTimer <= 0) {
                     p2.vy = -p2.jumpForce;
                     p2.onGround = false;
                 }
-                if (e.code === 'KeyO') {
-                    activateSkill(p2, p1);
-                }
+                if (e.code === 'KeyO') activateSkill(p2, p1);
                 if (e.code === 'KeyL' || e.code === 'Enter') {
-                    if (ball.holder === p2 && !p2.isCharging) {
+                    if (ball.holder === p2 && !p2.isCharging && p2.stunTimer <= 0) {
                         let reach = p2.dunkReach;
                         if (p2.skillActiveTimer > 0 && (p2.id === 'john' || p2.id === 'jordan')) reach += 160;
                         const distToRim = Math.abs((hoops[0].rimX + 23) - (p2.x + p2.width/2));
@@ -1140,6 +1177,15 @@
                         } else {
                             p2.isCharging = true;
                             p2.chargeTimer = 0;
+                        }
+                    } else if (!ball.holder) {
+                        const pHandX = p2.x + p2.width / 2;
+                        const pHandY = p2.y + p2.height * 0.2;
+                        if (Math.hypot(pHandX - ball.x, pHandY - ball.y) < 65) {
+                            ball.holder = p2;
+                            ball.lastTouchedBy = p2;
+                            ball.inFlight = false;
+                            playSound('bounce');
                         }
                     } else {
                         attemptSteal(p2, p1);
@@ -1169,16 +1215,25 @@
         bindTouch('t-left', () => keys['KeyA'] = true, () => keys['KeyA'] = false);
         bindTouch('t-right', () => keys['KeyD'] = true, () => keys['KeyD'] = false);
         bindTouch('t-jump', () => {
-            if (p1.onGround && !p1.isDunking) { p1.vy = -p1.jumpForce; p1.onGround = false; }
+            if (p1.onGround && !p1.isDunking && p1.stunTimer <= 0) { p1.vy = -p1.jumpForce; p1.onGround = false; }
         });
         bindTouch('t-skill', () => activateSkill(p1, p2));
         bindTouch('t-action', () => {
-            if (ball.holder === p1) {
+            if (ball.holder === p1 && p1.stunTimer <= 0) {
                 let reach = p1.dunkReach;
                 if (p1.skillActiveTimer > 0 && (p1.id === 'john' || p1.id === 'jordan')) reach += 160;
                 const distToRim = Math.abs((hoops[1].rimX + 23) - (p1.x + p1.width/2));
                 if (distToRim < reach && p1.y < COURT_Y - 40) executeDunk(p1, hoops[1]);
                 else { p1.isCharging = true; p1.chargeTimer = 0; }
+            } else if (!ball.holder) {
+                const pHandX = p1.x + p1.width / 2;
+                const pHandY = p1.y + p1.height * 0.2;
+                if (Math.hypot(pHandX - ball.x, pHandY - ball.y) < 65) {
+                    ball.holder = p1;
+                    ball.lastTouchedBy = p1;
+                    ball.inFlight = false;
+                    playSound('bounce');
+                }
             } else {
                 attemptSteal(p1, p2);
             }
@@ -1195,10 +1250,11 @@
             if (p2.stealCooldown > 0) p2.stealCooldown -= dt;
             if (p1.pickupLockout > 0) p1.pickupLockout -= dt;
             if (p2.pickupLockout > 0) p2.pickupLockout -= dt;
+            if (p1.stunTimer > 0) p1.stunTimer -= dt;
+            if (p2.stunTimer > 0) p2.stunTimer -= dt;
             if (p1.swipeVisualTimer > 0) p1.swipeVisualTimer -= dt;
             if (p2.swipeVisualTimer > 0) p2.swipeVisualTimer -= dt;
 
-            // Skill Cooldowns & Active Timers
             if (p1.skillCooldown > 0) p1.skillCooldown -= dt;
             if (p2.skillCooldown > 0) p2.skillCooldown -= dt;
             if (p1.skillActiveTimer > 0) p1.skillActiveTimer -= dt;
@@ -1213,7 +1269,7 @@
             const p1SpeedBonus = (p1.skillActiveTimer > 0 && p1.id === 'kaijie') ? 1.25 : 1.0;
             const p2SpeedBonus = (p2.skillActiveTimer > 0 && p2.id === 'kaijie') ? 1.25 : 1.0;
 
-            if (!p1.isDunking) {
+            if (!p1.isDunking && p1.stunTimer <= 0) {
                 if (keys['KeyA']) { p1.vx = -p1.speed * p1SpeedBonus; p1.facing = -1; }
                 else if (keys['KeyD']) { p1.vx = p1.speed * p1SpeedBonus; p1.facing = 1; }
                 else p1.vx *= 0.82;
@@ -1221,7 +1277,7 @@
                 if (p1.isCharging) p1.chargeTimer += dt;
             }
 
-            if (gameMode === '2P' && !p2.isDunking) {
+            if (gameMode === '2P' && !p2.isDunking && p2.stunTimer <= 0) {
                 if (keys['ArrowLeft']) { p2.vx = -p2.speed * p2SpeedBonus; p2.facing = -1; }
                 else if (keys['ArrowRight']) { p2.vx = p2.speed * p2SpeedBonus; p2.facing = 1; }
                 else p2.vx *= 0.82;
@@ -1249,19 +1305,40 @@
                 ball.x = h.x + (h.facing === 1 ? h.width - 6 : 6);
                 ball.y = h.isDunking ? h.y - 12 : h.y + Math.round(h.height * 0.45);
                 ball.vx = 0; ball.vy = 0;
+                ball.inFlight = false;
             } else {
                 ball.vy += GRAVITY * dt;
                 ball.x += ball.vx * dt;
                 ball.y += ball.vy * dt;
                 ball.rotation += ball.vx * 0.015;
 
+                // Air Interception / Swat Block Check
+                [p1, p2].forEach(defender => {
+                    if (ball.inFlight && ball.lastTouchedBy !== defender && !defender.onGround && defender.stunTimer <= 0) {
+                        const defHandX = defender.x + defender.width / 2;
+                        const defHandY = defender.y + 10;
+                        if (Math.hypot(defHandX - ball.x, defHandY - ball.y) < 42) {
+                            ball.inFlight = false;
+                            ball.isFireball = false;
+                            ball.vx = defender.facing * 180;
+                            ball.vy = 120;
+                            defender.pickupLockout = 0.25;
+                            screenShake = 10;
+                            playSound('block');
+                            triggerBanner(`${defender.name} REJECTED! 🚫`);
+                        }
+                    }
+                });
+
                 if (ball.x - ball.radius <= 35) {
                     ball.x = 35 + ball.radius;
                     ball.vx = Math.abs(ball.vx) * 0.75;
+                    ball.inFlight = false;
                     playSound('bounce');
                 } else if (ball.x + ball.radius >= 965) {
                     ball.x = 965 - ball.radius;
                     ball.vx = -Math.abs(ball.vx) * 0.75;
+                    ball.inFlight = false;
                     playSound('bounce');
                 }
 
@@ -1270,6 +1347,7 @@
                     ball.vy = -ball.vy * 0.65;
                     ball.vx *= 0.88;
                     ball.isFireball = false;
+                    ball.inFlight = false;
                     if (Math.abs(ball.vy) > 60) playSound('bounce');
                 }
 
@@ -1279,6 +1357,7 @@
                             ball.y >= h.bbY && ball.y <= h.bbY + h.bbH) {
                             ball.vx = -ball.vx * 0.72;
                             ball.x = (ball.vx > 0) ? h.bbX + 14 : h.bbX - 8;
+                            ball.inFlight = false;
                             playSound('bounce');
                         }
                     }
@@ -1301,26 +1380,31 @@
                             setTimeout(() => resetRound(p1), 500);
                         }
                         ball.isFireball = false;
+                        ball.inFlight = false;
                     }
 
                     if (h.netWiggle > 0) h.netWiggle -= dt * 2;
                 });
 
+                // Rebound & loose ball retrieval
                 [p1, p2].forEach(p => {
-                    if (p.pickupLockout <= 0) {
+                    if (p.pickupLockout <= 0 && p.stunTimer <= 0) {
                         const cx = p.x + p.width / 2;
                         const cy = p.y + p.height / 2;
-                        if (Math.hypot(cx - ball.x, cy - ball.y) < (p.width * 0.95) && ball.vy > -140) {
+                        const grabRange = p.onGround ? (p.width * 0.95) : 58;
+                        const canGrab = !ball.inFlight || (ball.vy > -160) || Math.abs(ball.vx) < 140;
+
+                        if (canGrab && Math.hypot(cx - ball.x, cy - ball.y) < grabRange) {
                             ball.holder = p;
                             ball.lastTouchedBy = p;
                             ball.isFireball = false;
+                            ball.inFlight = false;
                         }
                     }
                 });
             }
         }
 
-        // Render Frame
         function render() {
             ctx.save();
             if (screenShake > 0.5) {
@@ -1372,7 +1456,6 @@
                 const headRadius = Math.round(p.height * 0.22);
                 const torsoHeight = Math.round(p.height * 0.42);
 
-                // Skill Glow Aura
                 if (p.skillActiveTimer > 0) {
                     ctx.save();
                     ctx.strokeStyle = '#facc15';
@@ -1380,6 +1463,14 @@
                     ctx.beginPath();
                     ctx.arc(p.x + p.width/2, p.y + p.height/2, p.height * 0.6, 0, Math.PI*2);
                     ctx.stroke();
+                    ctx.restore();
+                }
+
+                if (p.stunTimer > 0) {
+                    ctx.save();
+                    ctx.fillStyle = '#facc15';
+                    ctx.font = '16px Impact';
+                    ctx.fillText('💫', p.x + p.width/2 - 8, p.y - 12);
                     ctx.restore();
                 }
 
@@ -1501,12 +1592,20 @@
                     ctx.fillStyle = 'rgba(0,0,0,0.85)';
                     ctx.fillRect(meterX, meterY, meterW, meterH);
 
+                    const targetHoop = (p === p1) ? hoops[1] : hoops[0];
+                    const targetX = targetHoop.rimX + targetHoop.rimW / 2;
+                    const distToHoop = Math.abs(targetX - (p.x + p.width / 2));
+                    const distPenaltyRatio = Math.min(1.0, distToHoop / 650);
+
+                    let sweetHalf = 0.10 * (1 - (distPenaltyRatio * 0.65));
+                    if (p.skillActiveTimer > 0 && (p.id === 'kaijie' || p.id === 'curry')) sweetHalf = 0.30;
+
                     ctx.fillStyle = '#22c55e';
-                    const greenStart = meterW * (0.45 - 0.10);
-                    ctx.fillRect(meterX + greenStart, meterY, meterW * 0.20, meterH);
+                    const greenStart = meterW * (0.45 - sweetHalf);
+                    ctx.fillRect(meterX + greenStart, meterY, meterW * (sweetHalf * 2), meterH);
 
                     const fillRatio = Math.min(1.0, p.chargeTimer / 0.85);
-                    const isCurrentlyGreen = Math.abs(p.chargeTimer - 0.45) <= 0.10;
+                    const isCurrentlyGreen = Math.abs(p.chargeTimer - 0.45) <= sweetHalf;
                     ctx.fillStyle = isCurrentlyGreen ? '#22c55e' : (fillRatio > 0.8 ? '#ef4444' : '#facc15');
                     ctx.fillRect(meterX + 1, meterY + 1, (meterW - 2) * fillRatio, meterH - 2);
 
