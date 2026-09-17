@@ -61,9 +61,10 @@
             z-index: 10;
             box-shadow: 0 4px 20px rgba(0,0,0,0.7);
         }
-        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 105px; }
+        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 110px; }
         .team-title { font-size: 0.75rem; letter-spacing: 1px; font-weight: bold; }
         .score-num { font-size: 2.1rem; line-height: 1; font-weight: 900; color: #fff; }
+        .skill-status { font-size: 0.6rem; font-family: sans-serif; font-weight: 900; color: var(--gold); }
         .timer-box {
             background: #020617;
             border: 2px solid var(--gold);
@@ -93,7 +94,7 @@
             transition: transform 0.16s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Touch Controls for iPad/Mobile */
+        /* Touch Controls */
         .touch-zone {
             position: absolute;
             bottom: 10px;
@@ -122,6 +123,7 @@
         }
         .ctrl-btn:active { background: var(--p1-cyan); color: #000; transform: scale(0.92); }
         .ctrl-btn.act { border-color: var(--gold); color: var(--gold); }
+        .ctrl-btn.skill-btn { border-color: #a855f7; color: var(--p1-cyan); }
 
         .overlay {
             position: absolute;
@@ -164,10 +166,10 @@
 
         .roster-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
             gap: 8px;
-            max-width: 940px;
-            max-height: 320px;
+            max-width: 960px;
+            max-height: 330px;
             overflow-y: auto;
             width: 100%;
             padding: 6px;
@@ -201,6 +203,11 @@
             box-shadow: 0 0 16px var(--gold);
             background: #3c2415;
         }
+        .roster-card.locked-card {
+            filter: grayscale(0.65);
+            opacity: 0.85;
+            border-color: #64748b;
+        }
 
         .badge-container {
             position: absolute;
@@ -218,11 +225,13 @@
         }
         .badge-p1 { background: var(--p1-cyan); color: #000; }
         .badge-p2 { background: var(--p2-pink); color: #fff; }
+        .badge-lock { background: var(--gold); color: #000; }
 
-        .card-name { font-size: 0.95rem; color: #fff; margin-bottom: 2px; }
-        .card-type { font-size: 0.6rem; color: #38bdf8; font-family: sans-serif; text-transform: uppercase; margin-bottom: 4px; }
-        .card-stat { font-size: 0.68rem; color: #cbd5e1; font-family: sans-serif; text-align: left; width: 95%; line-height: 1.3; }
+        .card-name { font-size: 0.92rem; color: #fff; margin-bottom: 2px; }
+        .card-type { font-size: 0.58rem; color: #38bdf8; font-family: sans-serif; text-transform: uppercase; margin-bottom: 4px; }
+        .card-stat { font-size: 0.65rem; color: #cbd5e1; font-family: sans-serif; text-align: left; width: 95%; line-height: 1.25; }
         .card-stat strong { color: var(--gold); }
+        .card-skill-desc { font-size: 0.58rem; color: #a855f7; font-family: sans-serif; margin-top: 3px; font-weight: bold; }
 
         .btn-row { display: flex; gap: 14px; margin-top: 4px; }
         .btn {
@@ -265,11 +274,13 @@
             <div class="team-box">
                 <span class="team-title" id="p1-name-hud" style="color:var(--p1-cyan);">PLAYER 1</span>
                 <span class="score-num" id="p1-score">0</span>
+                <span class="skill-status" id="p1-skill-hud">[E] READY</span>
             </div>
             <div class="timer-box" id="match-timer">60</div>
             <div class="team-box">
                 <span class="team-title" id="p2-name-hud" style="color:var(--p2-pink);">RIVAL AI</span>
                 <span class="score-num" id="p2-score">0</span>
+                <span class="skill-status" id="p2-skill-hud">[O] READY</span>
             </div>
         </div>
 
@@ -282,13 +293,17 @@
         <div class="touch-zone" id="touch-right">
             <div class="ctrl-btn act" id="t-jump">▲<br><small>JUMP</small></div>
             <div class="ctrl-btn act" id="t-action">🏀<br><small>SHOT/STL</small></div>
+            <div class="ctrl-btn skill-btn" id="t-skill">⚡<br><small>SKILL</small></div>
         </div>
 
         <div id="select-modal" class="overlay">
             <h1 class="title">RIVALS & ALL-STARS</h1>
+            <div style="font-size:0.8rem; font-family:sans-serif; color:var(--gold); margin-bottom:6px;">
+                🪙 Arcade Wallet: <strong id="hub-coins-text">0</strong> Coins
+            </div>
             <div class="select-header-tabs">
-                <div class="tab-indicator tab-p1 selected" id="tab-btn-p1" onclick="setActivePicker(1)">P1 SELECTION: <span id="p1-pick-name">KAI JIE</span></div>
-                <div class="tab-indicator tab-p2" id="tab-btn-p2" onclick="setActivePicker(2)">P2 / RIVAL SELECTION: <span id="p2-pick-name">JOHN</span></div>
+                <div class="tab-indicator tab-p1 selected" id="tab-btn-p1" onclick="setActivePicker(1)">P1 SELECTION: <span id="p1-pick-name">JOHN</span></div>
+                <div class="tab-indicator tab-p2" id="tab-btn-p2" onclick="setActivePicker(2)">P2 / RIVAL: <span id="p2-pick-name">SHIVNAND</span></div>
             </div>
             <div class="roster-grid" id="roster-container"></div>
             <div class="btn-row">
@@ -305,8 +320,8 @@
     </div>
 
     <div class="controls-bar">
-        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Shoot / Tap near rival to <strong>RIP STEAL</strong></div>
-        <div><strong>P2:</strong> [◀]/[▶] Move | [▲] Jump | [L/ENTER] Shoot / Steal</div>
+        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Shoot/Steal | [E] <strong>SPECIAL SKILL</strong></div>
+        <div><strong>P2:</strong> [◀]/[▶] Move | [▲] Jump | [L/ENTER] Shoot/Steal | [O] <strong>SPECIAL SKILL</strong></div>
     </div>
 
     <script>
@@ -347,6 +362,14 @@
                     g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.14);
                     o.connect(g); g.connect(ctx.destination);
                     o.start(); o.stop(t + 0.14);
+                } else if (type === 'skill') {
+                    const o = ctx.createOscillator(); const g = ctx.createGain();
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(350, t);
+                    o.frequency.exponentialRampToValueAtTime(880, t + 0.25);
+                    g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+                    o.connect(g); g.connect(ctx.destination);
+                    o.start(); o.stop(t + 0.25);
                 } else if (type === 'swish') {
                     const b = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
                     const d = b.getChannelData(0);
@@ -373,14 +396,17 @@
             {
                 id: 'kaijie',
                 name: 'KAI JIE',
-                role: '100% Sniper',
+                role: 'The Complete GOAT',
                 heightCm: 180,
-                speed: 220,
-                jumpForce: 645,      // Rating 80 jump (under John 85 and Shivnand 95)
-                shotAccuracy: 1.0,   // 100% sniper
-                dunkReach: 0,
-                stealStat: 0.55,
-                defenseRating: 66,
+                speed: 430,          // Buffed to top speed
+                jumpForce: 760,      // Jump buffed (above 80)
+                shotAccuracy: 0.65,  // Nerfed to exactly 65%
+                dunkReach: 185,      // Can dunk now
+                stealStat: 0.88,
+                defenseRating: 95,
+                skillName: 'Zone Overdrive',
+                skillDesc: 'Surge +25% speed & auto-green window',
+                unlockCost: 800,
                 skin: '#fed7aa',
                 hair: 'parted',
                 glasses: false,
@@ -394,12 +420,15 @@
                 name: 'JOHN',
                 role: 'Speed & Dunk Demon',
                 heightCm: 180,
-                speed: 400,
-                jumpForce: 670,      // Rating 85 jump
+                speed: 395,          // Balanced
+                jumpForce: 670,      // 85 jump
                 shotAccuracy: 0.42,
                 dunkReach: 210,      // 90 dunk
                 stealStat: 0.68,
                 defenseRating: 70,
+                skillName: 'Meteor Slam',
+                skillDesc: 'Rocket launch dunk from deep',
+                unlockCost: 0,
                 skin: '#fdba74',
                 hair: 'wavy',
                 glasses: true,
@@ -415,10 +444,13 @@
                 heightCm: 165,
                 speed: 410,
                 jumpForce: 740,      // Peak jump (95+)
-                shotAccuracy: 0.45,
+                shotAccuracy: 0.45,  // Not the best shooting
                 dunkReach: 195,
                 stealStat: 0.98,     // Ultimate strip master
-                defenseRating: 99,   // Ultimate perimeter defense
+                defenseRating: 99,   // Ultimate clamps
+                skillName: 'Magnet Clamps',
+                skillDesc: 'Guaranteed point-blank steal',
+                unlockCost: 0,
                 skin: '#c2410c',
                 hair: 'athletic',
                 glasses: false,
@@ -432,12 +464,15 @@
                 name: 'JULIUS',
                 role: 'Speed Demon Slasher',
                 heightCm: 165,
-                speed: 420,          // Fastest player on the court
-                jumpForce: 630,      // Rating 78 jump
-                shotAccuracy: 0.86,  // Reliable shooter
+                speed: 420,          // Blazing pace
+                jumpForce: 630,      // 78 jump
+                shotAccuracy: 0.86,  // Great shooter
                 dunkReach: 170,
                 stealStat: 0.72,
                 defenseRating: 75,
+                skillName: 'Warp Dash',
+                skillDesc: 'Teleports forward past defender',
+                unlockCost: 0,
                 skin: '#fde047',
                 hair: 'parted',
                 glasses: false,
@@ -447,16 +482,41 @@
                 shirtColor: '#8b5cf6'
             },
             {
+                id: 'jason',
+                name: 'JASON',
+                role: 'Quick Crossover Guard',
+                heightCm: 166,
+                speed: 415,          // Fast like Julius
+                jumpForce: 620,
+                shotAccuracy: 0.76,  // Slightly worse shooting than Julius
+                dunkReach: 160,
+                stealStat: 0.70,
+                defenseRating: 73,
+                skillName: 'Ankle Breaker',
+                skillDesc: 'Crossover burst that stuns opponent',
+                unlockCost: 0,
+                skin: '#fde047',
+                hair: 'crop',
+                glasses: false,
+                beard: false,
+                earpiece: false,
+                tongueOut: false,
+                shirtColor: '#6366f1'
+            },
+            {
                 id: 'ritvik',
                 name: 'RITVIK',
                 role: 'High-Flying Slasher',
                 heightCm: 178,
-                speed: 290,          // Nerfed speed
-                jumpForce: 660,      // Buffed jump (82 rating)
-                shotAccuracy: 0.46,  // Nerfed shooting
-                dunkReach: 175,      // Can now dunk
+                speed: 290,
+                jumpForce: 660,      // 82 jump
+                shotAccuracy: 0.46,  // Meh shooting
+                dunkReach: 175,      // Can dunk
                 stealStat: 0.52,
                 defenseRating: 62,
+                skillName: 'Sky Glide',
+                skillDesc: 'Extends hangtime mid-air',
+                unlockCost: 0,
                 skin: '#d97706',
                 hair: 'crop',
                 glasses: false,
@@ -464,6 +524,28 @@
                 earpiece: false,
                 tongueOut: false,
                 shirtColor: '#f97316'
+            },
+            {
+                id: 'alvin',
+                name: 'ALVIN',
+                role: 'High-Altitude Rim Finisher',
+                heightCm: 176,
+                speed: 295,          // Around Ritvik's level
+                jumpForce: 720,      // Jumps noticeably higher than Ritvik
+                shotAccuracy: 0.48,  // Meh shooting like Ritvik
+                dunkReach: 185,      // Big dunks
+                stealStat: 0.54,
+                defenseRating: 64,
+                skillName: 'Sky Launch',
+                skillDesc: 'Mega vertical leap to rim',
+                unlockCost: 0,
+                skin: '#fcd34d',
+                hair: 'wavy',
+                glasses: false,
+                beard: false,
+                earpiece: false,
+                tongueOut: false,
+                shirtColor: '#ea580c'
             },
             {
                 id: 'lebron',
@@ -476,6 +558,9 @@
                 dunkReach: 180,
                 stealStat: 0.70,
                 defenseRating: 88,
+                skillName: 'Bulldozer',
+                skillDesc: 'Pushes defender back on drive',
+                unlockCost: 0,
                 skin: '#854d0e',
                 hair: 'crop',
                 glasses: false,
@@ -495,6 +580,9 @@
                 dunkReach: 90,
                 stealStat: 0.75,
                 defenseRating: 70,
+                skillName: 'Logo Splash',
+                skillDesc: 'Pure green window from deep range',
+                unlockCost: 0,
                 skin: '#ca8a04',
                 hair: 'crop',
                 glasses: false,
@@ -514,6 +602,9 @@
                 dunkReach: 160,
                 stealStat: 0.65,
                 defenseRating: 80,
+                skillName: 'Uncontestable',
+                skillDesc: 'High release completely ignores contests',
+                unlockCost: 0,
                 skin: '#78350f',
                 hair: 'crop',
                 glasses: false,
@@ -533,6 +624,9 @@
                 dunkReach: 190,
                 stealStat: 0.85,
                 defenseRating: 95,
+                skillName: 'Air Walk',
+                skillDesc: 'Takes off for slam from 3pt line',
+                unlockCost: 0,
                 skin: '#78350f',
                 hair: 'crop',
                 glasses: false,
@@ -543,9 +637,35 @@
             }
         ];
 
-        let selectedP1Idx = 0; // Kai Jie
-        let selectedP2Idx = 1; // John
+        let selectedP1Idx = 1; // Default John
+        let selectedP2Idx = 2; // Default Shivnand
         let currentActivePicker = 1;
+
+        function isPlayerUnlocked(player) {
+            if (!player.unlockCost || player.unlockCost === 0) return true;
+            return localStorage.getItem(`hoops_unlocked_${player.id}`) === 'true';
+        }
+
+        function unlockPlayerWithCoins(player) {
+            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            if (coins >= player.unlockCost) {
+                coins -= player.unlockCost;
+                localStorage.setItem('arcade_coins', coins);
+                localStorage.setItem(`hoops_unlocked_${player.id}`, 'true');
+                playSound('skill');
+                triggerBanner(`UNLOCKED ${player.name}! 🌟`);
+                updateCoinsDisplay();
+                refreshRosterCardsUI();
+            } else {
+                alert(`You need ${player.unlockCost} Coins to unlock ${player.name}! You only have ${coins}.`);
+            }
+        }
+
+        function updateCoinsDisplay() {
+            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            const el = document.getElementById('hub-coins-text');
+            if (el) el.innerText = coins.toLocaleString();
+        }
 
         function setActivePicker(playerNum) {
             currentActivePicker = playerNum;
@@ -558,6 +678,9 @@
                 const card = document.getElementById(`card-${idx}`);
                 if (!card) return;
                 card.className = 'roster-card';
+                const unlocked = isPlayerUnlocked(p);
+                if (!unlocked) card.classList.add('locked-card');
+
                 const isP1 = (idx === selectedP1Idx);
                 const isP2 = (idx === selectedP2Idx);
 
@@ -567,6 +690,7 @@
 
                 const badgeContainer = card.querySelector('.badge-container');
                 badgeContainer.innerHTML = '';
+                if (!unlocked) badgeContainer.innerHTML += `<span class="pick-badge badge-lock">🪙 ${p.unlockCost}</span>`;
                 if (isP1) badgeContainer.innerHTML += `<span class="pick-badge badge-p1">P1</span>`;
                 if (isP2) badgeContainer.innerHTML += `<span class="pick-badge badge-p2">P2</span>`;
             });
@@ -579,7 +703,7 @@
             const card = document.createElement('div');
             card.className = 'roster-card';
             card.id = `card-${idx}`;
-            const jumpLabel = (p.id === 'kaijie') ? '80' : (p.jumpForce > 690 ? '95+' : (p.jumpForce > 650 ? '85' : (p.jumpForce > 600 ? '78' : '65')));
+            const jumpLabel = (p.id === 'kaijie') ? '80+' : (p.jumpForce > 690 ? '95+' : (p.jumpForce > 650 ? '85' : (p.jumpForce > 600 ? '78' : '65')));
             card.innerHTML = `
                 <div class="badge-container"></div>
                 <div class="card-name">${p.name}</div>
@@ -590,8 +714,16 @@
                 <div class="card-stat">🎯 3PT: <strong>${Math.round(p.shotAccuracy * 100)}%</strong></div>
                 <div class="card-stat">💥 Dunk: <strong>${p.dunkReach > 0 ? 'YES' : 'NO'}</strong></div>
                 <div class="card-stat">🛡️ Stl: <strong>${Math.round(p.stealStat * 100)}%</strong></div>
+                <div class="card-skill-desc">⚡ ${p.skillName}</div>
             `;
             card.onclick = () => {
+                if (!isPlayerUnlocked(p)) {
+                    if (confirm(`Unlock ${p.name} for ${p.unlockCost} Arcade Coins?`)) {
+                        unlockPlayerWithCoins(p);
+                    }
+                    return;
+                }
+
                 if (currentActivePicker === 1) {
                     selectedP1Idx = idx;
                     setActivePicker(2);
@@ -604,6 +736,7 @@
             rosterContainer.appendChild(card);
         });
 
+        updateCoinsDisplay();
         refreshRosterCardsUI();
 
         const canvas = document.getElementById('game-canvas');
@@ -619,7 +752,6 @@
         let screenShake = 0;
 
         function createEntity(data, startX, facing) {
-            // Dynamic height scaling (165cm -> 85px, 180cm -> 93px, 206cm -> 106px)
             const scaledH = Math.round(data.heightCm * 0.515);
             return {
                 ...data,
@@ -635,9 +767,11 @@
                 chargeTimer: 0,
                 isDunking: false,
                 stealCooldown: 0,
-                pickupLockout: 0,      // Prevents victim from instantly grabbing stolen ball back
+                pickupLockout: 0,
                 swipeVisualTimer: 0,
                 isClamping: false,
+                skillCooldown: 0,     // 10s cooldown
+                skillActiveTimer: 0,   // Active duration
                 aiDecisionTimer: 0
             };
         }
@@ -662,14 +796,46 @@
             { side: 'right', bbX: 940, bbY: 210, bbH: 110, rimX: 892, rimY: 288, rimW: 46, netWiggle: 0 }
         ];
 
-        // Reworked Steal Mechanic: Directly rips possession into stealer's hands on success
+        // Trigger Signature Ability
+        function activateSkill(user, rival) {
+            if (user.skillCooldown > 0 || !matchActive) return;
+            user.skillCooldown = 10;
+            user.skillActiveTimer = 4.5;
+            playSound('skill');
+            triggerBanner(`${user.name}: ${user.skillName.toUpperCase()}! ⚡`);
+
+            if (user.id === 'shivnand') {
+                // Guaranteed instant strip if rival is anywhere nearby
+                const dist = Math.hypot((user.x + user.width/2) - (rival.x + rival.width/2), user.y - rival.y);
+                if (ball.holder === rival && dist < 140) {
+                    ball.holder = user;
+                    ball.lastTouchedBy = user;
+                    rival.pickupLockout = 0.8;
+                    screenShake = 12;
+                    playSound('steal');
+                }
+            } else if (user.id === 'julius' || user.id === 'jason') {
+                // Dash teleport past defender
+                user.x += user.facing * 120;
+                user.vx = user.facing * 350;
+            } else if (user.id === 'alvin' || user.id === 'ritvik') {
+                // Sky vertical rocket launch
+                user.vy = -user.jumpForce * 1.15;
+                user.onGround = false;
+            } else if (user.id === 'lebron') {
+                // Knock opponent away
+                rival.vx = user.facing * 400;
+                rival.pickupLockout = 0.5;
+            }
+        }
+
+        // Steal Mechanic: Directly transfers possession
         function attemptSteal(stealer, target) {
             if (stealer.stealCooldown > 0) return;
             stealer.stealCooldown = 0.32;
             stealer.swipeVisualTimer = 0.18;
             playSound('swipe');
 
-            // Quick forward thrust into the defender
             const dir = (target.x > stealer.x) ? 1 : -1;
             stealer.vx = dir * 210;
 
@@ -677,15 +843,16 @@
 
             const dist = Math.hypot((stealer.x + stealer.width/2) - (target.x + target.width/2), stealer.y - target.y);
             if (dist < 94) {
-                const successProb = stealer.stealStat * (stealer.id === 'shivnand' && target.id === 'kaijie' ? 0.98 : 0.78);
+                let successProb = stealer.stealStat * (stealer.id === 'shivnand' ? 0.98 : 0.78);
+                if (stealer.skillActiveTimer > 0 && stealer.id === 'kaijie') successProb = 0.95;
+
                 if (Math.random() < successProb) {
-                    // Clean possession rip directly to stealer
                     ball.holder = stealer;
                     ball.lastTouchedBy = stealer;
                     target.isCharging = false;
                     stealer.isCharging = false;
-                    target.pickupLockout = 0.65; // Lockout victim from counter-swiping immediately
-                    target.vx = -dir * 120;      // Stagger victim backward
+                    target.pickupLockout = 0.65;
+                    target.vx = -dir * 120;
 
                     screenShake = 9;
                     playSound('steal');
@@ -706,6 +873,7 @@
         }
 
         function isShotContested(shooter, defender) {
+            if (shooter.skillActiveTimer > 0 && shooter.id === 'kd') return false; // KD unblockable
             const dist = Math.abs((shooter.x + shooter.width/2) - (defender.x + defender.width/2));
             const activeGuard = dist < 82 && (!defender.onGround || defender.defenseRating > 65);
             defender.isClamping = activeGuard;
@@ -719,7 +887,10 @@
             const sweetSpot = 0.45;
             const diff = Math.abs(shooter.chargeTimer - sweetSpot);
             const contested = isShotContested(shooter, defender);
-            const maxAllowedDiff = contested ? (defender.id === 'shivnand' ? 0.03 : 0.065) : 0.12;
+            let maxAllowedDiff = contested ? (defender.id === 'shivnand' ? 0.03 : 0.065) : 0.12;
+            if (shooter.skillActiveTimer > 0 && (shooter.id === 'kaijie' || shooter.id === 'curry')) {
+                maxAllowedDiff = 0.25; // Massive green window under skill
+            }
             const isGreen = diff <= maxAllowedDiff;
 
             const targetX = targetHoop.rimX + targetHoop.rimW / 2;
@@ -832,11 +1003,18 @@
             const winner = p1Score > p2Score ? `${p1.name} WINS!` : (p2Score > p1Score ? `${p2.name} WINS!` : "DRAW MATCH!");
             document.getElementById('end-title').innerText = winner;
             document.getElementById('final-score-text').innerText = `${p1Score} - ${p2Score}`;
+
+            // Award coins for completing match
+            const rewardCoins = p1Score * 10 + 20;
+            let currentCoins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            localStorage.setItem('arcade_coins', currentCoins + rewardCoins);
+            updateCoinsDisplay();
         }
 
         function openMenu() {
             document.getElementById('end-modal').style.display = 'none';
             document.getElementById('select-modal').style.display = 'flex';
+            updateCoinsDisplay();
             refreshRosterCardsUI();
         }
 
@@ -848,8 +1026,13 @@
             const distToRim = (p2.x + p2.width / 2) - (targetHoop.rimX + 23);
             const distToPlayer = Math.abs(p2.x - p1.x);
 
+            // AI Skill Activation
+            if (p2.skillCooldown <= 0 && Math.random() < 0.25) {
+                activateSkill(p2, p1);
+            }
+
             if (ball.holder === p2) {
-                if (p2.id === 'john' || p2.id === 'julius' || p2.id === 'ritvik') {
+                if (p2.dunkReach > 150) {
                     p2.vx = -p2.speed;
                     p2.facing = -1;
                     if (distToRim < p2.dunkReach && p2.onGround) {
@@ -857,7 +1040,7 @@
                         p2.onGround = false;
                         setTimeout(() => executeDunk(p2, targetHoop), 110);
                     }
-                } else if (p2.id === 'kaijie') {
+                } else if (p2.shotAccuracy >= 0.70) {
                     if (distToRim > 320) {
                         p2.vx = -p2.speed;
                         p2.facing = -1;
@@ -870,21 +1053,6 @@
                             p2.aiDecisionTimer = 0;
                             p2.chargeTimer = 0.45;
                             releaseJumpShot(p2, targetHoop, p1);
-                        }
-                    }
-                } else if (p2.id === 'shivnand') {
-                    if (distToRim > 200) {
-                        p2.vx = -p2.speed;
-                        p2.facing = -1;
-                    } else {
-                        if (distToRim < p2.dunkReach && p2.onGround) {
-                            p2.vy = -p2.jumpForce;
-                            p2.onGround = false;
-                            setTimeout(() => executeDunk(p2, targetHoop), 110);
-                        } else if (p2.onGround && p2.aiDecisionTimer > 0.6) {
-                            p2.chargeTimer = 0.45;
-                            releaseJumpShot(p2, targetHoop, p1);
-                            p2.aiDecisionTimer = 0;
                         }
                     }
                 } else {
@@ -934,10 +1102,16 @@
                 p1.onGround = false;
             }
 
+            if (e.code === 'KeyE') {
+                activateSkill(p1, p2);
+            }
+
             if (e.code === 'Space' || e.code === 'KeyF') {
                 if (ball.holder === p1 && !p1.isCharging) {
+                    let reach = p1.dunkReach;
+                    if (p1.skillActiveTimer > 0 && (p1.id === 'john' || p1.id === 'jordan')) reach += 160;
                     const distToRim = Math.abs((hoops[1].rimX + 23) - (p1.x + p1.width/2));
-                    if (distToRim < p1.dunkReach && p1.y < COURT_Y - 40) {
+                    if (distToRim < reach && p1.y < COURT_Y - 40) {
                         executeDunk(p1, hoops[1]);
                     } else {
                         p1.isCharging = true;
@@ -953,10 +1127,15 @@
                     p2.vy = -p2.jumpForce;
                     p2.onGround = false;
                 }
+                if (e.code === 'KeyO') {
+                    activateSkill(p2, p1);
+                }
                 if (e.code === 'KeyL' || e.code === 'Enter') {
                     if (ball.holder === p2 && !p2.isCharging) {
+                        let reach = p2.dunkReach;
+                        if (p2.skillActiveTimer > 0 && (p2.id === 'john' || p2.id === 'jordan')) reach += 160;
                         const distToRim = Math.abs((hoops[0].rimX + 23) - (p2.x + p2.width/2));
-                        if (distToRim < p2.dunkReach && p2.y < COURT_Y - 40) {
+                        if (distToRim < reach && p2.y < COURT_Y - 40) {
                             executeDunk(p2, hoops[0]);
                         } else {
                             p2.isCharging = true;
@@ -992,10 +1171,13 @@
         bindTouch('t-jump', () => {
             if (p1.onGround && !p1.isDunking) { p1.vy = -p1.jumpForce; p1.onGround = false; }
         });
+        bindTouch('t-skill', () => activateSkill(p1, p2));
         bindTouch('t-action', () => {
             if (ball.holder === p1) {
+                let reach = p1.dunkReach;
+                if (p1.skillActiveTimer > 0 && (p1.id === 'john' || p1.id === 'jordan')) reach += 160;
                 const distToRim = Math.abs((hoops[1].rimX + 23) - (p1.x + p1.width/2));
-                if (distToRim < p1.dunkReach && p1.y < COURT_Y - 40) executeDunk(p1, hoops[1]);
+                if (distToRim < reach && p1.y < COURT_Y - 40) executeDunk(p1, hoops[1]);
                 else { p1.isCharging = true; p1.chargeTimer = 0; }
             } else {
                 attemptSteal(p1, p2);
@@ -1016,20 +1198,32 @@
             if (p1.swipeVisualTimer > 0) p1.swipeVisualTimer -= dt;
             if (p2.swipeVisualTimer > 0) p2.swipeVisualTimer -= dt;
 
+            // Skill Cooldowns & Active Timers
+            if (p1.skillCooldown > 0) p1.skillCooldown -= dt;
+            if (p2.skillCooldown > 0) p2.skillCooldown -= dt;
+            if (p1.skillActiveTimer > 0) p1.skillActiveTimer -= dt;
+            if (p2.skillActiveTimer > 0) p2.skillActiveTimer -= dt;
+
+            document.getElementById('p1-skill-hud').innerText = p1.skillCooldown <= 0 ? '[E] READY' : `[E] ${Math.ceil(p1.skillCooldown)}s`;
+            document.getElementById('p2-skill-hud').innerText = p2.skillCooldown <= 0 ? '[O] READY' : `[O] ${Math.ceil(p2.skillCooldown)}s`;
+
             isShotContested(p1, p2);
             isShotContested(p2, p1);
 
+            const p1SpeedBonus = (p1.skillActiveTimer > 0 && p1.id === 'kaijie') ? 1.25 : 1.0;
+            const p2SpeedBonus = (p2.skillActiveTimer > 0 && p2.id === 'kaijie') ? 1.25 : 1.0;
+
             if (!p1.isDunking) {
-                if (keys['KeyA']) { p1.vx = -p1.speed; p1.facing = -1; }
-                else if (keys['KeyD']) { p1.vx = p1.speed; p1.facing = 1; }
+                if (keys['KeyA']) { p1.vx = -p1.speed * p1SpeedBonus; p1.facing = -1; }
+                else if (keys['KeyD']) { p1.vx = p1.speed * p1SpeedBonus; p1.facing = 1; }
                 else p1.vx *= 0.82;
 
                 if (p1.isCharging) p1.chargeTimer += dt;
             }
 
             if (gameMode === '2P' && !p2.isDunking) {
-                if (keys['ArrowLeft']) { p2.vx = -p2.speed; p2.facing = -1; }
-                else if (keys['ArrowRight']) { p2.vx = p2.speed; p2.facing = 1; }
+                if (keys['ArrowLeft']) { p2.vx = -p2.speed * p2SpeedBonus; p2.facing = -1; }
+                else if (keys['ArrowRight']) { p2.vx = p2.speed * p2SpeedBonus; p2.facing = 1; }
                 else p2.vx *= 0.82;
 
                 if (p2.isCharging) p2.chargeTimer += dt;
@@ -1126,7 +1320,7 @@
             }
         }
 
-        // Render Frame with Dynamic Character Heights
+        // Render Frame
         function render() {
             ctx.save();
             if (screenShake > 0.5) {
@@ -1177,7 +1371,17 @@
                 const bounce = Math.sin(performance.now() * 0.009) * 2;
                 const headRadius = Math.round(p.height * 0.22);
                 const torsoHeight = Math.round(p.height * 0.42);
-                const legHeight = Math.round(p.height * 0.36);
+
+                // Skill Glow Aura
+                if (p.skillActiveTimer > 0) {
+                    ctx.save();
+                    ctx.strokeStyle = '#facc15';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(p.x + p.width/2, p.y + p.height/2, p.height * 0.6, 0, Math.PI*2);
+                    ctx.stroke();
+                    ctx.restore();
+                }
 
                 if (p.isClamping) {
                     ctx.save();
@@ -1195,11 +1399,9 @@
                     ctx.fill();
                 }
 
-                // Shoes / Legs scaled to player height
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(p.x + (p.facing === 1 ? 4 : p.width - 20), p.y + p.height - 12, 18, 12);
 
-                // Jersey / School Polo
                 ctx.fillStyle = p.shirtColor;
                 ctx.beginPath();
                 ctx.roundRect(p.x + 6, p.y + headRadius * 1.6 + bounce, p.width - 12, torsoHeight, 6);
@@ -1210,7 +1412,6 @@
                     ctx.fillRect(p.x + p.width/2 - 4, p.y + headRadius * 1.6 + bounce, 8, 14);
                 }
 
-                // Head
                 ctx.fillStyle = p.skin;
                 ctx.beginPath();
                 ctx.arc(p.x + p.width/2, p.y + headRadius + bounce, headRadius, 0, Math.PI*2);
@@ -1223,17 +1424,14 @@
                     ctx.fill();
                 }
 
-                // Accurate Hair & Accessories
                 ctx.fillStyle = '#171717';
                 if (p.hair === 'parted') {
-                    // Kai Jie / Julius: Sleek curtain bangs / center-parted fringe
                     ctx.beginPath();
                     ctx.arc(p.x + p.width/2, p.y + headRadius * 0.7 + bounce, headRadius * 1.05, Math.PI * 0.9, 0.1);
                     ctx.fill();
                     ctx.fillRect(p.x + 2, p.y + headRadius * 0.5 + bounce, 9, 15);
                     ctx.fillRect(p.x + p.width - 11, p.y + headRadius * 0.5 + bounce, 9, 15);
                 } else if (p.hair === 'wavy') {
-                    // John: Fluffy textured bangs from photo
                     ctx.beginPath();
                     ctx.arc(p.x + p.width/2, p.y + headRadius * 0.6 + bounce, headRadius * 1.1, Math.PI, 0);
                     ctx.arc(p.x + 8, p.y + headRadius * 0.7 + bounce, 8, 0, Math.PI*2);
@@ -1241,7 +1439,6 @@
                     ctx.arc(p.x + p.width - 8, p.y + headRadius * 0.7 + bounce, 8, 0, Math.PI*2);
                     ctx.fill();
                 } else if (p.hair === 'athletic') {
-                    // Shivnand: Athletic fade
                     ctx.beginPath();
                     ctx.arc(p.x + p.width/2, p.y + headRadius * 0.65 + bounce, headRadius * 1.02, Math.PI, 0);
                     ctx.fill();
@@ -1250,7 +1447,6 @@
                     ctx.fillRect(p.x + 3, p.y - 2 + bounce, p.width - 6, 9);
                 }
 
-                // John's Glasses
                 if (p.glasses) {
                     ctx.strokeStyle = '#000000'; ctx.lineWidth = 2.4;
                     ctx.strokeRect(p.x + 8, p.y + headRadius * 0.6 + bounce, 9, 8);
@@ -1258,7 +1454,6 @@
                     ctx.beginPath(); ctx.moveTo(p.x + 17, p.y + headRadius * 0.8 + bounce); ctx.lineTo(p.x + p.width - 17, p.y + headRadius * 0.8 + bounce); ctx.stroke();
                 }
 
-                // Kai Jie's White Earpiece (AirPod in left ear)
                 if (p.earpiece) {
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
@@ -1273,7 +1468,6 @@
                 ctx.arc(p.x + eyeX, p.y + headRadius * 0.9 + bounce, 2.5, 0, Math.PI*2);
                 ctx.fill();
 
-                // John's Tongue-Out Expression from Photo
                 if (p.tongueOut) {
                     ctx.fillStyle = '#000';
                     ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + headRadius * 1.3 + bounce, 5, 0, Math.PI); ctx.fill();
@@ -1281,7 +1475,6 @@
                     ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + headRadius * 1.45 + bounce, 4, 0, Math.PI); ctx.fill();
                 }
 
-                // Visual Swipe Slash
                 if (p.swipeVisualTimer > 0) {
                     ctx.save();
                     ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3.5;
@@ -1299,7 +1492,6 @@
                     ctx.restore();
                 }
 
-                // Shot Gauge Meter
                 if (p.isCharging && ball.holder === p) {
                     const meterW = 54;
                     const meterH = 9;
