@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Arcade Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Arcade Hub - Creator Edition</title>
     <style>
         :root { 
             --primary: #00f3ff; 
@@ -11,7 +11,9 @@
             --accent: #ff007f; 
             --accent-glow: rgba(255, 0, 127, 0.35);
             --gold: #facc15;
+            --gold-glow: rgba(250, 204, 21, 0.4);
             --emerald: #10b981;
+            --purple: #a855f7;
             --bg: #0b0f19; 
             --card: #151d30; 
             --card-border: #1e293b;
@@ -23,6 +25,7 @@
             box-sizing: border-box;
             -webkit-user-select: none;
             user-select: none;
+            -webkit-touch-callout: none;
         }
 
         body { 
@@ -30,44 +33,52 @@
             color: #ffffff; 
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
             margin: 0; 
-            padding: 16px 16px 32px 16px; 
+            padding: 14px 14px 32px 14px; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             min-height: 100vh; 
+            min-height: 100dvh;
             background-image: 
                 radial-gradient(ellipse at 50% -20%, rgba(0, 243, 255, 0.15), transparent 70%),
-                radial-gradient(circle at 100% 100%, rgba(255, 0, 127, 0.08), transparent 50%);
+                radial-gradient(circle at 100% 100%, rgba(255, 0, 127, 0.08), transparent 50%),
+                radial-gradient(circle at 0% 50%, rgba(168, 85, 247, 0.08), transparent 50%);
             background-attachment: fixed;
+            overflow-x: hidden;
         }
 
-        /* Header Bar */
+        /* Top Header Bar */
         header { 
             width: 100%; 
             max-width: 1140px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            background: rgba(21, 29, 48, 0.85); 
-            backdrop-filter: blur(12px);
-            padding: 14px 28px; 
+            background: rgba(21, 29, 48, 0.88); 
+            backdrop-filter: blur(14px);
+            padding: 12px 24px; 
             border-radius: 16px; 
             border: 2px solid var(--primary); 
-            margin-bottom: 20px; 
+            margin-bottom: 18px; 
             box-shadow: 0 0 24px var(--primary-glow);
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .brand {
             display: flex;
             align-items: center;
             gap: 12px;
+            cursor: pointer;
+            transition: transform 0.1s;
         }
+        .brand:active { transform: scale(0.97); }
 
         h1 { 
             color: var(--primary); 
             text-shadow: 0 0 16px var(--primary-glow); 
             margin: 0; 
-            font-size: 1.8rem;
+            font-size: 1.7rem;
             letter-spacing: 1.5px;
             font-weight: 900;
         }
@@ -75,37 +86,89 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .stats { 
-            font-size: 1.15rem; 
+        .stats-badge { 
+            font-size: 1.05rem; 
             font-weight: 800; 
             color: var(--gold);
-            background: rgba(250, 204, 21, 0.1);
-            border: 1.5px solid rgba(250, 204, 21, 0.35);
-            padding: 6px 16px;
+            background: rgba(250, 204, 21, 0.12);
+            border: 1.5px solid rgba(250, 204, 21, 0.4);
+            padding: 6px 14px;
             border-radius: 20px;
             display: flex;
             align-items: center;
             gap: 6px;
+            box-shadow: 0 0 12px rgba(250, 204, 21, 0.2);
         }
 
-        .nav-shop { 
+        .mult-badge {
+            font-size: 0.78rem;
+            font-weight: 900;
+            color: #000;
+            background: linear-gradient(135deg, var(--gold), #f59e0b);
+            padding: 4px 10px;
+            border-radius: 14px;
+            display: none;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 12px var(--gold);
+            animation: pulseGlow 1.8s infinite alternate;
+        }
+        @keyframes pulseGlow {
+            0% { transform: scale(1); filter: brightness(1); }
+            100% { transform: scale(1.05); filter: brightness(1.25); }
+        }
+
+        .nav-btn { 
             color: #000; 
             background: var(--primary);
             text-decoration: none; 
             font-weight: 800; 
-            font-size: 1rem;
-            padding: 8px 18px;
+            font-size: 0.9rem;
+            padding: 8px 16px;
             border-radius: 10px;
             box-shadow: 0 0 14px var(--primary-glow);
             transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px var(--primary);
+        }
+        .nav-btn.code-btn {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: #fff;
+            box-shadow: 0 0 16px rgba(168, 85, 247, 0.5);
         }
 
-        .nav-shop:hover {
-            transform: scale(1.04);
-            box-shadow: 0 0 20px var(--primary);
+        /* Perks Ticker / Unlocked Badges Bar */
+        #unlocked-perks-bar {
+            width: 100%;
+            max-width: 1140px;
+            display: none;
+            gap: 8px;
+            margin-bottom: 14px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .perk-pill {
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid var(--purple);
+            color: #e9d5ff;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 16px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         /* Search & Filtering */
@@ -122,15 +185,15 @@
 
         .search-box {
             flex: 1;
-            min-width: 260px;
+            min-width: 240px;
         }
 
         .search-box input {
             width: 100%;
-            background: rgba(21, 29, 48, 0.7);
+            background: rgba(21, 29, 48, 0.75);
             border: 1.5px solid var(--card-border);
             border-radius: 10px;
-            padding: 10px 18px;
+            padding: 10px 16px;
             color: #fff;
             font-size: 0.92rem;
             outline: none;
@@ -145,18 +208,22 @@
         .filter-tags {
             display: flex;
             gap: 8px;
+            overflow-x: auto;
+            max-width: 100%;
+            padding: 2px;
         }
 
         .filter-btn {
-            background: rgba(21, 29, 48, 0.7);
+            background: rgba(21, 29, 48, 0.75);
             border: 1.5px solid var(--card-border);
             color: var(--text-muted);
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: 10px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.15s ease;
+            white-space: nowrap;
         }
 
         .filter-btn:hover, .filter-btn.active {
@@ -168,7 +235,7 @@
         /* Game Grid */
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); 
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
             gap: 16px; 
             width: 100%; 
             max-width: 1140px; 
@@ -203,7 +270,7 @@
         }
 
         .icon { 
-            font-size: 2.4rem; 
+            font-size: 2.3rem; 
             margin-bottom: 8px;
             transition: transform 0.2s ease;
         }
@@ -216,7 +283,7 @@
         }
 
         .card p { 
-            font-size: 0.78rem; 
+            font-size: 0.76rem; 
             color: var(--text-muted); 
             margin: 0; 
             line-height: 1.3;
@@ -239,6 +306,148 @@
         .badge-3d { background: rgba(0, 243, 255, 0.2); color: var(--primary); border: 1px solid var(--primary); }
         .badge-hot { background: rgba(255, 0, 127, 0.2); color: var(--accent); border: 1px solid var(--accent); }
 
+        /* Creator Code Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.88);
+            backdrop-filter: blur(10px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+        .modal-card {
+            background: linear-gradient(180deg, #151d30, #0d1322);
+            border: 2px solid var(--purple);
+            border-radius: 18px;
+            padding: 24px;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(168, 85, 247, 0.35);
+            position: relative;
+            animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalPop {
+            0% { transform: scale(0.92); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-close:hover { color: #fff; }
+
+        .code-input-row {
+            display: flex;
+            gap: 8px;
+            margin: 18px 0 10px 0;
+        }
+        .code-input {
+            flex: 1;
+            background: #090e1a;
+            border: 2px solid var(--purple);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: var(--gold);
+            font-size: 1.1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            outline: none;
+            text-align: center;
+        }
+        .code-input::placeholder {
+            color: #475569;
+            font-weight: normal;
+            letter-spacing: 0;
+            text-transform: none;
+            font-size: 0.85rem;
+        }
+        .code-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 16px var(--primary-glow);
+        }
+
+        .code-submit-btn {
+            background: linear-gradient(135deg, var(--gold), #f59e0b);
+            color: #000;
+            font-weight: 900;
+            font-size: 1rem;
+            border: none;
+            border-radius: 10px;
+            padding: 0 20px;
+            cursor: pointer;
+            box-shadow: 0 0 16px var(--gold-glow);
+            transition: transform 0.1s;
+        }
+        .code-submit-btn:active { transform: scale(0.95); }
+
+        #code-feedback {
+            font-size: 0.85rem;
+            font-weight: 800;
+            min-height: 24px;
+            margin-bottom: 12px;
+        }
+
+        /* Hints / Codex Box */
+        .codex-box {
+            background: rgba(9, 14, 26, 0.7);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            text-align: left;
+            margin-top: 10px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .codex-title {
+            font-size: 0.72rem;
+            font-weight: 900;
+            color: var(--primary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .hint-item {
+            font-size: 0.74rem;
+            color: #cbd5e1;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hint-tag {
+            background: rgba(168, 85, 247, 0.2);
+            color: var(--purple);
+            font-weight: 900;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-family: monospace;
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 2000;
+        }
+
         /* Footer & Credits */
         footer {
             width: 100%;
@@ -248,7 +457,7 @@
             backdrop-filter: blur(12px);
             border: 1.5px solid var(--card-border);
             border-radius: 16px;
-            padding: 20px 24px;
+            padding: 18px 24px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -259,7 +468,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 24px;
+            gap: 16px;
             flex-wrap: wrap;
         }
 
@@ -269,12 +478,12 @@
             gap: 8px;
             background: rgba(11, 15, 25, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 8px 18px;
+            padding: 6px 16px;
             border-radius: 12px;
         }
 
         .credit-role {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--text-muted);
@@ -282,7 +491,7 @@
         }
 
         .credit-name {
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             font-weight: 800;
         }
 
@@ -297,29 +506,36 @@
         }
 
         .footer-note {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: #64748b;
         }
     </style>
 </head>
 <body>
 
+    <canvas id="confetti-canvas"></canvas>
+
     <header>
-        <div class="brand">
+        <div class="brand" onclick="handleLogoClick()">
             <h1>⚡ CYBER ARCADE</h1>
         </div>
         <div class="header-actions">
-            <div class="stats">🪙 <span id="coin-count">0</span></div>
-            <a href="shop.html" class="nav-shop">🛒 Shop</a>
+            <div class="stats-badge">🪙 <span id="coin-count">0</span></div>
+            <div class="mult-badge" id="mult-badge">⚡ 2.5X COINS</div>
+            <button class="nav-btn code-btn" onclick="openCodeModal()">🎁 Creator Codes</button>
+            <a href="shop.html" class="nav-btn">🛒 Shop</a>
         </div>
     </header>
 
+    <!-- Unlocked Secrets & Active Perks Bar -->
+    <div id="unlocked-perks-bar"></div>
+
     <div class="controls-bar">
         <div class="search-box">
-            <input type="text" id="search-input" placeholder="🔍 Search games..." oninput="filterGames()">
+            <input type="text" id="search-input" placeholder="🔍 Search arcade games..." oninput="filterGames()">
         </div>
         <div class="filter-tags">
-            <button class="filter-btn active" onclick="setCategory('ALL', this)">All</button>
+            <button class="filter-btn active" onclick="setCategory('ALL', this)">All Games</button>
             <button class="filter-btn" onclick="setCategory('3D', this)">3D Simulation</button>
             <button class="filter-btn" onclick="setCategory('ACTION', this)">Action & Sports</button>
             <button class="filter-btn" onclick="setCategory('PUZZLE', this)">Puzzle</button>
@@ -327,20 +543,20 @@
     </div>
 
     <div class="grid" id="games-grid">
-        <!-- New Tetris addition -->
+        <!-- Cyber Tetris -->
         <a href="tetris.html" class="card" data-cat="PUZZLE" data-title="Cyber Tetris">
-            <span class="badge badge-new">NEW</span>
+            <span class="badge badge-new">DAS/ARR</span>
             <span class="icon">🟦</span>
             <h3>Cyber Tetris</h3>
-            <p>Stack blocks & 8-bit chiptune BGM</p>
+            <p>Stack blocks & chiptune beats</p>
         </a>
-<script src="canming-ai.js"></script>
+
         <!-- Minecraft 3D -->
         <a href="minecraft.html" class="card" data-cat="3D" data-title="Minecraft 3D">
             <span class="badge badge-hot">HOT</span>
             <span class="icon">⛏️</span>
             <h3>Minecraft 3D</h3>
-            <p>Voxel sandbox & survival</p>
+            <p>Voxel sandbox & creative build</p>
         </a>
 
         <!-- 3D Flight Sim -->
@@ -352,11 +568,11 @@
         </a>
 
         <!-- 3D Train Express -->
-        <a href="train.html" class="card" data-cat="3D" data-title="3D Train Express">
-            <span class="badge badge-3d">3D</span>
+        <a href="train.html" class="card" data-cat="3D" data-title="3D Train Express Pro Cab">
+            <span class="badge badge-3d">3D CAB</span>
             <span class="icon">🚂</span>
             <h3>3D Train Express</h3>
-            <p>Switch tracks & pick up riders</p>
+            <p>Realistic cab, wipers & viaduct</p>
         </a>
 
         <!-- Car Racer / Drift Master -->
@@ -372,7 +588,7 @@
             <span class="badge badge-3d">3D</span>
             <span class="icon">🛷</span>
             <h3>3D Snow Rider</h3>
-            <p>Dodge trees downhill</p>
+            <p>Dodge obstacles downhill</p>
         </a>
 
         <!-- 99 Nights Forest 3D -->
@@ -384,10 +600,11 @@
         </a>
 
         <!-- Basketball Legends -->
-        <a href="basketball.html" class="card" data-cat="ACTION" data-title="Basketball Legends">
+        <a href="basketball.html" class="card" data-cat="ACTION" data-title="Basketball Legends Rivals">
+            <span class="badge badge-hot">PHONK</span>
             <span class="icon">🏀</span>
             <h3>Basketball Legends</h3>
-            <p>Heads-up 2D hoops</p>
+            <p>2P, Skills, Steals & All-Stars</p>
         </a>
 
         <!-- Volleyball Legends -->
@@ -397,11 +614,12 @@
             <p>Spike over the net</p>
         </a>
 
-        <!-- Badminton Legends -->
-        <a href="badminton.html" class="card" data-cat="ACTION" data-title="Badminton Legends">
+        <!-- Badminton Legends 3D -->
+        <a href="badminton.html" class="card" data-cat="ACTION" data-title="Super Badminton 3D">
+            <span class="badge badge-3d">3D</span>
             <span class="icon">🏸</span>
             <h3>Badminton Legends</h3>
-            <p>High clears & smashes</p>
+            <p>3D Clears, Smashes & Drops</p>
         </a>
 
         <!-- Neon Clicker -->
@@ -415,7 +633,7 @@
         <a href="pong.html" class="card" data-cat="ACTION" data-title="Cyber Pong AI">
             <span class="icon">🏓</span>
             <h3>Cyber Pong AI</h3>
-            <p>Classic paddle action</p>
+            <p>Classic neon paddle duel</p>
         </a>
 
         <!-- Cyber Snake -->
@@ -503,6 +721,30 @@
         </a>
     </div>
 
+    <!-- Creator Code Vault Modal -->
+    <div id="code-modal" class="modal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeCodeModal()">✕</button>
+            <h2 style="color:var(--gold); margin:0; font-size:1.5rem; text-shadow: 0 0 14px var(--gold-glow);">🎁 CREATOR CODE VAULT</h2>
+            <p style="color:var(--text-muted); font-size:0.8rem; margin:6px 0 0 0;">Enter special creator codes to unlock massive coin drops, permanent multipliers & secret all-stars!</p>
+            
+            <div class="code-input-row">
+                <input type="text" id="creator-code-input" class="code-input" placeholder="ENTER CODE..." maxlength="20" onkeydown="if(event.key==='Enter') submitCreatorCode()">
+                <button class="code-submit-btn" onclick="submitCreatorCode()">REDEEM</button>
+            </div>
+            <div id="code-feedback"></div>
+
+            <div class="codex-box">
+                <div class="codex-title">📜 Hints & Secret Riddles</div>
+                <div class="hint-item"><span class="hint-tag">DEV</span> Try the creator's real name for the Developer Vault!</div>
+                <div class="hint-item"><span class="hint-tag">IDEA</span> Try the Ideaist's name for a permanent coin boost!</div>
+                <div class="hint-item"><span class="hint-tag">HOOPS</span> Who is the 65% sniper with the white AirPod?</div>
+                <div class="hint-item"><span class="hint-tag">SNIPER</span> Who is the 192cm artillery shooter from outside the arc?</div>
+                <div class="hint-item"><span class="hint-tag">LUCK</span> Feeling lucky? Enter <span style="color:var(--gold); font-weight:bold;">JACKPOT</span>!</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Credits & Footer -->
     <footer>
         <div class="credits-container">
@@ -515,30 +757,390 @@
                 <span class="credit-name idea">Can Ming</span>
             </div>
         </div>
-        <div class="footer-note">© 2026 Cyber Arcade Engine • Running purely client-side</div>
+        <div class="footer-note">© 2026 Cyber Arcade Engine • Universal Cross-Game Progression</div>
     </footer>
 
-    <script>
-        let currentFilter = 'ALL';
+    <!-- Optional external AI script -->
+    <script src="canming-ai.js"></script>
 
-        function applyGlobalTheme() { 
-            const savedTheme = localStorage.getItem('arcade_theme') || 'neon'; 
-            const themes = { 
-                neon: { primary: '#00f3ff', accent: '#ff007f', bg: '#0b0f19', card: '#151d30' }, 
-                cyber: { primary: '#00ff66', accent: '#ff9900', bg: '#051a0e', card: '#0b2e1a' }, 
-                sunset: { primary: '#facc15', accent: '#ff007f', bg: '#2a081d', card: '#421232' }, 
-                purple: { primary: '#a855f7', accent: '#00f3ff', bg: '#12072b', card: '#231047' } 
-            }; 
-            const active = themes[savedTheme] || themes.neon; 
-            document.documentElement.style.setProperty('--primary', active.primary); 
-            document.documentElement.style.setProperty('--accent', active.accent); 
-            document.documentElement.style.setProperty('--bg', active.bg); 
-            document.documentElement.style.setProperty('--card', active.card); 
+    <script>
+        // ==========================================
+        // AUDIO SYNTHESIZER FOR REDEMPTION FX
+        // ==========================================
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function playSoundFx(type) {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const t = ctx.currentTime;
+                if (type === 'success') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, t + idx * 0.08);
+                        gain.gain.setValueAtTime(0.3, t + idx * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.08 + 0.35);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(t + idx * 0.08);
+                        osc.stop(t + idx * 0.08 + 0.35);
+                    });
+                } else if (type === 'error') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(140, t);
+                    osc.frequency.setValueAtTime(95, t + 0.08);
+                    gain.gain.setValueAtTime(0.3, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.25);
+                } else if (type === 'jackpot') {
+                    for (let i = 0; i < 8; i++) {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(587.33 + i * 85, t + i * 0.06);
+                        gain.gain.setValueAtTime(0.25, t + i * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(t + i * 0.06);
+                        osc.stop(t + i * 0.06 + 0.25);
+                    }
+                }
+            } catch(e){}
+        }
+
+        // ==========================================
+        // CONFETTI CELEBRATION ENGINE
+        // ==========================================
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const cCtx = confettiCanvas.getContext('2d');
+        let confettiParticles = [];
+        let confettiAnimId = null;
+
+        function resizeConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeConfetti);
+        resizeConfetti();
+
+        function launchConfetti(count = 85) {
+            getAudioContext();
+            const colors = ['#00f3ff', '#facc15', '#ff007f', '#10b981', '#a855f7', '#ffffff'];
+            for (let i = 0; i < count; i++) {
+                confettiParticles.push({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                    vx: (Math.random() - 0.5) * 18,
+                    vy: (Math.random() - 0.8) * 18,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rot: Math.random() * Math.PI * 2,
+                    vRot: (Math.random() - 0.5) * 0.3,
+                    alpha: 1
+                });
+            }
+            if (!confettiAnimId) loopConfetti();
+        }
+
+        function loopConfetti() {
+            cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            for (let i = confettiParticles.length - 1; i >= 0; i--) {
+                const p = confettiParticles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.45; // gravity
+                p.vx *= 0.98;
+                p.rot += p.vRot;
+                p.alpha -= 0.012;
+
+                cCtx.save();
+                cCtx.globalAlpha = Math.max(0, p.alpha);
+                cCtx.translate(p.x, p.y);
+                cCtx.rotate(p.rot);
+                cCtx.fillStyle = p.color;
+                cCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                cCtx.restore();
+
+                if (p.alpha <= 0 || p.y > window.innerHeight + 50) {
+                    confettiParticles.splice(i, 1);
+                }
+            }
+            if (confettiParticles.length > 0) {
+                confettiAnimId = requestAnimationFrame(loopConfetti);
+            } else {
+                confettiAnimId = null;
+                cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            }
+        }
+
+        // ==========================================
+        // CREATOR CODE DATABASE & STATE
+        // ==========================================
+        function getWalletCoins() {
+            return parseInt(localStorage.getItem('arcade_coins')) || 0;
+        }
+
+        function setWalletCoins(val) {
+            localStorage.setItem('arcade_coins', Math.max(0, val));
+            updateWallet();
+        }
+
+        function getMultiplier() {
+            return parseFloat(localStorage.getItem('arcade_multiplier')) || 1.0;
+        }
+
+        function setMultiplier(mult) {
+            localStorage.setItem('arcade_multiplier', mult);
+            updateWallet();
+        }
+
+        function getRedeemedCodes() {
+            try {
+                return JSON.parse(localStorage.getItem('arcade_redeemed_codes')) || [];
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function markCodeRedeemed(code) {
+            const list = getRedeemedCodes();
+            if (!list.includes(code)) {
+                list.push(code);
+                localStorage.setItem('arcade_redeemed_codes', JSON.stringify(list));
+            }
+            updatePerksBar();
+        }
+
+        // 10+ Authentic & Secret Creator Codes
+        const CREATOR_CODES = {
+            'SHIVNAND': {
+                name: 'Main Developer Vault',
+                rewardCoins: 10000,
+                multiplier: 2.0,
+                unlocks: ['hoops_unlocked_kaijie', 'kaijie_challenge_unlocked'],
+                badge: '👑 Lead Dev Clearance',
+                desc: 'Granted +10,000 Coins, 2.0x Boost & Kai Jie Unlocked!'
+            },
+            'CANMING': {
+                name: 'Ideaist Royal Stash',
+                rewardCoins: 6000,
+                multiplier: 2.5,
+                unlocks: ['canming_mode_active'],
+                badge: '💡 Ideaist Master VIP',
+                desc: 'Granted +6,000 Coins & Permanent 2.5x Multiplier!'
+            },
+            'KAIJIE': {
+                name: 'The Sniper King',
+                rewardCoins: 2500,
+                unlocks: ['hoops_unlocked_kaijie', 'kaijie_challenge_unlocked'],
+                badge: '🎯 Kai Jie Boss Pass',
+                desc: 'Unlocked Kai Jie in Hoops Legends + 2,500 Coins!'
+            },
+            'KAIJIEGOAT': {
+                name: 'Kai Jie Overdrive',
+                rewardCoins: 4000,
+                unlocks: ['hoops_unlocked_kaijie', 'kaijie_challenge_unlocked'],
+                badge: '⚡ Zone Overdrive Active',
+                desc: 'Unlocked Kai Jie in Hoops Legends + 4,000 Coins!'
+            },
+            'SHARRAN': {
+                name: 'Titan Artillery 3PT',
+                rewardCoins: 2500,
+                unlocks: ['hoops_unlocked_sharran'],
+                badge: '🛡️ Sharran Heavy Artillery',
+                desc: 'Unlocked Sharran (192cm 3PT Tank) in Basketball + 2,500 Coins!'
+            },
+            'SHARRAN3PT': {
+                name: 'Sniper Artillery Tank',
+                rewardCoins: 3500,
+                unlocks: ['hoops_unlocked_sharran'],
+                badge: '🎯 Sharran Unlocked',
+                desc: 'Unlocked Sharran in Basketball + 3,500 Coins!'
+            },
+            'JACKPOT': {
+                name: 'Arcade Mega Jackpot',
+                rewardCoins: 25000,
+                sound: 'jackpot',
+                badge: '🎰 Jackpot Winner',
+                desc: 'JACKPOT HIT! Added +25,000 Gold Coins!'
+            },
+            '2XBOOST': {
+                name: 'Coin Surge',
+                multiplier: 2.0,
+                rewardCoins: 1500,
+                badge: '⚡ 2.0x Coin Boost',
+                desc: 'Activated Permanent 2.0x Multiplier across all games!'
+            },
+            'PHONK': {
+                name: 'Drift Phonk Tape',
+                rewardCoins: 3000,
+                multiplier: 1.5,
+                badge: '🎧 Phonk Bass Booster',
+                desc: 'Granted +3,000 Coins & Bass Booster unlocked!'
+            },
+            'GODMODE': {
+                name: 'Cyber God Mode',
+                rewardCoins: 50000,
+                multiplier: 5.0,
+                unlocks: ['hoops_unlocked_kaijie', 'hoops_unlocked_sharran', 'godmode_active'],
+                badge: '🌌 CYBER GOD (5X BOOSTER)',
+                desc: 'GOD MODE ACTIVATED! +50,000 Coins, 5.0x Boost & All Secret Characters!'
+            },
+            'DRIFTKING': {
+                name: 'Touge Master',
+                rewardCoins: 3500,
+                badge: '🏎️ Drift King Pass',
+                desc: '+3,500 Coins & Touge Nitro Boost unlocked!'
+            },
+            'TETRISGOD': {
+                name: 'DAS/ARR Master',
+                rewardCoins: 2500,
+                badge: '🟦 Tetris Legend',
+                desc: '+2,500 Coins & Instant Speed Pass!'
+            }
+        };
+
+        function openCodeModal() {
+            getAudioContext();
+            document.getElementById('code-modal').style.display = 'flex';
+            document.getElementById('creator-code-input').value = '';
+            document.getElementById('code-feedback').innerHTML = '';
+            setTimeout(() => document.getElementById('creator-code-input').focus(), 150);
+        }
+
+        function closeCodeModal() {
+            document.getElementById('code-modal').style.display = 'none';
+        }
+
+        function submitCreatorCode() {
+            const input = document.getElementById('creator-code-input');
+            const feedback = document.getElementById('code-feedback');
+            const raw = (input.value || '').trim().toUpperCase();
+
+            if (!raw) {
+                feedback.style.color = 'var(--accent)';
+                feedback.innerText = '⚠️ Please enter a code!';
+                playSoundFx('error');
+                return;
+            }
+
+            const redeemed = getRedeemedCodes();
+            if (redeemed.includes(raw)) {
+                feedback.style.color = 'var(--gold)';
+                feedback.innerText = '⚠️ You have already redeemed this code!';
+                playSoundFx('error');
+                return;
+            }
+
+            const promo = CREATOR_CODES[raw];
+            if (promo) {
+                // Apply Rewards
+                if (promo.rewardCoins) {
+                    const current = getWalletCoins();
+                    setWalletCoins(current + promo.rewardCoins);
+                }
+
+                if (promo.multiplier) {
+                    const currentMult = getMultiplier();
+                    if (promo.multiplier > currentMult) {
+                        setMultiplier(promo.multiplier);
+                    }
+                }
+
+                if (promo.unlocks) {
+                    promo.unlocks.forEach(key => {
+                        localStorage.setItem(key, 'true');
+                    });
+                }
+
+                markCodeRedeemed(raw);
+                launchConfetti(promo.rewardCoins > 15000 ? 140 : 80);
+                playSoundFx(promo.sound || 'success');
+
+                feedback.style.color = 'var(--emerald)';
+                feedback.innerHTML = `✅ <strong>${promo.name}:</strong> ${promo.desc}`;
+                input.value = '';
+                updateWallet();
+                updatePerksBar();
+            } else {
+                feedback.style.color = 'var(--accent)';
+                feedback.innerText = '❌ Invalid creator code. Check the hints below!';
+                playSoundFx('error');
+            }
+        }
+
+        // Click the Brand Logo 5 times rapidly for a secret easter egg
+        let logoTaps = 0;
+        let lastLogoTapTime = 0;
+        function handleLogoClick() {
+            const now = Date.now();
+            if (now - lastLogoTapTime < 600) {
+                logoTaps++;
+            } else {
+                logoTaps = 1;
+            }
+            lastLogoTapTime = now;
+
+            if (logoTaps >= 5) {
+                logoTaps = 0;
+                const current = getWalletCoins();
+                setWalletCoins(current + 500);
+                launchConfetti(45);
+                playSoundFx('success');
+                alert("🎉 SECRET TAP EASTER EGG FOUND! +500 Free Coins!");
+            }
+        }
+
+        function updatePerksBar() {
+            const bar = document.getElementById('unlocked-perks-bar');
+            bar.innerHTML = '';
+            const list = getRedeemedCodes();
+            
+            let badges = [];
+            list.forEach(c => {
+                if (CREATOR_CODES[c] && CREATOR_CODES[c].badge) {
+                    badges.push(CREATOR_CODES[c].badge);
+                }
+            });
+
+            if (badges.length > 0) {
+                bar.style.display = 'flex';
+                badges.forEach(b => {
+                    const el = document.createElement('div');
+                    el.className = 'perk-pill';
+                    el.innerText = b;
+                    bar.appendChild(el);
+                });
+            } else {
+                bar.style.display = 'none';
+            }
         }
 
         function updateWallet() { 
-            const coins = parseInt(localStorage.getItem('arcade_coins')) || 0; 
+            const coins = getWalletCoins();
             document.getElementById('coin-count').innerText = coins.toLocaleString(); 
+            
+            const mult = getMultiplier();
+            const badge = document.getElementById('mult-badge');
+            if (mult > 1.0) {
+                badge.style.display = 'inline-block';
+                badge.innerText = `⚡ ${mult}X BOOST`;
+            } else {
+                badge.style.display = 'none';
+            }
         }
 
         function filterGames() {
@@ -555,6 +1157,7 @@
             });
         }
 
+        let currentFilter = 'ALL';
         function setCategory(cat, btn) {
             currentFilter = cat;
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -562,9 +1165,25 @@
             filterGames();
         }
 
+        function applyGlobalTheme() { 
+            const savedTheme = localStorage.getItem('arcade_theme') || 'neon'; 
+            const themes = { 
+                neon: { primary: '#00f3ff', accent: '#ff007f', bg: '#0b0f19', card: '#151d30' }, 
+                cyber: { primary: '#00ff66', accent: '#ff9900', bg: '#051a0e', card: '#0b2e1a' }, 
+                sunset: { primary: '#facc15', accent: '#ff007f', bg: '#2a081d', card: '#421232' }, 
+                purple: { primary: '#a855f7', accent: '#00f3ff', bg: '#12072b', card: '#231047' } 
+            }; 
+            const active = themes[savedTheme] || themes.neon; 
+            document.documentElement.style.setProperty('--primary', active.primary); 
+            document.documentElement.style.setProperty('--accent', active.accent); 
+            document.documentElement.style.setProperty('--bg', active.bg); 
+            document.documentElement.style.setProperty('--card', active.card); 
+        }
+
         document.addEventListener("DOMContentLoaded", () => { 
             applyGlobalTheme(); 
             updateWallet(); 
+            updatePerksBar();
         });
     </script>
 </body>
