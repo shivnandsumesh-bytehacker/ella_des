@@ -75,26 +75,39 @@
             font-weight: 900;
         }
 
-        /* Phonk Music Toggle Pill */
-        #music-pill {
+        /* Top Audio Controls Bar */
+        .audio-controls-bar {
             position: absolute;
             top: 10px;
             right: 14px;
-            background: rgba(15, 23, 42, 0.85);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 25;
+        }
+        .music-pill {
+            background: rgba(15, 23, 42, 0.88);
             border: 1.5px solid #a855f7;
             color: var(--p1-cyan);
-            padding: 4px 12px;
+            padding: 4px 10px;
             border-radius: 20px;
             font-size: 0.72rem;
             font-weight: bold;
             font-family: sans-serif;
             cursor: pointer;
-            z-index: 25;
             box-shadow: 0 4px 15px rgba(0,0,0,0.6);
             transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
-        #music-pill:active { transform: scale(0.94); background: var(--p1-cyan); color: #000; }
-        #music-pill.active { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 14px var(--gold); }
+        .music-pill:active { transform: scale(0.94); background: var(--p1-cyan); color: #000; }
+        .music-pill.active { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 14px var(--gold); }
+        .upload-pill {
+            background: rgba(30, 17, 56, 0.88);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
 
         #banner-popup {
             position: absolute;
@@ -289,7 +302,16 @@
     <div id="game-wrapper">
         <canvas id="game-canvas" width="1000" height="600"></canvas>
 
-        <div id="music-pill" onclick="togglePhonkMusic()">🎵 PHONK: OFF</div>
+        <!-- Audio Control Elements -->
+        <div class="audio-controls-bar">
+            <button class="music-pill" id="music-pill" onclick="toggleMusicPlayback()">🎵 MUSIC: OFF</button>
+            <label class="music-pill upload-pill" title="Upload and loop your own MP3/WAV file">
+                📁 Upload Song
+                <input type="file" id="custom-song-input" accept="audio/*" style="display:none;" onchange="handleSongUpload(event)">
+            </label>
+        </div>
+
+        <audio id="bgm-player" loop preload="auto"></audio>
 
         <div id="scoreboard">
             <div class="team-box">
@@ -341,7 +363,7 @@
     </div>
 
     <div class="controls-bar">
-        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Shoot/Steal | [E] <strong>SKILL</strong> | [M] <strong>PHONK BEATS</strong></div>
+        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Shoot/Steal | [E] <strong>SKILL</strong> | [M] <strong>PLAY/PAUSE MUSIC</strong></div>
         <div><strong>P2:</strong> [◀]/[▶] Move | [▲] Jump | [L/ENTER] Shoot/Steal | [O] <strong>SKILL</strong></div>
     </div>
 
@@ -354,21 +376,21 @@
         }
 
         // ==========================================
-        // PROCEDURAL DRIFT PHONK BEAT ENGINE
+        // DUAL AUDIO ENGINE: FILE UPLOADER + SYNTH
         // ==========================================
-        let isPhonkPlaying = false;
+        const bgmPlayer = document.getElementById('bgm-player');
+        let hasCustomSong = false;
+        let isMusicPlaying = false;
         let phonkStep = 0;
         let nextPhonkTime = 0;
         const PHONK_BPM = 138;
-        const STEP_DURATION = (60 / PHONK_BPM) / 4; // 16th note step
+        const STEP_DURATION = (60 / PHONK_BPM) / 4;
 
-        // Classic Drift Phonk Cowbell Frequencies (D-minor scale)
         const PHONK_NOTES = {
             D4: 293.66, F4: 349.23, G4: 392.00, Gs4: 415.30, A4: 440.00,
             C5: 523.25, D5: 587.33, F5: 698.46, G5: 783.99, Gs5: 830.61, A5: 880.00
         };
 
-        // 32-step Memphis Drift Phonk sequence
         const PHONK_COWBELL_PATTERN = [
             PHONK_NOTES.D5, null, null, PHONK_NOTES.D5, null, null, PHONK_NOTES.F5, null,
             PHONK_NOTES.G5, null, PHONK_NOTES.F5, null, PHONK_NOTES.D5, null, PHONK_NOTES.C5, null,
@@ -382,8 +404,6 @@
         function triggerPhonkCowbell(freq, time) {
             const ctx = getAudioContext();
             if (!ctx || !freq) return;
-
-            // Dual oscillator 808 cowbell with bandpass resonance
             const osc1 = ctx.createOscillator();
             const osc2 = ctx.createOscillator();
             const gain = ctx.createGain();
@@ -392,7 +412,7 @@
             osc1.type = 'square';
             osc2.type = 'square';
             osc1.frequency.setValueAtTime(freq, time);
-            osc2.frequency.setValueAtTime(freq * 1.485, time); // Ringing harmonic ratio
+            osc2.frequency.setValueAtTime(freq * 1.485, time);
 
             filter.type = 'bandpass';
             filter.frequency.setValueAtTime(freq * 1.15, time);
@@ -401,109 +421,73 @@
             gain.gain.setValueAtTime(0.24, time);
             gain.gain.exponentialRampToValueAtTime(0.001, time + 0.17);
 
-            osc1.connect(filter);
-            osc2.connect(filter);
-            filter.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc1.start(time);
-            osc2.start(time);
-            osc1.stop(time + 0.17);
-            osc2.stop(time + 0.17);
+            osc1.connect(filter); osc2.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+            osc1.start(time); osc2.start(time);
+            osc1.stop(time + 0.17); osc2.stop(time + 0.17);
         }
 
         function triggerPhonk808Kick(time) {
             const ctx = getAudioContext();
             if (!ctx) return;
-
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
-
             osc.type = 'sine';
             osc.frequency.setValueAtTime(145, time);
             osc.frequency.exponentialRampToValueAtTime(42, time + 0.08);
-
             gain.gain.setValueAtTime(0.48, time);
             gain.gain.exponentialRampToValueAtTime(0.001, time + 0.28);
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc.start(time);
-            osc.stop(time + 0.28);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(time); osc.stop(time + 0.28);
         }
 
         function triggerPhonkSnare(time) {
             const ctx = getAudioContext();
             if (!ctx) return;
-
             const bufferSize = ctx.sampleRate * 0.12;
             const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
             const noise = ctx.createBufferSource();
             noise.buffer = buffer;
             const filter = ctx.createBiquadFilter();
             filter.type = 'highpass';
             filter.frequency.value = 1100;
-
             const gain = ctx.createGain();
             gain.gain.setValueAtTime(0.28, time);
             gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
-
-            noise.connect(filter);
-            filter.connect(gain);
-            gain.connect(ctx.destination);
-
-            noise.start(time);
-            noise.stop(time + 0.12);
+            noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+            noise.start(time); noise.stop(time + 0.12);
         }
 
         function triggerPhonkHiHat(time, accent) {
             const ctx = getAudioContext();
             if (!ctx) return;
-
             const bufferSize = ctx.sampleRate * 0.04;
             const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
             const noise = ctx.createBufferSource();
             noise.buffer = buffer;
             const filter = ctx.createBiquadFilter();
             filter.type = 'highpass';
             filter.frequency.value = 7500;
-
             const gain = ctx.createGain();
             gain.gain.setValueAtTime(accent ? 0.12 : 0.06, time);
             gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
-
-            noise.connect(filter);
-            filter.connect(gain);
-            gain.connect(ctx.destination);
-
-            noise.start(time);
-            noise.stop(time + 0.04);
+            noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+            noise.start(time); noise.stop(time + 0.04);
         }
 
         function schedulePhonkSteps() {
-            if (!isPhonkPlaying) return;
+            if (!isMusicPlaying || hasCustomSong) return;
             const ctx = getAudioContext();
             if (!ctx) return;
 
             while (nextPhonkTime < ctx.currentTime + 0.1) {
-                // Cowbell melody
                 const note = PHONK_COWBELL_PATTERN[phonkStep];
                 if (note) triggerPhonkCowbell(note, nextPhonkTime);
-
-                // 808 Sub-Kick
                 if (PHONK_KICK_STEPS.includes(phonkStep)) triggerPhonk808Kick(nextPhonkTime);
-
-                // Snare Clap
                 if (PHONK_SNARE_STEPS.includes(phonkStep)) triggerPhonkSnare(nextPhonkTime);
-
-                // Trap Hi-Hat (Every 16th note, accent offbeats)
                 triggerPhonkHiHat(nextPhonkTime, phonkStep % 2 !== 0);
 
                 nextPhonkTime += STEP_DURATION;
@@ -511,19 +495,54 @@
             }
         }
 
-        function togglePhonkMusic() {
+        // Custom Song Upload Handler
+        function handleSongUpload(event) {
             getAudioContext();
-            isPhonkPlaying = !isPhonkPlaying;
+            const file = event.target.files[0];
+            if (file) {
+                const fileUrl = URL.createObjectURL(file);
+                bgmPlayer.src = fileUrl;
+                bgmPlayer.volume = 0.75;
+                bgmPlayer.play().then(() => {
+                    hasCustomSong = true;
+                    isMusicPlaying = true;
+                    const pill = document.getElementById('music-pill');
+                    pill.classList.add('active');
+                    const cleanName = file.name.length > 12 ? file.name.substring(0, 10) + '...' : file.name;
+                    pill.innerText = `🎵 ${cleanName.toUpperCase()}`;
+                    triggerBanner(`PLAYING: ${file.name.toUpperCase()} 🎧`);
+                }).catch(e => console.error(e));
+            }
+        }
+
+        function toggleMusicPlayback() {
+            getAudioContext();
             const pill = document.getElementById('music-pill');
-            if (isPhonkPlaying) {
-                pill.innerText = '🎵 PHONK: ON';
-                pill.classList.add('active');
-                nextPhonkTime = getAudioContext().currentTime + 0.05;
-                phonkStep = 0;
-                triggerBanner('🔥 PHONK BEATS ACTIVATED!');
+
+            if (hasCustomSong) {
+                if (bgmPlayer.paused) {
+                    bgmPlayer.play();
+                    isMusicPlaying = true;
+                    pill.classList.add('active');
+                    pill.innerText = '🎵 PLAYING';
+                } else {
+                    bgmPlayer.pause();
+                    isMusicPlaying = false;
+                    pill.classList.remove('active');
+                    pill.innerText = '🎵 PAUSED';
+                }
             } else {
-                pill.innerText = '🎵 PHONK: OFF';
-                pill.classList.remove('active');
+                isMusicPlaying = !isMusicPlaying;
+                if (isMusicPlaying) {
+                    pill.innerText = '🎵 PHONK: ON';
+                    pill.classList.add('active');
+                    nextPhonkTime = getAudioContext().currentTime + 0.05;
+                    phonkStep = 0;
+                    triggerBanner('🔥 PHONK BEATS ACTIVATED!');
+                } else {
+                    pill.innerText = '🎵 MUSIC: OFF';
+                    pill.classList.remove('active');
+                }
             }
         }
 
@@ -548,7 +567,7 @@
                     const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1800;
                     const g = ctx.createGain(); g.gain.setValueAtTime(0.25, t);
                     g.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
-                    src.connect(f); f.connect(g); g.connect(ctx.destination);
+                    src.connect(f); f.connect(ctx.destination);
                     src.start();
                 } else if (type === 'steal') {
                     const o = ctx.createOscillator(); const g = ctx.createGain();
@@ -574,7 +593,7 @@
                     const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2600;
                     const g = ctx.createGain(); g.gain.setValueAtTime(0.45, t);
                     g.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
-                    src.connect(f); f.connect(g); g.connect(ctx.destination);
+                    src.connect(f); f.connect(ctx.destination);
                     src.start();
                 } else if (type === 'dunk') {
                     const o = ctx.createOscillator(); const g = ctx.createGain();
@@ -596,6 +615,9 @@
             } catch(e){}
         }
 
+        // ==========================================
+        // ROSTER DATABASE (Includes Sharran)
+        // ==========================================
         const ROSTER = [
             {
                 id: 'kaijie',
@@ -618,6 +640,28 @@
                 earpiece: true,
                 tongueOut: false,
                 shirtColor: '#38bdf8'
+            },
+            {
+                id: 'sharran',
+                name: 'SHARRAN',
+                role: 'Titan Artillery 3PT',
+                heightCm: 192,
+                speed: 285,          // Slow but steady tank speed
+                jumpForce: 620,
+                shotAccuracy: 0.92,  // Lethal 3PT sniper
+                dunkReach: 170,      // Finishes at the rim
+                stealStat: 0.58,
+                defenseRating: 82,   // Broad body contest
+                skillName: 'Titan Artillery',
+                skillDesc: 'Immunity to contest penalty & faster release',
+                unlockCost: 0,
+                skin: '#d97706',
+                hair: 'crop',
+                glasses: false,
+                beard: false,
+                earpiece: false,
+                tongueOut: false,
+                shirtColor: '#059669' // Emerald Green
             },
             {
                 id: 'john',
@@ -841,8 +885,8 @@
             }
         ];
 
-        let selectedP1Idx = 1;
-        let selectedP2Idx = 2;
+        let selectedP1Idx = 2; // John
+        let selectedP2Idx = 3; // Shivnand
         let currentActivePicker = 1;
 
         function isPlayerUnlocked(player) {
@@ -1086,7 +1130,7 @@
         }
 
         function isShotContested(shooter, defender) {
-            if (shooter.skillActiveTimer > 0 && shooter.id === 'kd') return false;
+            if (shooter.skillActiveTimer > 0 && (shooter.id === 'kd' || shooter.id === 'sharran')) return false;
             const dist = Math.abs((shooter.x + shooter.width/2) - (defender.x + defender.width/2));
             const activeGuard = dist < 82 && (!defender.onGround || defender.defenseRating > 65);
             defender.isClamping = activeGuard;
@@ -1109,7 +1153,7 @@
             const distPenaltyRatio = Math.min(1.0, distToHoop / 650);
             let allowedGreenWindow = 0.11 * (1 - (distPenaltyRatio * 0.65));
 
-            if (shooter.skillActiveTimer > 0 && (shooter.id === 'kaijie' || shooter.id === 'curry')) {
+            if (shooter.skillActiveTimer > 0 && (shooter.id === 'kaijie' || shooter.id === 'curry' || shooter.id === 'sharran')) {
                 allowedGreenWindow = 0.35;
             }
 
@@ -1229,7 +1273,8 @@
             document.getElementById('end-title').innerText = winner;
             document.getElementById('final-score-text').innerText = `${p1Score} - ${p2Score}`;
 
-            const rewardCoins = p1Score * 10 + 20;
+            const multiplier = parseFloat(localStorage.getItem('arcade_multiplier')) || 1.0;
+            const rewardCoins = Math.round((p1Score * 10 + 20) * multiplier);
             let currentCoins = parseInt(localStorage.getItem('arcade_coins')) || 0;
             localStorage.setItem('arcade_coins', currentCoins + rewardCoins);
             updateCoinsDisplay();
@@ -1327,7 +1372,7 @@
             getAudioContext();
             keys[e.code] = true;
 
-            if (e.code === 'KeyM') togglePhonkMusic();
+            if (e.code === 'KeyM') toggleMusicPlayback();
 
             if (e.code === 'KeyW' && p1.onGround && !p1.isDunking && p1.stunTimer <= 0) {
                 p1.vy = -p1.jumpForce;
@@ -1512,7 +1557,6 @@
                 ball.y += ball.vy * dt;
                 ball.rotation += ball.vx * 0.015;
 
-                // Air Interception / Swat Block Check
                 [p1, p2].forEach(defender => {
                     if (ball.inFlight && ball.lastTouchedBy !== defender && !defender.onGround && defender.stunTimer <= 0) {
                         const defHandX = defender.x + defender.width / 2;
@@ -1586,7 +1630,6 @@
                     if (h.netWiggle > 0) h.netWiggle -= dt * 2;
                 });
 
-                // Rebound & loose ball retrieval
                 [p1, p2].forEach(p => {
                     if (p.pickupLockout <= 0 && p.stunTimer <= 0) {
                         const cx = p.x + p.width / 2;
@@ -1798,7 +1841,7 @@
                     const distPenaltyRatio = Math.min(1.0, distToHoop / 650);
 
                     let sweetHalf = 0.10 * (1 - (distPenaltyRatio * 0.65));
-                    if (p.skillActiveTimer > 0 && (p.id === 'kaijie' || p.id === 'curry')) sweetHalf = 0.30;
+                    if (p.skillActiveTimer > 0 && (p.id === 'kaijie' || p.id === 'curry' || p.id === 'sharran')) sweetHalf = 0.30;
 
                     ctx.fillStyle = '#22c55e';
                     const greenStart = meterW * (0.45 - sweetHalf);
