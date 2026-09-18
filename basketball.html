@@ -302,12 +302,14 @@
     <div id="game-wrapper">
         <canvas id="game-canvas" width="1000" height="600"></canvas>
 
-        <!-- Audio Control Elements -->
+        <!-- Audio Control Elements (Fixed for iOS/iPad Files App) -->
         <div class="audio-controls-bar">
-            <button class="music-pill" id="music-pill" onclick="toggleMusicPlayback()">🎵 MUSIC: OFF</button>
-            <label class="music-pill upload-pill" title="Upload and loop your own MP3/WAV file">
+            <button class="music-pill" id="music-pill" onclick="toggleMusicPlayback()">🔥 TRAP: OFF</button>
+            <label class="music-pill upload-pill" title="Upload and loop your own MP3/WAV/M4A song file">
                 📁 Upload Song
-                <input type="file" id="custom-song-input" accept="audio/*" style="display:none;" onchange="handleSongUpload(event)">
+                <input type="file" id="custom-song-input" 
+                       accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,audio/mpeg,audio/wav,audio/aac,audio/mp4,audio/x-m4a,video/mp4,video/quicktime" 
+                       style="display:none;" onchange="handleSongUpload(event)">
             </label>
         </div>
 
@@ -363,7 +365,7 @@
     </div>
 
     <div class="controls-bar">
-        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Shoot/Steal | [E] <strong>SKILL</strong> | [M] <strong>PLAY/PAUSE MUSIC</strong></div>
+        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Shoot/Steal | [E] <strong>SKILL</strong> | [M] <strong>TRAP BEATS</strong></div>
         <div><strong>P2:</strong> [◀]/[▶] Move | [▲] Jump | [L/ENTER] Shoot/Steal | [O] <strong>SKILL</strong></div>
     </div>
 
@@ -375,127 +377,173 @@
             return audioCtx;
         }
 
-        // ==========================================
-        // DUAL AUDIO ENGINE: FILE UPLOADER + SYNTH
-        // ==========================================
+        // ==============================================================
+        // PROCEDURAL TRAP BEAT ENGINE (140 BPM Hard Trap)
+        // ==============================================================
         const bgmPlayer = document.getElementById('bgm-player');
         let hasCustomSong = false;
         let isMusicPlaying = false;
-        let phonkStep = 0;
-        let nextPhonkTime = 0;
-        const PHONK_BPM = 138;
-        const STEP_DURATION = (60 / PHONK_BPM) / 4;
+        let trapStep = 0;
+        let nextTrapTime = 0;
+        const TRAP_BPM = 140;
+        const STEP_DURATION = (60 / TRAP_BPM) / 4; // 16th-note steps
 
-        const PHONK_NOTES = {
-            D4: 293.66, F4: 349.23, G4: 392.00, Gs4: 415.30, A4: 440.00,
-            C5: 523.25, D5: 587.33, F5: 698.46, G5: 783.99, Gs5: 830.61, A5: 880.00
+        // Dark Trap C-Minor Scale notes
+        const TRAP_NOTES = {
+            C4: 261.63, D4: 293.66, Eb4: 311.13, F4: 349.23,
+            G4: 392.00, Ab4: 415.30, Bb4: 466.16, C5: 523.25,
+            Eb5: 622.25, G5: 783.99
         };
 
-        const PHONK_COWBELL_PATTERN = [
-            PHONK_NOTES.D5, null, null, PHONK_NOTES.D5, null, null, PHONK_NOTES.F5, null,
-            PHONK_NOTES.G5, null, PHONK_NOTES.F5, null, PHONK_NOTES.D5, null, PHONK_NOTES.C5, null,
-            PHONK_NOTES.D5, null, null, PHONK_NOTES.Gs5, null, null, PHONK_NOTES.G5, null,
-            PHONK_NOTES.F5, null, PHONK_NOTES.D5, null, PHONK_NOTES.F5, null, PHONK_NOTES.C5, null
+        // Dark minor synth bell melody
+        const TRAP_MELODY = [
+            TRAP_NOTES.C5, null, TRAP_NOTES.Eb5, null, TRAP_NOTES.G4, null, TRAP_NOTES.Ab4, null,
+            TRAP_NOTES.G4, null, TRAP_NOTES.Eb4, null, TRAP_NOTES.D4, null, TRAP_NOTES.C4, null,
+            TRAP_NOTES.C5, null, TRAP_NOTES.Eb5, null, TRAP_NOTES.Bb4, null, TRAP_NOTES.Ab4, null,
+            TRAP_NOTES.G4, null, TRAP_NOTES.F4, null, TRAP_NOTES.Eb4, null, TRAP_NOTES.D4, null
         ];
 
-        const PHONK_KICK_STEPS = [0, 3, 6, 8, 11, 14, 16, 19, 22, 24, 27, 30];
-        const PHONK_SNARE_STEPS = [4, 12, 20, 28];
+        // Booming 808 Trap Kick pattern
+        const TRAP_808_STEPS = [0, 6, 10, 16, 22, 26];
+        // Crisp Trap Claps on Half-time Backbeats (Steps 8 & 24)
+        const TRAP_SNARE_STEPS = [8, 24];
+        // Rolling Hi-Hat triplets
+        const TRAP_ROLL_STEPS = [14, 15, 30, 31];
 
-        function triggerPhonkCowbell(freq, time) {
+        function triggerTrapMelody(freq, time) {
             const ctx = getAudioContext();
             if (!ctx || !freq) return;
-            const osc1 = ctx.createOscillator();
-            const osc2 = ctx.createOscillator();
-            const gain = ctx.createGain();
-            const filter = ctx.createBiquadFilter();
 
-            osc1.type = 'square';
-            osc2.type = 'square';
-            osc1.frequency.setValueAtTime(freq, time);
-            osc2.frequency.setValueAtTime(freq * 1.485, time);
-
-            filter.type = 'bandpass';
-            filter.frequency.setValueAtTime(freq * 1.15, time);
-            filter.Q.setValueAtTime(3.8, time);
-
-            gain.gain.setValueAtTime(0.24, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.17);
-
-            osc1.connect(filter); osc2.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-            osc1.start(time); osc2.start(time);
-            osc1.stop(time + 0.17); osc2.stop(time + 0.17);
-        }
-
-        function triggerPhonk808Kick(time) {
-            const ctx = getAudioContext();
-            if (!ctx) return;
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
+            const filter = ctx.createBiquadFilter();
+
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(145, time);
-            osc.frequency.exponentialRampToValueAtTime(42, time + 0.08);
-            gain.gain.setValueAtTime(0.48, time);
+            osc.frequency.setValueAtTime(freq, time);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(2400, time);
+
+            gain.gain.setValueAtTime(0.18, time);
             gain.gain.exponentialRampToValueAtTime(0.001, time + 0.28);
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(time); osc.stop(time + 0.28);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(time);
+            osc.stop(time + 0.28);
         }
 
-        function triggerPhonkSnare(time) {
+        function triggerHard808(time) {
             const ctx = getAudioContext();
             if (!ctx) return;
-            const bufferSize = ctx.sampleRate * 0.12;
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            // Pitch slide from punch down to deep sub-bass
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(130, time);
+            osc.frequency.exponentialRampToValueAtTime(38, time + 0.12);
+
+            gain.gain.setValueAtTime(0.55, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.38);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(time);
+            osc.stop(time + 0.38);
+        }
+
+        function triggerTrapSnare(time) {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+
+            // White noise burst for the snap
+            const bufferSize = ctx.sampleRate * 0.14;
             const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
             const noise = ctx.createBufferSource();
             noise.buffer = buffer;
+
             const filter = ctx.createBiquadFilter();
             filter.type = 'highpass';
-            filter.frequency.value = 1100;
+            filter.frequency.value = 950;
+
             const gain = ctx.createGain();
-            gain.gain.setValueAtTime(0.28, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
-            noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-            noise.start(time); noise.stop(time + 0.12);
+            gain.gain.setValueAtTime(0.32, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+
+            noise.start(time);
+            noise.stop(time + 0.14);
         }
 
-        function triggerPhonkHiHat(time, accent) {
+        function triggerTrapHiHat(time, isRoll) {
             const ctx = getAudioContext();
             if (!ctx) return;
-            const bufferSize = ctx.sampleRate * 0.04;
+
+            const bufferSize = ctx.sampleRate * (isRoll ? 0.025 : 0.04);
             const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
             const noise = ctx.createBufferSource();
             noise.buffer = buffer;
+
             const filter = ctx.createBiquadFilter();
             filter.type = 'highpass';
-            filter.frequency.value = 7500;
+            filter.frequency.value = 8000;
+
             const gain = ctx.createGain();
-            gain.gain.setValueAtTime(accent ? 0.12 : 0.06, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
-            noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-            noise.start(time); noise.stop(time + 0.04);
+            gain.gain.setValueAtTime(isRoll ? 0.12 : 0.07, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + (isRoll ? 0.025 : 0.04));
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+
+            noise.start(time);
+            noise.stop(time + (isRoll ? 0.025 : 0.04));
         }
 
-        function schedulePhonkSteps() {
+        function scheduleTrapSteps() {
             if (!isMusicPlaying || hasCustomSong) return;
             const ctx = getAudioContext();
             if (!ctx) return;
 
-            while (nextPhonkTime < ctx.currentTime + 0.1) {
-                const note = PHONK_COWBELL_PATTERN[phonkStep];
-                if (note) triggerPhonkCowbell(note, nextPhonkTime);
-                if (PHONK_KICK_STEPS.includes(phonkStep)) triggerPhonk808Kick(nextPhonkTime);
-                if (PHONK_SNARE_STEPS.includes(phonkStep)) triggerPhonkSnare(nextPhonkTime);
-                triggerPhonkHiHat(nextPhonkTime, phonkStep % 2 !== 0);
+            while (nextTrapTime < ctx.currentTime + 0.1) {
+                // Melody note
+                const note = TRAP_MELODY[trapStep];
+                if (note) triggerTrapMelody(note, nextTrapTime);
 
-                nextPhonkTime += STEP_DURATION;
-                phonkStep = (phonkStep + 1) % 32;
+                // Deep 808
+                if (TRAP_808_STEPS.includes(trapStep)) triggerHard808(nextTrapTime);
+
+                // Snare Clap
+                if (TRAP_SNARE_STEPS.includes(trapStep)) triggerTrapSnare(nextTrapTime);
+
+                // Hi-Hats & Rolls
+                if (TRAP_ROLL_STEPS.includes(trapStep)) {
+                    triggerTrapHiHat(nextTrapTime, true);
+                    triggerTrapHiHat(nextTrapTime + (STEP_DURATION / 2), true);
+                } else {
+                    triggerTrapHiHat(nextTrapTime, false);
+                }
+
+                nextTrapTime += STEP_DURATION;
+                trapStep = (trapStep + 1) % 32;
             }
         }
 
-        // Custom Song Upload Handler
+        // Custom Song Upload Handler (Seamless on iPad Files & PC)
         function handleSongUpload(event) {
             getAudioContext();
             const file = event.target.files[0];
@@ -511,7 +559,7 @@
                     const cleanName = file.name.length > 12 ? file.name.substring(0, 10) + '...' : file.name;
                     pill.innerText = `🎵 ${cleanName.toUpperCase()}`;
                     triggerBanner(`PLAYING: ${file.name.toUpperCase()} 🎧`);
-                }).catch(e => console.error(e));
+                }).catch(e => console.error("Playback error:", e));
             }
         }
 
@@ -534,13 +582,13 @@
             } else {
                 isMusicPlaying = !isMusicPlaying;
                 if (isMusicPlaying) {
-                    pill.innerText = '🎵 PHONK: ON';
+                    pill.innerText = '🔥 TRAP: ON';
                     pill.classList.add('active');
-                    nextPhonkTime = getAudioContext().currentTime + 0.05;
-                    phonkStep = 0;
-                    triggerBanner('🔥 PHONK BEATS ACTIVATED!');
+                    nextTrapTime = getAudioContext().currentTime + 0.05;
+                    trapStep = 0;
+                    triggerBanner('🔥 HARD TRAP BEATS ACTIVATED!');
                 } else {
-                    pill.innerText = '🎵 MUSIC: OFF';
+                    pill.innerText = '🔥 TRAP: OFF';
                     pill.classList.remove('active');
                 }
             }
@@ -616,7 +664,7 @@
         }
 
         // ==========================================
-        // ROSTER DATABASE (Includes Sharran)
+        // ROSTER DATABASE (Includes Sharran & All)
         // ==========================================
         const ROSTER = [
             {
@@ -646,12 +694,12 @@
                 name: 'SHARRAN',
                 role: 'Titan Artillery 3PT',
                 heightCm: 192,
-                speed: 285,          // Slow but steady tank speed
+                speed: 285,
                 jumpForce: 620,
-                shotAccuracy: 0.92,  // Lethal 3PT sniper
-                dunkReach: 170,      // Finishes at the rim
+                shotAccuracy: 0.92,
+                dunkReach: 170,
                 stealStat: 0.58,
-                defenseRating: 82,   // Broad body contest
+                defenseRating: 82,
                 skillName: 'Titan Artillery',
                 skillDesc: 'Immunity to contest penalty & faster release',
                 unlockCost: 0,
@@ -661,7 +709,7 @@
                 beard: false,
                 earpiece: false,
                 tongueOut: false,
-                shirtColor: '#059669' // Emerald Green
+                shirtColor: '#059669'
             },
             {
                 id: 'john',
@@ -885,8 +933,8 @@
             }
         ];
 
-        let selectedP1Idx = 2; // John
-        let selectedP2Idx = 3; // Shivnand
+        let selectedP1Idx = 2; // Default John
+        let selectedP2Idx = 3; // Default Shivnand
         let currentActivePicker = 1;
 
         function isPlayerUnlocked(player) {
@@ -1880,7 +1928,7 @@
             const dt = Math.min((time - lastTime) / 1000, 0.02);
             lastTime = time;
 
-            schedulePhonkSteps();
+            scheduleTrapSteps();
             updateAI(dt);
             updatePhysics(dt);
             render();
