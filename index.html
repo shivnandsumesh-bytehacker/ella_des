@@ -47,7 +47,7 @@
             overflow-x: hidden;
         }
 
-        /* Top Header Bar */
+        /* Header Bar */
         header { 
             width: 100%; 
             max-width: 1140px; 
@@ -401,7 +401,7 @@
             margin-bottom: 12px;
         }
 
-        /* Hints / Codex Box */
+        /* Codex Box */
         .codex-box {
             background: rgba(9, 14, 26, 0.7);
             border: 1px solid var(--card-border);
@@ -438,7 +438,6 @@
             font-family: monospace;
         }
 
-        /* Confetti Canvas */
         #confetti-canvas {
             position: fixed;
             inset: 0;
@@ -448,7 +447,6 @@
             z-index: 2000;
         }
 
-        /* Footer & Credits */
         footer {
             width: 100%;
             max-width: 1140px;
@@ -527,7 +525,6 @@
         </div>
     </header>
 
-    <!-- Unlocked Secrets & Active Perks Bar -->
     <div id="unlocked-perks-bar"></div>
 
     <div class="controls-bar">
@@ -543,6 +540,14 @@
     </div>
 
     <div class="grid" id="games-grid">
+        <!-- Darry's Bus Terminal (3D Bus Simulator) -->
+        <a href="bus.html" class="card" data-cat="3D" data-title="Darry's Bus Terminal 3D Sunshine Simulator">
+            <span class="badge badge-hot">MULTIPLAYER</span>
+            <span class="icon">🚌</span>
+            <h3>Darry’s Bus Terminal</h3>
+            <p>Routes, Double Deckers & Convoy</p>
+        </a>
+
         <!-- Cyber Tetris -->
         <a href="tetris.html" class="card" data-cat="PUZZLE" data-title="Cyber Tetris">
             <span class="badge badge-new">DAS/ARR</span>
@@ -601,7 +606,7 @@
 
         <!-- Basketball Legends -->
         <a href="basketball.html" class="card" data-cat="ACTION" data-title="Basketball Legends Rivals">
-            <span class="badge badge-hot">PHONK</span>
+            <span class="badge badge-hot">TRAP</span>
             <span class="icon">🏀</span>
             <h3>Basketball Legends</h3>
             <p>2P, Skills, Steals & All-Stars</p>
@@ -672,10 +677,11 @@
         </a>
 
         <!-- Cyber Maze -->
-        <a href="maze.html" class="card" data-cat="PUZZLE" data-title="Cyber Maze">
+        <a href="maze.html" class="card" data-cat="PUZZLE" data-title="Cyber Maze Neon Escape">
+            <span class="badge badge-new">RADAR</span>
             <span class="icon">🌀</span>
             <h3>Cyber Maze</h3>
-            <p>Find the exit path</p>
+            <p>BFS radar, chips & lantern</p>
         </a>
 
         <!-- Color Catch -->
@@ -760,13 +766,9 @@
         <div class="footer-note">© 2026 Cyber Arcade Engine • Universal Cross-Game Progression</div>
     </footer>
 
-    <!-- Optional external AI script -->
     <script src="canming-ai.js"></script>
 
     <script>
-        // ==========================================
-        // AUDIO SYNTHESIZER FOR REDEMPTION FX
-        // ==========================================
         let audioCtx = null;
         function getAudioContext() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -821,9 +823,6 @@
             } catch(e){}
         }
 
-        // ==========================================
-        // CONFETTI CELEBRATION ENGINE
-        // ==========================================
         const confettiCanvas = document.getElementById('confetti-canvas');
         const cCtx = confettiCanvas.getContext('2d');
         let confettiParticles = [];
@@ -861,7 +860,7 @@
                 const p = confettiParticles[i];
                 p.x += p.vx;
                 p.y += p.vy;
-                p.vy += 0.45; // gravity
+                p.vy += 0.45;
                 p.vx *= 0.98;
                 p.rot += p.vRot;
                 p.alpha -= 0.012;
@@ -886,9 +885,6 @@
             }
         }
 
-        // ==========================================
-        // CREATOR CODE DATABASE & STATE
-        // ==========================================
         function getWalletCoins() {
             return parseInt(localStorage.getItem('arcade_coins')) || 0;
         }
@@ -924,7 +920,6 @@
             updatePerksBar();
         }
 
-        // 10+ Authentic & Secret Creator Codes
         const CREATOR_CODES = {
             'SHIVNAND': {
                 name: 'Main Developer Vault',
@@ -1047,7 +1042,6 @@
 
             const promo = CREATOR_CODES[raw];
             if (promo) {
-                // Apply Rewards
                 if (promo.rewardCoins) {
                     const current = getWalletCoins();
                     setWalletCoins(current + promo.rewardCoins);
@@ -1082,7 +1076,6 @@
             }
         }
 
-        // Click the Brand Logo 5 times rapidly for a secret easter egg
         let logoTaps = 0;
         let lastLogoTapTime = 0;
         function handleLogoClick() {
