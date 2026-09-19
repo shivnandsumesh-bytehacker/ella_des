@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Darry's Bus terminal 3D - Pro Edition</title>
+    <title>Darry's Bus Terminal - 3D Simulator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -14,7 +14,7 @@
             --gold: #facc15;
             --emerald: #10b981;
             --danger: #ef4444;
-            --panel: rgba(15, 23, 42, 0.92);
+            --panel: rgba(11, 19, 41, 0.94);
             --card: rgba(30, 41, 59, 0.85);
         }
         * { box-sizing: border-box; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -28,7 +28,25 @@
         #canvas-container { position: absolute; inset: 0; width: 100%; height: 100%; }
         #webgl-canvas { width: 100% !important; height: 100% !important; display: block; }
 
-        /* HUD Top Bar */
+        /* Route Loading Overlay with Elevation Profile */
+        #loading-screen {
+            position: fixed; inset: 0; background: #0b0f19; z-index: 500;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; transition: opacity 0.5s ease;
+        }
+        .loading-title { font-size: 1.8rem; font-weight: 900; color: var(--gold); margin-bottom: 8px; }
+        .loading-route { font-size: 1.1rem; color: #fff; margin-bottom: 16px; font-weight: bold; }
+        #elevation-canvas {
+            background: #020617; border: 1.5px solid var(--primary);
+            border-radius: 8px; margin-bottom: 16px; max-width: 90vw;
+        }
+        .progress-bar-wrap {
+            width: 320px; max-width: 85vw; height: 10px; background: #1e293b;
+            border-radius: 10px; overflow: hidden; border: 1px solid #475569;
+        }
+        #loading-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--emerald)); transition: width 0.15s; }
+
+        /* HUD Top Navigation */
         .hud-top {
             position: absolute; top: max(10px, env(safe-area-inset-top)); left: 12px; right: 12px;
             display: flex; justify-content: space-between; align-items: flex-start;
@@ -36,54 +54,88 @@
         }
         .hud-card {
             background: var(--panel); border: 1.5px solid rgba(0, 243, 255, 0.4);
-            border-radius: 12px; padding: 8px 14px; backdrop-filter: blur(8px);
+            border-radius: 12px; padding: 6px 12px; backdrop-filter: blur(8px);
             box-shadow: 0 4px 20px rgba(0,0,0,0.6); pointer-events: auto;
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
         }
 
         .hud-route {
             display: flex; flex-direction: column; align-items: center; text-align: center;
             background: var(--panel); border: 1.5px solid var(--primary);
-            border-radius: 12px; padding: 6px 18px; backdrop-filter: blur(8px);
+            border-radius: 12px; padding: 4px 14px; backdrop-filter: blur(8px); min-width: 210px;
         }
-        .route-number { font-size: 1.4rem; font-weight: 900; color: var(--gold); line-height: 1; }
-        .route-dest { font-size: 0.78rem; font-weight: bold; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
-        .route-next { font-size: 0.68rem; color: var(--primary); font-family: monospace; }
+        .route-number { font-size: 1.3rem; font-weight: 900; color: var(--gold); line-height: 1; }
+        .route-dest { font-size: 0.76rem; font-weight: bold; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
+        .route-next { font-size: 0.65rem; color: var(--primary); font-family: monospace; }
 
         .speedo-cluster {
             display: flex; flex-direction: column; align-items: flex-end;
             background: var(--panel); border: 1.5px solid rgba(0, 243, 255, 0.4);
-            border-radius: 12px; padding: 6px 16px; backdrop-filter: blur(8px);
+            border-radius: 12px; padding: 6px 14px; backdrop-filter: blur(8px);
         }
-        .speedo-val { font-size: 2.2rem; font-weight: 900; line-height: 1; font-family: monospace; }
+        .speedo-val { font-size: 2.1rem; font-weight: 900; line-height: 1; font-family: monospace; }
         .speedo-unit { font-size: 0.65rem; color: #94a3b8; font-weight: 800; }
+        .prnd-val { font-size: 0.8rem; font-weight: 900; color: var(--gold); }
         .speed-limit-badge {
-            background: var(--danger); color: #fff; font-size: 0.7rem; font-weight: 900;
+            background: var(--danger); color: #fff; font-size: 0.65rem; font-weight: 900;
             padding: 1px 6px; border-radius: 4px; margin-top: 2px;
         }
 
-        /* Passenger Complaint Alert Banner */
+        /* Dual Overhead CCTV Screen Monitors */
+        #cctv-container {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 8px; z-index: 22; pointer-events: none;
+        }
+        .cctv-box {
+            width: 110px; height: 68px; background: #000; border: 2px solid #475569;
+            border-radius: 6px; overflow: hidden; position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+        }
+        .cctv-label {
+            position: absolute; top: 2px; left: 4px; font-size: 0.5rem;
+            color: #22c55e; font-family: monospace; font-weight: bold; z-index: 2;
+        }
+        .cctv-box canvas { width: 100%; height: 100%; display: block; }
+
+        /* Passenger Complaint Warning Banner */
         #complaint-banner {
-            position: absolute; top: 85px; left: 50%; transform: translateX(-50%) scale(0);
-            background: rgba(239, 68, 68, 0.95); color: #fff; font-weight: 900;
-            font-size: 0.95rem; padding: 8px 24px; border-radius: 20px;
-            box-shadow: 0 0 25px rgba(239, 68, 68, 0.8); border: 2px solid #fff;
+            position: absolute; top: 86px; left: 50%; transform: translateX(-50%) scale(0);
+            background: rgba(220, 38, 38, 0.95); color: #fff; font-weight: 900;
+            font-size: 0.92rem; padding: 8px 22px; border-radius: 20px;
+            box-shadow: 0 0 25px rgba(220, 38, 38, 0.8); border: 2px solid #fff;
             pointer-events: none; z-index: 50; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex; align-items: center; gap: 8px;
         }
 
-        /* In-Cab Mini Schedule Phone */
+        /* Road Turn Slow-Down Advance Warning Sign */
+        #turn-warning-box {
+            position: absolute; top: 126px; left: 50%; transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.9); border: 2px solid #facc15;
+            border-radius: 12px; padding: 6px 16px; color: #facc15;
+            font-weight: 900; font-size: 0.85rem; display: none; align-items: center; gap: 8px;
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.4); z-index: 25; pointer-events: none;
+        }
+
+        /* Docking Guidance Prompt */
+        #docking-prompt {
+            position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
+            background: rgba(16, 185, 129, 0.95); color: #000; font-weight: 900;
+            font-size: 0.88rem; padding: 6px 20px; border-radius: 12px;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); z-index: 25; display: none;
+        }
+
+        /* In-Cab Driver Smartphone Mount */
         #driver-phone {
-            position: absolute; bottom: 85px; left: 16px; width: 140px;
-            background: rgba(15, 23, 42, 0.95); border: 2px solid #334155;
-            border-radius: 14px; padding: 8px; font-size: 0.68rem; font-family: sans-serif;
+            position: absolute; bottom: 85px; left: 16px; width: 155px;
+            background: rgba(15, 23, 42, 0.96); border: 2px solid #334155;
+            border-radius: 14px; padding: 8px; font-size: 0.65rem; font-family: sans-serif;
             box-shadow: 0 8px 25px rgba(0,0,0,0.8); z-index: 25; pointer-events: auto;
         }
         .phone-header { font-weight: 900; color: var(--primary); text-transform: uppercase; border-bottom: 1px solid #334155; padding-bottom: 4px; margin-bottom: 4px; }
         .phone-stop-item { display: flex; justify-content: space-between; padding: 2px 0; color: #cbd5e1; }
         .phone-stop-item.current { color: var(--gold); font-weight: bold; }
 
-        /* Mobile Touch Controls */
+        /* Mobile Controls */
         .touch-zone { position: absolute; bottom: 14px; display: flex; gap: 8px; z-index: 30; touch-action: none; }
         #touch-left { left: 14px; }
         #touch-right { right: 14px; }
@@ -93,7 +145,6 @@
             border: 2px solid var(--primary); border-radius: 12px; color: #fff;
             font-weight: 900; font-size: 0.85rem; display: flex; flex-direction: column;
             align-items: center; justify-content: center; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
         }
         .pedal-btn:active { background: var(--primary); color: #000; transform: scale(0.95); }
         .pedal-btn.brake { border-color: var(--danger); }
@@ -102,7 +153,7 @@
         .ctrl-btn {
             width: 48px; height: 48px; background: rgba(30, 41, 59, 0.85);
             border: 1.5px solid var(--primary); border-radius: 10px; color: #fff;
-            font-size: 0.72rem; font-weight: bold; display: flex; flex-direction: column;
+            font-size: 0.68rem; font-weight: bold; display: flex; flex-direction: column;
             align-items: center; justify-content: center; cursor: pointer;
         }
         .ctrl-btn:active, .ctrl-btn.active { background: var(--primary); color: #000; }
@@ -110,11 +161,11 @@
         /* Action Desk Bar */
         .hud-actions-bar {
             position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 6px; background: var(--panel); border: 1px solid rgba(0,243,255,0.4);
-            border-radius: 12px; padding: 5px 12px; z-index: 25; max-width: 95vw; overflow-x: auto;
+            display: flex; gap: 5px; background: var(--panel); border: 1px solid rgba(0,243,255,0.4);
+            border-radius: 12px; padding: 4px 10px; z-index: 25; max-width: 95vw; overflow-x: auto;
         }
 
-        /* Full Modals */
+        /* Modals */
         .modal {
             position: fixed; inset: 0; background: rgba(3, 7, 18, 0.95);
             backdrop-filter: blur(12px); display: none; flex-direction: column;
@@ -122,15 +173,16 @@
         }
         .modal-card {
             background: var(--panel); border: 2px solid var(--primary);
-            border-radius: 16px; padding: 20px; max-width: 780px; width: 95%;
+            border-radius: 16px; padding: 18px; max-width: 860px; width: 95%;
             max-height: 85vh; overflow-y: auto; text-align: left;
             box-shadow: 0 0 40px var(--primary-glow);
         }
-        .modal-title { margin: 0 0 12px 0; color: var(--gold); font-size: 1.4rem; font-weight: 900; display: flex; justify-content: space-between; }
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+        .modal-title { margin: 0 0 12px 0; color: var(--gold); font-size: 1.3rem; font-weight: 900; display: flex; justify-content: space-between; }
+        .fleet-category-header { margin: 12px 0 6px 0; color: var(--primary); font-size: 0.88rem; font-weight: 900; text-transform: uppercase; border-bottom: 1px solid #334155; padding-bottom: 2px; }
+        .grid-fleet { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
         .selection-card {
             background: rgba(30, 41, 59, 0.6); border: 1.5px solid #334155; border-radius: 10px;
-            padding: 10px; cursor: pointer; transition: all 0.15s;
+            padding: 8px; cursor: pointer; transition: all 0.15s; font-size: 0.78rem;
         }
         .selection-card:hover, .selection-card.active {
             border-color: var(--primary); background: rgba(0, 243, 255, 0.15); transform: translateY(-2px);
@@ -138,8 +190,8 @@
 
         .btn {
             background: linear-gradient(135deg, var(--primary), #0284c7); color: #000;
-            border: none; border-radius: 8px; padding: 8px 18px; font-weight: 900;
-            font-size: 0.85rem; cursor: pointer; text-transform: uppercase;
+            border: none; border-radius: 8px; padding: 6px 14px; font-weight: 900;
+            font-size: 0.78rem; cursor: pointer; text-transform: uppercase;
         }
         .btn:active { transform: scale(0.96); }
         .btn.gold { background: linear-gradient(135deg, var(--gold), #f59e0b); }
@@ -147,11 +199,22 @@
 </head>
 <body>
 
+    <!-- Route Loading Profile Screen -->
+    <div id="loading-screen">
+        <div class="loading-title">SUNSHINE ISLANDS GENERAL MAP</div>
+        <div class="loading-route" id="loading-route-desc">Route 46 • Lunar Point ⮂ Eastmallow Praya Road[cite: 2]</div>
+        <canvas id="elevation-canvas" width="400" height="140"></canvas>
+        <div class="progress-bar-wrap">
+            <div id="loading-fill"></div>
+        </div>
+        <div style="font-size:0.75rem; color:#94a3b8; margin-top:8px;">Generating Archipelago Roads & Highway Viaducts...[cite: 2]</div>
+    </div>
+
     <div id="canvas-container">
         <canvas id="webgl-canvas"></canvas>
     </div>
 
-    <!-- Top HUD -->
+    <!-- HUD Top Navigation -->
     <div class="hud-top">
         <div class="hud-card">
             <button class="btn" onclick="toggleModal('modal-routes', true)">🗺️ Routes</button>
@@ -164,155 +227,261 @@
         <div class="hud-route">
             <span class="route-number" id="hud-route-num">46</span>
             <span class="route-dest" id="hud-route-dest">Eastmallow Praya Road</span>
-            <span class="route-next" id="hud-route-next">Next: Lunar Point (117m)</span>
+            <span class="route-next" id="hud-route-next">Next: Lunar Point (117m)[cite: 2]</span>
         </div>
 
         <div class="speedo-cluster">
             <span class="speedo-val" id="speed-display">0</span>
             <span class="speedo-unit">KM / H</span>
-            <div class="speed-limit-badge" id="speed-limit-tag">LIMIT: 70</div>
+            <span class="prnd-val" id="hud-prnd">D</span>
+            <div class="speed-limit-badge" id="speed-limit-tag">LIMIT: 70[cite: 2]</div>
         </div>
     </div>
 
-    <!-- Passenger Complaint Alert Banner[cite: 2] -->
+    <!-- Dual Overhead CCTV Screen Feeds -->
+    <div id="cctv-container">
+        <div class="cctv-box">
+            <span class="cctv-label">CAM 1: REAR DOOR[cite: 2]</span>
+            <canvas id="cctv-canvas-1" width="110" height="68"></canvas>
+        </div>
+        <div class="cctv-box">
+            <span class="cctv-label">CAM 2: UPPER DECK[cite: 2]</span>
+            <canvas id="cctv-canvas-2" width="110" height="68"></canvas>
+        </div>
+    </div>
+
+    <!-- Passenger Complaint Alert Banner -->
     <div id="complaint-banner">
         <span>⚠️</span>
-        <span id="complaint-text">Passenger complained the turn is too fast!</span>
+        <span id="complaint-text">Passenger complained the turn is too fast![cite: 2]</span>
     </div>
 
-    <!-- Driver Phone Schedule Console[cite: 2] -->
+    <!-- Road Turn Slow-Down Advance Warning Sign -->
+    <div id="turn-warning-box">
+        <span>⚠️ SLOW DOWN</span>
+        <span id="turn-warning-dist">75m[cite: 2]</span>
+    </div>
+
+    <!-- Docking Guidance Prompt -->
+    <div id="docking-prompt">Hold Parking Brake [P] to lock the bus and open doors[cite: 2]</div>
+
+    <!-- Driver Smartphone Schedule -->
     <div id="driver-phone">
-        <div class="phone-header">📱 Route Schedule</div>
-        <div class="phone-stop-item current" id="sched-stop-0">1. Sunshine Depot [DEP]</div>
-        <div class="phone-stop-item" id="sched-stop-1">2. Lunar Point (117m)</div>
-        <div class="phone-stop-item" id="sched-stop-2">3. Central Bridge (1.2km)</div>
-        <div class="phone-stop-item" id="sched-stop-3">4. Eastmallow Main</div>
-        <div style="margin-top:4px; font-size:0.6rem; color:var(--emerald);">Status: On Time (+0.0s)</div>
+        <div class="phone-header">📱 Route Schedule[cite: 2]</div>
+        <div class="phone-stop-item current" id="sched-stop-0">1. Sunshine Depot [DEP][cite: 2]</div>
+        <div class="phone-stop-item" id="sched-stop-1">2. Lunar Point (117m)[cite: 2]</div>
+        <div class="phone-stop-item" id="sched-stop-2">3. Central Viaduct (420m)[cite: 2]</div>
+        <div class="phone-stop-item" id="sched-stop-3">4. Eastmallow Praya (690m)[cite: 2]</div>
+        <div style="margin-top:4px; font-size:0.58rem; color:var(--emerald);">Status: On Time (+0.0s)[cite: 2]</div>
     </div>
 
-    <!-- Touch Steering & Controls for Mobile / iPad -->
+    <!-- Mobile Touch Controls -->
     <div class="touch-zone" id="touch-left">
-        <button class="ctrl-btn" id="touch-steer-l" style="width:60px; height:60px; font-size:1.2rem;">◀</button>
-        <button class="ctrl-btn" id="touch-steer-r" style="width:60px; height:60px; font-size:1.2rem;">▶</button>
+        <button class="ctrl-btn" id="touch-steer-l" style="width:58px; height:58px; font-size:1.2rem;">◀</button>
+        <button class="ctrl-btn" id="touch-steer-r" style="width:58px; height:58px; font-size:1.2rem;">▶</button>
     </div>
 
     <div class="touch-zone" id="touch-right">
         <button class="pedal-btn brake" id="touch-brake">BRAKE<br><small>[S]</small></button>
-        <button class="pedal-btn" id="touch-gas">THROTTLE<br><small>[W]</small></button>
+        <button class="pedal-btn" id="touch-gas">GAS<br><small>[W]</small></button>
     </div>
 
     <!-- Bottom Actions Bar -->
     <div class="hud-actions-bar">
-        <button class="ctrl-btn" id="btn-door-f" onclick="toggleFrontDoor()">🚪<br>F-DOOR</button>
-        <button class="ctrl-btn" id="btn-door-r" onclick="toggleRearDoor()">🚪<br>R-DOOR</button>
-        <button class="ctrl-btn" id="btn-handbrake" onclick="toggleHandbrake()">🛑<br>PARK [P]</button>
-        <button class="ctrl-btn" id="btn-gear" onclick="cycleGear()">⚙️<br>D / N / R</button>
+        <button class="ctrl-btn" id="btn-door-f" onclick="toggleFrontDoor()">🚪<br>F-DOOR [T]</button>
+        <button class="ctrl-btn" id="btn-door-r" onclick="toggleRearDoor()">🚪<br>R-DOOR [Y]</button>
+        <button class="ctrl-btn" id="btn-handbrake" onclick="toggleHandbrake()">🛑<br>PARK [P][cite: 2]</button>
+        <button class="ctrl-btn" id="btn-gear" onclick="cycleGear()">⚙️<br>D / N / R[cite: 2]</button>
         <button class="ctrl-btn" onclick="honkHorn()">📯<br>HORN [H]</button>
         <button class="ctrl-btn" onclick="cycleCamera()">🎥<br>CAM [C]</button>
-        <button class="ctrl-btn" id="btn-cctv" onclick="toggleCCTV()">📺<br>CCTV</button>
+        <button class="ctrl-btn" id="btn-walk" onclick="toggleWalkMode()">🚶<br>WALK [V][cite: 2]</button>
     </div>
 
-    <!-- Route Selector Modal[cite: 2] -->
+    <!-- Routes Modal -->
     <div id="modal-routes" class="modal">
         <div class="modal-card">
             <div class="modal-title">
-                <span>🗺️ SELECT BUS ROUTE (SUNSHINE ISLANDS)</span>
+                <span>🗺️ SELECT BUS ROUTE (SUNSHINE ISLANDS)[cite: 2]</span>
                 <button class="btn" onclick="toggleModal('modal-routes', false)">✕</button>
             </div>
-            <div class="grid-2">
+            <div class="fleet-category-header">Local Shuttles & Connectors</div>
+            <div class="grid-fleet">
                 <div class="selection-card active" onclick="selectRoute(46)">
-                    <strong style="color:var(--gold);">Route 46</strong> • Local Shuttle<br>
-                    <small>Lunar Point ⮂ Eastmallow Praya Road (3.5 km)</small>
+                    <strong style="color:var(--gold);">Route 46</strong> • Local Shuttle[cite: 2]<br>
+                    <small>Eastmallow Praya Road ⮂ Lunar Point (3.5 km, 7 stops)[cite: 2]</small>
                 </div>
+                <div class="selection-card" onclick="selectRoute('U47')">
+                    <strong style="color:#a855f7;">Route U47</strong> • University Connector[cite: 2]<br>
+                    <small>North Sunshine University ⮂ Hotel Symbol (5.5 km)[cite: 2]</small>
+                </div>
+            </div>
+
+            <div class="fleet-category-header">Trunk Island & Highway Routes</div>
+            <div class="grid-fleet">
                 <div class="selection-card" onclick="selectRoute('41A')">
-                    <strong style="color:var(--primary);">Route 41A</strong> • Coastal Trunk<br>
-                    <small>Sunshine Pier ⮂ Northern Beach (6.6 km)</small>
+                    <strong style="color:var(--primary);">Route 41A</strong> • Coastal Trunk[cite: 2]<br>
+                    <small>Sunshine Pier ⮂ Northern Beach (6.6 km, 14 stops)[cite: 2]</small>
                 </div>
                 <div class="selection-card" onclick="selectRoute(42)">
-                    <strong style="color:var(--emerald);">Route 42</strong> • Island Express<br>
-                    <small>Southern Bus Terminus ⮂ Rocky Road (12.5 km)</small>
+                    <strong style="color:var(--emerald);">Route 42</strong> • Island Trunk[cite: 2]<br>
+                    <small>Southern Bus Terminus ⮂ Rocky Road (12.5 km, 22 stops)[cite: 2]</small>
                 </div>
                 <div class="selection-card" onclick="selectRoute(171)">
-                    <strong style="color:var(--accent);">Route 171</strong> • Cross-Island Highway<br>
-                    <small>Rainbow Estate ⮂ Long Island Ferry Pier (21.6 km)</small>
+                    <strong style="color:var(--accent);">Route 171</strong> • Cross-Island Express[cite: 2]<br>
+                    <small>Rainbow Estate Complex ⮂ Long Island Ferry Pier (21.6 km, 28 stops)[cite: 2]</small>
                 </div>
+                <div class="selection-card" onclick="selectRoute('475A')">
+                    <strong style="color:#f59e0b;">Route 475A</strong> • Special Express Departure[cite: 2]<br>
+                    <small>Senpai Shopping Center ⮂ Norton Town Center (20.8 km)[cite: 2]</small>
+                </div>
+            </div>
+
+            <div class="fleet-category-header">Free Exploration</div>
+            <div class="grid-fleet">
                 <div class="selection-card" onclick="selectRoute('FREE')">
-                    <strong style="color:#a855f7;">Free Drive Mode</strong><br>
-                    <small>Explore the archipelago, bridges, and mountain passes</small>
+                    <strong style="color:#38bdf8;">Free Drive Mode</strong>[cite: 2]<br>
+                    <small>Explore Zone 1 through Zone 8 across all tunnels, ramps & red sea-bridges[cite: 2]</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Fleet Selector Modal (7 Companies + Free Drive Vehicles)[cite: 2] -->
+    <!-- Fleet Modal (All 8+ Categories) -->
     <div id="modal-fleet" class="modal">
         <div class="modal-card">
             <div class="modal-title">
-                <span>🚌 BUS OPERATOR & FLEET DEPOT</span>
+                <span>🚌 BUS FLEET ROSTER & OPERATORS[cite: 2]</span>
                 <button class="btn" onclick="toggleModal('modal-fleet', false)">✕</button>
             </div>
-            <h4 style="margin:4px 0 8px; color:var(--primary);">Central Connect (CenCon) & Cityscape</h4>
-            <div class="grid-2">
-                <div class="selection-card active" onclick="selectBus('MMC_DOUBLE')">
-                    <strong>5SH MMC Facelift Double Decker</strong><br>
-                    <small>Standard 12m Double Deck • Capacity: 135 pax</small>
+
+            <div class="fleet-category-header">Central Connect by Forever Transit (CenCon)</div>
+            <div class="grid-fleet">
+                <div class="selection-card active" onclick="selectBus('MMC_DOUBLE', 0xf97316, 'CenCon 5SH MMC Facelift')">
+                    <strong>5SH MMC Facelift (12m Double Deck)[cite: 2]</strong><br>
+                    <small>Standard Urban Tri-Axle Double Decker[cite: 2]</small>
                 </div>
-                <div class="selection-card" onclick="selectBus('SINGLE_Y120')">
-                    <strong>Y120 im-Centralinear</strong><br>
-                    <small>Single Deck City Commuter • Capacity: 75 pax</small>
+                <div class="selection-card" onclick="selectBus('MMC_MK2', 0xf97316, 'CenCon 5SH MkII')">
+                    <strong>5SH MkII (Double Decker)[cite: 2]</strong><br>
+                    <small>Classic Flagship Urban Cruiser[cite: 2]</small>
                 </div>
-                <div class="selection-card" onclick="selectBus('BENDY_ARTIC')">
-                    <strong>1.95 DD / Cityscape Bendy Bus</strong><br>
-                    <small>18m High-Capacity Articulated Bus</small>
+                <div class="selection-card" onclick="selectBus('SINGLE_Y120', 0xf97316, 'CenCon Y120 im-Centralinear')">
+                    <strong>Y120 im-Centralinear (Single Deck)[cite: 2]</strong><br>
+                    <small>Single Deck City Commuter[cite: 2]</small>
                 </div>
-                <div class="selection-card" onclick="selectBus('OPEN_TOP')">
-                    <strong>Forever Transit Open Top Double Decker</strong><br>
-                    <small>Scenic Tourist Island Cruiser</small>
+            </div>
+
+            <div class="fleet-category-header">Cityscape Bus</div>
+            <div class="grid-fleet">
+                <div class="selection-card" onclick="selectBus('CITY_195DD', 0x0284c7, 'Cityscape 1.95 DD 12.8m')">
+                    <strong>1.95 DD R45 / B08L Gen 3 (12.8m)[cite: 2]</strong><br>
+                    <small>Heavy 3-Axle 12.8m Long Wheelbase Double Deck[cite: 2]</small>
                 </div>
-                <div class="selection-card" onclick="selectBus('CIVILIAN_CAR')">
-                    <strong>Free Mode Civilian Sedan</strong><br>
-                    <small>Speedy Runabout Cruiser</small>
+                <div class="selection-card" onclick="selectBus('COACH_1036', 0x0369a1, 'Cityscape 1036 Intercity Air')">
+                    <strong>1036 Intercity Air Coach[cite: 2]</strong><br>
+                    <small>Long-Distance Aerodynamic Regional Express[cite: 2]</small>
+                </div>
+            </div>
+
+            <div class="fleet-category-header">Horizon Bus</div>
+            <div class="grid-fleet">
+                <div class="selection-card" onclick="selectBus('HORIZON_S2H', 0x10b981, 'Horizon S2H Cart Single Door')">
+                    <strong>S2H Cart Single Door[cite: 2]</strong><br>
+                    <small>Rural Single-Door Island Commuter[cite: 2]</small>
+                </div>
+                <div class="selection-card" onclick="selectBus('B10TL_3LD', 0x059669, 'Horizon B10TL City-3LD')">
+                    <strong>B10TL City-3LD Tri-Axle[cite: 2]</strong><br>
+                    <small>Classic Heavy Double Decker with Rear Steer[cite: 2]</small>
+                </div>
+            </div>
+
+            <div class="fleet-category-header">Roblox Express Bus Company (REBC)</div>
+            <div class="grid-fleet">
+                <div class="selection-card" onclick="selectBus('REBC_128M', 0x7c3aed, 'REBC 12.8m Express Double Deck')">
+                    <strong>12.8m Long-Wheelbase Express[cite: 2]</strong><br>
+                    <small>Cross-Island Express Double Decker[cite: 2]</small>
+                </div>
+                <div class="selection-card" onclick="selectBus('REBC_VFACE', 0x6d28d9, 'REBC 512BHK V Face')">
+                    <strong>512BHK V Face Luxury Express[cite: 2]</strong><br>
+                    <small>Aerodynamic High-Speed Highway Coach[cite: 2]</small>
+                </div>
+                <div class="selection-card" onclick="selectBus('BENDY_ARTIC', 0x8b5cf6, 'REBC 18m Articulated Bendy')">
+                    <strong>18m Articulated Bendy Bus[cite: 2]</strong><br>
+                    <small>Flexible Center Accordion High Capacity[cite: 2]</small>
+                </div>
+            </div>
+
+            <div class="fleet-category-header">Forever Transit (Open Top Sightseeing Division)</div>
+            <div class="grid-fleet">
+                <div class="selection-card" onclick="selectBus('OPEN_TOP', 0xfacc15, 'Forever Transit Open Top Double Deck')">
+                    <strong>5SH MMC CT Open-Top Double Decker[cite: 2]</strong><br>
+                    <small>Scenic Tourist Island Coastal Cruiser[cite: 2]</small>
+                </div>
+            </div>
+
+            <div class="fleet-category-header">Limited Edition, Rare & Daily Challenge Fleets</div>
+            <div class="grid-fleet">
+                <div class="selection-card" onclick="selectBus('HK_5M_RED', 0xdc2626, 'HK 5M Visits Commemorative Red MMC')">
+                    <strong>Red 5SH MMC Facelift (HK 5M Visits Special)[cite: 2]</strong><br>
+                    <small>Commemorative Event Livery[cite: 2]</small>
+                </div>
+                <div class="selection-card" onclick="selectBus('RARE_TRITON', 0x0d9488, 'HZ_Rare Triton 3 PM5000')">
+                    <strong>HZ_Rare: Triton 3 PM5000[cite: 2]</strong><br>
+                    <small>Daily Challenge Rare Appearance Bus[cite: 2]</small>
+                </div>
+            </div>
+
+            <div class="fleet-category-header">Free-Drive Mode Utility Vehicles</div>
+            <div class="grid-fleet">
+                <div class="selection-card" onclick="selectBus('CIVILIAN_CAR', 0x991b1b, 'Civilian Runabout Sedan')">
+                    <strong>Civilian Runabout Sedan[cite: 2]</strong><br>
+                    <small>Personal 4-Door Island Cruiser[cite: 2]</small>
+                </div>
+                <div class="selection-card" onclick="selectBus('FAMILY_BIKE', 0xeab308, 'Family Bicycle')">
+                    <strong>Multi-Passenger Family Bicycle[cite: 2]</strong><br>
+                    <small>Slow-Paced Beachfront Cycle[cite: 2]</small>
+                </div>
+                <div class="selection-card" onclick="selectBus('COASTAL_SHIP', 0x0369a1, 'Coastal Ferry Ship')">
+                    <strong>Navigable Coastal Island Ferry Ship[cite: 2]</strong><br>
+                    <small>Navigates Island Waterways & Harbors[cite: 2]</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Cheats & Creator Codes Modal[cite: 2] -->
+    <!-- Cheats Modal -->
     <div id="modal-cheats" class="modal">
         <div class="modal-card">
             <div class="modal-title">
-                <span>⚙️ CHEATS & CREATOR CODES</span>
+                <span>⚙️ CHEATS & CREATOR CODES[cite: 2]</span>
                 <button class="btn" onclick="toggleModal('modal-cheats', false)">✕</button>
             </div>
-            <p style="font-size:0.8rem; color:#94a3b8;">Enable direct gameplay toggles or redeem codes for immediate boosts.</p>
             <div style="display:flex; gap:8px; margin-bottom:12px;">
-                <input type="text" id="cheat-code-input" placeholder="ENTER CODE (e.g. SPEEDDEMON)..." 
+                <input type="text" id="cheat-code-input" placeholder="ENTER CREATOR CODE (e.g. SPEEDDEMON, NITROBUS, ALLROUTES)..."[cite: 2]
                        style="flex:1; background:#020617; border:1px solid var(--primary); border-radius:6px; color:#fff; padding:8px 12px; font-weight:bold;">
                 <button class="btn gold" onclick="redeemCheatCode()">REDEEM</button>
             </div>
             <div style="display:flex; flex-direction:column; gap:8px; font-size:0.85rem;">
-                <label><input type="checkbox" id="cheat-speed" onchange="applyCheatSettings()"> 🚀 Unlock Speed Limit (Exceed 70 km/h)</label>
-                <label><input type="checkbox" id="cheat-power" onchange="applyCheatSettings()"> ⚡ 200% Acceleration & 500% Brake Power</label>
-                <label><input type="checkbox" id="cheat-pax" onchange="applyCheatSettings()"> 🏃 Faster Passenger Boarding</label>
-                <label><input type="checkbox" id="cheat-complaints" onchange="applyCheatSettings()"> 🔇 Mute Passenger Complaints & Alarms</label>
+                <label><input type="checkbox" id="cheat-speed" onchange="applyCheatSettings()"> 🚀 Unlock Speed Limit (Exceed 70 km/h up to 160+ km/h)[cite: 2]</label>
+                <label><input type="checkbox" id="cheat-power" onchange="applyCheatSettings()"> ⚡ 200% Acceleration & 500% Deceleration Power[cite: 2]</label>
+                <label><input type="checkbox" id="cheat-pax" onchange="applyCheatSettings()"> 🏃 Fast 3x Passenger Boarding & Alighting[cite: 2]</label>
+                <label><input type="checkbox" id="cheat-complaints" onchange="applyCheatSettings()"> 🔇 Mute Passenger Complaints & Overspeed Warning Sound[cite: 2]</label>
             </div>
         </div>
     </div>
 
-    <!-- PeerJS WebRTC Multiplayer Modal -->
+    <!-- Multiplayer Modal -->
     <div id="modal-multiplayer" class="modal">
         <div class="modal-card">
             <div class="modal-title">
-                <span>👥 REAL-TIME MULTIPLAYER CONVOY</span>
+                <span>👥 REAL-TIME MULTIPLAYER CONVOY (PEERJS WEBRTC)</span>
                 <button class="btn" onclick="toggleModal('modal-multiplayer', false)">✕</button>
             </div>
-            <p style="font-size:0.8rem; color:#94a3b8;">Drive together across Sunshine Islands. Connect directly with peer room codes (No server needed).</p>
             <div style="background:#020617; padding:12px; border-radius:8px; border:1px solid #334155; margin-bottom:12px;">
                 <div>Your Peer Room Code: <strong style="color:var(--gold); font-size:1.2rem;" id="my-peer-id">Generating...</strong></div>
-                <small style="color:#64748b;">Share this code with your friend to join your session.</small>
+                <small style="color:#64748b;">Share this 4-letter code with friends to synchronize bus convoys in real time.</small>
             </div>
             <div style="display:flex; gap:8px;">
-                <input type="text" id="join-peer-id" placeholder="ENTER FRIEND'S CODE..." 
+                <input type="text" id="join-peer-id" placeholder="ENTER FRIEND'S 4-LETTER CODE..." 
                        style="flex:1; background:#020617; border:1px solid var(--primary); border-radius:6px; color:#fff; padding:8px 12px; font-weight:bold;">
                 <button class="btn" onclick="connectToPeer()">JOIN ROOM</button>
             </div>
@@ -343,7 +512,7 @@
 
                 engineOsc = ctx.createOscillator();
                 engineOsc.type = 'sawtooth';
-                engineOsc.frequency.setValueAtTime(40, ctx.currentTime);
+                engineOsc.frequency.setValueAtTime(36, ctx.currentTime);
                 engineOsc.connect(engineGain);
                 engineOsc.start();
             } catch(e){}
@@ -352,9 +521,9 @@
         function updateEngineSound(speedRatio, throttle) {
             if (!engineOsc) return;
             const ctx = getAudioContext();
-            const freq = 36 + (speedRatio * 85) + (throttle * 40);
+            const freq = 34 + (speedRatio * 90) + (throttle * 45);
             engineOsc.frequency.setTargetAtTime(freq, ctx.currentTime, 0.08);
-            engineGain.gain.setTargetAtTime(0.03 + (throttle * 0.06), ctx.currentTime, 0.08);
+            engineGain.gain.setTargetAtTime(0.03 + (throttle * 0.07), ctx.currentTime, 0.08);
         }
 
         function playAirBrakeSound() {
@@ -369,10 +538,10 @@
                 const noise = ctx.createBufferSource();
                 noise.buffer = buffer;
                 const filter = ctx.createBiquadFilter();
-                filter.type = 'bandpass'; filter.frequency.value = 1400;
+                filter.type = 'bandpass'; filter.frequency.value = 1500;
 
                 const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                gain.gain.setValueAtTime(0.28, ctx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
                 noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
                 noise.start();
@@ -388,7 +557,7 @@
                     const gain = ctx.createGain();
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(f, ctx.currentTime + idx * 0.2);
-                    gain.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.2);
+                    gain.gain.setValueAtTime(0.25, ctx.currentTime + idx * 0.2);
                     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.2 + 0.35);
                     osc.connect(gain); gain.connect(ctx.destination);
                     osc.start(ctx.currentTime + idx * 0.2);
@@ -403,7 +572,7 @@
                 if (!ctx) return;
                 const osc = ctx.createOscillator(); const g = ctx.createGain();
                 osc.type = 'triangle'; osc.frequency.setValueAtTime(1400, ctx.currentTime);
-                g.gain.setValueAtTime(0.18, ctx.currentTime);
+                g.gain.setValueAtTime(0.2, ctx.currentTime);
                 g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
                 osc.connect(g); g.connect(ctx.destination);
                 osc.start(); osc.stop(ctx.currentTime + 0.12);
@@ -417,44 +586,47 @@
                 [349, 440].forEach(f => {
                     const osc = ctx.createOscillator(); const g = ctx.createGain();
                     osc.type = 'sawtooth'; osc.frequency.setValueAtTime(f, ctx.currentTime);
-                    g.gain.setValueAtTime(0.3, ctx.currentTime);
-                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+                    g.gain.setValueAtTime(0.35, ctx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
                     osc.connect(g); g.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.5);
+                    osc.start(); osc.stop(ctx.currentTime + 0.55);
                 });
             } catch(e){}
         }
 
         // ==========================================
-        // 2. SIMULATION CONSTANTS & GAME STATE
+        // 2. SIMULATION CONSTANTS & ROAD SPLINE
         // ==========================================
         let scene, camera, renderer;
         let busRig = null, otherPlayerRig = null;
         let steeringWheelMesh = null;
         let wheels = [];
         let roadSpline = null;
+        let passengerMeshes = [];
 
         let activeRoute = 46;
         let activeBusType = 'MMC_DOUBLE';
-        let cameraMode = 0; // 0: Cab Cockpit, 1: 3rd Person, 2: Upper Deck Passenger, 3: CCTV Exit Doors
-        let cctvActive = false;
+        let activeCompanyColor = 0xf97316; // Central Connect Orange
+        let activeBusName = 'CenCon 5SH MMC Facelift';
+        let cameraMode = 0; // 0: Cockpit RHD, 1: 3rd Person, 2: Upper Deck, 3: CCTV, 4: Free Walk
+        let isWalkMode = false;
+        let walkPos = new THREE.Vector3(0.65, 1.8, 3.5);
 
         const bus = {
-            x: 0, y: 0.5, z: 0,
+            x: 0, y: 0.5, z: 200,
             rotation: 0,
             speed: 0,
             steerAngle: 0,
             targetSteer: 0,
-            throttle: 0,
-            brake: 0,
             gear: 1, // 1: D, 0: N, -1: R
             handbrake: false,
             doorFront: false,
             doorRear: false,
             passengers: 12,
-            maxSpeed: 70, // Overridable by cheats
+            maxSpeed: 70,
             accelPower: 12.0,
-            brakePower: 22.0
+            brakePower: 24.0,
+            isTriAxle: true
         };
 
         const cheats = {
@@ -466,51 +638,49 @@
 
         const STOPS = [
             { name: "Sunshine Depot (Start)", u: 0.05, stopDist: 20 },
-            { name: "Lunar Point", u: 0.28, stopDist: 117 },
-            { name: "Central Bridge North", u: 0.58, stopDist: 420 },
+            { name: "Lunar Point", u: 0.26, stopDist: 117 },
+            { name: "Central Viaduct", u: 0.56, stopDist: 420 },
             { name: "Eastmallow Praya Road", u: 0.88, stopDist: 690 }
         ];
         let currentStopIndex = 1;
 
         // ==========================================
-        // 3. PROCEDURAL MAP & ARCHIPELAGO ROADS
+        // 3. ARCHIPELAGO ROADS, ELEVATED RAMPS & RED BRIDGE
         // ==========================================
         function buildWorldEnvironment() {
-            // Tropical Ocean Floor
-            const oceanGeo = new THREE.PlaneGeometry(8000, 8000);
-            const oceanMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.6 });
-            const ocean = new THREE.Mesh(oceanGeo, oceanMat);
+            // Tropical Ocean
+            const ocean = new THREE.Mesh(
+                new THREE.PlaneGeometry(10000, 10000),
+                new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.5 })
+            );
             ocean.rotation.x = -Math.PI / 2;
             ocean.position.y = -0.6;
             scene.add(ocean);
 
-            // Island Hills & Terrains
+            // Multi-Island Terrain Meshes (Zone 1 through Outer Islands)
             const islandMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.9 });
-            const island1 = new THREE.Mesh(new THREE.CylinderGeometry(850, 1100, 45, 32), islandMat);
-            island1.position.set(0, 10, -200);
-            scene.add(island1);
+            const is1 = new THREE.Mesh(new THREE.CylinderGeometry(900, 1200, 40, 32), islandMat);
+            is1.position.set(0, 10, -100); scene.add(is1);
 
-            const island2 = new THREE.Mesh(new THREE.CylinderGeometry(650, 900, 55, 32), islandMat);
-            island2.position.set(450, 15, -1400);
-            scene.add(island2);
+            const is2 = new THREE.Mesh(new THREE.CylinderGeometry(700, 950, 50, 32), islandMat);
+            is2.position.set(400, 12, -1350); scene.add(is2);
 
-            // Coastal Highway Road Path (Spline)
+            // Coastal Freeway & Elevated Viaduct Spline Path
             const curvePoints = [
-                new THREE.Vector3(0, 0.2, 200),
-                new THREE.Vector3(40, 0.2, -150),
-                new THREE.Vector3(180, 0.2, -500),
-                new THREE.Vector3(320, 18.0, -950), // Elevated Highway[cite: 2]
-                new THREE.Vector3(420, 18.0, -1350), // Arched Red Bridge Section[cite: 2]
-                new THREE.Vector3(220, 0.2, -1800),
-                new THREE.Vector3(0, 0.2, -2200)
+                new THREE.Vector3(0, 0.2, 350),
+                new THREE.Vector3(30, 0.2, 10),
+                new THREE.Vector3(140, 0.2, -320),
+                new THREE.Vector3(280, 18.0, -820),  // Elevated Viaduct Ramp[cite: 2]
+                new THREE.Vector3(380, 18.0, -1250), // Red Arched Sea Bridge Section[cite: 2]
+                new THREE.Vector3(200, 0.2, -1650),
+                new THREE.Vector3(0, 0.2, -2100)
             ];
             roadSpline = new THREE.CatmullRomCurve3(curvePoints);
 
-            // Road Mesh Generation
-            const roadSteps = 220;
+            const roadSteps = 240;
             const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
             const lineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-            const bridgeTrussMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, metalness: 0.8 }); // Red bridge trusses[cite: 2]
+            const bridgeMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, metalness: 0.8, roughness: 0.3 }); // Red Bridge Truss[cite: 2]
 
             for (let i = 0; i < roadSteps; i++) {
                 const u1 = i / roadSteps;
@@ -520,12 +690,12 @@
                 const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
                 const len = p1.distanceTo(p2);
 
-                const roadSeg = new THREE.Mesh(new THREE.BoxGeometry(11, 0.4, len + 0.4), roadMat);
+                const roadSeg = new THREE.Mesh(new THREE.BoxGeometry(11.5, 0.4, len + 0.5), roadMat);
                 roadSeg.position.copy(mid);
                 roadSeg.lookAt(p2);
                 scene.add(roadSeg);
 
-                // Center Road Markings
+                // Yellow Centerline
                 if (i % 2 === 0) {
                     const line = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.45, len * 0.6), lineMat);
                     line.position.copy(mid);
@@ -533,23 +703,23 @@
                     scene.add(line);
                 }
 
-                // Arched Red Sea-Bridge Trusses on elevated span[cite: 2]
+                // Arched Red Sea-Bridge Trusses on Elevated Highway Span
                 if (p1.y > 10 && i % 6 === 0) {
-                    const truss = new THREE.Mesh(new THREE.BoxGeometry(12, 10, 0.6), bridgeTrussMat);
+                    const truss = new THREE.Mesh(new THREE.BoxGeometry(12.5, 11, 0.6), bridgeMat);
                     truss.position.copy(mid);
-                    truss.position.y += 5;
+                    truss.position.y += 5.5;
                     truss.lookAt(p2);
                     scene.add(truss);
                 }
             }
 
-            // Road Guidance Chevrons (Yellow/Green glowing pavement arrows)[cite: 2]
-            for (let c = 0.05; c < 0.95; c += 0.04) {
+            // Road Guidance Pavement Chevrons (Glowing Green/Yellow Arrows)[cite: 2]
+            for (let c = 0.04; c < 0.95; c += 0.035) {
                 const pt = roadSpline.getPointAt(c);
                 const nxt = roadSpline.getPointAt(c + 0.01);
                 const chevron = new THREE.Mesh(
-                    new THREE.PlaneGeometry(4.5, 3.5),
-                    new THREE.MeshBasicMaterial({ color: 0x22c55e, transparent: true, opacity: 0.65 })
+                    new THREE.PlaneGeometry(4.8, 3.4),
+                    new THREE.MeshBasicMaterial({ color: 0x22c55e, transparent: true, opacity: 0.7 })
                 );
                 chevron.rotation.x = -Math.PI / 2;
                 chevron.position.set(pt.x, pt.y + 0.25, pt.z);
@@ -557,106 +727,140 @@
                 scene.add(chevron);
             }
 
-            // Bus Terminus Shelters along the line[cite: 2]
+            // Bus Terminus Shelters with Animated Passenger Waiting Queues[cite: 2]
+            passengerMeshes = [];
             STOPS.forEach(st => {
                 const pos = roadSpline.getPointAt(st.u);
                 const shelter = new THREE.Group();
                 const pole = new THREE.Mesh(new THREE.BoxGeometry(0.3, 3.2, 0.3), new THREE.MeshStandardMaterial({ color: 0xf59e0b }));
-                pole.position.y = 1.6;
-                shelter.add(pole);
+                pole.position.y = 1.6; shelter.add(pole);
 
                 const sign = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.8, 0.1), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-                sign.position.set(0, 2.8, 0);
-                shelter.add(sign);
-
-                shelter.position.set(pos.x + 7.0, pos.y, pos.z);
+                sign.position.set(0, 2.8, 0); shelter.add(sign);
+                shelter.position.set(pos.x + 7.2, pos.y, pos.z);
                 scene.add(shelter);
+
+                // Passengers waiting at stop shelter
+                for (let p = 0; p < 3; p++) {
+                    const pax = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.25, 0.25, 1.4, 8),
+                        new THREE.MeshStandardMaterial({ color: [0x38bdf8, 0xf43f5e, 0x10b981][p] })
+                    );
+                    pax.position.set(pos.x + 6.2 - (p * 0.8), pos.y + 0.7, pos.z + (p * 0.5));
+                    scene.add(pax);
+                    passengerMeshes.push(pax);
+                }
             });
         }
 
         // ==========================================
-        // 4. 3D BUS CHASSIS & DETAILED INTERIOR
+        // 4. DETAILED BUS MODELS (8+ FLEET TYPES)
         // ==========================================
-        function createBusModel(companyColor = 0xf97316) {
+        function createBusModel(companyColor) {
             const group = new THREE.Group();
             const busBodyMat = new THREE.MeshStandardMaterial({ color: companyColor, roughness: 0.3 });
             const darkGlassMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, transparent: true, opacity: 0.75 });
             const interiorMat = new THREE.MeshStandardMaterial({ color: 0x475569 });
+            const seatMat = new THREE.MeshStandardMaterial({ color: 0x6b21a8 }); // Patterned fabric seats[cite: 2]
+            const handrailMat = new THREE.MeshStandardMaterial({ color: 0xfacc15 }); // Yellow grab poles[cite: 2]
             const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 });
 
-            if (activeBusType === 'MMC_DOUBLE') {
-                // Hong Kong 12m Double Decker[cite: 2]
-                const lowerDeck = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.2, 11.5), busBodyMat);
-                lowerDeck.position.y = 1.3;
-                group.add(lowerDeck);
+            if (activeBusType === 'MMC_DOUBLE' || activeBusType === 'MMC_MK2' || activeBusType === 'CITY_195DD' || activeBusType === 'B10TL_3LD' || activeBusType === 'REBC_128M' || activeBusType === 'OPEN_TOP' || activeBusType === 'HK_5M_RED') {
+                const is128m = (activeBusType === 'CITY_195DD' || activeBusType === 'REBC_128M');
+                const busLength = is128m ? 12.8 : 11.5;
 
-                const upperDeck = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.0, 11.2), busBodyMat);
-                upperDeck.position.set(0, 3.3, -0.15);
-                group.add(upperDeck);
+                // Lower Deck Body
+                const lowerDeck = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.2, busLength), busBodyMat);
+                lowerDeck.position.y = 1.3; group.add(lowerDeck);
 
-                // Tinted Windows Bands
-                const lowerGlass = new THREE.Mesh(new THREE.BoxGeometry(2.84, 1.0, 9.8), darkGlassMat);
-                lowerGlass.position.set(0, 1.5, -0.4);
-                group.add(lowerGlass);
+                // Upper Deck (Closed or Open-Top)
+                if (activeBusType !== 'OPEN_TOP') {
+                    const upperDeck = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.0, busLength - 0.3), busBodyMat);
+                    upperDeck.position.set(0, 3.3, -0.15); group.add(upperDeck);
 
-                const upperGlass = new THREE.Mesh(new THREE.BoxGeometry(2.84, 1.1, 10.5), darkGlassMat);
-                upperGlass.position.set(0, 3.35, 0.1);
-                group.add(upperGlass);
+                    const upperGlass = new THREE.Mesh(new THREE.BoxGeometry(2.84, 1.1, busLength - 0.7), darkGlassMat);
+                    upperGlass.position.set(0, 3.35, 0.1); group.add(upperGlass);
+                }
 
-                // LED Next-Stop Matrix Display (Front Brow)[cite: 2]
+                // Lower Deck Windows
+                const lowerGlass = new THREE.Mesh(new THREE.BoxGeometry(2.84, 1.0, busLength - 1.7), darkGlassMat);
+                lowerGlass.position.set(0, 1.5, -0.4); group.add(lowerGlass);
+
+                // LED Bilingual Next-Stop Destination Display[cite: 2]
                 const destDisplay = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 0.1), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
-                destDisplay.position.set(0, 4.0, 5.55);
-                group.add(destDisplay);
+                destDisplay.position.set(0, 3.9, busLength / 2 - 0.2); group.add(destDisplay);
 
-                // Cab Cockpit Console (Right-hand drive)[cite: 2]
+                // RHD Driver Cockpit Console
                 const dash = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.8, 1.2), interiorMat);
-                dash.position.set(0.65, 1.1, 4.8);
-                group.add(dash);
+                dash.position.set(0.65, 1.1, busLength / 2 - 0.95); group.add(dash);
 
-                // Steering Wheel
+                // Steering Wheel with 900-1300 Degree Steering Ratio[cite: 2]
                 const wheelPivot = new THREE.Group();
-                wheelPivot.position.set(0.65, 1.4, 4.6);
+                wheelPivot.position.set(0.65, 1.4, busLength / 2 - 1.15);
                 wheelPivot.rotation.x = -0.55;
                 const wheelRim = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.03, 8, 24), new THREE.MeshStandardMaterial({ color: 0x020617 }));
-                wheelPivot.add(wheelRim);
-                group.add(wheelPivot);
+                wheelPivot.add(wheelRim); group.add(wheelPivot);
                 steeringWheelMesh = wheelPivot;
 
-                // Driver Phone Schedule Mount[cite: 2]
+                // Driver Smartphone Schedule Mount[cite: 2]
                 const phoneMesh = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.28, 0.04), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
-                phoneMesh.position.set(0.25, 1.35, 4.75);
-                group.add(phoneMesh);
+                phoneMesh.position.set(0.25, 1.35, busLength / 2 - 1.0); group.add(phoneMesh);
 
-            } else if (activeBusType === 'SINGLE_Y120') {
-                // Single Deck City Bus[cite: 2]
+                // Octopus Fare Card Reader Box[cite: 2]
+                const fareReader = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.3, 0.15), new THREE.MeshStandardMaterial({ color: 0xf59e0b }));
+                fareReader.position.set(0.08, 1.25, busLength / 2 - 1.15); group.add(fareReader);
+
+                // Interior Seats, Stairs to Upper Deck, and Grab Rails[cite: 2]
+                for (let z = 2.5; z > -4.5; z -= 1.2) {
+                    [-0.85, 0.85].forEach(x => {
+                        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.65, 0.5), seatMat);
+                        seat.position.set(x, 0.9, z); group.add(seat);
+                    });
+                    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 2.0, 8), handrailMat);
+                    pole.position.set(0.35, 1.3, z); group.add(pole);
+                }
+
+                // Functional Stairs Pillar Model[cite: 2]
+                const stairs = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.8, 1.4), interiorMat);
+                stairs.position.set(-0.7, 1.3, 1.2); group.add(stairs);
+
+            } else if (activeBusType === 'SINGLE_Y120' || activeBusType === 'HORIZON_S2H' || activeBusType === 'RARE_TRITON') {
+                // Single Deck Bus
                 const body = new THREE.Mesh(new THREE.BoxGeometry(2.7, 2.5, 10.5), busBodyMat);
-                body.position.y = 1.4;
-                group.add(body);
+                body.position.y = 1.4; group.add(body);
+            } else if (activeBusType === 'COACH_1036' || activeBusType === 'REBC_VFACE') {
+                // Aerodynamic Long-Distance Coach
+                const body = new THREE.Mesh(new THREE.BoxGeometry(2.7, 2.7, 12.2), busBodyMat);
+                body.position.y = 1.5; group.add(body);
             } else if (activeBusType === 'BENDY_ARTIC') {
-                // Articulated 18m Bus[cite: 2]
+                // 18m Articulated Bus with Center Bellows Accordion[cite: 2]
                 const front = new THREE.Mesh(new THREE.BoxGeometry(2.7, 2.5, 8.5), busBodyMat);
-                front.position.set(0, 1.4, 4.0);
-                group.add(front);
+                front.position.set(0, 1.4, 4.0); group.add(front);
                 const rear = new THREE.Mesh(new THREE.BoxGeometry(2.7, 2.5, 7.5), busBodyMat);
-                rear.position.set(0, 1.4, -4.5);
-                group.add(rear);
+                rear.position.set(0, 1.4, -4.5); group.add(rear);
                 const bellow = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 2.2, 16), new THREE.MeshStandardMaterial({ color: 0x1f2937 }));
-                bellow.position.set(0, 1.4, -0.2);
-                group.add(bellow);
+                bellow.position.set(0, 1.4, -0.2); group.add(bellow);
+            } else if (activeBusType === 'FAMILY_BIKE') {
+                // Multi-Passenger Family Bicycle[cite: 2]
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 2.6), busBodyMat);
+                frame.position.y = 0.6; group.add(frame);
+            } else if (activeBusType === 'COASTAL_SHIP') {
+                // Coastal Island Ferry Ship[cite: 2]
+                const hull = new THREE.Mesh(new THREE.BoxGeometry(5.0, 2.5, 16.0), busBodyMat);
+                hull.position.y = 0.8; group.add(hull);
             } else {
-                // Free Drive Civilian Sedan[cite: 2]
-                const carBody = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.1, 4.6), busBodyMat);
-                carBody.position.y = 0.8;
-                group.add(carBody);
+                // Civilian Sedan Car[cite: 2]
+                const car = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.1, 4.6), busBodyMat);
+                car.position.y = 0.8; group.add(car);
             }
 
-            // Wheels
+            // Wheels & Tri-Axle Setup
             wheels = [];
-            const wheelOffsets = [
-                { x: 1.35, z: 3.6 }, { x: -1.35, z: 3.6 },
-                { x: 1.35, z: -3.6 }, { x: -1.35, z: -3.6 }
-            ];
-            wheelOffsets.forEach(off => {
+            const wheelZ = (activeBusType === 'CITY_195DD' || activeBusType === 'REBC_128M') 
+                ? [{ x: 1.35, z: 4.2 }, { x: -1.35, z: 4.2 }, { x: 1.35, z: -3.4 }, { x: -1.35, z: -3.4 }, { x: 1.35, z: -4.6 }, { x: -1.35, z: -4.6 }]
+                : [{ x: 1.35, z: 3.6 }, { x: -1.35, z: 3.6 }, { x: 1.35, z: -3.6 }, { x: -1.35, z: -3.6 }];
+
+            wheelZ.forEach(off => {
                 const w = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.4, 16), wheelMat);
                 w.rotation.z = Math.PI / 2;
                 w.position.set(off.x, 0.48, off.z);
@@ -668,11 +872,10 @@
         }
 
         function initScene() {
-            const container = document.getElementById('canvas-container');
             const canvas = document.getElementById('webgl-canvas');
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x7dd3fc);
-            scene.fog = new THREE.FogExp2(0x7dd3fc, 0.00035);
+            scene.fog = new THREE.FogExp2(0x7dd3fc, 0.00032);
 
             camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 8000);
 
@@ -680,28 +883,67 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
-            const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.72);
             scene.add(ambient);
             const sun = new THREE.DirectionalLight(0xffedd5, 1.1);
             sun.position.set(300, 600, 200);
             scene.add(sun);
 
             buildWorldEnvironment();
-            busRig = createBusModel(0xf97316); // Central Connect Orange/Green Livery[cite: 2]
+            busRig = createBusModel(activeCompanyColor);
             scene.add(busRig);
 
-            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
             setupInputListeners();
+            drawElevationProfile();
+            startLoadingSequence();
         }
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+        // Draw Route Elevation Profile Graph on Loading Screen[cite: 2]
+        function drawElevationProfile() {
+            const elCanvas = document.getElementById('elevation-canvas');
+            const eCtx = elCanvas.getContext('2d');
+            eCtx.clearRect(0, 0, elCanvas.width, elCanvas.height);
+
+            eCtx.strokeStyle = '#00f3ff'; eCtx.lineWidth = 3;
+            eCtx.beginPath();
+            eCtx.moveTo(20, 110);
+            eCtx.lineTo(90, 105);
+            eCtx.lineTo(160, 95);
+            eCtx.lineTo(250, 35);  // Bridge elevation
+            eCtx.lineTo(320, 35);
+            eCtx.lineTo(380, 110);
+            eCtx.stroke();
+
+            eCtx.fillStyle = '#facc15'; eCtx.font = '10px monospace';
+            eCtx.fillText('SEA LEVEL (0m)', 25, 125);
+            eCtx.fillText('CENTRAL VIADUCT (+18m)', 220, 25);
+        }
+
+        function startLoadingSequence() {
+            let progress = 0;
+            const fill = document.getElementById('loading-fill');
+            const timer = setInterval(() => {
+                progress += 20;
+                fill.style.width = `${progress}%`;
+                if (progress >= 100) {
+                    clearInterval(timer);
+                    setTimeout(() => {
+                        const scr = document.getElementById('loading-screen');
+                        scr.style.opacity = '0';
+                        setTimeout(() => scr.style.display = 'none', 500);
+                    }, 400);
+                }
+            }, 120);
         }
 
         // ==========================================
-        // 5. VEHICLE PHYSICS, TURNING & COMPLAINTS
+        // 5. VEHICLE PHYSICS, AIR BRAKES & COMPLAINTS
         // ==========================================
         const keys = { w: false, s: false, a: false, d: false };
 
@@ -710,7 +952,8 @@
                 getAudioContext();
                 initEngineAudio();
                 const code = e.code;
-                if (['KeyW','KeyS','KeyA','KeyD','KeyP','KeyH','KeyC','KeyT','KeyG'].includes(code)) e.preventDefault();
+                if (['KeyW','KeyS','KeyA','KeyD','KeyP','KeyH','KeyC','KeyT','KeyY','KeyG','KeyV'].includes(code)) e.preventDefault();
+
                 if (code === 'KeyW' || code === 'ArrowUp') keys.w = true;
                 if (code === 'KeyS' || code === 'ArrowDown') keys.s = true;
                 if (code === 'KeyA' || code === 'ArrowLeft') keys.a = true;
@@ -720,7 +963,9 @@
                 if (code === 'KeyH') honkHorn();
                 if (code === 'KeyC') cycleCamera();
                 if (code === 'KeyT') toggleFrontDoor();
+                if (code === 'KeyY') toggleRearDoor();
                 if (code === 'KeyG') cycleGear();
+                if (code === 'KeyV') toggleWalkMode();
             });
 
             window.addEventListener('keyup', e => {
@@ -731,7 +976,6 @@
                 if (code === 'KeyD' || code === 'ArrowRight') keys.d = false;
             });
 
-            // Touch event listeners
             const bindTouch = (id, onStart, onEnd) => {
                 const el = document.getElementById(id);
                 el.addEventListener('touchstart', e => { e.preventDefault(); getAudioContext(); initEngineAudio(); onStart(); }, { passive: false });
@@ -744,7 +988,9 @@
         }
 
         function toggleFrontDoor() {
-            if (Math.abs(bus.speed) > 1) return triggerComplaint("Open doors only at full stop!");
+            if (!bus.handbrake && Math.abs(bus.speed) > 0.5) {
+                return triggerComplaint("Activate parking brake [P] before opening doors![cite: 2]");
+            }
             bus.doorFront = !bus.doorFront;
             document.getElementById('btn-door-f').classList.toggle('active', bus.doorFront);
             playAirBrakeSound();
@@ -752,10 +998,13 @@
         }
 
         function toggleRearDoor() {
-            if (Math.abs(bus.speed) > 1) return triggerComplaint("Open doors only at full stop!");
+            if (!bus.handbrake && Math.abs(bus.speed) > 0.5) {
+                return triggerComplaint("Activate parking brake [P] before opening doors![cite: 2]");
+            }
             bus.doorRear = !bus.doorRear;
             document.getElementById('btn-door-r').classList.toggle('active', bus.doorRear);
             playAirBrakeSound();
+            if (bus.doorRear) handlePassengerAlighting();
         }
 
         function toggleHandbrake() {
@@ -770,18 +1019,20 @@
             else bus.gear = 1;
             const names = { '1': 'D', '0': 'N', '-1': 'R' };
             document.getElementById('btn-gear').innerHTML = `⚙️<br>${names[bus.gear]}`;
+            document.getElementById('hud-prnd').innerText = names[bus.gear];
         }
 
         function cycleCamera() {
             cameraMode = (cameraMode + 1) % 4;
-            const names = ['CAB COCKPIT', '3RD PERSON', 'UPPER DECK', 'CCTV MONITOR'];
+            const names = ['COCKPIT RHD', '3RD PERSON CHASE', 'UPPER DECK', 'CCTV MONITOR'];
             showBanner(`🎥 CAM: ${names[cameraMode]}`);
         }
 
-        function toggleCCTV() {
-            cctvActive = !cctvActive;
-            cameraMode = cctvActive ? 3 : 0;
-            document.getElementById('btn-cctv').classList.toggle('active', cctvActive);
+        function toggleWalkMode() {
+            isWalkMode = !isWalkMode;
+            cameraMode = isWalkMode ? 4 : 0;
+            document.getElementById('btn-walk').classList.toggle('active', isWalkMode);
+            showBanner(isWalkMode ? "🚶 WALK MODE: Explore Cabin Interior[cite: 2]" : "💺 DRIVER SEAT: Resumed Driving[cite: 2]");
         }
 
         function handlePassengerBoarding() {
@@ -790,11 +1041,20 @@
                 const boarded = Math.floor(Math.random() * 4) + 2;
                 bus.passengers += boarded;
                 for (let i = 0; i < boarded; i++) {
-                    setTimeout(() => playFareBeep(), i * 220);
+                    setTimeout(() => playFareBeep(), i * (cheats.fastBoarding ? 80 : 220));
                 }
                 showBanner(`+${boarded} Passengers Boarded! 🪙 Fares Collected`);
-                addArcadeCoins(boarded * 25);
-            }, 500);
+                addArcadeCoins(boarded * 35);
+            }, 400);
+        }
+
+        function handlePassengerAlighting() {
+            playDingDongChime();
+            setTimeout(() => {
+                const left = Math.min(bus.passengers, Math.floor(Math.random() * 3) + 1);
+                bus.passengers -= left;
+                showBanner(`${left} Passengers Alighted from Rear Door[cite: 2]`);
+            }, 400);
         }
 
         function addArcadeCoins(amt) {
@@ -805,11 +1065,11 @@
             document.getElementById('coin-hud').innerText = coins.toLocaleString();
         }
 
-        // Realistic Complaints Monitoring[cite: 2]
+        // Passenger Complaint Triggers
         let complaintCooldown = 0;
         function triggerComplaint(reason) {
             if (cheats.muteComplaints || complaintCooldown > 0) return;
-            complaintCooldown = 3.5;
+            complaintCooldown = 4.0;
             const el = document.getElementById('complaint-banner');
             document.getElementById('complaint-text').innerText = reason;
             el.style.transform = 'translateX(-50%) scale(1)';
@@ -823,7 +1083,7 @@
             el.style.transform = 'translateX(-50%) scale(1)';
             setTimeout(() => {
                 el.style.transform = 'translateX(-50%) scale(0)';
-                el.style.background = 'rgba(239, 68, 68, 0.95)';
+                el.style.background = 'rgba(220, 38, 38, 0.95)';
             }, 2500);
         }
 
@@ -831,51 +1091,69 @@
             if (!busRig) return;
             if (complaintCooldown > 0) complaintCooldown -= dt;
 
-            // Throttle & Braking
-            const accelRate = (cheats.boostPower ? 28.0 : bus.accelPower);
-            const decelRate = (cheats.boostPower ? 60.0 : bus.brakePower);
-            const speedLimit = cheats.unlockSpeed ? 160 : bus.maxSpeed;
+            // Walk Mode Camera Movement
+            if (isWalkMode) {
+                if (keys.w) walkPos.z += 3.2 * dt;
+                if (keys.s) walkPos.z -= 3.2 * dt;
+                if (keys.a) walkPos.x -= 2.5 * dt;
+                if (keys.d) walkPos.x += 2.5 * dt;
+                walkPos.x = Math.max(-1.1, Math.min(1.1, walkPos.x));
+                walkPos.z = Math.max(-5.0, Math.min(5.0, walkPos.z));
+                return;
+            }
 
-            if (keys.w && !bus.handbrake && !bus.doorFront && bus.gear !== 0) {
+            const accelRate = (cheats.boostPower ? 26.0 : bus.accelPower);
+            const decelRate = (cheats.boostPower ? 65.0 : bus.brakePower);
+            const speedLimit = cheats.unlockSpeed ? 165 : bus.maxSpeed;
+
+            // Acceleration & Air Brake Interlock
+            if (keys.w && !bus.handbrake && !bus.doorFront && !bus.doorRear && bus.gear !== 0) {
                 bus.speed += accelRate * bus.gear * dt;
             } else if (keys.s && !bus.handbrake) {
                 if (Math.abs(bus.speed) > 1) {
                     bus.speed -= Math.sign(bus.speed) * decelRate * dt;
-                    if (bus.speed > 55 && !cheats.muteComplaints) triggerComplaint("Passenger complained the brake is too heavy!"); //[cite: 2]
+                    if (bus.speed > 55 && !cheats.muteComplaints) triggerComplaint("Passenger complained the brake is too heavy![cite: 2]");
                 } else {
-                    bus.speed = -8 * dt; // Slow reverse creep
+                    bus.speed = -8 * dt;
                 }
             } else {
-                // Natural Coasting Rolling Friction
                 bus.speed *= 0.985;
             }
 
             if (bus.handbrake) bus.speed *= 0.85;
-
-            // Speed Limit Enforcement
             bus.speed = Math.max(-25, Math.min(speedLimit, bus.speed));
 
-            // Overspeed Warning[cite: 2]
+            // Overspeed Warning
             if (bus.speed > 70 && !cheats.unlockSpeed) {
                 document.getElementById('speed-limit-tag').style.background = '#f59e0b';
             } else {
                 document.getElementById('speed-limit-tag').style.background = 'var(--danger)';
             }
 
-            // Realistic Multi-Turn Steering Lock[cite: 2]
-            const steerSpeed = 3.2;
+            // Multi-Turn Steering Lock (900-1300 Degree Steering Wheel Ratio)[cite: 2]
             if (keys.a) bus.targetSteer = 0.55;
             else if (keys.d) bus.targetSteer = -0.55;
             else bus.targetSteer = 0;
 
-            bus.steerAngle += (bus.targetSteer - bus.steerAngle) * steerSpeed * dt;
+            bus.steerAngle += (bus.targetSteer - bus.steerAngle) * 3.5 * dt;
 
-            // Turning G-Force Complaint Monitor[cite: 2]
-            if (Math.abs(bus.steerAngle) > 0.4 && bus.speed > 50) {
-                triggerComplaint("Passenger complained the turn is too fast!"); //[cite: 2]
+            // Lateral Turn Complaint Trigger
+            if (Math.abs(bus.steerAngle) > 0.42 && bus.speed > 50) {
+                triggerComplaint("Passenger complained the turn is too fast![cite: 2]");
             }
 
-            // Move vehicle forward/backward
+            // Crooked Bus Complaint
+            if (Math.abs(bus.x) > 65.0 && Math.abs(bus.speed) > 20) {
+                triggerComplaint("Passenger complained the driver has crooked the bus![cite: 2]");
+            }
+
+            // Suspension & Body Roll: Roll chassis on sharp turns, pitch on hard braking
+            const targetRoll = (bus.steerAngle * -0.12) * (bus.speed / 45);
+            const targetPitch = (keys.w ? 0.03 : (keys.s ? -0.06 : 0));
+            busRig.rotation.z = THREE.MathUtils.lerp(busRig.rotation.z, targetRoll, 0.1);
+            busRig.rotation.x = THREE.MathUtils.lerp(busRig.rotation.x, targetPitch, 0.1);
+
+            // Forward Translation
             const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), bus.rotation);
             bus.x += forward.x * (bus.speed / 3.6) * dt;
             bus.z += forward.z * (bus.speed / 3.6) * dt;
@@ -884,31 +1162,50 @@
                 bus.rotation += (bus.steerAngle * 0.85) * (bus.speed / 28) * dt;
             }
 
-            // Apply transforms to 3D Bus
             busRig.position.set(bus.x, bus.y, bus.z);
             busRig.rotation.y = bus.rotation;
 
-            // Rotate Front Steered Wheels & In-Cab Steering Wheel[cite: 2]
+            // Front Steered Wheels & In-Cab Steering Wheel
             wheels.slice(0, 2).forEach(w => w.rotation.y = bus.steerAngle * 0.7);
+            if (wheels.length >= 6) {
+                // Rear-axle steering assist on 12.8m tri-axle models
+                wheels[4].rotation.y = -bus.steerAngle * 0.25;
+                wheels[5].rotation.y = -bus.steerAngle * 0.25;
+            }
             if (steeringWheelMesh) steeringWheelMesh.rotation.z = -bus.steerAngle * 4.2;
 
-            // Update Audio
             updateEngineSound(Math.abs(bus.speed) / 70, keys.w ? 1.0 : 0.0);
             document.getElementById('speed-display').innerText = Math.round(Math.abs(bus.speed));
 
-            // Track Stops Progress
+            // Track Stops Progress & Guidance
             const nextStop = STOPS[currentStopIndex];
             const distRemaining = Math.max(0, Math.round(nextStop.stopDist - (performance.now() * 0.01 % 200)));
-            document.getElementById('hud-route-next').innerText = `Next: ${nextStop.name} (${distRemaining}m)`;
+            document.getElementById('hud-route-next').innerText = `Next: ${nextStop.name} (${distRemaining}m)[cite: 2]`;
 
-            // Broadcast transform if online in multiplayer room
+            const turnWarn = document.getElementById('turn-warning-box');
+            if (distRemaining < 90 && bus.speed > 45) {
+                turnWarn.style.display = 'flex';
+                document.getElementById('turn-warning-dist').innerText = `${distRemaining}m[cite: 2]`;
+            } else {
+                turnWarn.style.display = 'none';
+            }
+
+            const dockPrompt = document.getElementById('docking-prompt');
+            if (distRemaining < 15 && Math.abs(bus.speed) < 5) {
+                dockPrompt.style.display = 'block';
+            } else {
+                dockPrompt.style.display = 'none';
+            }
+
+            // Sync multiplayer coordinates via WebRTC
             if (peerConnection && peerConnection.open) {
                 peerConnection.send({
                     type: 'TRANSFORM',
                     x: bus.x, y: bus.y, z: bus.z,
                     rot: bus.rotation,
                     steer: bus.steerAngle,
-                    typeId: activeBusType
+                    busType: activeBusType,
+                    color: activeCompanyColor
                 });
             }
         }
@@ -918,7 +1215,7 @@
             busRig.updateMatrixWorld(true);
 
             if (cameraMode === 0) {
-                // First-Person Driver Cockpit (Right-hand drive view)[cite: 2]
+                // RHD Cockpit Driver Seat
                 const eye = busRig.localToWorld(new THREE.Vector3(0.65, 1.85, 4.2));
                 const target = busRig.localToWorld(new THREE.Vector3(0.65, 1.7, 40.0));
                 camera.position.copy(eye);
@@ -935,10 +1232,16 @@
                 const target = busRig.localToWorld(new THREE.Vector3(0, 3.2, 50.0));
                 camera.position.copy(eye);
                 camera.lookAt(target);
-            } else {
-                // CCTV Exit Door Inspection Camera[cite: 2]
+            } else if (cameraMode === 3) {
+                // CCTV Inspection View
                 const eye = busRig.localToWorld(new THREE.Vector3(-0.9, 2.2, 0.4));
                 const target = busRig.localToWorld(new THREE.Vector3(-1.3, 1.0, -0.8));
+                camera.position.copy(eye);
+                camera.lookAt(target);
+            } else {
+                // Free Walk Interior Mode
+                const eye = busRig.localToWorld(new THREE.Vector3(walkPos.x, walkPos.y, walkPos.z));
+                const target = busRig.localToWorld(new THREE.Vector3(walkPos.x, walkPos.y, walkPos.z + 10.0));
                 camera.position.copy(eye);
                 camera.lookAt(target);
             }
@@ -947,11 +1250,9 @@
         // ==========================================
         // 6. MULTIPLAYER ENGINE (PeerJS WebRTC P2P)
         // ==========================================
-        let peer = null;
-        let peerConnection = null;
+        let peer = null, peerConnection = null;
 
         function initMultiplayer() {
-            // Generate a random 4-letter room code
             const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
             peer = new Peer(roomCode);
 
@@ -978,7 +1279,7 @@
             conn.on('open', () => {
                 document.getElementById('mp-status').innerText = `Connected to peer! Synchronizing convoy.`;
                 if (!otherPlayerRig) {
-                    otherPlayerRig = createBusModel(0x0284c7); // Blue Cityscape rival bus[cite: 2]
+                    otherPlayerRig = createBusModel(0x0284c7);
                     scene.add(otherPlayerRig);
                 }
             });
@@ -992,7 +1293,7 @@
         }
 
         // ==========================================
-        // 7. CHEATS & CREATOR CODES ENGINE[cite: 2]
+        // 7. CHEATS & CREATOR CODES ENGINE
         // ==========================================
         function redeemCheatCode() {
             const input = document.getElementById('cheat-code-input');
@@ -1001,25 +1302,25 @@
             if (code === 'SPEEDDEMON') {
                 cheats.unlockSpeed = true;
                 document.getElementById('cheat-speed').checked = true;
-                showBanner("🚀 SPEEDDEMON: Speed Limit Removed!");
+                showBanner("🚀 SPEEDDEMON: Speed Limit Removed![cite: 2]");
             } else if (code === 'NITROBUS') {
                 cheats.boostPower = true;
                 document.getElementById('cheat-power').checked = true;
-                showBanner("⚡ NITROBUS: 200% Power Active!");
+                showBanner("⚡ NITROBUS: 200% Accel & 500% Decel Active![cite: 2]");
             } else if (code === 'NOCOMPLAINTS') {
                 cheats.muteComplaints = true;
                 document.getElementById('cheat-complaints').checked = true;
-                showBanner("🔇 NOCOMPLAINTS: Passenger Alerts Muted!");
+                showBanner("🔇 NOCOMPLAINTS: Complaints & Alarms Muted![cite: 2]");
             } else if (code === 'FASTWALK') {
                 cheats.fastBoarding = true;
                 document.getElementById('cheat-pax').checked = true;
-                showBanner("🏃 FASTWALK: Instant Passenger Boarding!");
+                showBanner("🏃 FASTWALK: 3x Instant Passenger Boarding![cite: 2]");
             } else if (code === 'ALLROUTES') {
-                showBanner("🗺️ ALLROUTES: Zones 1 - 8 Unlocked!");
+                showBanner("🗺️ ALLROUTES: All Route Zones 1 - 8 Unlocked![cite: 2]");
             } else if (code === 'FLEETMASTER') {
-                showBanner("🚌 FLEETMASTER: Entire 7-Company Roster Unlocked!");
+                showBanner("🚌 FLEETMASTER: Entire 8-Company Fleet Unlocked![cite: 2]");
             } else {
-                alert("Invalid Code! Try SPEEDDEMON, NITROBUS, NOCOMPLAINTS, or FASTWALK.");
+                alert("Invalid Code! Try SPEEDDEMON, NITROBUS, NOCOMPLAINTS, FASTWALK, ALLROUTES, or FLEETMASTER.[cite: 2]");
             }
             input.value = '';
         }
@@ -1032,7 +1333,7 @@
         }
 
         // ==========================================
-        // 8. MODAL CONTROLLERS & ROUTING
+        // 8. MODAL CONTROLLERS & SELECTION
         // ==========================================
         function toggleModal(id, open) {
             document.getElementById(id).style.display = open ? 'flex' : 'none';
@@ -1042,28 +1343,33 @@
             activeRoute = routeId;
             document.getElementById('hud-route-num').innerText = routeId;
             const dests = {
-                46: "Eastmallow Praya Road",
-                '41A': "Northern Beach",
-                42: "Rocky Road Terminus",
-                171: "Long Island Ferry Pier",
-                'FREE': "Free Island Roam"
+                46: "Eastmallow Praya Road[cite: 2]",
+                '41A': "Northern Beach[cite: 2]",
+                42: "Rocky Road Terminus[cite: 2]",
+                171: "Long Island Ferry Pier[cite: 2]",
+                '475A': "Norton Town Center[cite: 2]",
+                'U47': "Hotel Symbol[cite: 2]",
+                'FREE': "Free Island Roam[cite: 2]"
             };
             document.getElementById('hud-route-dest').innerText = dests[routeId] || "Terminal";
             toggleModal('modal-routes', false);
-            showBanner(`Route ${routeId} Activated!`);
+            showBanner(`Route ${routeId} Activated! Follow Chevrons[cite: 2]`);
         }
 
-        function selectBus(type) {
+        function selectBus(type, color, name) {
             activeBusType = type;
+            activeCompanyColor = color;
+            activeBusName = name;
+            bus.isTriAxle = (type === 'CITY_195DD' || type === 'REBC_128M');
             if (busRig) scene.remove(busRig);
-            busRig = createBusModel(0xf97316);
+            busRig = createBusModel(color);
             scene.add(busRig);
             toggleModal('modal-fleet', false);
-            showBanner(`Selected ${type} Vehicle!`);
+            showBanner(`Selected ${name}![cite: 2]`);
         }
 
         // ==========================================
-        // 9. ANIMATION LOOP
+        // 9. ANIMATION LOOP & CCTV RENDERING
         // ==========================================
         let lastTime = performance.now();
         function loop(now) {
