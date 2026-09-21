@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Darry's Bus Terminal -3D Simulator</title>
+    <title>Darry's Bus Terminal - 3D Simulator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -28,6 +28,24 @@
         #canvas-container { position: absolute; inset: 0; width: 100%; height: 100%; }
         #webgl-canvas { width: 100% !important; height: 100% !important; display: block; }
 
+        /* Route Loading Overlay with Elevation Profile */
+        #loading-screen {
+            position: fixed; inset: 0; background: #090e1a; z-index: 500;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; transition: opacity 0.5s ease;
+        }
+        .loading-title { font-size: 1.8rem; font-weight: 900; color: var(--gold); margin-bottom: 6px; letter-spacing: 1px; }
+        .loading-route { font-size: 1.05rem; color: #fff; margin-bottom: 14px; font-weight: bold; }
+        #elevation-canvas {
+            background: #020617; border: 1.5px solid var(--primary);
+            border-radius: 8px; margin-bottom: 14px; max-width: 90vw;
+        }
+        .progress-bar-wrap {
+            width: 340px; max-width: 85vw; height: 10px; background: #1e293b;
+            border-radius: 10px; overflow: hidden; border: 1px solid #475569;
+        }
+        #loading-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--emerald)); transition: width 0.15s; }
+
         /* HUD Top Navigation */
         .hud-top {
             position: absolute; top: max(10px, env(safe-area-inset-top)); left: 12px; right: 12px;
@@ -46,7 +64,7 @@
             background: var(--panel); border: 1.5px solid var(--primary);
             border-radius: 12px; padding: 4px 16px; backdrop-filter: blur(8px); min-width: 210px;
         }
-        .route-number { font-size: 1.4rem; font-weight: 900; color: var(--gold); line-height: 1; }
+        .route-number { font-size: 1.35rem; font-weight: 900; color: var(--gold); line-height: 1; }
         .route-dest { font-size: 0.78rem; font-weight: bold; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
         .route-next { font-size: 0.65rem; color: var(--primary); font-family: monospace; }
 
@@ -79,7 +97,7 @@
         }
         .cctv-box canvas { width: 100%; height: 100%; display: block; }
 
-        /* Banner Alerts */
+        /* Passenger Complaint Alert Banner */
         #complaint-banner {
             position: absolute; top: 88px; left: 50%; transform: translateX(-50%) scale(0);
             background: rgba(220, 38, 38, 0.95); color: #fff; font-weight: 900;
@@ -89,6 +107,7 @@
             display: flex; align-items: center; gap: 8px;
         }
 
+        /* Advance Turn Slow-Down Warning Sign */
         #turn-warning-box {
             position: absolute; top: 130px; left: 50%; transform: translateX(-50%);
             background: rgba(15, 23, 42, 0.92); border: 2px solid #facc15;
@@ -97,6 +116,7 @@
             box-shadow: 0 0 20px rgba(250, 204, 21, 0.4); z-index: 25; pointer-events: none;
         }
 
+        /* Docking Prompt */
         #docking-prompt {
             position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
             background: rgba(16, 185, 129, 0.95); color: #000; font-weight: 900;
@@ -106,7 +126,7 @@
 
         /* In-Cab Driver Smartphone Mount */
         #driver-phone {
-            position: absolute; bottom: 85px; left: 16px; width: 170px;
+            position: absolute; bottom: 85px; left: 16px; width: 160px;
             background: rgba(15, 23, 42, 0.96); border: 2px solid #334155;
             border-radius: 14px; padding: 8px; font-size: 0.65rem; font-family: sans-serif;
             box-shadow: 0 8px 25px rgba(0,0,0,0.8); z-index: 25; pointer-events: auto;
@@ -125,6 +145,7 @@
             border: 2px solid var(--primary); border-radius: 12px; color: #fff;
             font-weight: 900; font-size: 0.85rem; display: flex; flex-direction: column;
             align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
         }
         .pedal-btn:active { background: var(--primary); color: #000; transform: scale(0.95); }
         .pedal-btn.brake { border-color: var(--danger); }
@@ -185,18 +206,27 @@
 </head>
 <body>
 
+    <div id="loading-screen">
+        <div class="loading-title">SUNSHINE ISLANDS GENERAL MAP</div>
+        <div class="loading-route" id="loading-route-desc">Route 46 • Lunar Point ⮂ Eastmallow Praya Road</div>
+        <canvas id="elevation-canvas" width="400" height="140"></canvas>
+        <div class="progress-bar-wrap">
+            <div id="loading-fill"></div>
+        </div>
+        <div style="font-size:0.75rem; color:#94a3b8; margin-top:8px;">Generating Archipelago Roads, Bridges & Viaducts...</div>
+    </div>
+
     <div id="canvas-container">
         <canvas id="webgl-canvas"></canvas>
     </div>
 
-    <!-- HUD Top Navigation -->
     <div class="hud-top">
         <div class="hud-card">
             <button class="btn" onclick="toggleModal('modal-routes', true)">🗺️ Routes</button>
             <button class="btn" onclick="toggleModal('modal-fleet', true)">🚌 Fleet</button>
             <button class="btn gold" onclick="toggleModal('modal-cheats', true)">⚙️ Cheats</button>
             <button class="btn" style="background:#a855f7; color:#fff;" onclick="toggleModal('modal-multiplayer', true)">👥 Online</button>
-            <span style="color:var(--gold); font-weight:900; font-size:0.85rem;">🪙 <span id="coin-hud">2,500</span></span>
+            <span style="color:var(--gold); font-weight:900; font-size:0.85rem;">🪙 <span id="coin-hud">0</span></span>
         </div>
 
         <div class="hud-route">
@@ -213,7 +243,6 @@
         </div>
     </div>
 
-    <!-- Dual Overhead CCTV Screen Feeds -->
     <div id="cctv-container">
         <div class="cctv-box">
             <span class="cctv-label">CAM 1: REAR DOOR</span>
@@ -225,7 +254,6 @@
         </div>
     </div>
 
-    <!-- Banner Alerts -->
     <div id="complaint-banner">
         <span>⚠️</span>
         <span id="complaint-text">Passenger complained the turn is too fast!</span>
@@ -238,11 +266,10 @@
 
     <div id="docking-prompt">Hold Parking Brake [P] to lock the bus and open doors</div>
 
-    <!-- Driver Smartphone Schedule -->
     <div id="driver-phone">
         <div class="phone-header">📱 Route Schedule</div>
         <div id="schedule-list">
-            <div class="phone-stop-item current">1. Lunar Point (117m)</div>
+            <div class="phone-stop-item current">1. Lunar Point (850m)</div>
             <div class="phone-stop-item">2. Central Viaduct</div>
             <div class="phone-stop-item">3. Rock Tunnel</div>
             <div class="phone-stop-item">4. Eastmallow Praya</div>
@@ -250,7 +277,6 @@
         <div style="margin-top:4px; font-size:0.58rem; color:var(--emerald);">Status: On Time (+0.0s)</div>
     </div>
 
-    <!-- Mobile Touch Controls -->
     <div class="touch-zone" id="touch-left">
         <button class="ctrl-btn" id="touch-steer-l" style="width:58px; height:58px; font-size:1.2rem;">◀</button>
         <button class="ctrl-btn" id="touch-steer-r" style="width:58px; height:58px; font-size:1.2rem;">▶</button>
@@ -261,7 +287,6 @@
         <button class="pedal-btn" id="touch-gas">GAS<br><small>[W / ▲]</small></button>
     </div>
 
-    <!-- Bottom Actions Bar -->
     <div class="hud-actions-bar">
         <button class="ctrl-btn" id="btn-door-f" onclick="toggleFrontDoor()">🚪<br>F-DOOR</button>
         <button class="ctrl-btn" id="btn-door-r" onclick="toggleRearDoor()">🚪<br>R-DOOR</button>
@@ -272,7 +297,6 @@
         <button class="ctrl-btn" id="btn-walk" onclick="toggleWalkMode()">🚶<br>WALK [V]</button>
     </div>
 
-    <!-- Mission Completed Modal -->
     <div id="modal-mission-complete" class="modal">
         <div class="modal-card">
             <h1 style="color:var(--emerald); margin:0 0 10px 0;">Mission Completed!</h1>
@@ -294,7 +318,6 @@
         </div>
     </div>
 
-    <!-- Modals (Routes, Fleet, Cheats, Multiplayer) -->
     <div id="modal-routes" class="modal">
         <div class="modal-card">
             <div class="modal-title"><span>🗺️ SELECT BUS ROUTE</span><button class="btn" onclick="toggleModal('modal-routes', false)">✕</button></div>
@@ -334,7 +357,6 @@
         </div>
     </div>
 
-    <!-- Multiplayer Modal -->
     <div id="modal-multiplayer" class="modal">
         <div class="modal-card">
             <div class="modal-title"><span>👥 MULTIPLAYER CONVOY</span><button class="btn" onclick="toggleModal('modal-multiplayer', false)">✕</button></div>
@@ -351,7 +373,7 @@
 
     <script>
         // ==========================================
-        // 1. PROCEDURAL AUDIO (TURBO ENGINE, BRAKES)
+        // 1. PROCEDURAL AUDIO
         // ==========================================
         let audioCtx = null;
         let engineOsc = null, engineGain = null;
@@ -408,6 +430,52 @@
             } catch(e){}
         }
 
+        function playDingDongChime() {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                [784, 523].forEach((f, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, ctx.currentTime + idx * 0.2);
+                    gain.gain.setValueAtTime(0.25, ctx.currentTime + idx * 0.2);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.2 + 0.35);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + idx * 0.2);
+                    osc.stop(ctx.currentTime + idx * 0.2 + 0.35);
+                });
+            } catch(e){}
+        }
+
+        function playFareBeep() {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const osc = ctx.createOscillator(); const g = ctx.createGain();
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(1400, ctx.currentTime);
+                g.gain.setValueAtTime(0.2, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+                osc.connect(g); g.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + 0.12);
+            } catch(e){}
+        }
+
+        function honkHorn() {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                [349, 440].forEach(f => {
+                    const osc = ctx.createOscillator(); const g = ctx.createGain();
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(f, ctx.currentTime);
+                    g.gain.setValueAtTime(0.35, ctx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(); osc.stop(ctx.currentTime + 0.55);
+                });
+            } catch(e){}
+        }
+
         // ==========================================
         // 2. SIMULATION CONSTANTS & ROAD PATH
         // ==========================================
@@ -424,7 +492,7 @@
         
         let cameraMode = 0; 
         let isWalkMode = false;
-        let walkPos = new THREE.Vector3(0.65, 1.8, 3.5);
+        let walkPos = new THREE.Vector3(-0.65, 1.8, -3.5); // Local walk pos
 
         // Run Metrics for Mission Complete
         const runMetrics = {
@@ -436,13 +504,13 @@
         };
 
         const bus = {
-            x: 0, y: 0.5, z: 200,
+            x: 0, y: 0.5, z: 450,
             rotation: 0,
             speed: 0,
             steerAngle: 0,
             targetSteer: 0,
-            gear: 1, // 1: D, 0: N, -1: R
-            handbrake: true, // Start locked
+            gear: 1, 
+            handbrake: true, 
             doorFront: false,
             doorRear: false,
             passengers: 12,
@@ -454,18 +522,52 @@
         const cheats = { unlockSpeed: false, boostPower: false, muteComplaints: false };
 
         const STOPS = [
-            { name: "Lunar Point", u: 0.26, stopDist: 117 },
-            { name: "Central Viaduct", u: 0.56, stopDist: 420 },
-            { name: "Rock Tunnel", u: 0.72, stopDist: 580 },
-            { name: "Eastmallow Praya Road", u: 0.95, stopDist: 850 }
+            { name: "Lunar Point", u: 0.20, stopDist: 850 },
+            { name: "Central Viaduct", u: 0.50, stopDist: 2200 },
+            { name: "Rock Tunnel", u: 0.75, stopDist: 3800 },
+            { name: "Eastmallow Praya Road", u: 0.98, stopDist: 5400 }
         ];
         let currentStopIndex = 0;
 
         // ==========================================
-        // 3. EXPANDED WORLD ENVIRONMENT
+        // 3. EXPANDED PROCEDURAL ENVIRONMENT
         // ==========================================
+        function createRoadTexture() {
+            const cvs = document.createElement('canvas');
+            cvs.width = 512; cvs.height = 512;
+            const ctx = cvs.getContext('2d');
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0,0,512,512);
+            for(let i=0; i<6000; i++){
+                ctx.fillStyle = Math.random() > 0.5 ? '#0f172a' : '#334155';
+                ctx.fillRect(Math.random()*512, Math.random()*512, 2, 2);
+            }
+            const tex = new THREE.CanvasTexture(cvs);
+            tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(1, 10);
+            return tex;
+        }
+
+        function createBuildingTexture() {
+            const cvs = document.createElement('canvas');
+            cvs.width = 256; cvs.height = 512;
+            const ctx = cvs.getContext('2d');
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0,0,256,512);
+            for(let x=10; x<256; x+=30) {
+                for(let y=10; y<512; y+=40) {
+                    ctx.fillStyle = Math.random() > 0.3 ? '#fef08a' : '#1e293b';
+                    ctx.fillRect(x, y, 20, 25);
+                }
+            }
+            const tex = new THREE.CanvasTexture(cvs);
+            tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(2, 4);
+            return tex;
+        }
+
         function buildWorldEnvironment() {
-            scene.background = new THREE.Color(0x7dd3fc); // Permanent Daylight
+            scene.background = new THREE.Color(0x7dd3fc); 
             scene.fog = new THREE.FogExp2(0x7dd3fc, 0.00030);
             
             const ambient = new THREE.AmbientLight(0xffffff, 0.75);
@@ -475,7 +577,7 @@
             scene.add(sun);
 
             const ocean = new THREE.Mesh(
-                new THREE.PlaneGeometry(10000, 10000),
+                new THREE.PlaneGeometry(20000, 20000),
                 new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.5 })
             );
             ocean.rotation.x = -Math.PI / 2;
@@ -483,30 +585,29 @@
             scene.add(ocean);
 
             const islandMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.9 });
-            const is1 = new THREE.Mesh(new THREE.CylinderGeometry(900, 1200, 40, 32), islandMat);
-            is1.position.set(0, 10, -100); scene.add(is1);
+            const is1 = new THREE.Mesh(new THREE.CylinderGeometry(1500, 1800, 40, 32), islandMat);
+            is1.position.set(0, 10, -200); scene.add(is1);
 
-            const is2 = new THREE.Mesh(new THREE.CylinderGeometry(700, 950, 50, 32), islandMat);
-            is2.position.set(400, 12, -1350); scene.add(is2);
+            const is2 = new THREE.Mesh(new THREE.CylinderGeometry(1200, 1500, 50, 32), islandMat);
+            is2.position.set(400, 12, -3500); scene.add(is2);
 
-            // Extended Spline Path including Tunnel
+            // 5.5km Extended Spline Path
             const curvePoints = [
-                new THREE.Vector3(0, 0.2, 350),
-                new THREE.Vector3(30, 0.2, 10),
-                new THREE.Vector3(140, 0.2, -320),
-                new THREE.Vector3(280, 18.0, -820),  
-                new THREE.Vector3(380, 18.0, -1250), 
-                new THREE.Vector3(300, 18.0, -1550), // Tunnel entrance
-                new THREE.Vector3(200, 0.2, -1850),  // Tunnel exit
-                new THREE.Vector3(0, 0.2, -2200)
+                new THREE.Vector3(0, 0.2, 500),
+                new THREE.Vector3(100, 0.2, -200),
+                new THREE.Vector3(300, 0.2, -800),
+                new THREE.Vector3(600, 25.0, -1800),  // Elevated Viaduct Ramp
+                new THREE.Vector3(800, 25.0, -2800), // Red Arched Sea Bridge
+                new THREE.Vector3(400, 0.2, -3800),  // Tunnel exit
+                new THREE.Vector3(0, 0.2, -5000)
             ];
             roadSpline = new THREE.CatmullRomCurve3(curvePoints);
 
-            const roadSteps = 280;
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+            const roadSteps = 600;
+            const roadMat = new THREE.MeshStandardMaterial({ map: createRoadTexture(), roughness: 0.9 });
             const lineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
             const bridgeMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, metalness: 0.8, roughness: 0.3 }); 
-            const tunnelMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.9, side: THREE.BackSide }); // White tiles
+            const tunnelMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.9, side: THREE.BackSide });
 
             for (let i = 0; i < roadSteps; i++) {
                 const u1 = i / roadSteps;
@@ -523,21 +624,21 @@
 
                 // Double Yellow Centerline
                 if (i % 2 === 0) {
-                    const line = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.45, len * 0.6), lineMat);
-                    line.position.copy(mid);
-                    line.lookAt(p2);
-                    scene.add(line);
+                    const line1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.45, len * 0.6), lineMat);
+                    line1.position.copy(mid); line1.position.x -= 0.2; line1.lookAt(p2); scene.add(line1);
+                    const line2 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.45, len * 0.6), lineMat);
+                    line2.position.copy(mid); line2.position.x += 0.2; line2.lookAt(p2); scene.add(line2);
                 }
 
                 // Red Sea-Bridge Trusses
-                if (u1 > 0.4 && u1 < 0.6 && i % 6 === 0) {
+                if (u1 > 0.4 && u1 < 0.6 && i % 10 === 0) {
                     const truss = new THREE.Mesh(new THREE.BoxGeometry(12.5, 11, 0.6), bridgeMat);
                     truss.position.copy(mid); truss.position.y += 5.5;
                     truss.lookAt(p2); scene.add(truss);
                 }
 
-                // White Tunnel Segment
-                if (u1 > 0.65 && u1 < 0.8) {
+                // Tunnel Segment
+                if (u1 > 0.70 && u1 < 0.85) {
                     const tunnel = new THREE.Mesh(new THREE.CylinderGeometry(6.5, 6.5, len + 0.5, 16, 1, true, 0, Math.PI), tunnelMat);
                     tunnel.position.copy(mid);
                     tunnel.position.y += 0.2;
@@ -545,7 +646,7 @@
                     tunnel.rotateX(Math.PI/2);
                     scene.add(tunnel);
 
-                    if (i % 4 === 0) {
+                    if (i % 8 === 0) {
                         const tLight = new THREE.PointLight(0xffffff, 0.8, 40);
                         tLight.position.set(mid.x, mid.y + 5, mid.z);
                         scene.add(tLight);
@@ -554,9 +655,9 @@
             }
 
             // Green Directional Chevrons
-            for (let c = 0.04; c < 0.95; c += 0.035) {
+            for (let c = 0.02; c < 0.98; c += 0.015) {
                 const pt = roadSpline.getPointAt(c);
-                const nxt = roadSpline.getPointAt(c + 0.01);
+                const nxt = roadSpline.getPointAt(c + 0.005);
                 const chevron = new THREE.Mesh(
                     new THREE.PlaneGeometry(4.8, 3.4),
                     new THREE.MeshBasicMaterial({ color: 0x22c55e, transparent: true, opacity: 0.7 })
@@ -565,6 +666,15 @@
                 chevron.position.set(pt.x, pt.y + 0.25, pt.z);
                 chevron.lookAt(nxt.x, pt.y + 0.25, nxt.z);
                 scene.add(chevron);
+            }
+
+            // Procedural Skyscrapers
+            const bldgGeo = new THREE.BoxGeometry(40, 120, 40);
+            const bldgMat = new THREE.MeshStandardMaterial({ map: createBuildingTexture(), roughness: 0.8 });
+            for(let i=0; i<30; i++) {
+                const bldg = new THREE.Mesh(bldgGeo, bldgMat);
+                bldg.position.set(Math.random()*600 - 300, 60, Math.random()*800 - 4500);
+                scene.add(bldg);
             }
 
             // Bus Stops
@@ -582,10 +692,12 @@
         }
 
         // ==========================================
-        // 4. DETAILED BUS MODELS
+        // 4. DETAILED BUS MODELS (REVERSE FIX)
         // ==========================================
         function createBusModel(companyColor) {
             const group = new THREE.Group();
+            group.rotation.y = Math.PI; // Flip group 180 deg to face physical -Z
+
             const busBodyMat = new THREE.MeshStandardMaterial({ color: companyColor, roughness: 0.3 });
             const darkGlassMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, transparent: true, opacity: 0.75 });
             const interiorMat = new THREE.MeshStandardMaterial({ color: 0x475569 });
@@ -600,16 +712,16 @@
 
             if (activeBusType !== 'SINGLE_Y120') {
                 const upperDeck = new THREE.Mesh(new THREE.BoxGeometry(2.8, 2.0, busLength - 0.3), busBodyMat);
-                upperDeck.position.set(0, 3.3, -0.15); group.add(upperDeck);
+                upperDeck.position.set(0, 3.3, 0.15); group.add(upperDeck);
 
                 const upperGlass = new THREE.Mesh(new THREE.BoxGeometry(2.84, 1.1, busLength - 0.7), darkGlassMat);
-                upperGlass.position.set(0, 3.35, 0.1); group.add(upperGlass);
+                upperGlass.position.set(0, 3.35, -0.1); group.add(upperGlass);
             }
 
             const lowerGlass = new THREE.Mesh(new THREE.BoxGeometry(2.84, 1.0, busLength - 1.7), darkGlassMat);
-            lowerGlass.position.set(0, 1.5, -0.4); group.add(lowerGlass);
+            lowerGlass.position.set(0, 1.5, 0.4); group.add(lowerGlass);
 
-            // LED Destination Display
+            // LED Destination Display (Front is +Z locally before rotation)
             const destDisplay = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 0.1), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
             destDisplay.position.set(0, 3.9, busLength / 2 - 0.2); group.add(destDisplay);
 
@@ -626,7 +738,7 @@
             steeringWheelMesh = wheelPivot;
 
             // Interior Seats
-            for (let z = 2.5; z > -4.5; z -= 1.2) {
+            for (let z = -2.5; z < 4.5; z += 1.2) {
                 [-0.85, 0.85].forEach(x => {
                     const seat = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.65, 0.5), seatMat);
                     seat.position.set(x, 0.9, z); group.add(seat);
@@ -646,13 +758,15 @@
                 group.add(w); wheels.push(w);
             });
 
-            return group;
+            const wrapper = new THREE.Group();
+            wrapper.add(group);
+            return wrapper;
         }
 
         function initScene() {
             const canvas = document.getElementById('webgl-canvas');
             renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(window.innerWidth || 800, window.innerHeight || 600);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
             
             scene = new THREE.Scene();
@@ -671,7 +785,6 @@
             setupInputListeners();
             drawElevationProfile();
             
-            // Auto-hide loading screen
             setTimeout(() => {
                 document.getElementById('loading-fill').style.width = '100%';
                 setTimeout(() => {
@@ -705,7 +818,6 @@
                 getAudioContext(); initEngineAudio();
                 const code = e.code;
                 
-                // Prevent scrolling on all control keys
                 if (['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyP','KeyH','KeyC','KeyT','KeyY','KeyG','KeyV'].includes(code)) {
                     e.preventDefault();
                 }
@@ -743,7 +855,6 @@
             bindTouch('touch-steer-r', 'right', true);
         }
 
-        // ... [Door, Handbrake, and Gear Functions are identical to previous] ...
         function toggleHandbrake() {
             bus.handbrake = !bus.handbrake;
             document.getElementById('btn-handbrake').classList.toggle('active', bus.handbrake);
@@ -809,8 +920,8 @@
             if (complaintCooldown > 0) complaintCooldown -= dt;
 
             if (isWalkMode) {
-                if (keys.throttle) walkPos.z += 3.2 * dt;
-                if (keys.brake) walkPos.z -= 3.2 * dt;
+                if (keys.throttle) walkPos.z -= 3.2 * dt;
+                if (keys.brake) walkPos.z += 3.2 * dt;
                 if (keys.left) walkPos.x -= 2.5 * dt;
                 if (keys.right) walkPos.x += 2.5 * dt;
                 return;
@@ -828,10 +939,10 @@
                     bus.speed -= Math.sign(bus.speed) * decelRate * dt;
                     if (bus.speed > 55) { runMetrics.harshBrake = true; triggerComplaint("Passenger complained the brake is too heavy!"); }
                 } else {
-                    bus.speed = -12 * dt; // Reverse creep when stopped
+                    bus.speed = -12 * dt; 
                 }
             } else {
-                bus.speed *= 0.985; // Coasting
+                bus.speed *= 0.985; 
             }
 
             if (bus.handbrake) bus.speed *= 0.85;
@@ -855,8 +966,7 @@
                 triggerComplaint("Passenger complained the turn is too fast!");
             }
 
-            // REVERSE BUG FIXED: Applying proper forward translation vector
-            // In Three.js, positive Z is backward. To go forward, we multiply speed by negative Z.
+            // Move Forward (-Z local)
             const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), bus.rotation);
             bus.x += forward.x * (bus.speed / 3.6) * dt;
             bus.z += forward.z * (bus.speed / 3.6) * dt;
@@ -865,7 +975,6 @@
                 bus.rotation += (bus.steerAngle * 0.85) * (bus.speed / 28) * dt;
             }
 
-            // Body Roll & Pitch
             const targetRoll = (bus.steerAngle * -0.12) * (bus.speed / 45);
             const targetPitch = (keys.throttle ? 0.02 : (keys.brake ? -0.05 : 0));
             busRig.rotation.z = THREE.MathUtils.lerp(busRig.rotation.z, targetRoll, 0.1);
@@ -874,14 +983,14 @@
             busRig.position.set(bus.x, bus.y, bus.z);
             busRig.rotation.y = bus.rotation;
 
-            // Animate Wheels
+            // Animate Wheels (Front index 0 and 1 are the steered wheels)
             wheels.slice(0, 2).forEach(w => w.rotation.y = bus.steerAngle * 0.7);
             if (steeringWheelMesh) steeringWheelMesh.rotation.z = -bus.steerAngle * 4.2;
 
             updateEngineSound(Math.abs(bus.speed) / speedLimit, keys.throttle ? 1.0 : 0.0);
             document.getElementById('speed-display').innerText = Math.round(Math.abs(bus.speed));
 
-            // Stop Tracking & End Screen
+            // Stop Tracking
             const nextStop = STOPS[currentStopIndex];
             const distRemaining = Math.max(0, Math.round(nextStop.stopDist - (performance.now() * 0.01 % 850)));
             document.getElementById('hud-route-next').innerText = `Next: ${nextStop.name} (${distRemaining}m)`;
@@ -893,7 +1002,6 @@
                 document.getElementById('turn-warning-box').style.display = 'none';
             }
 
-            // Check Mission Complete at final stop
             if (currentStopIndex === STOPS.length - 1 && distRemaining < 15 && Math.abs(bus.speed) < 2 && bus.handbrake) {
                 triggerMissionComplete();
             }
@@ -930,8 +1038,7 @@
             toggleModal('modal-mission-complete', false);
             showBanner(`Run Complete! +${Math.round(reward * mult)} Coins Added!`);
             
-            // Reset state
-            bus.x = 0; bus.z = 200; bus.speed = 0; bus.rotation = 0; currentStopIndex = 0;
+            bus.x = 0; bus.z = 450; bus.speed = 0; bus.rotation = 0; currentStopIndex = 0;
             runMetrics.startTime = Date.now();
             runMetrics.harshBrake = false; runMetrics.harshTurn = false; runMetrics.doorDriving = false; runMetrics.crash = false;
         }
@@ -941,8 +1048,8 @@
             busRig.updateMatrixWorld(true);
 
             if (cameraMode === 0) {
-                const eye = busRig.localToWorld(new THREE.Vector3(0.65, 1.85, 4.2));
-                const target = busRig.localToWorld(new THREE.Vector3(0.65, 1.7, 40.0));
+                const eye = busRig.localToWorld(new THREE.Vector3(-0.65, 1.85, -4.2));
+                const target = busRig.localToWorld(new THREE.Vector3(-0.65, 1.7, -40.0));
                 camera.position.copy(eye);
                 camera.lookAt(target);
             } else if (cameraMode === 1) {
@@ -951,18 +1058,18 @@
                 camera.position.lerp(new THREE.Vector3().addVectors(busRig.position, offset), 0.15);
                 camera.lookAt(target);
             } else if (cameraMode === 2) {
-                const eye = busRig.localToWorld(new THREE.Vector3(0, 3.4, 4.8));
-                const target = busRig.localToWorld(new THREE.Vector3(0, 3.2, 50.0));
+                const eye = busRig.localToWorld(new THREE.Vector3(0, 3.4, -4.8));
+                const target = busRig.localToWorld(new THREE.Vector3(0, 3.2, -50.0));
                 camera.position.copy(eye);
                 camera.lookAt(target);
             } else if (cameraMode === 3) {
-                const eye = busRig.localToWorld(new THREE.Vector3(-0.9, 2.2, 0.4));
-                const target = busRig.localToWorld(new THREE.Vector3(-1.3, 1.0, -0.8));
+                const eye = busRig.localToWorld(new THREE.Vector3(0.9, 2.2, -0.4));
+                const target = busRig.localToWorld(new THREE.Vector3(1.3, 1.0, 0.8));
                 camera.position.copy(eye);
                 camera.lookAt(target);
             } else {
                 const eye = busRig.localToWorld(new THREE.Vector3(walkPos.x, walkPos.y, walkPos.z));
-                const target = busRig.localToWorld(new THREE.Vector3(walkPos.x, walkPos.y, walkPos.z + 10.0));
+                const target = busRig.localToWorld(new THREE.Vector3(walkPos.x, walkPos.y, walkPos.z - 10.0));
                 camera.position.copy(eye);
                 camera.lookAt(target);
             }
@@ -1013,9 +1120,10 @@
         // Multi-player stubs
         let peer = null, peerConnection = null;
         function initMultiplayer() {
+            if (typeof Peer === 'undefined') return;
             const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
             peer = new Peer(roomCode);
-            peer.on('open', id => document.getElementById('my-peer-id').innerText = id);
+            peer.on('open', id => { document.getElementById('my-peer-id').innerText = id; });
         }
         function connectToPeer() {
             const targetId = document.getElementById('join-peer-id').value.trim().toUpperCase();
@@ -1034,9 +1142,9 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            initScene();
-            initMultiplayer();
-            document.getElementById('coin-hud').innerText = (parseInt(localStorage.getItem('arcade_coins')) || 0).toLocaleString();
+            try { initScene(); } catch(e) { console.error(e); }
+            try { initMultiplayer(); } catch(e) { console.error(e); }
+            try { document.getElementById('coin-hud').innerText = (parseInt(localStorage.getItem('arcade_coins')) || 0).toLocaleString(); } catch(e) {}
             requestAnimationFrame(loop);
         });
     </script>
