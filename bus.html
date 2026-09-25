@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Darry's Bus Terminal - Sunshine Islands 3D Simulator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
@@ -183,8 +182,8 @@
 
         <div class="hud-route">
             <span class="route-number" id="hud-route-num">1</span>
-            <span class="route-dest" id="hud-route-dest">Long Island ⮂ Central District</span>
-            <span class="route-next" id="hud-route-next">Next: Zone 1 Terminal (280m)</span>
+            <span class="route-dest" id="hud-route-dest">Central City ⮂ Financial District</span>
+            <span class="route-next" id="hud-route-next">Next: City Hall Station (280m)</span>
         </div>
 
         <div class="speedo-cluster">
@@ -217,10 +216,10 @@
     <div id="driver-phone">
         <div class="phone-header">📱 Route Schedule</div>
         <div id="schedule-list">
-            <div class="phone-stop-item current">1. Zone 1 Terminal</div>
-            <div class="phone-stop-item">2. Dove Island Pier</div>
-            <div class="phone-stop-item">3. Hospital Island</div>
-            <div class="phone-stop-item">4. Central District</div>
+            <div class="phone-stop-item current">1. City Hall Station</div>
+            <div class="phone-stop-item">2. Central Interchange</div>
+            <div class="phone-stop-item">3. Marina Bay Terminal</div>
+            <div class="phone-stop-item">4. Financial District</div>
         </div>
     </div>
 
@@ -397,9 +396,6 @@
         let activeCompanyColor = 0x84cc16;
         let cameraMode = 0; // 0: Cockpit RHD, 1: Chase, 2: Upper Deck
 
-        let suspensionRoll = 0;
-        let suspensionPitch = 0;
-
         const bus = {
             x: 0, y: 0.65, z: 350,
             rotation: 0,
@@ -420,78 +416,64 @@
         const cheats = { unlockSpeed: false, boostPower: false, muteComplaints: false };
 
         const ROUTES = [];
-        const ZONE_NAMES = ["Long Island", "Dove Island", "Hospital Island", "Containers Island", "Central District", "North Island", "University Island", "Moon Island", "Horizon Island", "Leafy Island"];
+        const ZONE_NAMES = ["City Hall", "Central Interchange", "Marina Bay", "Financial District", "Orchard Blvd", "Harbourfront", "Sentosa Link", "Chinatown", "Little India", "East Coast"];
         for (let i = 1; i <= 30; i++) {
             const startZone = ZONE_NAMES[(i * 3) % ZONE_NAMES.length];
             const endZone = ZONE_NAMES[(i * 7) % ZONE_NAMES.length];
             ROUTES.push({ id: i, name: `Route ${i}`, desc: `${startZone} ⮂ ${endZone}` });
         }
 
+        // 7 Distinct Bus Stops Placed Along the City Grid
         const STOPS = [
-            { name: "Zone 1 Terminal (Long Island)", pos: new THREE.Vector3(20, 0.2, 250) },
-            { name: "Dove Island Pier", pos: new THREE.Vector3(120, 0.2, -300) },
-            { name: "Hospital & Container Hub", pos: new THREE.Vector3(300, 0.2, -800) },
-            { name: "Central Viaduct Plaza", pos: new THREE.Vector3(420, 16.0, -1200) },
-            { name: "Red Sea Bridge Gate", pos: new THREE.Vector3(550, 16.0, -1900) },
-            { name: "North Island University", pos: new THREE.Vector3(250, 0.2, -2600) },
-            { name: "Eastmallow Praya Terminal", pos: new THREE.Vector3(0, 0.2, -3400) }
+            { name: "City Hall Station", pos: new THREE.Vector3(0, 0.2, 300) },
+            { name: "Central Interchange", pos: new THREE.Vector3(0, 0.2, 50) },
+            { name: "Marina Bay Terminal", pos: new THREE.Vector3(0, 0.2, -300) },
+            { name: "Financial District", pos: new THREE.Vector3(0, 0.2, -700) },
+            { name: "Orchard Blvd Plaza", pos: new THREE.Vector3(0, 0.2, -1200) },
+            { name: "Harbourfront Gateway", pos: new THREE.Vector3(0, 0.2, -1800) },
+            { name: "Sentosa Coast Hub", pos: new THREE.Vector3(0, 0.2, -2500) }
         ];
         let currentStopIndex = 0;
 
         // ==========================================
-        // 3. ARCHIPELAGO WORLD & CASTELIA CITY LOADER
+        // 3. URBAN CITY MAP & BUS STOP SHELTERS
         // ==========================================
         function buildWorldEnvironment() {
-            scene.background = new THREE.Color(0x7dd3fc);
-            scene.fog = new THREE.FogExp2(0x7dd3fc, 0.00028);
+            scene.background = new THREE.Color(0x38bdf8); // Sky blue
+            scene.fog = new THREE.FogExp2(0x38bdf8, 0.00022);
 
-            const ambient = new THREE.AmbientLight(0xffffff, 0.9);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.85);
             scene.add(ambient);
-            const sun = new THREE.DirectionalLight(0xffedd5, 1.2);
-            sun.position.set(300, 600, 200);
+            const sun = new THREE.DirectionalLight(0xfffbeb, 1.2);
+            sun.position.set(400, 800, 400);
             scene.add(sun);
 
-            // Ocean Floor
-            const ocean = new THREE.Mesh(
-                new THREE.PlaneGeometry(20000, 20000),
-                new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.5 })
-            );
-            ocean.rotation.x = -Math.PI / 2;
-            ocean.position.y = -0.6;
-            scene.add(ocean);
+            // Ground Asphalt & Sidewalk Blocks
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -0.1;
+            scene.add(ground);
 
-            // Flat Island Ground Planes (Fixed clipping bug where tall cylinders swallowed the camera)
-            const islandMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.9 });
-            const is1 = new THREE.Mesh(new THREE.PlaneGeometry(3500, 4500), islandMat);
-            is1.rotation.x = -Math.PI / 2;
-            is1.position.set(0, -0.05, -200);
-            scene.add(is1);
+            // Build Dense City Blocks & Skyscrapers
+            buildCityGrid();
 
-            const is2 = new THREE.Mesh(new THREE.PlaneGeometry(3000, 4000), islandMat);
-            is2.rotation.x = -Math.PI / 2;
-            is2.position.set(450, -0.05, -2800);
-            scene.add(is2);
-
-            // Load Castelia City Model if available
-            loadCasteliaCity();
-
-            // Continuous Road Spline
+            // City Street Path Spline (Straight & Curved City Avenues)
             const curvePoints = [
-                new THREE.Vector3(0, 0.2, 400),
-                new THREE.Vector3(20, 0.2, 200),
-                new THREE.Vector3(60, 0.2, -100),
-                new THREE.Vector3(220, 0.2, -600),
-                new THREE.Vector3(420, 16.0, -1200),
-                new THREE.Vector3(550, 16.0, -1900),
-                new THREE.Vector3(350, 0.2, -2600),
-                new THREE.Vector3(0, 0.2, -3500)
+                new THREE.Vector3(0, 0.2, 500),
+                new THREE.Vector3(0, 0.2, 200),
+                new THREE.Vector3(0, 0.2, -200),
+                new THREE.Vector3(0, 0.2, -600),
+                new THREE.Vector3(0, 0.2, -1100),
+                new THREE.Vector3(0, 0.2, -1700),
+                new THREE.Vector3(0, 0.2, -2400),
+                new THREE.Vector3(0, 0.2, -3200)
             ];
             roadSpline = new THREE.CatmullRomCurve3(curvePoints);
 
-            const roadSteps = 400;
+            const roadSteps = 300;
             const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
             const lineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-            const bridgeMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.3, metalness: 0.6 });
 
             for (let i = 0; i < roadSteps; i++) {
                 const u1 = i / roadSteps;
@@ -501,99 +483,80 @@
                 const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
                 const len = p1.distanceTo(p2);
 
-                const roadSeg = new THREE.Mesh(new THREE.BoxGeometry(14, 0.4, len + 0.4), roadMat);
+                const roadSeg = new THREE.Mesh(new THREE.BoxGeometry(16, 0.3, len + 0.4), roadMat);
                 roadSeg.position.copy(mid);
                 roadSeg.lookAt(p2);
                 scene.add(roadSeg);
 
+                // Center Yellow Lines
                 if (i % 2 === 0) {
-                    const line1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.45, len * 0.6), lineMat);
-                    line1.position.copy(mid); line1.position.x -= 0.25; line1.lookAt(p2); scene.add(line1);
-                    const line2 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.45, len * 0.6), lineMat);
-                    line2.position.copy(mid); line2.position.x += 0.25; line2.lookAt(p2); scene.add(line2);
-                }
-
-                if (p1.y > 10 && i % 8 === 0) {
-                    const truss = new THREE.Mesh(new THREE.BoxGeometry(15, 11, 0.5), bridgeMat);
-                    truss.position.copy(mid); truss.position.y += 5.5;
-                    truss.lookAt(p2); scene.add(truss);
+                    const line1 = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.35, len * 0.6), lineMat);
+                    line1.position.copy(mid); line1.position.y += 0.02; line1.lookAt(p2); scene.add(line1);
                 }
             }
 
+            // Build Real Bus Stop Shelters with Passengers at Each Stop Location
             STOPS.forEach(stop => {
-                createBusShelter(stop.pos.x + 8, stop.pos.y, stop.pos.z);
+                createBusShelter(stop.pos.x + 10, stop.pos.y, stop.pos.z);
             });
-
-            for (let c = 0.04; c < 0.96; c += 0.03) {
-                const pt = roadSpline.getPointAt(c);
-                const nxt = roadSpline.getPointAt(c + 0.008);
-                const chevron = new THREE.Mesh(
-                    new THREE.PlaneGeometry(4.8, 3.4),
-                    new THREE.MeshBasicMaterial({ color: 0x22c55e, transparent: true, opacity: 0.7 })
-                );
-                chevron.rotation.x = -Math.PI / 2;
-                chevron.position.set(pt.x, pt.y + 0.25, pt.z);
-                chevron.lookAt(nxt.x, pt.y + 0.25, nxt.z);
-                scene.add(chevron);
-            }
         }
 
-        // Integration handler for Castelia City OBJ model data
-        function loadCasteliaCity() {
-            // Using OBJLoader to load the model path or embedded string data
-            const loader = new THREE.OBJLoader();
-            // Fallback placeholder loader or direct path if hosted
-            try {
-                loader.load('OBJ/Castelia City.obj', (object) => {
-                    object.position.set(0, 0, -1500);
-                    object.scale.set(2.0, 2.0, 2.0);
-                    scene.add(object);
-                }, undefined, (error) => {
-                    console.log("Castelia City external asset path not found, rendering procedural island buildings.");
-                    buildProceduralCityBuildings();
+        function buildCityGrid() {
+            const bldMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5, metalness: 0.2 });
+            const glassBldMat = new THREE.MeshStandardMaterial({ color: 0x0ea5e9, roughness: 0.2, metalness: 0.8 });
+            const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8 });
+
+            // Generate Sidewalks along the main avenue
+            for (let z = 600; z > -3500; z -= 100) {
+                [-11, 11].forEach(x => {
+                    const sw = new THREE.Mesh(new THREE.BoxGeometry(4, 0.25, 98), sidewalkMat);
+                    sw.position.set(x, 0.1, z);
+                    scene.add(sw);
                 });
-            } catch(e) {
-                buildProceduralCityBuildings();
             }
-        }
 
-        function buildProceduralCityBuildings() {
-            const buildingMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.7 });
-            const windowMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-            
-            for (let z = -200; z > -3000; z -= 120) {
-                [-35, 35].forEach(xOff => {
-                    const bHeight = 40 + Math.abs(Math.sin(z) * 60);
-                    const b = new THREE.Mesh(new THREE.BoxGeometry(25, bHeight, 45), buildingMat);
-                    b.position.set(xOff, bHeight/2, z);
-                    scene.add(b);
+            // Generate Skyscrapers and City Buildings flanking the road
+            for (let z = 450; z > -3200; z -= 140) {
+                [-45, 45].forEach((x, idx) => {
+                    const width = 35 + (Math.abs(z * 7) % 20);
+                    const depth = 50;
+                    const height = 60 + (Math.abs(z * 13) % 120);
+                    const mat = (idx % 2 === 0) ? bldMat : glassBldMat;
+
+                    const bld = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), mat);
+                    bld.position.set(x + (idx === 0 ? -15 : 15), height / 2, z);
+                    scene.add(bld);
                 });
             }
         }
 
         function createBusShelter(x, y, z) {
             const shelterGroup = new THREE.Group();
-            const frameMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.2 });
-            const glassMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.3, roughness: 0.1 });
-            const roofMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.4 });
+            const frameMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.35, roughness: 0.1 });
+            const roofMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.3 }); // Red shelter roof
 
-            [-1.5, 1.5].forEach(px => {
-                const post = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.6, 0.15), frameMat);
-                post.position.set(px, 1.3, 0);
+            // Posts
+            [-1.8, 1.8].forEach(px => {
+                const post = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.8, 0.15), frameMat);
+                post.position.set(px, 1.4, 0);
                 shelterGroup.add(post);
             });
 
-            const backGlass = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.2, 0.08), glassMat);
-            backGlass.position.set(0, 1.3, -1.0);
+            // Glass Back Wall
+            const backGlass = new THREE.Mesh(new THREE.BoxGeometry(3.6, 2.4, 0.08), glassMat);
+            backGlass.position.set(0, 1.4, -1.2);
             shelterGroup.add(backGlass);
 
-            const canopy = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.15, 2.2), roofMat);
-            canopy.position.set(0, 2.6, -0.5);
+            // Roof Canopy
+            const canopy = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.15, 2.6), roofMat);
+            canopy.position.set(0, 2.8, -0.6);
             shelterGroup.add(canopy);
 
-            [-0.6, 0.2, 0.8].forEach((px, idx) => {
-                const pax = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 1.1, 8), new THREE.MeshStandardMaterial({ color: idx === 0 ? 0xf59e0b : 0x38bdf8 }));
-                pax.position.set(px, 0.55, -0.4);
+            // Waiting Passengers
+            [-0.8, 0.2, 0.9].forEach((px, idx) => {
+                const pax = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.2, 8), new THREE.MeshStandardMaterial({ color: idx === 0 ? 0xfacc15 : 0x00f3ff }));
+                pax.position.set(px, 0.6, -0.5);
                 shelterGroup.add(pax);
             });
 
@@ -602,18 +565,7 @@
         }
 
         function getRoadHeightAt(x, z) {
-            if (!roadSpline) return 0.2;
-            let closestY = 0.2;
-            let minDist = Infinity;
-            for (let u = 0; u <= 1; u += 0.005) {
-                const pt = roadSpline.getPointAt(u);
-                const d = Math.hypot(pt.x - x, pt.z - z);
-                if (d < minDist) {
-                    minDist = d;
-                    closestY = pt.y;
-                }
-            }
-            return closestY;
+            return 0.2; // Flat city grade
         }
 
         // ==========================================
