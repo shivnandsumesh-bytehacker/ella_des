@@ -302,7 +302,6 @@
     </div>
 
     <script>
-        // Global Error Catcher to prevent silent black screen
         window.addEventListener('error', function(e) {
             const overlay = document.getElementById('error-overlay');
             const txt = document.getElementById('error-text');
@@ -412,7 +411,7 @@
         let activeRoute = 1;
         let activeBusType = 'SGBUS_GREEN';
         let activeCompanyColor = 0x84cc16;
-        let cameraMode = 0; // 0: Cockpit RHD, 1: Chase, 2: Upper Deck
+        let cameraMode = 0;
 
         const bus = {
             x: 0, y: 0.65, z: 250,
@@ -449,7 +448,7 @@
         let currentStopIndex = 0;
 
         // ==========================================
-        // 3. URBAN CITY MAP & CURVED ROAD NETWORK
+        // 3. URBAN CITY MAP & SPLINE-ALIGNED BUILDINGS
         // ==========================================
         function buildWorldEnvironment() {
             scene.background = new THREE.Color(0x7dd3fc);
@@ -467,8 +466,7 @@
             ground.position.y = -0.2;
             scene.add(ground);
 
-            buildUrbanBuildings();
-
+            // Winding Road Spline
             const curvePoints = [
                 new THREE.Vector3(0, 0.2, 350),
                 new THREE.Vector3(60, 0.2, 180),
@@ -483,6 +481,9 @@
                 new THREE.Vector3(0, 0.2, -2800)
             ];
             roadSpline = new THREE.CatmullRomCurve3(curvePoints);
+
+            // Build buildings aligned along spline offsets so they never intersect roads
+            buildSplineAlignedBuildings();
 
             const roadSteps = 400;
             const roadMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
@@ -507,30 +508,39 @@
                 }
 
                 if (i % 45 === 0) {
-                    createTrafficSignal(p1.x + 8, p1.y, p1.z);
+                    createTrafficSignal(p1.x + 10, p1.y, p1.z);
                 }
             }
 
             STOPS.forEach((stop, idx) => {
                 const u = (idx + 1) / (STOPS.length + 1);
                 const pt = roadSpline.getPointAt(u);
-                createBusShelter(pt.x + 9, pt.y, pt.z, stop.name);
+                createBusShelter(pt.x + 10, pt.y, pt.z, stop.name);
             });
         }
 
-        function buildUrbanBuildings() {
+        function buildSplineAlignedBuildings() {
             const bldMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
             const glassBldMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.2, metalness: 0.8 });
 
-            for (let z = 400; z > -3000; z -= 150) {
-                [-65, 65].forEach((xOff, idx) => {
-                    const width = 45;
-                    const height = 60 + (Math.abs(z * 3) % 120);
-                    const depth = 55;
-                    const mat = (idx === 0) ? bldMat : glassBldMat;
+            const numBuildings = 70;
+            for (let i = 2; i < numBuildings - 2; i++) {
+                const u = i / numBuildings;
+                const pt = roadSpline.getPointAt(u);
+                const tangent = roadSpline.getTangentAt(u);
+                const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
 
+                [-1, 1].forEach(side => {
+                    const offsetDist = 22 + (i % 3) * 6; // Safe distance outside road width
+                    const bPos = pt.clone().add(normal.clone().multiplyScalar(side * offsetDist));
+
+                    const width = 30 + (i % 4) * 5;
+                    const depth = 30 + ((i * 2) % 4) * 5;
+                    const height = 50 + ((i * 7) % 100);
+
+                    const mat = (i % 2 === 0) ? bldMat : glassBldMat;
                     const bld = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), mat);
-                    bld.position.set(xOff, height / 2, z);
+                    bld.position.set(bPos.x, height / 2, bPos.z);
                     scene.add(bld);
                 });
             }
