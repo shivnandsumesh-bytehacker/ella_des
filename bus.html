@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Darry's Bus Terminal - Sunshine Islands 3D Simulator</title>
-    <!-- Three.js r128 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- PeerJS CDN -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
@@ -27,8 +25,14 @@
             color: #fff; touch-action: none;
         }
 
-        #canvas-container { position: absolute; inset: 0; width: 100%; height: 100%; }
+        #canvas-container { position: absolute; inset: 0; width: 100vw; height: 100vh; z-index: 1; }
         #webgl-canvas { width: 100% !important; height: 100% !important; display: block; }
+
+        /* Error Debug Overlay */
+        #error-overlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); color: #ef4444;
+            z-index: 999; padding: 24px; font-family: monospace; display: none; overflow: auto;
+        }
 
         /* HUD Top Navigation */
         .hud-top {
@@ -168,6 +172,11 @@
 </head>
 <body>
 
+    <div id="error-overlay">
+        <h2>⚠️ Simulator Boot Error</h2>
+        <pre id="error-text">Initializing...</pre>
+    </div>
+
     <div id="canvas-container">
         <canvas id="webgl-canvas"></canvas>
     </div>
@@ -246,7 +255,7 @@
         <button class="ctrl-btn" onclick="cycleCamera()">🎥<br>CAM [C]</button>
     </div>
 
-    <!-- Modals: 30 Routes Selection -->
+    <!-- Modals -->
     <div id="modal-routes" class="modal">
         <div class="modal-card">
             <div class="modal-title"><span>🗺️ SELECT BUS ROUTE (30 ROUTES)</span><button class="btn" onclick="toggleModal('modal-routes', false)">✕</button></div>
@@ -254,7 +263,6 @@
         </div>
     </div>
 
-    <!-- Fleet Modal -->
     <div id="modal-fleet" class="modal">
         <div class="modal-card">
             <div class="modal-title"><span>🚌 URBAN FLEET ROSTER</span><button class="btn" onclick="toggleModal('modal-fleet', false)">✕</button></div>
@@ -268,7 +276,6 @@
         </div>
     </div>
 
-    <!-- Cheats Modal -->
     <div id="modal-cheats" class="modal">
         <div class="modal-card">
             <div class="modal-title"><span>⚙️ CHEATS & CODES</span><button class="btn" onclick="toggleModal('modal-cheats', false)">✕</button></div>
@@ -280,23 +287,31 @@
         </div>
     </div>
 
-    <!-- Multiplayer Modal -->
     <div id="modal-multiplayer" class="modal">
         <div class="modal-card">
             <div class="modal-title"><span>👥 MULTIPLAYER CONVOY (PEERJS)</span><button class="btn" onclick="toggleModal('modal-multiplayer', false)">✕</button></div>
             <div style="background:#020617; padding:12px; border-radius:8px; border:1px solid #334155; margin-bottom:12px;">
                 <div>Your Peer Code: <strong style="color:var(--gold); font-size:1.2rem;" id="my-peer-id">Connecting...</strong></div>
-                <div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;">Share this code with your friend so they can join your room!</div>
             </div>
             <div style="display:flex; gap:8px;">
                 <input type="text" id="join-peer-id" placeholder="ENTER FRIEND'S CODE..." style="flex:1; background:#020617; border:1px solid var(--primary); border-radius:6px; color:#fff; padding:8px 12px; font-weight:bold;">
                 <button class="btn" onclick="connectToPeer()">JOIN</button>
             </div>
-            <div id="mp-status" style="margin-top:8px; font-size:0.8rem; color:var(--emerald);">Status: Initializing server...</div>
+            <div id="mp-status" style="margin-top:8px; font-size:0.8rem; color:var(--emerald);">Status: Ready</div>
         </div>
     </div>
 
     <script>
+        // Global Error Catcher to prevent silent black screen
+        window.addEventListener('error', function(e) {
+            const overlay = document.getElementById('error-overlay');
+            const txt = document.getElementById('error-text');
+            if (overlay && txt) {
+                overlay.style.display = 'block';
+                txt.innerText += '\n\nERROR: ' + e.message + ' at ' + e.filename + ':' + e.lineno;
+            }
+        });
+
         // ==========================================
         // 1. PROCEDURAL AUDIO SYNTHESIZER
         // ==========================================
@@ -446,7 +461,6 @@
             sun.position.set(400, 800, 400);
             scene.add(sun);
 
-            // Ground & Sidewalks
             const groundMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
             const ground = new THREE.Mesh(new THREE.PlaneGeometry(12000, 12000), groundMat);
             ground.rotation.x = -Math.PI / 2;
@@ -455,7 +469,6 @@
 
             buildUrbanBuildings();
 
-            // Winding Road Spline with Curves and Turns
             const curvePoints = [
                 new THREE.Vector3(0, 0.2, 350),
                 new THREE.Vector3(60, 0.2, 180),
@@ -938,7 +951,6 @@
                 showBanner(`Arrived at ${nextStop.name}! (+200 EXP)`);
             }
 
-            // Sync multiplayer data
             if (peerConnection && peerConnection.open) {
                 peerConnection.send({
                     type: 'SYNC',
@@ -982,12 +994,14 @@
 
         function initMultiplayer() {
             try {
-                // Initialize PeerJS with public cloud server
-                peer = new Peer({ host: '0.peerjs.com', port: 443, secure: true });
+                const randomId = 'BUS-' + Math.floor(1000 + Math.random() * 9000);
+                peer = new Peer(randomId);
 
                 peer.on('open', id => {
-                    document.getElementById('my-peer-id').innerText = id;
-                    document.getElementById('mp-status').innerText = "Status: Online & Ready";
+                    const idEl = document.getElementById('my-peer-id');
+                    if (idEl) idEl.innerText = id;
+                    const statusEl = document.getElementById('mp-status');
+                    if (statusEl) statusEl.innerText = "Status: Online & Ready";
                 });
 
                 peer.on('connection', conn => {
@@ -995,18 +1009,24 @@
                 });
 
                 peer.on('error', err => {
-                    document.getElementById('mp-status').innerText = "Status: PeerJS Error (" + err.type + ")";
+                    const statusEl = document.getElementById('mp-status');
+                    if (statusEl) statusEl.innerText = "Status: PeerJS Error (" + err.type + ")";
                 });
             } catch(e) {
-                document.getElementById('my-peer-id').innerText = "Offline Mode";
-                document.getElementById('mp-status').innerText = "Status: Running Local Solo";
+                const idEl = document.getElementById('my-peer-id');
+                if (idEl) idEl.innerText = "Offline Mode";
             }
         }
 
         function connectToPeer() {
-            const targetId = document.getElementById('join-peer-id').value.trim().toUpperCase();
+            const inputEl = document.getElementById('join-peer-id');
+            if (!inputEl) return;
+            const targetId = inputEl.value.trim().toUpperCase();
             if (!targetId || !peer) return;
-            document.getElementById('mp-status').innerText = "Connecting to " + targetId + "...";
+            
+            const statusEl = document.getElementById('mp-status');
+            if (statusEl) statusEl.innerText = "Connecting to " + targetId + "...";
+            
             const conn = peer.connect(targetId);
             setupConnection(conn);
         }
@@ -1014,7 +1034,8 @@
         function setupConnection(conn) {
             peerConnection = conn;
             conn.on('open', () => {
-                document.getElementById('mp-status').innerText = "Status: Convoy Connected!";
+                const statusEl = document.getElementById('mp-status');
+                if (statusEl) statusEl.innerText = "Status: Convoy Connected!";
                 toggleModal('modal-multiplayer', false);
                 showBanner("🎮 Connected to Friend's Convoy!");
 
@@ -1036,7 +1057,8 @@
             });
 
             conn.on('close', () => {
-                document.getElementById('mp-status').innerText = "Status: Friend disconnected.";
+                const statusEl = document.getElementById('mp-status');
+                if (statusEl) statusEl.innerText = "Status: Friend disconnected.";
                 if (otherPlayerRig) {
                     scene.remove(otherPlayerRig);
                     otherPlayerRig = null;
@@ -1048,11 +1070,13 @@
         // 9. UI & ROUTE POPULATION
         // ==========================================
         function toggleModal(id, open) {
-            document.getElementById(id).style.display = open ? 'flex' : 'none';
+            const el = document.getElementById(id);
+            if (el) el.style.display = open ? 'flex' : 'none';
         }
 
         function populateRouteGrid() {
             const container = document.getElementById('route-grid-container');
+            if (!container) return;
             container.innerHTML = '';
             ROUTES.forEach(r => {
                 const card = document.createElement('div');
@@ -1081,9 +1105,12 @@
         }
 
         function applyCheatSettings() {
-            cheats.unlockSpeed = document.getElementById('cheat-speed').checked;
-            cheats.boostPower = document.getElementById('cheat-power').checked;
-            cheats.muteComplaints = document.getElementById('cheat-complaints').checked;
+            const speedEl = document.getElementById('cheat-speed');
+            const powerEl = document.getElementById('cheat-power');
+            const muteEl = document.getElementById('cheat-complaints');
+            if (speedEl) cheats.unlockSpeed = speedEl.checked;
+            if (powerEl) cheats.boostPower = powerEl.checked;
+            if (muteEl) cheats.muteComplaints = muteEl.checked;
         }
 
         // ==========================================
@@ -1101,26 +1128,38 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const canvas = document.getElementById('webgl-canvas');
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 10000);
+            try {
+                const canvas = document.getElementById('webgl-canvas');
+                if (!canvas) throw new Error("WebGL canvas element not found in DOM!");
 
-            buildWorldEnvironment();
-            populateRouteGrid();
-            spawnBus();
-            setupInputListeners();
-            initMultiplayer();
-
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
+                renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: "high-performance" });
                 renderer.setSize(window.innerWidth, window.innerHeight);
-            });
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 10000);
 
-            requestAnimationFrame(loop);
+                buildWorldEnvironment();
+                populateRouteGrid();
+                spawnBus();
+                setupInputListeners();
+                initMultiplayer();
+
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                requestAnimationFrame(loop);
+            } catch(err) {
+                const overlay = document.getElementById('error-overlay');
+                const txt = document.getElementById('error-text');
+                if (overlay && txt) {
+                    overlay.style.display = 'block';
+                    txt.innerText = 'FATAL BOOT EXCEPTION:\n' + err.stack;
+                }
+            }
         });
     </script>
 </body>
