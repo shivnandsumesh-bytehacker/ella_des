@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Darry's Bus Terminal - Sunshine Islands 3D Simulator</title>
+    <!-- Three.js r128 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- PeerJS CDN -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
@@ -421,6 +423,16 @@
             ROUTES.push({ id: i, name: `Route ${i}`, desc: `City Line ${i} ⮂ Metro Interchange` });
         }
 
+        const STOPS = [
+            { name: "City Hall Station", pos: new THREE.Vector3(20, 0.2, 180) },
+            { name: "Central Interchange", pos: new THREE.Vector3(120, 0.2, -50) },
+            { name: "Marina Bay Terminal", pos: new THREE.Vector3(-80, 0.2, -550) },
+            { name: "Financial District", pos: new THREE.Vector3(-60, 0.2, -1200) },
+            { name: "Orchard Blvd Plaza", pos: new THREE.Vector3(140, 0.2, -1900) },
+            { name: "Harbourfront Gateway", pos: new THREE.Vector3(0, 0.2, -2800) }
+        ];
+        let currentStopIndex = 0;
+
         // ==========================================
         // 3. URBAN CITY MAP & CURVED ROAD NETWORK
         // ==========================================
@@ -441,7 +453,6 @@
             ground.position.y = -0.2;
             scene.add(ground);
 
-            // Build City Skyscrapers & Buildings along the grid
             buildUrbanBuildings();
 
             // Winding Road Spline with Curves and Turns
@@ -477,19 +488,16 @@
                 roadSeg.lookAt(p2);
                 scene.add(roadSeg);
 
-                // Center Yellow Lines
                 if (i % 2 === 0) {
                     const line1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.4, len * 0.6), lineMat);
                     line1.position.copy(mid); line1.position.y += 0.02; line1.lookAt(p2); scene.add(line1);
                 }
 
-                // Add Traffic Lights / Signal Poles at curve turns
                 if (i % 45 === 0) {
                     createTrafficSignal(p1.x + 8, p1.y, p1.z);
                 }
             }
 
-            // Place Bus Stop Shelters along the spline path
             STOPS.forEach((stop, idx) => {
                 const u = (idx + 1) / (STOPS.length + 1);
                 const pt = roadSpline.getPointAt(u);
@@ -501,16 +509,15 @@
             const bldMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
             const glassBldMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.2, metalness: 0.8 });
 
-            // Scatter skyscrapers along both sides of the city corridor
             for (let z = 400; z > -3000; z -= 150) {
-                [-45, 45].forEach((xOff, idx) => {
-                    const width = 35;
-                    const height = 50 + (Math.abs(z * 3) % 100);
-                    const depth = 45;
+                [-65, 65].forEach((xOff, idx) => {
+                    const width = 45;
+                    const height = 60 + (Math.abs(z * 3) % 120);
+                    const depth = 55;
                     const mat = (idx === 0) ? bldMat : glassBldMat;
 
                     const bld = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), mat);
-                    bld.position.set(xOff + (idx === 0 ? -10 : 10), height / 2, z);
+                    bld.position.set(xOff, height / 2, z);
                     scene.add(bld);
                 });
             }
@@ -554,12 +561,10 @@
             pole.position.set(0, 2.5, 0);
             poleGroup.add(pole);
 
-            // Traffic Light Box
             const box = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.0, 0.3), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
             box.position.set(0, 4.2, 0);
             poleGroup.add(box);
 
-            // Glowing Red & Green Bulbs
             const redBulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
             redBulb.position.set(0, 4.4, 0.16);
             poleGroup.add(redBulb);
@@ -933,7 +938,7 @@
                 showBanner(`Arrived at ${nextStop.name}! (+200 EXP)`);
             }
 
-            // Reliable PeerJS Multiplayer Data Broadcast
+            // Sync multiplayer data
             if (peerConnection && peerConnection.open) {
                 peerConnection.send({
                     type: 'SYNC',
@@ -971,34 +976,30 @@
         }
 
         // ==========================================
-        // 8. FIXED MULTIPLAYER CONVOY (PEERJS)
+        // 8. BULLETPROOF PEERJS MULTIPLAYER
         // ==========================================
         let peer = null, peerConnection = null;
 
         function initMultiplayer() {
             try {
-                // Generate a reliable peer ID
-                const randomId = 'BUS-' + Math.floor(1000 + Math.random() * 9000);
-                peer = new Peer(randomId);
+                // Initialize PeerJS with public cloud server
+                peer = new Peer({ host: '0.peerjs.com', port: 443, secure: true });
 
                 peer.on('open', id => {
                     document.getElementById('my-peer-id').innerText = id;
-                    document.getElementById('mp-status').innerText = "Status: Online & Waiting for Friend";
+                    document.getElementById('mp-status').innerText = "Status: Online & Ready";
                 });
 
                 peer.on('connection', conn => {
                     setupConnection(conn);
-                    document.getElementById('mp-status').innerText = "Status: Convoy Connected!";
-                    toggleModal('modal-multiplayer', false);
-                    showBanner("🎮 Friend Joined Your Convoy!");
                 });
 
                 peer.on('error', err => {
-                    document.getElementById('mp-status').innerText = "Status: Connection Error (" + err.type + ")";
+                    document.getElementById('mp-status').innerText = "Status: PeerJS Error (" + err.type + ")";
                 });
             } catch(e) {
                 document.getElementById('my-peer-id').innerText = "Offline Mode";
-                document.getElementById('mp-status').innerText = "Status: PeerJS unavailable";
+                document.getElementById('mp-status').innerText = "Status: Running Local Solo";
             }
         }
 
@@ -1013,9 +1014,9 @@
         function setupConnection(conn) {
             peerConnection = conn;
             conn.on('open', () => {
-                document.getElementById('mp-status').innerText = "Status: Connected to Convoy!";
+                document.getElementById('mp-status').innerText = "Status: Convoy Connected!";
                 toggleModal('modal-multiplayer', false);
-                showBanner("🎮 Connected to Friend's Bus!");
+                showBanner("🎮 Connected to Friend's Convoy!");
 
                 if (!otherPlayerRig) {
                     otherPlayerRig = createHollowBus('SGBUS_GREEN', 0x0284c7);
