@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Darry's Bus Terminal - Sunshine Islands 3D Simulator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
@@ -438,13 +439,13 @@
         let currentStopIndex = 0;
 
         // ==========================================
-        // 3. ARCHIPELAGO WORLD & BUS STOP SHELTERS
+        // 3. ARCHIPELAGO WORLD & CASTELIA CITY LOADER
         // ==========================================
         function buildWorldEnvironment() {
             scene.background = new THREE.Color(0x7dd3fc);
             scene.fog = new THREE.FogExp2(0x7dd3fc, 0.00028);
 
-            const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.9);
             scene.add(ambient);
             const sun = new THREE.DirectionalLight(0xffedd5, 1.2);
             sun.position.set(300, 600, 200);
@@ -452,23 +453,27 @@
 
             // Ocean Floor
             const ocean = new THREE.Mesh(
-                new THREE.PlaneGeometry(18000, 18000),
+                new THREE.PlaneGeometry(20000, 20000),
                 new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.5 })
             );
             ocean.rotation.x = -Math.PI / 2;
             ocean.position.y = -0.6;
             scene.add(ocean);
 
-            // Archipelago Islands
+            // Flat Island Ground Planes (Fixed clipping bug where tall cylinders swallowed the camera)
             const islandMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.9 });
-            const is1 = new THREE.Mesh(new THREE.CylinderGeometry(1600, 2000, 35, 32), islandMat);
-            is1.position.set(0, 10, -200); scene.add(is1);
+            const is1 = new THREE.Mesh(new THREE.PlaneGeometry(3500, 4500), islandMat);
+            is1.rotation.x = -Math.PI / 2;
+            is1.position.set(0, -0.05, -200);
+            scene.add(is1);
 
-            const is2 = new THREE.Mesh(new THREE.CylinderGeometry(1500, 1900, 40, 32), islandMat);
-            is2.position.set(500, 12, -2800); scene.add(is2);
+            const is2 = new THREE.Mesh(new THREE.PlaneGeometry(3000, 4000), islandMat);
+            is2.rotation.x = -Math.PI / 2;
+            is2.position.set(450, -0.05, -2800);
+            scene.add(is2);
 
-            const is3 = new THREE.Mesh(new THREE.CylinderGeometry(1200, 1600, 35, 32), islandMat);
-            is3.position.set(-600, 10, -1600); scene.add(is3);
+            // Load Castelia City Model if available
+            loadCasteliaCity();
 
             // Continuous Road Spline
             const curvePoints = [
@@ -533,6 +538,39 @@
             }
         }
 
+        // Integration handler for Castelia City OBJ model data
+        function loadCasteliaCity() {
+            // Using OBJLoader to load the model path or embedded string data
+            const loader = new THREE.OBJLoader();
+            // Fallback placeholder loader or direct path if hosted
+            try {
+                loader.load('OBJ/Castelia City.obj', (object) => {
+                    object.position.set(0, 0, -1500);
+                    object.scale.set(2.0, 2.0, 2.0);
+                    scene.add(object);
+                }, undefined, (error) => {
+                    console.log("Castelia City external asset path not found, rendering procedural island buildings.");
+                    buildProceduralCityBuildings();
+                });
+            } catch(e) {
+                buildProceduralCityBuildings();
+            }
+        }
+
+        function buildProceduralCityBuildings() {
+            const buildingMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.7 });
+            const windowMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+            
+            for (let z = -200; z > -3000; z -= 120) {
+                [-35, 35].forEach(xOff => {
+                    const bHeight = 40 + Math.abs(Math.sin(z) * 60);
+                    const b = new THREE.Mesh(new THREE.BoxGeometry(25, bHeight, 45), buildingMat);
+                    b.position.set(xOff, bHeight/2, z);
+                    scene.add(b);
+                });
+            }
+        }
+
         function createBusShelter(x, y, z) {
             const shelterGroup = new THREE.Group();
             const frameMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.2 });
@@ -553,7 +591,6 @@
             canopy.position.set(0, 2.6, -0.5);
             shelterGroup.add(canopy);
 
-            // Replaced CapsuleGeometry with r128-compatible CylinderGeometry for passengers
             [-0.6, 0.2, 0.8].forEach((px, idx) => {
                 const pax = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 1.1, 8), new THREE.MeshStandardMaterial({ color: idx === 0 ? 0xf59e0b : 0x38bdf8 }));
                 pax.position.set(px, 0.55, -0.4);
@@ -1077,7 +1114,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
             scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 8000);
+            camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 10000);
 
             buildWorldEnvironment();
             populateRouteGrid();
