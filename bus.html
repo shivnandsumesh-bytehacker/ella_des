@@ -141,12 +141,12 @@
         }
         .modal-card {
             background: var(--panel); border: 2px solid var(--primary);
-            border-radius: 16px; padding: 18px; max-width: 860px; width: 95%;
+            border-radius: 16px; padding: 18px; max-width: 900px; width: 95%;
             max-height: 85vh; overflow-y: auto; text-align: left;
             box-shadow: 0 0 40px var(--primary-glow);
         }
         .modal-title { margin: 0 0 12px 0; color: var(--gold); font-size: 1.3rem; font-weight: 900; display: flex; justify-content: space-between; }
-        .grid-fleet { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+        .grid-fleet { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
         .selection-card {
             background: rgba(30, 41, 59, 0.6); border: 1.5px solid #334155; border-radius: 10px;
             padding: 8px; cursor: pointer; transition: all 0.15s; font-size: 0.78rem;
@@ -173,7 +173,7 @@
     <!-- HUD Top -->
     <div class="hud-top">
         <div class="hud-card">
-            <button class="btn" onclick="toggleModal('modal-routes', true)">🗺️ Routes</button>
+            <button class="btn" onclick="toggleModal('modal-routes', true)">🗺️ Routes (30)</button>
             <button class="btn" onclick="toggleModal('modal-fleet', true)">🚌 Fleet</button>
             <button class="btn gold" onclick="toggleModal('modal-cheats', true)">⚙️ Cheats</button>
             <button class="btn" style="background:#a855f7; color:#fff;" onclick="toggleModal('modal-multiplayer', true)">👥 Online</button>
@@ -181,9 +181,9 @@
         </div>
 
         <div class="hud-route">
-            <span class="route-number" id="hud-route-num">46</span>
-            <span class="route-dest" id="hud-route-dest">Eastmallow Praya Road</span>
-            <span class="route-next" id="hud-route-next">Next: Lunar Point (280m)</span>
+            <span class="route-number" id="hud-route-num">1</span>
+            <span class="route-dest" id="hud-route-dest">Long Island ⮂ Central District</span>
+            <span class="route-next" id="hud-route-next">Next: Zone 1 Terminal (280m)</span>
         </div>
 
         <div class="speedo-cluster">
@@ -216,10 +216,10 @@
     <div id="driver-phone">
         <div class="phone-header">📱 Route Schedule</div>
         <div id="schedule-list">
-            <div class="phone-stop-item current">1. Lunar Point</div>
-            <div class="phone-stop-item">2. Central Viaduct</div>
-            <div class="phone-stop-item">3. Red Sea Bridge</div>
-            <div class="phone-stop-item">4. Eastmallow Praya</div>
+            <div class="phone-stop-item current">1. Zone 1 Terminal</div>
+            <div class="phone-stop-item">2. Dove Island Pier</div>
+            <div class="phone-stop-item">3. Hospital Island</div>
+            <div class="phone-stop-item">4. Central District</div>
         </div>
     </div>
 
@@ -244,29 +244,31 @@
         <button class="ctrl-btn" onclick="cycleCamera()">🎥<br>CAM [C]</button>
     </div>
 
-    <!-- Modals -->
+    <!-- Modals: 30 Routes Selection -->
     <div id="modal-routes" class="modal">
         <div class="modal-card">
-            <div class="modal-title"><span>🗺️ SELECT BUS ROUTE</span><button class="btn" onclick="toggleModal('modal-routes', false)">✕</button></div>
-            <div class="grid-fleet">
-                <div class="selection-card active" onclick="selectRoute(46)"><strong style="color:var(--gold);">Route 46</strong><br><small>Lunar Point ⮂ Eastmallow Praya Road</small></div>
-                <div class="selection-card" onclick="selectRoute('41A')"><strong style="color:var(--primary);">Route 41A</strong><br><small>Sunshine Pier ⮂ Northern Beach</small></div>
+            <div class="modal-title"><span>🗺️ SELECT BUS ROUTE (30 ROUTES)</span><button class="btn" onclick="toggleModal('modal-routes', false)">✕</button></div>
+            <div class="grid-fleet" id="route-grid-container" style="max-height: 55vh; overflow-y: auto;">
+                <!-- Populated dynamically via JS for all 30 routes -->
             </div>
         </div>
     </div>
 
+    <!-- Fleet Modal -->
     <div id="modal-fleet" class="modal">
         <div class="modal-card">
-            <div class="modal-title"><span>🚌 FLEET ROSTER (ZONES 1-8)</span><button class="btn" onclick="toggleModal('modal-fleet', false)">✕</button></div>
+            <div class="modal-title"><span>🚌 SUNSHINE ISLANDS FLEET ROSTER</span><button class="btn" onclick="toggleModal('modal-fleet', false)">✕</button></div>
             <div class="grid-fleet">
-                <div class="selection-card active" onclick="selectBus('MMC_DOUBLE', 0x15803d)"><strong style="color:var(--emerald);">CenCon 5SH Green/Yellow Double Decker</strong><br><small>Zone 5 North Island Flagship</small></div>
+                <div class="selection-card active" onclick="selectBus('SGBUS_GREEN', 0x84cc16)"><strong style="color:#84cc16;">SG Bus Lime Green Double-Decker</strong><br><small>Modern 3-Axle Commuter Express</small></div>
+                <div class="selection-card" onclick="selectBus('SBS_PURPLE', 0x7c3aed)"><strong style="color:var(--accent);">SBS Transit Purple & White Single Deck</strong><br><small>Urban Transit Workhorse</small></div>
+                <div class="selection-card" onclick="selectBus('MMC_DOUBLE', 0x15803d)"><strong style="color:var(--emerald);">CenCon Zone 5 Green/Yellow Double Decker</strong><br><small>North Island Flagship</small></div>
+                <div class="selection-card" onclick="selectBus('BENDY_ARTIC', 0x0284c7)"><strong style="color:var(--primary);">Zone 2 Blue Articulated Bendy Bus</strong><br><small>Dove Island High-Capacity Connector</small></div>
                 <div class="selection-card" onclick="selectBus('COACH', 0xffffff)"><strong style="color:#fff;">Forever Transit Executive Coach</strong><br><small>Long-Distance Luxury Cruiser</small></div>
-                <div class="selection-card" onclick="selectBus('SINGLE_GREEN', 0x15803d)"><strong style="color:var(--emerald);">CenCon Zone 1 Single Deck MAN</strong><br><small>Long Island Commuter Bus</small></div>
-                <div class="selection-card" onclick="selectBus('BENDY_ARTIC', 0x0284c7)"><strong style="color:var(--primary);">Zone 2 Blue Articulated Bendy Bus</strong><br><small>Dove Island High-Capacity Transporter</small></div>
             </div>
         </div>
     </div>
 
+    <!-- Cheats Modal -->
     <div id="modal-cheats" class="modal">
         <div class="modal-card">
             <div class="modal-title"><span>⚙️ CHEATS & CODES</span><button class="btn" onclick="toggleModal('modal-cheats', false)">✕</button></div>
@@ -278,11 +280,12 @@
         </div>
     </div>
 
+    <!-- Multiplayer Modal -->
     <div id="modal-multiplayer" class="modal">
         <div class="modal-card">
             <div class="modal-title"><span>👥 MULTIPLAYER CONVOY</span><button class="btn" onclick="toggleModal('modal-multiplayer', false)">✕</button></div>
             <div style="background:#020617; padding:12px; border-radius:8px; border:1px solid #334155; margin-bottom:12px;">
-                <div>Your Peer Code: <strong style="color:var(--gold); font-size:1.2rem;" id="my-peer-id">Connecting to Server...</strong></div>
+                <div>Your Peer Code: <strong style="color:var(--gold); font-size:1.2rem;" id="my-peer-id">Connecting...</strong></div>
             </div>
             <div style="display:flex; gap:8px;">
                 <input type="text" id="join-peer-id" placeholder="ENTER FRIEND'S CODE..." style="flex:1; background:#020617; border:1px solid var(--primary); border-radius:6px; color:#fff; padding:8px 12px; font-weight:bold;">
@@ -390,10 +393,10 @@
         let wheels = [];
         let roadSpline = null;
 
-        let activeRoute = 46;
-        let activeBusType = 'MMC_DOUBLE';
-        let activeCompanyColor = 0x15803d;
-        let cameraMode = 0; // 0: RHD Cockpit, 1: 3rd Person, 2: Upper Deck
+        let activeRoute = 1;
+        let activeBusType = 'SGBUS_GREEN';
+        let activeCompanyColor = 0x84cc16;
+        let cameraMode = 0; // 0: Cockpit RHD, 1: Chase, 2: Upper Deck
 
         let suspensionRoll = 0;
         let suspensionPitch = 0;
@@ -417,20 +420,32 @@
 
         const cheats = { unlockSpeed: false, boostPower: false, muteComplaints: false };
 
+        // 30 Defined Bus Routes Across Zones 1-8
+        const ROUTES = [];
+        const ZONE_NAMES = ["Long Island", "Dove Island", "Hospital Island", "Containers Island", "Central District", "North Island", "University Island", "Moon Island", "Horizon Island", "Leafy Island"];
+        for (let i = 1; i <= 30; i++) {
+            const startZone = ZONE_NAMES[(i * 3) % ZONE_NAMES.length];
+            const endZone = ZONE_NAMES[(i * 7) % ZONE_NAMES.length];
+            ROUTES.push({ id: i, name: `Route ${i}`, desc: `${startZone} ⮂ ${endZone}` });
+        }
+
         const STOPS = [
-            { name: "Lunar Point", pos: new THREE.Vector3(20, 0.2, 250) },
-            { name: "Central Viaduct", pos: new THREE.Vector3(420, 16.0, -1200) },
-            { name: "Red Sea Bridge", pos: new THREE.Vector3(550, 16.0, -1900) },
-            { name: "Eastmallow Praya Road", pos: new THREE.Vector3(0, 0.2, -3400) }
+            { name: "Zone 1 Terminal (Long Island)", pos: new THREE.Vector3(20, 0.2, 250) },
+            { name: "Dove Island Pier", pos: new THREE.Vector3(120, 0.2, -300) },
+            { name: "Hospital & Container Hub", pos: new THREE.Vector3(300, 0.2, -800) },
+            { name: "Central Viaduct Plaza", pos: new THREE.Vector3(420, 16.0, -1200) },
+            { name: "Red Sea Bridge Gate", pos: new THREE.Vector3(550, 16.0, -1900) },
+            { name: "North Island University", pos: new THREE.Vector3(250, 0.2, -2600) },
+            { name: "Eastmallow Praya Terminal", pos: new THREE.Vector3(0, 0.2, -3400) }
         ];
         let currentStopIndex = 0;
 
         // ==========================================
-        // 3. EXPANDED PROCEDURAL WORLD & ELEVATION
+        // 3. ARCHIPELAGO WORLD & BUS STOP SHELTERS
         // ==========================================
         function buildWorldEnvironment() {
             scene.background = new THREE.Color(0x7dd3fc);
-            scene.fog = new THREE.FogExp2(0x7dd3fc, 0.00030);
+            scene.fog = new THREE.FogExp2(0x7dd3fc, 0.00028);
 
             const ambient = new THREE.AmbientLight(0xffffff, 0.85);
             scene.add(ambient);
@@ -440,22 +455,25 @@
 
             // Ocean Floor
             const ocean = new THREE.Mesh(
-                new THREE.PlaneGeometry(16000, 16000),
+                new THREE.PlaneGeometry(18000, 18000),
                 new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.5 })
             );
             ocean.rotation.x = -Math.PI / 2;
             ocean.position.y = -0.6;
             scene.add(ocean);
 
-            // Archipelago Islands
+            // Archipelago Islands (Zones 1 to 8)
             const islandMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.9 });
-            const is1 = new THREE.Mesh(new THREE.CylinderGeometry(1500, 1900, 35, 32), islandMat);
+            const is1 = new THREE.Mesh(new THREE.CylinderGeometry(1600, 2000, 35, 32), islandMat);
             is1.position.set(0, 10, -200); scene.add(is1);
 
-            const is2 = new THREE.Mesh(new THREE.CylinderGeometry(1400, 1800, 40, 32), islandMat);
-            is2.position.set(450, 12, -2800); scene.add(is2);
+            const is2 = new THREE.Mesh(new THREE.CylinderGeometry(1500, 1900, 40, 32), islandMat);
+            is2.position.set(500, 12, -2800); scene.add(is2);
 
-            // Continuous Safe Road Path (Zones 1-8 Arch)
+            const is3 = new THREE.Mesh(new THREE.CylinderGeometry(1200, 1600, 35, 32), islandMat);
+            is3.position.set(-600, 10, -1600); scene.add(is3);
+
+            // Continuous Road Spline (Zones 1-8 Arch)
             const curvePoints = [
                 new THREE.Vector3(0, 0.2, 400),
                 new THREE.Vector3(20, 0.2, 200),
@@ -468,7 +486,7 @@
             ];
             roadSpline = new THREE.CatmullRomCurve3(curvePoints);
 
-            const roadSteps = 350;
+            const roadSteps = 400;
             const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
             const lineMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
             const bridgeMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.3, metalness: 0.6 });
@@ -494,7 +512,7 @@
                     line2.position.copy(mid); line2.position.x += 0.25; line2.lookAt(p2); scene.add(line2);
                 }
 
-                // Red Bridge Trusses
+                // Bridge Trusses
                 if (p1.y > 10 && i % 8 === 0) {
                     const truss = new THREE.Mesh(new THREE.BoxGeometry(15, 11, 0.5), bridgeMat);
                     truss.position.copy(mid); truss.position.y += 5.5;
@@ -502,7 +520,12 @@
                 }
             }
 
-            // Green Directional Pavement Chevrons
+            // Build Bus Shelters at Stops
+            STOPS.forEach(stop => {
+                createBusShelter(stop.pos.x + 8, stop.pos.y, stop.pos.z);
+            });
+
+            // Directional Chevrons
             for (let c = 0.04; c < 0.96; c += 0.03) {
                 const pt = roadSpline.getPointAt(c);
                 const nxt = roadSpline.getPointAt(c + 0.008);
@@ -517,12 +540,44 @@
             }
         }
 
-        // Sample exact road height & elevation matching the spline
+        function createBusShelter(x, y, z) {
+            const shelterGroup = new THREE.Group();
+            const frameMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.2 });
+            const glassMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.3, roughness: 0.1 });
+            const roofMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.4 }); // Red roof canopy
+
+            // Posts
+            [-1.5, 1.5].forEach(px => {
+                const post = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.6, 0.15), frameMat);
+                post.position.set(px, 1.3, 0);
+                shelterGroup.add(post);
+            });
+
+            // Glass Back Panel
+            const backGlass = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.2, 0.08), glassMat);
+            backGlass.position.set(0, 1.3, -1.0);
+            shelterGroup.add(backGlass);
+
+            // Roof Canopy
+            const canopy = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.15, 2.2), roofMat);
+            canopy.position.set(0, 2.6, -0.5);
+            shelterGroup.add(canopy);
+
+            // Waiting Passenger Figures (Procedural silhouettes)
+            [-0.6, 0.2, 0.8].forEach((px, idx) => {
+                const pax = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.9, 4, 8), new THREE.MeshStandardMaterial({ color: idx === 0 ? 0xf59e0b : 0x38bdf8 }));
+                pax.position.set(px, 0.65, -0.4);
+                shelterGroup.add(pax);
+            });
+
+            shelterGroup.position.set(x, y, z);
+            scene.add(shelterGroup);
+        }
+
         function getRoadHeightAt(x, z) {
             if (!roadSpline) return 0.2;
             let closestY = 0.2;
             let minDist = Infinity;
-            // Sample spline curve points to find closest elevation
             for (let u = 0; u <= 1; u += 0.005) {
                 const pt = roadSpline.getPointAt(u);
                 const d = Math.hypot(pt.x - x, pt.z - z);
@@ -535,14 +590,14 @@
         }
 
         // ==========================================
-        // 4. HIGH-FIDELITY BUS MODELS (MATCHING IMAGES)
+        // 4. FLEET & LIVERY GENERATOR (SG BUS & SBS)
         // ==========================================
         function createHollowBus(type, color) {
             const root = new THREE.Group();
             busChassis = new THREE.Group();
             wheels = [];
 
-            const isDouble = (type === 'MMC_DOUBLE');
+            const isDouble = (type === 'SGBUS_GREEN' || type === 'MMC_DOUBLE');
             const isBendy = (type === 'BENDY_ARTIC');
             const isCoach = (type === 'COACH');
             
@@ -551,15 +606,13 @@
             const height = isDouble ? 4.2 : (isCoach ? 3.3 : 2.8);
 
             const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3, metalness: 0.15 });
-            const roofMat = new THREE.MeshStandardMaterial({ color: isCoach ? 0x111827 : 0xffffff, roughness: 0.5 });
+            const roofMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
             const darkTrimMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.8 });
             const glassMat = new THREE.MeshStandardMaterial({
                 color: 0x38bdf8, roughness: 0.1, metalness: 0.2,
                 transparent: true, opacity: 0.28, depthWrite: false
             });
             const floorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
-            const seatMat = new THREE.MeshStandardMaterial({ color: isCoach ? 0x1e3a8a : 0x7c3aed, roughness: 0.6 });
-            const poleMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.4, roughness: 0.3 });
             const wheelRubberMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
             const wheelRimMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.2 });
 
@@ -578,7 +631,7 @@
                 busChassis.add(midFloor);
             }
 
-            // Skirt Panels
+            // Skirt Panels & Livery Stripe (SG Bus style blue wave stripe if green)
             const leftSkirt = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, len), bodyMat);
             leftSkirt.position.set(-width/2 + 0.05, 0.85, 0);
             busChassis.add(leftSkirt);
@@ -587,13 +640,20 @@
             rightSkirt.position.set(width/2 - 0.05, 0.85, 0);
             busChassis.add(rightSkirt);
 
-            // Rear Cap & Windshield
+            if (type === 'SGBUS_GREEN') {
+                const stripeMat = new THREE.MeshBasicMaterial({ color: 0x0284c7 });
+                const lStripe = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.4, len * 0.7), stripeMat);
+                lStripe.position.set(-width/2 + 0.06, 1.1, 0);
+                busChassis.add(lStripe);
+            }
+
+            // Rear & Windshield
             const rearCap = new THREE.Mesh(new THREE.BoxGeometry(width, height - 0.4, 0.15), bodyMat);
             rearCap.position.set(0, height/2 + 0.2, len/2);
             busChassis.add(rearCap);
 
-            const frontWindshield = new THREE.Mesh(new THREE.PlaneGeometry(width - 0.2, isCoach ? 1.6 : 1.4), glassMat);
-            frontWindshield.position.set(0, isCoach ? 2.0 : 1.8, -len/2);
+            const frontWindshield = new THREE.Mesh(new THREE.PlaneGeometry(width - 0.2, 1.4), glassMat);
+            frontWindshield.position.set(0, 1.8, -len/2);
             frontWindshield.rotation.y = Math.PI;
             busChassis.add(frontWindshield);
 
@@ -614,9 +674,9 @@
             rightGlass.position.set(width/2 - 0.02, 1.8, 0);
             busChassis.add(rightGlass);
 
-            // Destination Matrix LED Banner
+            // LED Destination Sign
             const destBox = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 0.08), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
-            destBox.position.set(0, isDouble ? 4.0 : (isCoach ? 3.0 : 2.5), -len/2 + 0.04);
+            destBox.position.set(0, isDouble ? 4.0 : 2.5, -len/2 + 0.04);
             busChassis.add(destBox);
 
             // RHD Cockpit & Steering
@@ -653,7 +713,7 @@
 
             root.add(busChassis);
 
-            // Bendy Articulated Trailer (Zone 2 Blue Bus Style)
+            // Bendy Trailer
             if (isBendy) {
                 trailerRig = new THREE.Group();
                 const trailerLen = 7.0;
@@ -698,7 +758,7 @@
         }
 
         // ==========================================
-        // 5. UNIFIED CONTROLS
+        // 5. CONTROLS & LISTENERS
         // ==========================================
         const keys = { throttle: false, brake: false, left: false, right: false };
 
@@ -769,7 +829,7 @@
             if (bus.doorFront) {
                 setTimeout(() => {
                     playFareBeep();
-                    showBanner("+3 Passengers Boarded! 🪙 Fares Collected");
+                    showBanner("+4 Passengers Boarded! 🪙 Fares Collected");
                 }, 400);
             }
         }
@@ -802,7 +862,7 @@
         }
 
         // ==========================================
-        // 6. PHYSICS, ELEVATION & BENDY JOINT
+        // 6. PHYSICS & STOP TRACKING
         // ==========================================
         function updatePhysics(dt) {
             if (!busRig || !busChassis) return;
@@ -828,43 +888,23 @@
             if (bus.handbrake) bus.speed *= 0.85;
             bus.speed = Math.max(-30, Math.min(speedLimit, bus.speed));
 
-            if (bus.speed > 70 && !cheats.unlockSpeed) {
-                document.getElementById('speed-limit-tag').style.background = '#f59e0b';
-            } else {
-                document.getElementById('speed-limit-tag').style.background = 'var(--danger)';
-            }
-
             if (keys.left) bus.targetSteer = 0.55;
             else if (keys.right) bus.targetSteer = -0.55;
             else bus.targetSteer = 0;
 
             bus.steerAngle += (bus.targetSteer - bus.steerAngle) * 4.0 * dt;
 
-            if (Math.abs(bus.steerAngle) > 0.42 && bus.speed > 50) {
-                triggerComplaint("Passenger complained the turn is too fast!");
-            }
-
-            // Forward Translation & Road Elevation Snap (-Z is forward)
             const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), bus.rotation);
             bus.x += forward.x * (bus.speed / 3.6) * dt;
             bus.z += forward.z * (bus.speed / 3.6) * dt;
 
-            // Automatically snap bus height to road spline elevation (bridges/viaducts)
+            // Snap elevation to road spline height
             const targetRoadY = getRoadHeightAt(bus.x, bus.z);
             bus.y = THREE.MathUtils.lerp(bus.y, targetRoadY + 0.45, 0.2);
 
             if (Math.abs(bus.speed) > 0.5) {
                 bus.rotation += (bus.steerAngle * 0.9) * (bus.speed / 28) * dt;
             }
-
-            // Suspension Body Roll
-            const targetRoll = (bus.steerAngle * -0.12) * (bus.speed / 45);
-            const targetPitch = (keys.throttle ? 0.025 : (keys.brake ? -0.055 : 0));
-            suspensionRoll = THREE.MathUtils.lerp(suspensionRoll, targetRoll, 0.1);
-            suspensionPitch = THREE.MathUtils.lerp(suspensionPitch, targetPitch, 0.1);
-
-            busChassis.rotation.z = suspensionRoll;
-            busChassis.rotation.x = suspensionPitch;
 
             busRig.position.set(bus.x, bus.y, bus.z);
             busRig.rotation.y = bus.rotation;
@@ -875,7 +915,7 @@
             }
             if (steeringWheelMesh) steeringWheelMesh.rotation.z = -bus.steerAngle * 4.2;
 
-            // Bendy Articulated Trailer Joint Math
+            // Articulated Trailer Joint Math
             if (trailerRig) {
                 const hitchDist = 6.2;
                 const hitchPos = new THREE.Vector3(
@@ -883,7 +923,6 @@
                     bus.y,
                     bus.z + Math.cos(bus.rotation) * 3.8
                 );
-
                 const tDx = hitchPos.x - trailerRig.position.x;
                 const tDz = hitchPos.z - trailerRig.position.z;
                 bus.trailerAngle = Math.atan2(tDx, tDz);
@@ -897,15 +936,14 @@
             updateEngineSound(Math.abs(bus.speed) / 70, keys.throttle ? 1.0 : 0.0);
             document.getElementById('speed-display').innerText = Math.round(Math.abs(bus.speed));
 
-            // Accurate Bus Stop Distance Calculation
+            // Stop Tracking
             const nextStop = STOPS[currentStopIndex];
-            const busPosVec = new THREE.Vector3(bus.x, bus.y, bus.z);
-            const distRemaining = Math.max(0, Math.round(busPosVec.distanceTo(nextStop.pos)));
+            const distRemaining = Math.max(0, Math.round(new THREE.Vector3(bus.x, bus.y, bus.z).distanceTo(nextStop.pos)));
             document.getElementById('hud-route-next').innerText = `Next: ${nextStop.name} (${distRemaining}m)`;
 
-            if (distRemaining < 15 && Math.abs(bus.speed) < 2) {
+            if (distRemaining < 18 && Math.abs(bus.speed) < 2) {
                 currentStopIndex = (currentStopIndex + 1) % STOPS.length;
-                showBanner(`Arrived at ${nextStop.name}! (+150 EXP)`);
+                showBanner(`Arrived at ${nextStop.name}! (+200 EXP)`);
             }
 
             // Multiplayer Sync
@@ -946,7 +984,7 @@
         }
 
         // ==========================================
-        // 8. MULTIPLAYER ENGINE (PEERJS)
+        // 8. MULTIPLAYER CONVOY (PEERJS)
         // ==========================================
         let peer = null, peerConnection = null;
 
@@ -957,20 +995,15 @@
 
                 peer.on('open', id => {
                     document.getElementById('my-peer-id').innerText = id;
-                    document.getElementById('mp-status').innerText = "Status: Online & Ready";
                 });
 
                 peer.on('connection', conn => {
                     setupConnection(conn);
-                    document.getElementById('mp-status').innerText = "Status: Convoy Connected!";
+                    document.getElementById('mp-status').innerText = "Convoy Connected!";
                     toggleModal('modal-multiplayer', false);
                 });
-
-                peer.on('error', err => {
-                    document.getElementById('mp-status').innerText = "Connection Error. Try reconnecting.";
-                });
             } catch(e) {
-                document.getElementById('my-peer-id').innerText = "Offline Mode";
+                document.getElementById('my-peer-id').innerText = "Offline";
             }
         }
 
@@ -979,17 +1012,15 @@
             if (!targetId || !peer) return;
             const conn = peer.connect(targetId);
             setupConnection(conn);
-            document.getElementById('mp-status').innerText = "Connecting to peer...";
         }
 
         function setupConnection(conn) {
             peerConnection = conn;
             conn.on('open', () => {
-                document.getElementById('mp-status').innerText = "Status: Connected to Convoy!";
+                document.getElementById('mp-status').innerText = "Connected!";
                 toggleModal('modal-multiplayer', false);
-
                 if (!otherPlayerRig) {
-                    otherPlayerRig = createHollowBus('MMC_DOUBLE', 0x0284c7);
+                    otherPlayerRig = createHollowBus('SGBUS_GREEN', 0x84cc16);
                     scene.add(otherPlayerRig);
                 }
             });
@@ -997,7 +1028,7 @@
             conn.on('data', data => {
                 if (data.type === 'SYNC') {
                     if (!otherPlayerRig) {
-                        otherPlayerRig = createHollowBus(data.busType || 'MMC_DOUBLE', data.color || 0x0284c7);
+                        otherPlayerRig = createHollowBus(data.busType || 'SGBUS_GREEN', data.color || 0x84cc16);
                         scene.add(otherPlayerRig);
                     }
                     otherPlayerRig.position.lerp(new THREE.Vector3(data.x, data.y, data.z), 0.3);
@@ -1007,17 +1038,31 @@
         }
 
         // ==========================================
-        // 9. MODALS & UI TRIGGERS
+        // 9. UI & ROUTE POPULATION (30 ROUTES)
         // ==========================================
         function toggleModal(id, open) {
             document.getElementById(id).style.display = open ? 'flex' : 'none';
         }
 
-        function selectRoute(routeId) {
-            activeRoute = routeId;
-            document.getElementById('hud-route-num').innerText = routeId;
+        function populateRouteGrid() {
+            const container = document.getElementById('route-grid-container');
+            container.innerHTML = '';
+            ROUTES.forEach(r => {
+                const card = document.createElement('div');
+                card.className = `selection-card ${r.id === activeRoute ? 'active' : ''}`;
+                card.innerHTML = `<strong style="color:var(--gold);">Route ${r.id}</strong><br><small>${r.desc}</small>`;
+                card.onclick = () => selectRoute(r.id, r.desc);
+                container.appendChild(card);
+            });
+        }
+
+        function selectRoute(id, desc) {
+            activeRoute = id;
+            document.getElementById('hud-route-num').innerText = id;
+            document.getElementById('hud-route-dest').innerText = desc.split('⮂')[1] || desc;
             toggleModal('modal-routes', false);
-            showBanner(`Route ${routeId} Activated!`);
+            showBanner(`Route ${id} Activated!`);
+            populateRouteGrid();
         }
 
         function selectBus(type, color) {
@@ -1057,6 +1102,7 @@
             camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 8000);
 
             buildWorldEnvironment();
+            populateRouteGrid();
             spawnBus();
             setupInputListeners();
             initMultiplayer();
