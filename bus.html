@@ -216,7 +216,7 @@
     <div id="driver-phone">
         <div class="phone-header">📱 Route Schedule</div>
         <div id="schedule-list">
-            <div class="phone-stop-item current">1. Lunar Point (280m)</div>
+            <div class="phone-stop-item current">1. Lunar Point</div>
             <div class="phone-stop-item">2. Central Viaduct</div>
             <div class="phone-stop-item">3. Red Sea Bridge</div>
             <div class="phone-stop-item">4. Eastmallow Praya</div>
@@ -257,11 +257,12 @@
 
     <div id="modal-fleet" class="modal">
         <div class="modal-card">
-            <div class="modal-title"><span>🚌 FLEET ROSTER</span><button class="btn" onclick="toggleModal('modal-fleet', false)">✕</button></div>
+            <div class="modal-title"><span>🚌 FLEET ROSTER (ZONES 1-8)</span><button class="btn" onclick="toggleModal('modal-fleet', false)">✕</button></div>
             <div class="grid-fleet">
-                <div class="selection-card active" onclick="selectBus('MMC_DOUBLE', 0xf97316)"><strong style="color:var(--primary);">CenCon 5SH MMC Facelift</strong><br><small>Hollow Double Decker with Glass Windows</small></div>
-                <div class="selection-card" onclick="selectBus('BENDY_ARTIC', 0x8b5cf6)"><strong style="color:var(--accent);">REBC 18m Bendy Bus</strong><br><small>Articulated with Flexible Joint</small></div>
-                <div class="selection-card" onclick="selectBus('SINGLE_Y120', 0x10b981)"><strong style="color:var(--emerald);">Horizon Y120 Single Deck</strong><br><small>Clean Island Commuter</small></div>
+                <div class="selection-card active" onclick="selectBus('MMC_DOUBLE', 0x15803d)"><strong style="color:var(--emerald);">CenCon 5SH Green/Yellow Double Decker</strong><br><small>Zone 5 North Island Flagship</small></div>
+                <div class="selection-card" onclick="selectBus('COACH', 0xffffff)"><strong style="color:#fff;">Forever Transit Executive Coach</strong><br><small>Long-Distance Luxury Cruiser</small></div>
+                <div class="selection-card" onclick="selectBus('SINGLE_GREEN', 0x15803d)"><strong style="color:var(--emerald);">CenCon Zone 1 Single Deck MAN</strong><br><small>Long Island Commuter Bus</small></div>
+                <div class="selection-card" onclick="selectBus('BENDY_ARTIC', 0x0284c7)"><strong style="color:var(--primary);">Zone 2 Blue Articulated Bendy Bus</strong><br><small>Dove Island High-Capacity Transporter</small></div>
             </div>
         </div>
     </div>
@@ -281,13 +282,13 @@
         <div class="modal-card">
             <div class="modal-title"><span>👥 MULTIPLAYER CONVOY</span><button class="btn" onclick="toggleModal('modal-multiplayer', false)">✕</button></div>
             <div style="background:#020617; padding:12px; border-radius:8px; border:1px solid #334155; margin-bottom:12px;">
-                <div>Your Peer Code: <strong style="color:var(--gold); font-size:1.2rem;" id="my-peer-id">Generating...</strong></div>
+                <div>Your Peer Code: <strong style="color:var(--gold); font-size:1.2rem;" id="my-peer-id">Connecting to Server...</strong></div>
             </div>
             <div style="display:flex; gap:8px;">
                 <input type="text" id="join-peer-id" placeholder="ENTER FRIEND'S CODE..." style="flex:1; background:#020617; border:1px solid var(--primary); border-radius:6px; color:#fff; padding:8px 12px; font-weight:bold;">
                 <button class="btn" onclick="connectToPeer()">JOIN</button>
             </div>
-            <div id="mp-status" style="margin-top:8px; font-size:0.8rem; color:var(--emerald);"></div>
+            <div id="mp-status" style="margin-top:8px; font-size:0.8rem; color:var(--emerald);">Status: Ready</div>
         </div>
     </div>
 
@@ -391,14 +392,14 @@
 
         let activeRoute = 46;
         let activeBusType = 'MMC_DOUBLE';
-        let activeCompanyColor = 0xf97316;
-        let cameraMode = 0; // 0: RHD Cockpit (Clear Windshield!), 1: 3rd Person, 2: Upper Deck
+        let activeCompanyColor = 0x15803d;
+        let cameraMode = 0; // 0: RHD Cockpit, 1: 3rd Person, 2: Upper Deck
 
         let suspensionRoll = 0;
         let suspensionPitch = 0;
 
         const bus = {
-            x: 0, y: 0.65, z: 200,
+            x: 0, y: 0.65, z: 350,
             rotation: 0,
             trailerAngle: 0,
             speed: 0,
@@ -417,15 +418,15 @@
         const cheats = { unlockSpeed: false, boostPower: false, muteComplaints: false };
 
         const STOPS = [
-            { name: "Lunar Point", dist: 280 },
-            { name: "Central Viaduct", dist: 1400 },
-            { name: "Red Sea Bridge", dist: 2600 },
-            { name: "Eastmallow Praya Road", dist: 4000 }
+            { name: "Lunar Point", pos: new THREE.Vector3(20, 0.2, 250) },
+            { name: "Central Viaduct", pos: new THREE.Vector3(420, 16.0, -1200) },
+            { name: "Red Sea Bridge", pos: new THREE.Vector3(550, 16.0, -1900) },
+            { name: "Eastmallow Praya Road", pos: new THREE.Vector3(0, 0.2, -3400) }
         ];
         let currentStopIndex = 0;
 
         // ==========================================
-        // 3. EXPANDED PROCEDURAL WORLD
+        // 3. EXPANDED PROCEDURAL WORLD & ELEVATION
         // ==========================================
         function buildWorldEnvironment() {
             scene.background = new THREE.Color(0x7dd3fc);
@@ -437,7 +438,7 @@
             sun.position.set(300, 600, 200);
             scene.add(sun);
 
-            // Sparkling Ocean Floor
+            // Ocean Floor
             const ocean = new THREE.Mesh(
                 new THREE.PlaneGeometry(16000, 16000),
                 new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.5 })
@@ -446,7 +447,7 @@
             ocean.position.y = -0.6;
             scene.add(ocean);
 
-            // Archipelago Mountain Islands
+            // Archipelago Islands
             const islandMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.9 });
             const is1 = new THREE.Mesh(new THREE.CylinderGeometry(1500, 1900, 35, 32), islandMat);
             is1.position.set(0, 10, -200); scene.add(is1);
@@ -454,9 +455,10 @@
             const is2 = new THREE.Mesh(new THREE.CylinderGeometry(1400, 1800, 40, 32), islandMat);
             is2.position.set(450, 12, -2800); scene.add(is2);
 
-            // Continuous Safe Road Path
+            // Continuous Safe Road Path (Zones 1-8 Arch)
             const curvePoints = [
                 new THREE.Vector3(0, 0.2, 400),
+                new THREE.Vector3(20, 0.2, 200),
                 new THREE.Vector3(60, 0.2, -100),
                 new THREE.Vector3(220, 0.2, -600),
                 new THREE.Vector3(420, 16.0, -1200), // Viaduct climb
@@ -492,7 +494,7 @@
                     line2.position.copy(mid); line2.position.x += 0.25; line2.lookAt(p2); scene.add(line2);
                 }
 
-                // Red Bridge Arches
+                // Red Bridge Trusses
                 if (p1.y > 10 && i % 8 === 0) {
                     const truss = new THREE.Mesh(new THREE.BoxGeometry(15, 11, 0.5), bridgeMat);
                     truss.position.copy(mid); truss.position.y += 5.5;
@@ -515,8 +517,25 @@
             }
         }
 
+        // Sample exact road height & elevation matching the spline
+        function getRoadHeightAt(x, z) {
+            if (!roadSpline) return 0.2;
+            let closestY = 0.2;
+            let minDist = Infinity;
+            // Sample spline curve points to find closest elevation
+            for (let u = 0; u <= 1; u += 0.005) {
+                const pt = roadSpline.getPointAt(u);
+                const d = Math.hypot(pt.x - x, pt.z - z);
+                if (d < minDist) {
+                    minDist = d;
+                    closestY = pt.y;
+                }
+            }
+            return closestY;
+        }
+
         // ==========================================
-        // 4. HOLLOW REALISTIC BUS GENERATOR
+        // 4. HIGH-FIDELITY BUS MODELS (MATCHING IMAGES)
         // ==========================================
         function createHollowBus(type, color) {
             const root = new THREE.Group();
@@ -525,64 +544,57 @@
 
             const isDouble = (type === 'MMC_DOUBLE');
             const isBendy = (type === 'BENDY_ARTIC');
-            const len = isBendy ? 8.2 : 11.8;
+            const isCoach = (type === 'COACH');
+            
+            const len = isBendy ? 8.2 : (isCoach ? 12.2 : 11.8);
             const width = 2.8;
-            const height = isDouble ? 4.2 : 2.8;
+            const height = isDouble ? 4.2 : (isCoach ? 3.3 : 2.8);
 
-            const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.35, metalness: 0.1 });
+            const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3, metalness: 0.15 });
+            const roofMat = new THREE.MeshStandardMaterial({ color: isCoach ? 0x111827 : 0xffffff, roughness: 0.5 });
             const darkTrimMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.8 });
             const glassMat = new THREE.MeshStandardMaterial({
-                color: 0x38bdf8,
-                roughness: 0.1,
-                metalness: 0.2,
-                transparent: true,
-                opacity: 0.25,
-                depthWrite: false
+                color: 0x38bdf8, roughness: 0.1, metalness: 0.2,
+                transparent: true, opacity: 0.28, depthWrite: false
             });
             const floorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
-            const seatMat = new THREE.MeshStandardMaterial({ color: 0x7c3aed, roughness: 0.6 }); // Purple moquette
-            const poleMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.4, roughness: 0.3 }); // Yellow grab poles
+            const seatMat = new THREE.MeshStandardMaterial({ color: isCoach ? 0x1e3a8a : 0x7c3aed, roughness: 0.6 });
+            const poleMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.4, roughness: 0.3 });
             const wheelRubberMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
             const wheelRimMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.2 });
 
-            // 1. Hollow Floorboard
+            // Floor & Roof
             const floor = new THREE.Mesh(new THREE.BoxGeometry(width, 0.2, len), floorMat);
             floor.position.set(0, 0.4, 0);
             busChassis.add(floor);
 
-            // 2. Hollow Roof
-            const roof = new THREE.Mesh(new THREE.BoxGeometry(width, 0.15, len), bodyMat);
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(width, 0.15, len), roofMat);
             roof.position.set(0, height, 0);
             busChassis.add(roof);
 
-            // Upper Deck Floor if Double Decker
             if (isDouble) {
                 const midFloor = new THREE.Mesh(new THREE.BoxGeometry(width, 0.15, len - 0.4), floorMat);
                 midFloor.position.set(0, 2.2, 0);
                 busChassis.add(midFloor);
             }
 
-            // 3. Lower Skirt Panels (Left & Right lower body)
-            const skirtHeight = 0.9;
-            const skirtY = 0.85;
-            const leftSkirt = new THREE.Mesh(new THREE.BoxGeometry(0.1, skirtHeight, len), bodyMat);
-            leftSkirt.position.set(-width/2 + 0.05, skirtY, 0);
+            // Skirt Panels
+            const leftSkirt = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, len), bodyMat);
+            leftSkirt.position.set(-width/2 + 0.05, 0.85, 0);
             busChassis.add(leftSkirt);
 
-            const rightSkirt = new THREE.Mesh(new THREE.BoxGeometry(0.1, skirtHeight, len), bodyMat);
-            rightSkirt.position.set(width/2 - 0.05, skirtY, 0);
+            const rightSkirt = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, len), bodyMat);
+            rightSkirt.position.set(width/2 - 0.05, 0.85, 0);
             busChassis.add(rightSkirt);
 
-            // 4. Rear Cap (Back of the bus)
+            // Rear Cap & Windshield
             const rearCap = new THREE.Mesh(new THREE.BoxGeometry(width, height - 0.4, 0.15), bodyMat);
             rearCap.position.set(0, height/2 + 0.2, len/2);
             busChassis.add(rearCap);
 
-            // 5. Front Aerodynamic Windshield & Curved A-Pillars (Front is at -Z)
-            // Completely transparent windshield so Cockpit Camera has 100% unobstructed visibility!
-            const frontWindshield = new THREE.Mesh(new THREE.PlaneGeometry(width - 0.2, 1.4), glassMat);
-            frontWindshield.position.set(0, 1.8, -len/2);
-            frontWindshield.rotation.y = Math.PI; // Face front
+            const frontWindshield = new THREE.Mesh(new THREE.PlaneGeometry(width - 0.2, isCoach ? 1.6 : 1.4), glassMat);
+            frontWindshield.position.set(0, isCoach ? 2.0 : 1.8, -len/2);
+            frontWindshield.rotation.y = Math.PI;
             busChassis.add(frontWindshield);
 
             if (isDouble) {
@@ -592,17 +604,7 @@
                 busChassis.add(upperWindshield);
             }
 
-            // Slim Front Corner Pillars (A-Pillars)
-            const pillarGeo = new THREE.BoxGeometry(0.15, height - 0.4, 0.15);
-            const leftPillar = new THREE.Mesh(pillarGeo, bodyMat);
-            leftPillar.position.set(-width/2 + 0.08, height/2 + 0.2, -len/2 + 0.08);
-            busChassis.add(leftPillar);
-
-            const rightPillar = new THREE.Mesh(pillarGeo, bodyMat);
-            rightPillar.position.set(width/2 - 0.08, height/2 + 0.2, -len/2 + 0.08);
-            busChassis.add(rightPillar);
-
-            // 6. Side Window Glass Panes (Transparent with slim pillars)
+            // Side Windows
             const sideGlassGeo = new THREE.BoxGeometry(0.04, isDouble ? 1.0 : 1.2, len - 0.8);
             const leftGlass = new THREE.Mesh(sideGlassGeo, glassMat);
             leftGlass.position.set(-width/2 + 0.02, 1.8, 0);
@@ -612,27 +614,16 @@
             rightGlass.position.set(width/2 - 0.02, 1.8, 0);
             busChassis.add(rightGlass);
 
-            if (isDouble) {
-                const leftUpperGlass = new THREE.Mesh(sideGlassGeo, glassMat);
-                leftUpperGlass.position.set(-width/2 + 0.02, 3.3, 0);
-                busChassis.add(leftUpperGlass);
-
-                const rightUpperGlass = new THREE.Mesh(sideGlassGeo, glassMat);
-                rightUpperGlass.position.set(width/2 - 0.02, 3.3, 0);
-                busChassis.add(rightUpperGlass);
-            }
-
-            // 7. Glowing LED Destination Matrix (Front Brow)
+            // Destination Matrix LED Banner
             const destBox = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 0.08), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
-            destBox.position.set(0, isDouble ? 4.0 : 2.5, -len/2 + 0.04);
+            destBox.position.set(0, isDouble ? 4.0 : (isCoach ? 3.0 : 2.5), -len/2 + 0.04);
             busChassis.add(destBox);
 
-            // 8. RHD Cockpit Cab Interior (Right-hand drive, Hong Kong style)
+            // RHD Cockpit & Steering
             const dash = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 0.8), darkTrimMat);
             dash.position.set(0.65, 1.0, -len/2 + 0.9);
             busChassis.add(dash);
 
-            // Steering Wheel
             const wheelPivot = new THREE.Group();
             wheelPivot.position.set(0.65, 1.25, -len/2 + 1.2);
             wheelPivot.rotation.x = -0.55;
@@ -641,31 +632,7 @@
             busChassis.add(wheelPivot);
             steeringWheelMesh = wheelPivot;
 
-            // Octopus Card Tap Fare Reader Box
-            const octopusBox = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.26, 0.12), new THREE.MeshStandardMaterial({ color: 0xf59e0b }));
-            octopusBox.position.set(0.12, 1.15, -len/2 + 1.0);
-            busChassis.add(octopusBox);
-
-            // 9. Detailed Passenger Moquette Seats & Yellow Grab Rails
-            for (let z = -len/2 + 2.4; z < len/2 - 1.0; z += 1.3) {
-                // Left & Right passenger pairs
-                [-0.85, 0.85].forEach(x => {
-                    const seatBase = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.1, 0.45), seatMat);
-                    seatBase.position.set(x, 0.75, z);
-                    busChassis.add(seatBase);
-
-                    const seatBack = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.6, 0.08), seatMat);
-                    seatBack.position.set(x, 1.05, z + 0.2);
-                    busChassis.add(seatBack);
-                });
-
-                // Grab Poles along aisle
-                const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.6, 8), poleMat);
-                pole.position.set(0.35, 1.3, z);
-                busChassis.add(pole);
-            }
-
-            // 10. Detailed Multi-Spoke Wheels
+            // Wheels
             const wheelOffsets = [
                 { x: width/2 + 0.08, z: -len/2 + 2.2 }, { x: -width/2 - 0.08, z: -len/2 + 2.2 },
                 { x: width/2 + 0.08, z: len/2 - 2.0 },  { x: -width/2 - 0.08, z: len/2 - 2.0 }
@@ -676,11 +643,9 @@
                 const tire = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.35, 24), wheelRubberMat);
                 tire.rotation.z = Math.PI / 2;
                 wGroup.add(tire);
-
                 const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.36, 16), wheelRimMat);
                 rim.rotation.z = Math.PI / 2;
                 wGroup.add(rim);
-
                 wGroup.position.set(off.x, 0.48, off.z);
                 busChassis.add(wGroup);
                 wheels.push(wGroup);
@@ -688,17 +653,16 @@
 
             root.add(busChassis);
 
-            // 11. Bendy Articulated Trailer
+            // Bendy Articulated Trailer (Zone 2 Blue Bus Style)
             if (isBendy) {
                 trailerRig = new THREE.Group();
                 const trailerLen = 7.0;
 
-                // Trailer Body Shell
                 const tFloor = new THREE.Mesh(new THREE.BoxGeometry(width, 0.2, trailerLen), floorMat);
                 tFloor.position.set(0, 0.4, 0);
                 trailerRig.add(tFloor);
 
-                const tRoof = new THREE.Mesh(new THREE.BoxGeometry(width, 0.15, trailerLen), bodyMat);
+                const tRoof = new THREE.Mesh(new THREE.BoxGeometry(width, 0.15, trailerLen), roofMat);
                 tRoof.position.set(0, height, 0);
                 trailerRig.add(tRoof);
 
@@ -706,13 +670,11 @@
                 tGlass.position.set(0, 1.8, 0);
                 trailerRig.add(tGlass);
 
-                // Flexible Accordion Bellows
                 const bellow = new THREE.Mesh(new THREE.CylinderGeometry(1.48, 1.48, 1.6, 16), darkTrimMat);
                 bellow.rotation.x = Math.PI / 2;
                 bellow.position.set(0, 1.6, -trailerLen/2);
                 trailerRig.add(bellow);
 
-                // Trailer Wheels
                 [-width/2 - 0.08, width/2 + 0.08].forEach(x => {
                     const tw = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.35, 24), wheelRubberMat);
                     tw.rotation.z = Math.PI / 2;
@@ -736,7 +698,7 @@
         }
 
         // ==========================================
-        // 5. UNIFIED CONTROLS (WASD & ARROW KEYS)
+        // 5. UNIFIED CONTROLS
         // ==========================================
         const keys = { throttle: false, brake: false, left: false, right: false };
 
@@ -771,6 +733,7 @@
 
             const bindTouch = (id, field, state) => {
                 const el = document.getElementById(id);
+                if (!el) return;
                 el.addEventListener('touchstart', e => { e.preventDefault(); getAudioContext(); initEngineAudio(); keys[field] = state; }, { passive: false });
                 el.addEventListener('touchend', e => { e.preventDefault(); keys[field] = !state; }, { passive: false });
             };
@@ -839,7 +802,7 @@
         }
 
         // ==========================================
-        // 6. PHYSICS, SUSPENSION & BENDY JOINT
+        // 6. PHYSICS, ELEVATION & BENDY JOINT
         // ==========================================
         function updatePhysics(dt) {
             if (!busRig || !busChassis) return;
@@ -849,7 +812,6 @@
             const decelRate = (cheats.boostPower ? 65.0 : bus.brakePower);
             const speedLimit = cheats.unlockSpeed ? 260 : bus.baseSpeedLimit;
 
-            // Throttle & Progressive Brake
             if (keys.throttle && !bus.handbrake && !bus.doorFront && !bus.doorRear && bus.gear !== 0) {
                 bus.speed += accelRate * bus.gear * dt;
             } else if (keys.brake && !bus.handbrake) {
@@ -860,7 +822,7 @@
                     bus.speed = -12 * dt;
                 }
             } else {
-                bus.speed *= 0.985; // Coasting
+                bus.speed *= 0.985;
             }
 
             if (bus.handbrake) bus.speed *= 0.85;
@@ -872,7 +834,6 @@
                 document.getElementById('speed-limit-tag').style.background = 'var(--danger)';
             }
 
-            // Steering with spring return
             if (keys.left) bus.targetSteer = 0.55;
             else if (keys.right) bus.targetSteer = -0.55;
             else bus.targetSteer = 0;
@@ -883,16 +844,20 @@
                 triggerComplaint("Passenger complained the turn is too fast!");
             }
 
-            // Forward Translation: -Z is forward!
+            // Forward Translation & Road Elevation Snap (-Z is forward)
             const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), bus.rotation);
             bus.x += forward.x * (bus.speed / 3.6) * dt;
             bus.z += forward.z * (bus.speed / 3.6) * dt;
+
+            // Automatically snap bus height to road spline elevation (bridges/viaducts)
+            const targetRoadY = getRoadHeightAt(bus.x, bus.z);
+            bus.y = THREE.MathUtils.lerp(bus.y, targetRoadY + 0.45, 0.2);
 
             if (Math.abs(bus.speed) > 0.5) {
                 bus.rotation += (bus.steerAngle * 0.9) * (bus.speed / 28) * dt;
             }
 
-            // Suspension & Body Roll
+            // Suspension Body Roll
             const targetRoll = (bus.steerAngle * -0.12) * (bus.speed / 45);
             const targetPitch = (keys.throttle ? 0.025 : (keys.brake ? -0.055 : 0));
             suspensionRoll = THREE.MathUtils.lerp(suspensionRoll, targetRoll, 0.1);
@@ -904,14 +869,13 @@
             busRig.position.set(bus.x, bus.y, bus.z);
             busRig.rotation.y = bus.rotation;
 
-            // Wheels Animation (Front steered wheels turn)
             if (wheels.length >= 2) {
                 wheels[0].rotation.y = bus.steerAngle * 0.7;
                 wheels[1].rotation.y = bus.steerAngle * 0.7;
             }
             if (steeringWheelMesh) steeringWheelMesh.rotation.z = -bus.steerAngle * 4.2;
 
-            // Bendy Bus Articulated Trailer Joint Math
+            // Bendy Articulated Trailer Joint Math
             if (trailerRig) {
                 const hitchDist = 6.2;
                 const hitchPos = new THREE.Vector3(
@@ -933,10 +897,16 @@
             updateEngineSound(Math.abs(bus.speed) / 70, keys.throttle ? 1.0 : 0.0);
             document.getElementById('speed-display').innerText = Math.round(Math.abs(bus.speed));
 
-            // Stop Tracking
+            // Accurate Bus Stop Distance Calculation
             const nextStop = STOPS[currentStopIndex];
-            const distRemaining = Math.max(0, Math.round(nextStop.dist - (performance.now() * 0.01 % 4000)));
+            const busPosVec = new THREE.Vector3(bus.x, bus.y, bus.z);
+            const distRemaining = Math.max(0, Math.round(busPosVec.distanceTo(nextStop.pos)));
             document.getElementById('hud-route-next').innerText = `Next: ${nextStop.name} (${distRemaining}m)`;
+
+            if (distRemaining < 15 && Math.abs(bus.speed) < 2) {
+                currentStopIndex = (currentStopIndex + 1) % STOPS.length;
+                showBanner(`Arrived at ${nextStop.name}! (+150 EXP)`);
+            }
 
             // Multiplayer Sync
             if (peerConnection && peerConnection.open) {
@@ -944,7 +914,6 @@
                     type: 'SYNC',
                     x: bus.x, y: bus.y, z: bus.z,
                     rot: bus.rotation,
-                    trailerRot: bus.trailerAngle,
                     busType: activeBusType,
                     color: activeCompanyColor
                 });
@@ -952,26 +921,23 @@
         }
 
         // ==========================================
-        // 7. UNOBSTRUCTED CAMERAS
+        // 7. CAMERAS
         // ==========================================
         function updateCamera() {
             if (!busRig) return;
             const len = (activeBusType === 'BENDY_ARTIC') ? 8.2 : 11.8;
 
             if (cameraMode === 0) {
-                // Cockpit RHD: Placed right behind the driver console looking out the clear windshield
                 const eye = busRig.localToWorld(new THREE.Vector3(0.65, 1.85, -len/2 + 1.6));
                 const target = busRig.localToWorld(new THREE.Vector3(0.65, 1.75, -len/2 - 40.0));
                 camera.position.copy(eye);
                 camera.lookAt(target);
             } else if (cameraMode === 1) {
-                // 3rd Person Smooth Chase Camera
                 const offset = new THREE.Vector3(0, 5.5, 14.0).applyAxisAngle(new THREE.Vector3(0, 1, 0), bus.rotation);
                 const target = new THREE.Vector3(bus.x, bus.y + 1.8, bus.z);
                 camera.position.lerp(new THREE.Vector3().addVectors(target, offset), 0.2);
                 camera.lookAt(target);
             } else {
-                // Upper Deck Front Passenger View (Panoramic island view)
                 const eye = busRig.localToWorld(new THREE.Vector3(0, 3.4, -len/2 + 0.8));
                 const target = busRig.localToWorld(new THREE.Vector3(0, 3.2, -len/2 - 50.0));
                 camera.position.copy(eye);
@@ -980,37 +946,46 @@
         }
 
         // ==========================================
-        // 8. MULTIPLAYER ENGINE (PEERJS WEBRTC)
+        // 8. MULTIPLAYER ENGINE (PEERJS)
         // ==========================================
         let peer = null, peerConnection = null;
 
         function initMultiplayer() {
-            const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-            peer = new Peer(roomCode);
+            try {
+                const roomCode = 'DARRY-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+                peer = new Peer(roomCode);
 
-            peer.on('open', id => {
-                document.getElementById('my-peer-id').innerText = id;
-            });
+                peer.on('open', id => {
+                    document.getElementById('my-peer-id').innerText = id;
+                    document.getElementById('mp-status').innerText = "Status: Online & Ready";
+                });
 
-            peer.on('connection', conn => {
-                setupConnection(conn);
-                document.getElementById('mp-status').innerText = "Convoy connected!";
-                toggleModal('modal-multiplayer', false);
-            });
+                peer.on('connection', conn => {
+                    setupConnection(conn);
+                    document.getElementById('mp-status').innerText = "Status: Convoy Connected!";
+                    toggleModal('modal-multiplayer', false);
+                });
+
+                peer.on('error', err => {
+                    document.getElementById('mp-status').innerText = "Connection Error. Try reconnecting.";
+                });
+            } catch(e) {
+                document.getElementById('my-peer-id').innerText = "Offline Mode";
+            }
         }
 
         function connectToPeer() {
             const targetId = document.getElementById('join-peer-id').value.trim().toUpperCase();
-            if (!targetId) return;
+            if (!targetId || !peer) return;
             const conn = peer.connect(targetId);
             setupConnection(conn);
-            document.getElementById('mp-status').innerText = "Connecting...";
+            document.getElementById('mp-status').innerText = "Connecting to peer...";
         }
 
         function setupConnection(conn) {
             peerConnection = conn;
             conn.on('open', () => {
-                document.getElementById('mp-status').innerText = "Connected!";
+                document.getElementById('mp-status').innerText = "Status: Connected to Convoy!";
                 toggleModal('modal-multiplayer', false);
 
                 if (!otherPlayerRig) {
@@ -1032,7 +1007,7 @@
         }
 
         // ==========================================
-        // 9. MODALS & CHEATS
+        // 9. MODALS & UI TRIGGERS
         // ==========================================
         function toggleModal(id, open) {
             document.getElementById(id).style.display = open ? 'flex' : 'none';
@@ -1050,7 +1025,7 @@
             activeCompanyColor = color;
             spawnBus();
             toggleModal('modal-fleet', false);
-            showBanner(`Selected ${type}!`);
+            showBanner(`Selected Fleet Vehicle!`);
         }
 
         function applyCheatSettings() {
@@ -1060,7 +1035,7 @@
         }
 
         // ==========================================
-        // 10. ANIMATION LOOP & INIT
+        // 10. LOOP & INIT
         // ==========================================
         let lastTime = performance.now();
         function loop(now) {
