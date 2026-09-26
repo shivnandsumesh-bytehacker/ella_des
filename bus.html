@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Darry's Bus Terminal - Sunshine Islands 3D Simulator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
@@ -407,6 +408,9 @@
         let steeringWheelMesh = null;
         let wheels = [];
         let roadSpline = null;
+        
+        let cityColliders = []; // Stores hitboxes for city map buildings
+        let busBox = new THREE.Box3(); // The dynamic hitbox for the bus
 
         let activeRoute = 1;
         let activeBusType = 'SGBUS_GREEN';
@@ -450,6 +454,27 @@
         // ==========================================
         // 3. URBAN CITY MAP & SPLINE-ALIGNED BUILDINGS
         // ==========================================
+        function loadCityMap() {
+            const loader = new THREE.GLTFLoader();
+            loader.load('NewYork-City-Manhattan.fbx.glb', function (gltf) {
+                const cityMap = gltf.scene;
+                scene.add(cityMap);
+
+                // Generate solid hitboxes for every building in the map
+                cityMap.traverse((child) => {
+                    if (child.isMesh) {
+                        const box = new THREE.Box3().setFromObject(child);
+                        cityColliders.push(box);
+                    }
+                });
+
+                showBanner("Manhattan Map & Collisions Loaded!");
+            }, undefined, function (error) {
+                console.error("Error loading GLB city map:", error);
+                showBanner("Failed to load map asset.");
+            });
+        }
+
         function buildWorldEnvironment() {
             scene.background = new THREE.Color(0x7dd3fc);
             scene.fog = new THREE.FogExp2(0x7dd3fc, 0.00025);
@@ -482,8 +507,8 @@
             ];
             roadSpline = new THREE.CatmullRomCurve3(curvePoints);
 
-            // Build buildings aligned along spline offsets so they never intersect roads
-            buildSplineAlignedBuildings();
+            // Procedural buildings disabled to prevent overlap with Manhattan GLB Map.
+            // buildSplineAlignedBuildings();
 
             const roadSteps = 400;
             const roadMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
@@ -517,33 +542,6 @@
                 const pt = roadSpline.getPointAt(u);
                 createBusShelter(pt.x + 10, pt.y, pt.z, stop.name);
             });
-        }
-
-        function buildSplineAlignedBuildings() {
-            const bldMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
-            const glassBldMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.2, metalness: 0.8 });
-
-            const numBuildings = 70;
-            for (let i = 2; i < numBuildings - 2; i++) {
-                const u = i / numBuildings;
-                const pt = roadSpline.getPointAt(u);
-                const tangent = roadSpline.getTangentAt(u);
-                const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
-
-                [-1, 1].forEach(side => {
-                    const offsetDist = 22 + (i % 3) * 6; // Safe distance outside road width
-                    const bPos = pt.clone().add(normal.clone().multiplyScalar(side * offsetDist));
-
-                    const width = 30 + (i % 4) * 5;
-                    const depth = 30 + ((i * 2) % 4) * 5;
-                    const height = 50 + ((i * 7) % 100);
-
-                    const mat = (i % 2 === 0) ? bldMat : glassBldMat;
-                    const bld = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), mat);
-                    bld.position.set(bPos.x, height / 2, bPos.z);
-                    scene.add(bld);
-                });
-            }
         }
 
         function createBusShelter(x, y, z, name) {
@@ -880,7 +878,7 @@
         }
 
         // ==========================================
-        // 6. PHYSICS & STOP TRACKING
+        // 6. PHYSICS & STOP TRACKING (WITH AABB COLLISION)
         // ==========================================
         function updatePhysics(dt) {
             if (!busRig || !busChassis) return;
@@ -912,16 +910,39 @@
 
             bus.steerAngle += (bus.targetSteer - bus.steerAngle) * 4.0 * dt;
 
-            const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), bus.rotation);
-            bus.x += forward.x * (bus.speed / 3.6) * dt;
-            bus.z += forward.z * (bus.speed / 3.6) * dt;
-
-            const targetRoadY = getRoadHeightAt(bus.x, bus.z);
-            bus.y = THREE.MathUtils.lerp(bus.y, targetRoadY + 0.45, 0.2);
-
             if (Math.abs(bus.speed) > 0.5) {
                 bus.rotation += (bus.steerAngle * 0.9) * (bus.speed / 28) * dt;
             }
+
+            // --- AABB COLLISION PREDICTION ---
+            const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), bus.rotation);
+            const nextX = bus.x + forward.x * (bus.speed / 3.6) * dt;
+            const nextZ = bus.z + forward.z * (bus.speed / 3.6) * dt;
+
+            busRig.position.set(nextX, bus.y, nextZ);
+            busRig.updateMatrixWorld();
+            busBox.setFromObject(busChassis);
+
+            let hasCollision = false;
+            for (let i = 0; i < cityColliders.length; i++) {
+                if (busBox.intersectsBox(cityColliders[i])) {
+                    hasCollision = true;
+                    break;
+                }
+            }
+
+            if (hasCollision) {
+                bus.speed = 0;
+                triggerComplaint("CRASH! Watch the buildings!");
+                busRig.position.set(bus.x, bus.y, bus.z);
+            } else {
+                bus.x = nextX;
+                bus.z = nextZ;
+            }
+            // ----------------------------------
+
+            const targetRoadY = getRoadHeightAt(bus.x, bus.z);
+            bus.y = THREE.MathUtils.lerp(bus.y, targetRoadY + 0.45, 0.2);
 
             busRig.position.set(bus.x, bus.y, bus.z);
             busRig.rotation.y = bus.rotation;
@@ -932,21 +953,26 @@
             }
             if (steeringWheelMesh) steeringWheelMesh.rotation.z = -bus.steerAngle * 4.2;
 
+            // --- TRAILER HITCH MATH FIX ---
             if (trailerRig) {
                 const hitchDist = 6.2;
-                const hitchPos = new THREE.Vector3(
-                    bus.x + Math.sin(bus.rotation) * 3.8,
-                    bus.y,
-                    bus.z + Math.cos(bus.rotation) * 3.8
-                );
-                const tDx = hitchPos.x - trailerRig.position.x;
-                const tDz = hitchPos.z - trailerRig.position.z;
-                bus.trailerAngle = Math.atan2(tDx, tDz);
+                const maxJointAngleRad = 0.75; // Approx 42 degrees
+                const hitchOffset = new THREE.Vector3(0, 0, hitchDist / 2);
+                const hitchWorldPos = hitchOffset.applyMatrix4(busRig.matrixWorld);
 
-                trailerRig.position.x = hitchPos.x - Math.sin(bus.trailerAngle) * hitchDist;
-                trailerRig.position.z = hitchPos.z - Math.cos(bus.trailerAngle) * hitchDist;
+                const diff = new THREE.Vector3().subVectors(hitchWorldPos, trailerRig.position);
+                diff.y = 0; 
+                
+                const targetAngle = Math.atan2(diff.x, diff.z);
+                let relativeAngle = targetAngle - busRig.rotation.y;
+                relativeAngle = Math.atan2(Math.sin(relativeAngle), Math.cos(relativeAngle));
+                
+                const clampedAngle = Math.max(-maxJointAngleRad, Math.min(maxJointAngleRad, relativeAngle));
+                trailerRig.rotation.y = busRig.rotation.y + clampedAngle;
+
+                const lockedHeading = new THREE.Vector3(Math.sin(trailerRig.rotation.y), 0, Math.cos(trailerRig.rotation.y));
+                trailerRig.position.copy(hitchWorldPos).sub(lockedHeading.multiplyScalar(hitchDist / 2));
                 trailerRig.position.y = bus.y;
-                trailerRig.rotation.y = bus.trailerAngle + Math.PI;
             }
 
             updateEngineSound(Math.abs(bus.speed) / 70, keys.throttle ? 1.0 : 0.0);
@@ -1150,6 +1176,7 @@
                 camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 10000);
 
                 buildWorldEnvironment();
+                loadCityMap(); // Loads custom GLB map & generates collisions
                 populateRouteGrid();
                 spawnBus();
                 setupInputListeners();
