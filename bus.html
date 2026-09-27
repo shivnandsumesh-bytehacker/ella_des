@@ -417,8 +417,8 @@
         let cameraMode = 0;
 
         const bus = {
-            x: 120, y: 0.65, z: -50, // Spawn at Central Interchange
-            rotation: -1.5,          // Align rotation with the road curve
+            x: 20, y: 0.65, z: 180, // Safe Spawn at City Hall Station
+            rotation: 0.35,         // Safe starting rotation angle
             trailerAngle: 0,
             speed: 0,
             steerAngle: 0,
@@ -448,7 +448,7 @@
             { name: "Orchard Blvd Plaza", pos: new THREE.Vector3(140, 0.2, -1900) },
             { name: "Harbourfront Gateway", pos: new THREE.Vector3(0, 0.2, -2800) }
         ];
-        let currentStopIndex = 1; // Start index at 1 since we spawn at Stop 2 (Central)
+        let currentStopIndex = 0;
 
         // ==========================================
         // 3. URBAN CITY MAP & SPLINE-ALIGNED BUILDINGS
@@ -534,20 +534,24 @@
                 const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
 
                 [-1, 1].forEach(side => {
-                    const offsetDist = 22 + (i % 3) * 6; // Safe distance outside road width
+                    // Pushed out to 45 meters to give wide avenues and prevent road clipping
+                    const offsetDist = 45 + (i % 3) * 10; 
                     const bPos = pt.clone().add(normal.clone().multiplyScalar(side * offsetDist));
 
-                    const width = 30 + (i % 4) * 5;
-                    const depth = 30 + ((i * 2) % 4) * 5;
+                    const width = 25 + (i % 4) * 5;
+                    const depth = 25 + ((i * 2) % 4) * 5;
                     const height = 50 + ((i * 7) % 100);
 
                     const mat = (i % 2 === 0) ? bldMat : glassBldMat;
                     const bld = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), mat);
+                    
                     bld.position.set(bPos.x, height / 2, bPos.z);
+                    bld.lookAt(pt.x, height / 2, pt.z); // Rotate to face the road naturally
+                    
                     scene.add(bld);
                     
-                    // Add building to collision array
-                    bld.updateMatrixWorld();
+                    // Add building to collision array safely
+                    bld.updateMatrixWorld(true);
                     cityColliders.push(new THREE.Box3().setFromObject(bld));
                 });
             }
@@ -739,7 +743,7 @@
 
             root.add(busChassis);
 
-            // Reverted back to the original Bendy trailer math you preferred
+            // Using the requested original Bendy Bus Trailer Physics
             if (isBendy) {
                 trailerRig = new THREE.Group();
                 const trailerLen = 7.0;
@@ -888,11 +892,16 @@
         }
 
         // ==========================================
-        // 6. PHYSICS & COLLISION DETECTION
+        // 6. PHYSICS & AABB COLLISION DETECTION
         // ==========================================
         function updatePhysics(dt) {
             if (!busRig || !busChassis) return;
             if (complaintCooldown > 0) complaintCooldown -= dt;
+
+            // Cache previous coordinates and rotation to reverse out of soft-locks
+            const prevX = bus.x;
+            const prevZ = bus.z;
+            const prevRot = bus.rotation;
 
             const accelRate = (cheats.boostPower ? 26.0 : bus.accelPower);
             const decelRate = (cheats.boostPower ? 65.0 : bus.brakePower);
@@ -924,17 +933,18 @@
                 bus.rotation += (bus.steerAngle * 0.9) * (bus.speed / 28) * dt;
             }
 
-            // --- AABB COLLISION PREDICTION ---
+            // --- ADVANCED AABB COLLISION PREDICTION ---
             const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), bus.rotation);
             const nextX = bus.x + forward.x * (bus.speed / 3.6) * dt;
             const nextZ = bus.z + forward.z * (bus.speed / 3.6) * dt;
 
+            // Test the future state
             busRig.position.set(nextX, bus.y, nextZ);
-            busRig.updateMatrixWorld();
-            busBox.setFromObject(busChassis);
+            busRig.rotation.y = bus.rotation;
+            busRig.updateMatrixWorld(true);
             
-            // Shrink the hitbox slightly to prevent scraping on tight road seams
-            busBox.expandByScalar(-0.35);
+            busBox.setFromObject(busChassis);
+            busBox.expandByScalar(-0.4); // Adds a safety buffer so minor scrapes don't lock you
 
             let hasCollision = false;
             for (let i = 0; i < cityColliders.length; i++) {
@@ -944,18 +954,27 @@
                 }
             }
 
-            if (hasCollision && Math.abs(bus.speed) > 0.1) {
-                // Apply a bounce-back multiplier (-0.4) instead of a dead stop (0)
-                bus.speed = -bus.speed * 0.4;
-                triggerComplaint("CRASH! Watch the buildings!");
-                // Revert visual model to previous safe coordinates
+            if (hasCollision) {
+                // REVERT EVERYTHING: Position and Rotation to stop diagonal soft-locks
+                bus.x = prevX;
+                bus.z = prevZ;
+                bus.rotation = prevRot;
+
+                if (Math.abs(bus.speed) > 1) {
+                    bus.speed = -bus.speed * 0.4; // Bounce back
+                    triggerComplaint("CRASH! Watch the buildings!");
+                } else {
+                    bus.speed = 0; // Dead stop
+                }
+
                 busRig.position.set(bus.x, bus.y, bus.z);
+                busRig.rotation.y = bus.rotation;
             } else {
-                // Path is clear, commit to the movement
+                // MOVEMENT CONFIRMED SAFE: Apply it.
                 bus.x = nextX;
                 bus.z = nextZ;
             }
-            // ----------------------------------
+            // ------------------------------------------
 
             const targetRoadY = getRoadHeightAt(bus.x, bus.z);
             bus.y = THREE.MathUtils.lerp(bus.y, targetRoadY + 0.45, 0.2);
@@ -969,7 +988,7 @@
             }
             if (steeringWheelMesh) steeringWheelMesh.rotation.z = -bus.steerAngle * 4.2;
 
-            // Reverted back to the original Bendy trailer math you preferred
+            // Requested Original Bendy Physics
             if (trailerRig) {
                 const hitchDist = 6.2;
                 const hitchPos = new THREE.Vector3(
