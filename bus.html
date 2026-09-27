@@ -407,9 +407,6 @@
         let steeringWheelMesh = null;
         let wheels = [];
         let roadSpline = null;
-        
-        let cityColliders = []; // Stores hitboxes for procedural buildings
-        const busBox = new THREE.Box3(); // The dynamic hitbox for the bus
 
         let activeRoute = 1;
         let activeBusType = 'SGBUS_GREEN';
@@ -485,7 +482,6 @@
             ];
             roadSpline = new THREE.CatmullRomCurve3(curvePoints);
 
-            // Build procedural buildings and cache their hitboxes
             buildSplineAlignedBuildings();
 
             const roadSteps = 400;
@@ -534,25 +530,20 @@
                 const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
 
                 [-1, 1].forEach(side => {
-                    // Pushed out to 45 meters to give wide avenues and prevent road clipping
-                    const offsetDist = 45 + (i % 3) * 10; 
+                    const offsetDist = 22 + (i % 3) * 6; // Set to safe 22m clearance
                     const bPos = pt.clone().add(normal.clone().multiplyScalar(side * offsetDist));
 
-                    const width = 25 + (i % 4) * 5;
-                    const depth = 25 + ((i * 2) % 4) * 5;
+                    const width = 30 + (i % 4) * 5;
+                    const depth = 30 + ((i * 2) % 4) * 5;
                     const height = 50 + ((i * 7) % 100);
 
                     const mat = (i % 2 === 0) ? bldMat : glassBldMat;
                     const bld = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), mat);
                     
                     bld.position.set(bPos.x, height / 2, bPos.z);
-                    bld.lookAt(pt.x, height / 2, pt.z); // Rotate to face the road naturally
+                    bld.lookAt(pt.x, height / 2, pt.z); 
                     
                     scene.add(bld);
-                    
-                    // Add building to collision array safely
-                    bld.updateMatrixWorld(true);
-                    cityColliders.push(new THREE.Box3().setFromObject(bld));
                 });
             }
         }
@@ -611,8 +602,9 @@
             scene.add(poleGroup);
         }
 
-        function getRoadHeightAt(x, z) {
-            if (!roadSpline) return 0.2;
+        // Optimized unified function to get both height and distance from road center
+        function getRoadDataAt(x, z) {
+            if (!roadSpline) return { y: 0.2, dist: 0 };
             let closestY = 0.2;
             let minDist = Infinity;
             for (let u = 0; u <= 1; u += 0.005) {
@@ -623,7 +615,7 @@
                     closestY = pt.y;
                 }
             }
-            return closestY;
+            return { y: closestY, dist: minDist };
         }
 
         // ==========================================
@@ -743,7 +735,7 @@
 
             root.add(busChassis);
 
-            // Using the requested original Bendy Bus Trailer Physics
+            // Reverted back to the original Bendy trailer math you preferred
             if (isBendy) {
                 trailerRig = new THREE.Group();
                 const trailerLen = 7.0;
@@ -892,16 +884,11 @@
         }
 
         // ==========================================
-        // 6. PHYSICS & AABB COLLISION DETECTION
+        // 6. SPLINE-BOUNDARY "GUARDRAIL" PHYSICS
         // ==========================================
         function updatePhysics(dt) {
             if (!busRig || !busChassis) return;
             if (complaintCooldown > 0) complaintCooldown -= dt;
-
-            // Cache previous coordinates and rotation to reverse out of soft-locks
-            const prevX = bus.x;
-            const prevZ = bus.z;
-            const prevRot = bus.rotation;
 
             const accelRate = (cheats.boostPower ? 26.0 : bus.accelPower);
             const decelRate = (cheats.boostPower ? 65.0 : bus.brakePower);
@@ -933,51 +920,30 @@
                 bus.rotation += (bus.steerAngle * 0.9) * (bus.speed / 28) * dt;
             }
 
-            // --- ADVANCED AABB COLLISION PREDICTION ---
+            // Calculate intended movement
             const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), bus.rotation);
             const nextX = bus.x + forward.x * (bus.speed / 3.6) * dt;
             const nextZ = bus.z + forward.z * (bus.speed / 3.6) * dt;
 
-            // Test the future state
-            busRig.position.set(nextX, bus.y, nextZ);
-            busRig.rotation.y = bus.rotation;
-            busRig.updateMatrixWorld(true);
+            // Enforce Spline Boundary Collision (Invisible Guardrail)
+            const roadData = getRoadDataAt(nextX, nextZ);
             
-            busBox.setFromObject(busChassis);
-            busBox.expandByScalar(-0.4); // Adds a safety buffer so minor scrapes don't lock you
-
-            let hasCollision = false;
-            for (let i = 0; i < cityColliders.length; i++) {
-                if (busBox.intersectsBox(cityColliders[i])) {
-                    hasCollision = true;
-                    break;
-                }
-            }
-
-            if (hasCollision) {
-                // REVERT EVERYTHING: Position and Rotation to stop diagonal soft-locks
-                bus.x = prevX;
-                bus.z = prevZ;
-                bus.rotation = prevRot;
-
+            if (roadData.dist > 8.5) { 
+                // Bus is too far off the center of the road (7m half-width + 1.5m curb grace radius)
                 if (Math.abs(bus.speed) > 1) {
-                    bus.speed = -bus.speed * 0.4; // Bounce back
+                    bus.speed = -bus.speed * 0.4; // Bounce backward
                     triggerComplaint("CRASH! Watch the buildings!");
                 } else {
-                    bus.speed = 0; // Dead stop
+                    bus.speed = 0; // Dead stop if crawling
                 }
-
-                busRig.position.set(bus.x, bus.y, bus.z);
-                busRig.rotation.y = bus.rotation;
+                // Coordinates DO NOT update, saving you from getting stuck.
             } else {
-                // MOVEMENT CONFIRMED SAFE: Apply it.
+                // Movement safe, commit to the coordinate change
                 bus.x = nextX;
                 bus.z = nextZ;
             }
-            // ------------------------------------------
 
-            const targetRoadY = getRoadHeightAt(bus.x, bus.z);
-            bus.y = THREE.MathUtils.lerp(bus.y, targetRoadY + 0.45, 0.2);
+            bus.y = THREE.MathUtils.lerp(bus.y, roadData.y + 0.45, 0.2);
 
             busRig.position.set(bus.x, bus.y, bus.z);
             busRig.rotation.y = bus.rotation;
