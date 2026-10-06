@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Darry's Bus Terminal - Sunshine Islands 3D Simulator</title>
+    <title>Darry's Bus Terminal - 3D Simulator, multiplayer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -414,7 +414,7 @@
         let cameraMode = 0;
 
         const bus = {
-            x: 20, y: 0.65, z: 180, // Safe Spawn at City Hall Station
+            x: 60, y: 0.65, z: 180, // Spawn aligned with curvePoints[1]
             rotation: 0.35,         // Safe starting rotation angle
             trailerAngle: 0,
             speed: 0,
@@ -438,12 +438,12 @@
         }
 
         const STOPS = [
-            { name: "City Hall Station", pos: new THREE.Vector3(20, 0.2, 180) },
-            { name: "Central Interchange", pos: new THREE.Vector3(120, 0.2, -50) },
-            { name: "Marina Bay Terminal", pos: new THREE.Vector3(-80, 0.2, -550) },
-            { name: "Financial District", pos: new THREE.Vector3(-60, 0.2, -1200) },
-            { name: "Orchard Blvd Plaza", pos: new THREE.Vector3(140, 0.2, -1900) },
-            { name: "Harbourfront Gateway", pos: new THREE.Vector3(0, 0.2, -2800) }
+            { name: "City Hall Station", pos: new THREE.Vector3() },
+            { name: "Central Interchange", pos: new THREE.Vector3() },
+            { name: "Marina Bay Terminal", pos: new THREE.Vector3() },
+            { name: "Financial District", pos: new THREE.Vector3() },
+            { name: "Orchard Blvd Plaza", pos: new THREE.Vector3() },
+            { name: "Harbourfront Gateway", pos: new THREE.Vector3() }
         ];
         let currentStopIndex = 0;
 
@@ -514,6 +514,7 @@
             STOPS.forEach((stop, idx) => {
                 const u = (idx + 1) / (STOPS.length + 1);
                 const pt = roadSpline.getPointAt(u);
+                stop.pos.set(pt.x + 10, pt.y, pt.z); // Sync waypoint pos with shelter
                 createBusShelter(pt.x + 10, pt.y, pt.z, stop.name);
             });
         }
