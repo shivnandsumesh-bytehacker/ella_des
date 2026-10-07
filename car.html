@@ -432,18 +432,17 @@
         let gold = 0, bestDrift = 0;
         let cameraMode = 0;
 
-        // Elevated Mountain Pass Track Profile (X, Y, Z with hills, crests, and bridges)
         const trackControlPoints = [
             new THREE.Vector3(0, 2.0, 0),
-            new THREE.Vector3(30, 6.0, 160),    // Hill climb
-            new THREE.Vector3(120, 14.0, 280),  // Hill peak
-            new THREE.Vector3(240, 8.0, 240),   // Downhill descent
-            new THREE.Vector3(320, 3.0, 100),   // Valley curve
+            new THREE.Vector3(30, 6.0, 160),
+            new THREE.Vector3(120, 14.0, 280),
+            new THREE.Vector3(240, 8.0, 240),
+            new THREE.Vector3(320, 3.0, 100),
             new THREE.Vector3(260, 2.0, -80),
-            new THREE.Vector3(140, 7.0, -160),  // Ridge climb
-            new THREE.Vector3(-20, 16.0, -120), // High elevated bridge
+            new THREE.Vector3(140, 7.0, -160),
+            new THREE.Vector3(-20, 16.0, -120),
             new THREE.Vector3(-140, 9.0, 40),
-            new THREE.Vector3(-240, 3.0, 200),  // Low canyon floor
+            new THREE.Vector3(-240, 3.0, 200),
             new THREE.Vector3(-340, 8.0, 120),
             new THREE.Vector3(-280, 12.0, -140),
             new THREE.Vector3(-120, 5.0, -220),
@@ -451,20 +450,17 @@
             new THREE.Vector3(0, 2.0, 0)
         ];
         const trackSpline = new THREE.CatmullRomCurve3(trackControlPoints, true, 'catmullrom', 0.15);
-        const TRACK_LENGTH = trackSpline.getLength();
 
-        // Lap Tracker State (2-Gate Checkpoint System)
         let currentLap = 1;
         const TOTAL_LAPS = 3;
         let checkpointPassed = false;
         let currentLapTime = 0;
         let bestLapTime = Infinity;
 
-        // Player Dynamics with Speed-Sensitive Steering
         const car = {
             pos: new THREE.Vector3(0, 2.4, 0),
             heading: 0,
-            speed: 0, // m/s
+            speed: 0,
             maxSpeed: 58.0,
             accel: 28.0,
             reverseSpeed: 14.0,
@@ -567,7 +563,6 @@
             scene.add(carMesh);
         }
 
-        // Build 3D Road Mesh with Elevation Variations, Terrain Hills & Power-Ups
         function build3DWorld() {
             const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 });
             const kerbRedMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
@@ -586,20 +581,17 @@
                 const norm = new THREE.Vector3(-tan.z, 0, tan.x).normalize();
                 const segLen = p1.distanceTo(p2);
 
-                // Asphalt Road Slab
                 const road = new THREE.Mesh(new THREE.BoxGeometry(15.0, 0.25, segLen + 0.4), roadMat);
                 road.position.copy(mid);
                 road.lookAt(p2);
                 scene.add(road);
 
-                // Bridge Support Pillars when elevated high above base ground
                 if (mid.y > 6.0 && i % 8 === 0) {
                     const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, mid.y, 8), pillarMat);
                     pillar.position.set(mid.x, mid.y / 2, mid.z);
                     scene.add(pillar);
                 }
 
-                // Kerbs
                 const kMat = i % 4 < 2 ? kerbRedMat : kerbWhiteMat;
                 [-7.6, 7.6].forEach(kx => {
                     const kerb = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, segLen + 0.2), kMat);
@@ -607,7 +599,6 @@
                     kerb.lookAt(p2.clone().addScaledVector(norm, kx));
                     scene.add(kerb);
 
-                    // Guardrails on sharp turns or elevated sections
                     if (mid.y > 5.0 || i % 5 === 0) {
                         const guard = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.75, segLen + 0.2), guardMat);
                         guard.position.copy(mid).addScaledVector(norm, kx + (kx > 0 ? 0.3 : -0.3));
@@ -617,7 +608,6 @@
                     }
                 });
 
-                // ⚡ Speed Boost Pads on Track
                 if (i % 90 === 25) {
                     const pad = new THREE.Mesh(
                         new THREE.PlaneGeometry(7.0, 8.0),
@@ -631,7 +621,6 @@
                     boostPads.push({ pos: mid.clone(), length: 8.0 });
                 }
 
-                // 🪙 Floating Gold Coin Lines & 🔋 Nitro Pickups
                 if (i % 60 === 10) {
                     const isNitro = (i % 120 === 10);
                     const pickupMesh = isNitro ?
@@ -646,7 +635,6 @@
                 }
             }
 
-            // Mountain Terrain Landscape
             const mountainGeo = new THREE.DodecahedronGeometry(24, 1);
             const mountainMat = new THREE.MeshStandardMaterial({ color: 0x1e3a2f, roughness: 0.95, flatShading: true });
             for (let m = 0; m < 55; m++) {
@@ -663,7 +651,6 @@
                 scene.add(mountain);
             }
 
-            // Base Ground Floor
             const ground = new THREE.Mesh(
                 new THREE.PlaneGeometry(3000, 3000),
                 new THREE.MeshStandardMaterial({ color: 0x0a1f18, roughness: 0.98 })
@@ -704,7 +691,6 @@
             buildCarModel();
             setupControls();
 
-            // Spawn car safely on track starting gate
             const startP = trackSpline.getPointAt(0);
             car.pos.set(startP.x, startP.y + 0.4, startP.z);
 
@@ -776,11 +762,8 @@
             currentLapTime = 0;
         }
 
-        // 60FPS Clamped Physics, Terrain Elevation Matching, and Checkpoint Lap Counting
         function updatePhysics(dt) {
-            // 1. Speed-Sensitive Steering Lock (Eliminates Twitchy High-Speed Steering)
             const speedRatio = Math.min(1.0, Math.abs(car.speed) / car.maxSpeed);
-            // Steering lock dynamically reduces from 0.58 rad (low speed) down to 0.22 rad (top speed)
             const dynamicMaxSteer = THREE.MathUtils.lerp(0.58, 0.22, speedRatio);
 
             if (keys.a) {
@@ -791,11 +774,13 @@
                 car.steerAngle = THREE.MathUtils.lerp(car.steerAngle, 0, 0.18);
             }
 
-            // 2. Nitro Boost Handling
+            // FIX: Nitro Boost Handling Logic (activeMaxSpeed mapping)
+            let activeMaxSpeed = car.maxSpeed;
             if (keys.shift && car.nitroFuel > 5 && car.speed > 8) {
                 car.isBoosting = true;
                 car.nitroFuel = Math.max(0, car.nitroFuel - 32 * dt);
-                car.speed = Math.min(car.maxSpeed * 1.35, car.speed + car.accel * 1.6 * dt);
+                activeMaxSpeed = car.maxSpeed * 1.35;
+                car.speed = Math.min(activeMaxSpeed, car.speed + car.accel * 1.6 * dt);
 
                 for (let i = 0; i < 2; i++) {
                     const fire = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: 0x00f3ff }));
@@ -808,17 +793,16 @@
                 car.nitroFuel = Math.min(100, car.nitroFuel + 6 * dt);
             }
 
-            // 3. Acceleration & Braking
-            if (keys.w) {
-                car.speed = Math.min(car.maxSpeed, car.speed + car.accel * dt);
+            // FIX: Uses activeMaxSpeed so the normal W key doesn't cancel the boost speed
+            if (keys.w && !car.isBoosting) {
+                car.speed = Math.min(activeMaxSpeed, car.speed + car.accel * dt);
             } else if (keys.s) {
                 car.speed = Math.max(-car.reverseSpeed, car.speed - car.accel * 1.4 * dt);
-            } else {
+            } else if (!car.isBoosting) {
                 if (car.speed > 0) car.speed = Math.max(0, car.speed - 7.0 * dt);
                 else if (car.speed < 0) car.speed = Math.min(0, car.speed + 7.0 * dt);
             }
 
-            // 4. Handbrake Drift Slip
             const speedKmh = Math.round(Math.abs(car.speed) * 3.6);
             if (keys.space && Math.abs(car.speed) > 10.0) {
                 car.isDrifting = true;
@@ -837,7 +821,6 @@
                 car.driftFactor = THREE.MathUtils.lerp(car.driftFactor, 0, 0.1);
             }
 
-            // 5. Yaw & Horizontal Movement
             const turnRate = car.steerAngle * (car.speed / car.maxSpeed) * (1.0 + car.driftFactor * 1.2);
             car.heading -= turnRate * dt * 2.8;
 
@@ -848,14 +831,14 @@
             );
             car.pos.addScaledVector(velocity, dt);
 
-            // 6. Terrain & Bridge Height Elevation Matching
-            // Find closest track spline node to determine actual road height
+            // FIX: High Resolution Terrain Elevation Matching (1200 steps instead of 60)
             let closestU = 0;
             let minDistSq = Infinity;
-            for (let i = 0; i <= 60; i++) {
-                const u = i / 60;
+            for (let i = 0; i <= 1200; i++) {
+                const u = i / 1200;
                 const p = trackSpline.getPointAt(u);
-                const dSq = car.pos.distanceToSquared(p);
+                // Only calculate X and Z distance to find the closest segment on the ground plane
+                const dSq = Math.pow(car.pos.x - p.x, 2) + Math.pow(car.pos.z - p.z, 2);
                 if (dSq < minDistSq) {
                     minDistSq = dSq;
                     closestU = u;
@@ -865,7 +848,22 @@
             car.groundHeight = trackP.y + 0.4;
             car.pos.y = THREE.MathUtils.lerp(car.pos.y, car.groundHeight, 0.2);
 
-            // 7. Robust 2-Gate Lap Counter
+            // FIX: Guardrail Horizontal Collisions
+            const distFromCenter = Math.sqrt(minDistSq);
+            if (distFromCenter > 7.0) {
+                const pushFactor = (distFromCenter - 7.0) / distFromCenter;
+                car.pos.x += (trackP.x - car.pos.x) * pushFactor;
+                car.pos.z += (trackP.z - car.pos.z) * pushFactor;
+                
+                if (Math.abs(car.speed) > 10) {
+                    car.speed *= 0.85; // Scrub speed
+                    car.isDrifting = false;
+                    car.driftFactor = 0;
+                    playScreech();
+                    showDialogue("💥 WALL RIDE PENALTY!");
+                }
+            }
+
             if (closestU > 0.45 && closestU < 0.65) {
                 checkpointPassed = true;
             }
@@ -887,7 +885,6 @@
                 document.getElementById("lap-status").innerText = `Lap ${Math.min(currentLap, TOTAL_LAPS)} / ${TOTAL_LAPS}`;
             }
 
-            // 8. Boost Pad Trigger Check
             boostPads.forEach(bp => {
                 if (car.pos.distanceTo(bp.pos) < 5.0) {
                     car.speed = car.maxSpeed * 1.4;
@@ -897,7 +894,6 @@
                 }
             });
 
-            // 9. Pickups Collection (Gold & Nitro)
             pickups.forEach(p => {
                 if (p.active) {
                     p.mesh.rotation.y += dt * 3.5;
@@ -916,7 +912,6 @@
                 }
             });
 
-            // 10. Visual Wheel Rotations & Vehicle Heading
             wheelMeshes.forEach(w => {
                 w.mesh.rotation.x += (car.speed * dt * 2.5);
                 if (w.isFront) w.pivot.rotation.y = car.steerAngle * 0.9;
@@ -924,7 +919,6 @@
             carMesh.position.copy(car.pos);
             carMesh.rotation.y = car.heading;
 
-            // Drift Scoring
             const driftDeg = Math.round(Math.abs(car.steerAngle * car.driftFactor) * 75);
             car.gear = Math.max(1, Math.min(6, Math.floor(speedKmh / 35) + 1));
 
@@ -944,7 +938,6 @@
                 updateWallet();
             }
 
-            // HUD Telemetry
             document.getElementById("tel-spd").innerText = speedKmh;
             document.getElementById("tel-gear").innerText = car.gear;
             document.getElementById("tel-angle").innerText = `${driftDeg}°`;
@@ -957,7 +950,6 @@
 
             updateAudio(Math.abs(car.speed) / car.maxSpeed, car.isBoosting);
 
-            // Particles Update
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
                 p.mesh.position.y += p.vy * dt;
@@ -974,18 +966,17 @@
             const forward = new THREE.Vector3(Math.sin(car.heading), 0, Math.cos(car.heading));
 
             if (cameraMode === 0) {
-                // Chase View
                 const targetCam = car.pos.clone().addScaledVector(forward, -10.5).add(new THREE.Vector3(0, 4.2, 0));
                 camera.position.lerp(targetCam, 0.15);
                 camera.lookAt(car.pos.clone().add(new THREE.Vector3(0, 1.2, 0)));
             } else {
-                // Hood View
                 const hoodCam = car.pos.clone().addScaledVector(forward, 0.6).add(new THREE.Vector3(0, 1.1, 0));
                 camera.position.copy(hoodCam);
                 camera.lookAt(hoodCam.clone().addScaledVector(forward, 25));
             }
         }
 
+        // FIX: High Resolution HD Minimap Rendering
         function updateMinimap() {
             const canvas = document.getElementById("minimap-canvas");
             if (!canvas) return;
@@ -998,8 +989,8 @@
             ctx.strokeStyle = "#334155";
             ctx.lineWidth = 2;
             ctx.beginPath();
-            for (let i = 0; i <= 30; i++) {
-                const u = i / 30;
+            for (let i = 0; i <= 150; i++) {
+                const u = i / 150;
                 const p = trackSpline.getPointAt(u);
                 const mx = 40 + (p.x / 450) * 30;
                 const my = 40 + (p.z / 450) * 30;
