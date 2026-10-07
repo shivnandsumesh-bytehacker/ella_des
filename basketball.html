@@ -12,6 +12,7 @@
             --p2-pink: #f43f5e;
             --green: #22c55e;
             --red: #ef4444;
+            --hyper: #ff007f;
         }
         * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
         body {
@@ -64,6 +65,7 @@
         .team-title { font-size: 0.75rem; letter-spacing: 1px; font-weight: bold; }
         .score-num { font-size: 2.1rem; line-height: 1; font-weight: 900; color: #fff; }
         .skill-status { font-size: 0.6rem; font-family: sans-serif; font-weight: 900; color: var(--gold); }
+        .hyper-status { font-size: 0.6rem; font-family: sans-serif; font-weight: 900; color: var(--hyper); margin-top: 2px; }
         .timer-box {
             background: #020617;
             border: 2px solid var(--gold);
@@ -156,6 +158,7 @@
         .ctrl-btn:active { background: var(--p1-cyan); color: #000; transform: scale(0.92); }
         .ctrl-btn.act { border-color: var(--gold); color: var(--gold); }
         .ctrl-btn.skill-btn { border-color: #a855f7; color: var(--p1-cyan); }
+        .ctrl-btn.hyper-btn { border-color: var(--hyper); color: var(--hyper); }
 
         .overlay {
             position: absolute;
@@ -198,7 +201,7 @@
 
         .roster-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 8px;
             max-width: 960px;
             max-height: 330px;
@@ -247,6 +250,9 @@
             right: 4px;
             display: flex;
             gap: 3px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            width: 90%;
         }
         .pick-badge {
             font-size: 0.58rem;
@@ -259,11 +265,19 @@
         .badge-p2 { background: var(--p2-pink); color: #fff; }
         .badge-lock { background: var(--gold); color: #000; }
 
-        .card-name { font-size: 0.92rem; color: #fff; margin-bottom: 2px; }
+        .card-name { font-size: 0.92rem; color: #fff; margin-bottom: 2px; margin-top: 10px; }
         .card-type { font-size: 0.58rem; color: #38bdf8; font-family: sans-serif; text-transform: uppercase; margin-bottom: 4px; }
         .card-stat { font-size: 0.65rem; color: #cbd5e1; font-family: sans-serif; text-align: left; width: 95%; line-height: 1.25; }
         .card-stat strong { color: var(--gold); }
         .card-skill-desc { font-size: 0.58rem; color: #a855f7; font-family: sans-serif; margin-top: 3px; font-weight: bold; }
+        .card-hyper-desc { font-size: 0.58rem; color: var(--hyper); font-family: sans-serif; margin-top: 2px; font-weight: bold; }
+        
+        .hyper-unlock-btn {
+            font-size: 0.6rem; padding: 3px 6px; margin-top: 4px;
+            background: linear-gradient(180deg, var(--hyper), #be123c);
+            border: 1px solid #fff; color: #fff; border-radius: 4px;
+            cursor: pointer; font-family: sans-serif; font-weight: bold;
+        }
 
         .btn-row { display: flex; gap: 14px; margin-top: 4px; }
         .btn {
@@ -295,6 +309,7 @@
             color: #cbd5e1;
         }
         .controls-bar strong { color: var(--gold); }
+        .controls-bar span.hyper { color: var(--hyper); font-weight: bold; }
     </style>
 </head>
 <body>
@@ -302,7 +317,6 @@
     <div id="game-wrapper">
         <canvas id="game-canvas" width="1000" height="600"></canvas>
 
-        <!-- Audio Control Elements (Fixed for iOS/iPad Files App) -->
         <div class="audio-controls-bar">
             <button class="music-pill" id="music-pill" onclick="toggleMusicPlayback()">🔥 TRAP: OFF</button>
             <label class="music-pill upload-pill" title="Upload and loop your own MP3/WAV/M4A song file">
@@ -319,13 +333,15 @@
             <div class="team-box">
                 <span class="team-title" id="p1-name-hud" style="color:var(--p1-cyan);">PLAYER 1</span>
                 <span class="score-num" id="p1-score">0</span>
-                <span class="skill-status" id="p1-skill-hud">[E] READY</span>
+                <span class="skill-status" id="p1-skill-hud">[E] SUPER READY</span>
+                <span class="hyper-status" id="p1-hyper-hud">[R] HYPER READY</span>
             </div>
             <div class="timer-box" id="match-timer">60</div>
             <div class="team-box">
                 <span class="team-title" id="p2-name-hud" style="color:var(--p2-pink);">RIVAL AI</span>
                 <span class="score-num" id="p2-score">0</span>
-                <span class="skill-status" id="p2-skill-hud">[O] READY</span>
+                <span class="skill-status" id="p2-skill-hud">[O] SUPER READY</span>
+                <span class="hyper-status" id="p2-hyper-hud">[P] HYPER READY</span>
             </div>
         </div>
 
@@ -337,8 +353,9 @@
         </div>
         <div class="touch-zone" id="touch-right">
             <div class="ctrl-btn act" id="t-jump">▲<br><small>JUMP</small></div>
-            <div class="ctrl-btn act" id="t-action">🏀<br><small>SHOT/STL</small></div>
-            <div class="ctrl-btn skill-btn" id="t-skill">⚡<br><small>SKILL</small></div>
+            <div class="ctrl-btn act" id="t-action">🏀<br><small>SHOT</small></div>
+            <div class="ctrl-btn skill-btn" id="t-skill">⚡<br><small>SUPER</small></div>
+            <div class="ctrl-btn hyper-btn" id="t-hyper">🔥<br><small>HYPER</small></div>
         </div>
 
         <div id="select-modal" class="overlay">
@@ -365,8 +382,8 @@
     </div>
 
     <div class="controls-bar">
-        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Shoot/Steal | [E] <strong>SKILL</strong> | [M] <strong>TRAP BEATS</strong></div>
-        <div><strong>P2:</strong> [◀]/[▶] Move | [▲] Jump | [L/ENTER] Shoot/Steal | [O] <strong>SKILL</strong></div>
+        <div><strong>P1:</strong> [A]/[D] Move | [W] Jump | [SPACE/F] Action | [E] <strong>SUPER</strong> | <span class="hyper">[R] HYPER</span></div>
+        <div><strong>P2:</strong> [◀]/[▶] Move | [▲] Jump | [L/ENTER] Action | [O] <strong>SUPER</strong> | <span class="hyper">[P] HYPER</span></div>
     </div>
 
     <script>
@@ -378,7 +395,7 @@
         }
 
         // ==============================================================
-        // PROCEDURAL TRAP BEAT ENGINE (140 BPM Hard Trap)
+        // PROCEDURAL TRAP BEAT ENGINE
         // ==============================================================
         const bgmPlayer = document.getElementById('bgm-player');
         let hasCustomSong = false;
@@ -386,575 +403,241 @@
         let trapStep = 0;
         let nextTrapTime = 0;
         const TRAP_BPM = 140;
-        const STEP_DURATION = (60 / TRAP_BPM) / 4; // 16th-note steps
+        const STEP_DURATION = (60 / TRAP_BPM) / 4; 
 
-        // Dark Trap C-Minor Scale notes
-        const TRAP_NOTES = {
-            C4: 261.63, D4: 293.66, Eb4: 311.13, F4: 349.23,
-            G4: 392.00, Ab4: 415.30, Bb4: 466.16, C5: 523.25,
-            Eb5: 622.25, G5: 783.99
-        };
-
-        // Dark minor synth bell melody
-        const TRAP_MELODY = [
-            TRAP_NOTES.C5, null, TRAP_NOTES.Eb5, null, TRAP_NOTES.G4, null, TRAP_NOTES.Ab4, null,
-            TRAP_NOTES.G4, null, TRAP_NOTES.Eb4, null, TRAP_NOTES.D4, null, TRAP_NOTES.C4, null,
-            TRAP_NOTES.C5, null, TRAP_NOTES.Eb5, null, TRAP_NOTES.Bb4, null, TRAP_NOTES.Ab4, null,
-            TRAP_NOTES.G4, null, TRAP_NOTES.F4, null, TRAP_NOTES.Eb4, null, TRAP_NOTES.D4, null
-        ];
-
-        // Booming 808 Trap Kick pattern
+        const TRAP_NOTES = { C4: 261.63, D4: 293.66, Eb4: 311.13, F4: 349.23, G4: 392.00, Ab4: 415.30, Bb4: 466.16, C5: 523.25, Eb5: 622.25, G5: 783.99 };
+        const TRAP_MELODY = [ TRAP_NOTES.C5, null, TRAP_NOTES.Eb5, null, TRAP_NOTES.G4, null, TRAP_NOTES.Ab4, null, TRAP_NOTES.G4, null, TRAP_NOTES.Eb4, null, TRAP_NOTES.D4, null, TRAP_NOTES.C4, null, TRAP_NOTES.C5, null, TRAP_NOTES.Eb5, null, TRAP_NOTES.Bb4, null, TRAP_NOTES.Ab4, null, TRAP_NOTES.G4, null, TRAP_NOTES.F4, null, TRAP_NOTES.Eb4, null, TRAP_NOTES.D4, null ];
         const TRAP_808_STEPS = [0, 6, 10, 16, 22, 26];
-        // Crisp Trap Claps on Half-time Backbeats (Steps 8 & 24)
         const TRAP_SNARE_STEPS = [8, 24];
-        // Rolling Hi-Hat triplets
         const TRAP_ROLL_STEPS = [14, 15, 30, 31];
 
         function triggerTrapMelody(freq, time) {
-            const ctx = getAudioContext();
-            if (!ctx || !freq) return;
-
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            const filter = ctx.createBiquadFilter();
-
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, time);
-
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(2400, time);
-
-            gain.gain.setValueAtTime(0.18, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.28);
-
-            osc.connect(filter);
-            filter.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc.start(time);
-            osc.stop(time + 0.28);
+            const ctx = getAudioContext(); if (!ctx || !freq) return;
+            const osc = ctx.createOscillator(); const gain = ctx.createGain(); const filter = ctx.createBiquadFilter();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(freq, time);
+            filter.type = 'lowpass'; filter.frequency.setValueAtTime(2400, time);
+            gain.gain.setValueAtTime(0.18, time); gain.gain.exponentialRampToValueAtTime(0.001, time + 0.28);
+            osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+            osc.start(time); osc.stop(time + 0.28);
         }
-
         function triggerHard808(time) {
-            const ctx = getAudioContext();
-            if (!ctx) return;
-
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            // Pitch slide from punch down to deep sub-bass
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(130, time);
-            osc.frequency.exponentialRampToValueAtTime(38, time + 0.12);
-
-            gain.gain.setValueAtTime(0.55, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.38);
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc.start(time);
-            osc.stop(time + 0.38);
+            const ctx = getAudioContext(); if (!ctx) return;
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(130, time); osc.frequency.exponentialRampToValueAtTime(38, time + 0.12);
+            gain.gain.setValueAtTime(0.55, time); gain.gain.exponentialRampToValueAtTime(0.001, time + 0.38);
+            osc.connect(gain); gain.connect(ctx.destination); osc.start(time); osc.stop(time + 0.38);
         }
-
         function triggerTrapSnare(time) {
-            const ctx = getAudioContext();
-            if (!ctx) return;
-
-            // White noise burst for the snap
-            const bufferSize = ctx.sampleRate * 0.14;
-            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-            const noise = ctx.createBufferSource();
-            noise.buffer = buffer;
-
-            const filter = ctx.createBiquadFilter();
-            filter.type = 'highpass';
-            filter.frequency.value = 950;
-
-            const gain = ctx.createGain();
-            gain.gain.setValueAtTime(0.32, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
-
-            noise.connect(filter);
-            filter.connect(gain);
-            gain.connect(ctx.destination);
-
-            noise.start(time);
-            noise.stop(time + 0.14);
+            const ctx = getAudioContext(); if (!ctx) return;
+            const bufferSize = ctx.sampleRate * 0.14; const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            const noise = ctx.createBufferSource(); noise.buffer = buffer;
+            const filter = ctx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.value = 950;
+            const gain = ctx.createGain(); gain.gain.setValueAtTime(0.32, time); gain.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
+            noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination); noise.start(time); noise.stop(time + 0.14);
         }
-
         function triggerTrapHiHat(time, isRoll) {
-            const ctx = getAudioContext();
-            if (!ctx) return;
-
-            const bufferSize = ctx.sampleRate * (isRoll ? 0.025 : 0.04);
-            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-            const noise = ctx.createBufferSource();
-            noise.buffer = buffer;
-
-            const filter = ctx.createBiquadFilter();
-            filter.type = 'highpass';
-            filter.frequency.value = 8000;
-
-            const gain = ctx.createGain();
-            gain.gain.setValueAtTime(isRoll ? 0.12 : 0.07, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + (isRoll ? 0.025 : 0.04));
-
-            noise.connect(filter);
-            filter.connect(gain);
-            gain.connect(ctx.destination);
-
-            noise.start(time);
-            noise.stop(time + (isRoll ? 0.025 : 0.04));
+            const ctx = getAudioContext(); if (!ctx) return;
+            const bufferSize = ctx.sampleRate * (isRoll ? 0.025 : 0.04); const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            const noise = ctx.createBufferSource(); noise.buffer = buffer;
+            const filter = ctx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.value = 8000;
+            const gain = ctx.createGain(); gain.gain.setValueAtTime(isRoll ? 0.12 : 0.07, time); gain.gain.exponentialRampToValueAtTime(0.001, time + (isRoll ? 0.025 : 0.04));
+            noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination); noise.start(time); noise.stop(time + (isRoll ? 0.025 : 0.04));
         }
-
         function scheduleTrapSteps() {
             if (!isMusicPlaying || hasCustomSong) return;
-            const ctx = getAudioContext();
-            if (!ctx) return;
-
+            const ctx = getAudioContext(); if (!ctx) return;
             while (nextTrapTime < ctx.currentTime + 0.1) {
-                // Melody note
-                const note = TRAP_MELODY[trapStep];
-                if (note) triggerTrapMelody(note, nextTrapTime);
-
-                // Deep 808
+                const note = TRAP_MELODY[trapStep]; if (note) triggerTrapMelody(note, nextTrapTime);
                 if (TRAP_808_STEPS.includes(trapStep)) triggerHard808(nextTrapTime);
-
-                // Snare Clap
                 if (TRAP_SNARE_STEPS.includes(trapStep)) triggerTrapSnare(nextTrapTime);
-
-                // Hi-Hats & Rolls
-                if (TRAP_ROLL_STEPS.includes(trapStep)) {
-                    triggerTrapHiHat(nextTrapTime, true);
-                    triggerTrapHiHat(nextTrapTime + (STEP_DURATION / 2), true);
-                } else {
-                    triggerTrapHiHat(nextTrapTime, false);
-                }
-
-                nextTrapTime += STEP_DURATION;
-                trapStep = (trapStep + 1) % 32;
+                if (TRAP_ROLL_STEPS.includes(trapStep)) { triggerTrapHiHat(nextTrapTime, true); triggerTrapHiHat(nextTrapTime + (STEP_DURATION / 2), true); } 
+                else { triggerTrapHiHat(nextTrapTime, false); }
+                nextTrapTime += STEP_DURATION; trapStep = (trapStep + 1) % 32;
             }
         }
-
-        // Custom Song Upload Handler (Seamless on iPad Files & PC)
         function handleSongUpload(event) {
-            getAudioContext();
-            const file = event.target.files[0];
+            getAudioContext(); const file = event.target.files[0];
             if (file) {
-                const fileUrl = URL.createObjectURL(file);
-                bgmPlayer.src = fileUrl;
-                bgmPlayer.volume = 0.75;
+                const fileUrl = URL.createObjectURL(file); bgmPlayer.src = fileUrl; bgmPlayer.volume = 0.75;
                 bgmPlayer.play().then(() => {
-                    hasCustomSong = true;
-                    isMusicPlaying = true;
-                    const pill = document.getElementById('music-pill');
-                    pill.classList.add('active');
+                    hasCustomSong = true; isMusicPlaying = true;
+                    const pill = document.getElementById('music-pill'); pill.classList.add('active');
                     const cleanName = file.name.length > 12 ? file.name.substring(0, 10) + '...' : file.name;
-                    pill.innerText = `🎵 ${cleanName.toUpperCase()}`;
-                    triggerBanner(`PLAYING: ${file.name.toUpperCase()} 🎧`);
+                    pill.innerText = `🎵 ${cleanName.toUpperCase()}`; triggerBanner(`PLAYING: ${file.name.toUpperCase()} 🎧`);
                 }).catch(e => console.error("Playback error:", e));
             }
         }
-
         function toggleMusicPlayback() {
-            getAudioContext();
-            const pill = document.getElementById('music-pill');
-
+            getAudioContext(); const pill = document.getElementById('music-pill');
             if (hasCustomSong) {
-                if (bgmPlayer.paused) {
-                    bgmPlayer.play();
-                    isMusicPlaying = true;
-                    pill.classList.add('active');
-                    pill.innerText = '🎵 PLAYING';
-                } else {
-                    bgmPlayer.pause();
-                    isMusicPlaying = false;
-                    pill.classList.remove('active');
-                    pill.innerText = '🎵 PAUSED';
-                }
+                if (bgmPlayer.paused) { bgmPlayer.play(); isMusicPlaying = true; pill.classList.add('active'); pill.innerText = '🎵 PLAYING'; } 
+                else { bgmPlayer.pause(); isMusicPlaying = false; pill.classList.remove('active'); pill.innerText = '🎵 PAUSED'; }
             } else {
                 isMusicPlaying = !isMusicPlaying;
-                if (isMusicPlaying) {
-                    pill.innerText = '🔥 TRAP: ON';
-                    pill.classList.add('active');
-                    nextTrapTime = getAudioContext().currentTime + 0.05;
-                    trapStep = 0;
-                    triggerBanner('🔥 HARD TRAP BEATS ACTIVATED!');
-                } else {
-                    pill.innerText = '🔥 TRAP: OFF';
-                    pill.classList.remove('active');
-                }
+                if (isMusicPlaying) { pill.innerText = '🔥 TRAP: ON'; pill.classList.add('active'); nextTrapTime = getAudioContext().currentTime + 0.05; trapStep = 0; triggerBanner('🔥 HARD TRAP BEATS ACTIVATED!'); } 
+                else { pill.innerText = '🔥 TRAP: OFF'; pill.classList.remove('active'); }
             }
         }
 
-        // Gameplay Audio Effects
         function playSound(type) {
             try {
-                const ctx = getAudioContext();
-                if (!ctx) return;
-                const t = ctx.currentTime;
+                const ctx = getAudioContext(); if (!ctx) return; const t = ctx.currentTime;
                 if (type === 'bounce') {
-                    const o = ctx.createOscillator(); const g = ctx.createGain();
-                    o.frequency.setValueAtTime(140, t);
-                    o.frequency.exponentialRampToValueAtTime(45, t + 0.08);
-                    g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
-                    o.connect(g); g.connect(ctx.destination);
-                    o.start(); o.stop(t + 0.08);
+                    const o = ctx.createOscillator(); const g = ctx.createGain(); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.08); g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.08); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(t + 0.08);
                 } else if (type === 'swipe') {
-                    const b = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
-                    const d = b.getChannelData(0);
-                    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-                    const src = ctx.createBufferSource(); src.buffer = b;
-                    const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1800;
-                    const g = ctx.createGain(); g.gain.setValueAtTime(0.25, t);
-                    g.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
-                    src.connect(f); f.connect(ctx.destination);
-                    src.start();
+                    const b = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const src = ctx.createBufferSource(); src.buffer = b; const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1800; const g = ctx.createGain(); g.gain.setValueAtTime(0.25, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.08); src.connect(f); f.connect(ctx.destination); src.start();
                 } else if (type === 'steal') {
-                    const o = ctx.createOscillator(); const g = ctx.createGain();
-                    o.type = 'triangle';
-                    o.frequency.setValueAtTime(580, t);
-                    o.frequency.exponentialRampToValueAtTime(1100, t + 0.14);
-                    g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.14);
-                    o.connect(g); g.connect(ctx.destination);
-                    o.start(); o.stop(t + 0.14);
+                    const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(580, t); o.frequency.exponentialRampToValueAtTime(1100, t + 0.14); g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.14); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(t + 0.14);
                 } else if (type === 'skill') {
-                    const o = ctx.createOscillator(); const g = ctx.createGain();
-                    o.type = 'sine';
-                    o.frequency.setValueAtTime(350, t);
-                    o.frequency.exponentialRampToValueAtTime(880, t + 0.25);
-                    g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
-                    o.connect(g); g.connect(ctx.destination);
-                    o.start(); o.stop(t + 0.25);
+                    const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(350, t); o.frequency.exponentialRampToValueAtTime(880, t + 0.25); g.gain.setValueAtTime(0.4, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.25); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(t + 0.25);
+                } else if (type === 'hyper') {
+                    const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(200, t); o.frequency.exponentialRampToValueAtTime(1200, t + 0.5); g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.5); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(t + 0.5);
                 } else if (type === 'swish') {
-                    const b = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
-                    const d = b.getChannelData(0);
-                    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-                    const src = ctx.createBufferSource(); src.buffer = b;
-                    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2600;
-                    const g = ctx.createGain(); g.gain.setValueAtTime(0.45, t);
-                    g.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
-                    src.connect(f); f.connect(ctx.destination);
-                    src.start();
+                    const b = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const src = ctx.createBufferSource(); src.buffer = b; const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2600; const g = ctx.createGain(); g.gain.setValueAtTime(0.45, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.2); src.connect(f); f.connect(ctx.destination); src.start();
                 } else if (type === 'dunk') {
-                    const o = ctx.createOscillator(); const g = ctx.createGain();
-                    o.type = 'sawtooth';
-                    o.frequency.setValueAtTime(220, t);
-                    o.frequency.exponentialRampToValueAtTime(30, t + 0.25);
-                    g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
-                    o.connect(g); g.connect(ctx.destination);
-                    o.start(); o.stop(t + 0.25);
+                    const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(30, t + 0.25); g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.25); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(t + 0.25);
                 } else if (type === 'block') {
-                    const o = ctx.createOscillator(); const g = ctx.createGain();
-                    o.type = 'square';
-                    o.frequency.setValueAtTime(180, t);
-                    o.frequency.exponentialRampToValueAtTime(60, t + 0.15);
-                    g.gain.setValueAtTime(0.45, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
-                    o.connect(g); g.connect(ctx.destination);
-                    o.start(); o.stop(t + 0.15);
+                    const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(60, t + 0.15); g.gain.setValueAtTime(0.45, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.15); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(t + 0.15);
                 }
             } catch(e){}
         }
 
         // ==========================================
-        // ROSTER DATABASE (Includes Sharran & All)
+        // ROSTER DATABASE (Updated with Suhaas, Ayansh, and Hypers)
         // ==========================================
         const ROSTER = [
             {
-                id: 'kaijie',
-                name: 'KAI JIE',
-                role: 'Two-Way Weapon',
-                heightCm: 180,
-                speed: 430,
-                jumpForce: 750,
-                shotAccuracy: 0.65,
-                dunkReach: 185,
-                stealStat: 0.88,
-                defenseRating: 95,
-                skillName: 'Zone Overdrive',
-                skillDesc: 'Automatic Green Release window for 4.5s',
-                unlockCost: 800,
-                skin: '#fed7aa',
-                hair: 'parted',
-                glasses: false,
-                beard: false,
-                earpiece: true,
-                tongueOut: false,
-                shirtColor: '#38bdf8'
+                id: 'kaijie', name: 'KAI JIE', role: 'Two-Way Weapon',
+                heightCm: 180, speed: 430, jumpForce: 750, shotAccuracy: 0.65, dunkReach: 185, stealStat: 0.88, defenseRating: 95,
+                skillName: 'Zone Overdrive', skillDesc: 'Automatic Green Window (4.5s)',
+                hyperName: 'Ankle Tsunami', hyperDesc: 'Stuns rival instantly & 100% Shot', hyperCost: 1500,
+                unlockCost: 800, skin: '#fed7aa', hair: 'parted', glasses: false, beard: false, earpiece: true, tongueOut: false, shirtColor: '#38bdf8'
             },
             {
-                id: 'sharran',
-                name: 'SHARRAN',
-                role: 'Titan Artillery 3PT',
-                heightCm: 192,
-                speed: 285,
-                jumpForce: 620,
-                shotAccuracy: 0.92,
-                dunkReach: 170,
-                stealStat: 0.58,
-                defenseRating: 82,
-                skillName: 'Titan Artillery',
-                skillDesc: 'Immunity to contest penalty & faster release',
-                unlockCost: 0,
-                skin: '#d97706',
-                hair: 'crop',
-                glasses: false,
-                beard: false,
-                earpiece: false,
-                tongueOut: false,
-                shirtColor: '#059669'
+                id: 'sharran', name: 'SHARRAN', role: 'Titan Artillery 3PT',
+                heightCm: 175, speed: 285, jumpForce: 620, shotAccuracy: 0.92, dunkReach: 170, stealStat: 0.58, defenseRating: 82,
+                skillName: 'Titan Artillery', skillDesc: 'Immunity to contest & fast release',
+                hyperName: 'Orbital Nuke', hyperDesc: 'Unblockable 100% Make from Anywhere', hyperCost: 2000,
+                unlockCost: 0, skin: '#d97706', hair: 'crop', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#059669'
             },
             {
-                id: 'john',
-                name: 'JOHN',
-                role: 'Speed & Dunk Demon',
-                heightCm: 180,
-                speed: 395,
-                jumpForce: 670,
-                shotAccuracy: 0.42,
-                dunkReach: 210,
-                stealStat: 0.68,
-                defenseRating: 70,
-                skillName: 'Meteor Slam',
-                skillDesc: 'Takes off for a flaming dunk from deep',
-                unlockCost: 0,
-                skin: '#fdba74',
-                hair: 'wavy',
-                glasses: true,
-                beard: false,
-                earpiece: false,
-                tongueOut: true,
-                shirtColor: '#38bdf8'
+                id: 'john', name: 'JOHN', role: 'Speed & Dunk Demon',
+                heightCm: 180, speed: 395, jumpForce: 670, shotAccuracy: 0.42, dunkReach: 210, stealStat: 0.68, defenseRating: 70,
+                skillName: 'Meteor Slam', skillDesc: 'Flaming dunk from deep',
+                hyperName: 'Atmospheric Slam', hyperDesc: 'Teleports to rim for guaranteed slam', hyperCost: 1800,
+                unlockCost: 0, skin: '#fdba74', hair: 'wavy', glasses: true, beard: false, earpiece: false, tongueOut: true, shirtColor: '#38bdf8'
             },
             {
-                id: 'shivnand',
-                name: 'SHIVNAND',
-                role: 'Lockdown Clamp God',
-                heightCm: 165,
-                speed: 410,
-                jumpForce: 740,
-                shotAccuracy: 0.45,
-                dunkReach: 195,
-                stealStat: 0.98,
-                defenseRating: 99,
-                skillName: 'Magnet Clamps',
-                skillDesc: 'Instantly rips the ball & freezes rival',
-                unlockCost: 0,
-                skin: '#c2410c',
-                hair: 'athletic',
-                glasses: false,
-                beard: false,
-                earpiece: false,
-                tongueOut: false,
-                shirtColor: '#10b981'
+                id: 'shivnand', name: 'SHIVNAND', role: 'Lockdown Clamp God',
+                heightCm: 165, speed: 410, jumpForce: 740, shotAccuracy: 0.45, dunkReach: 195, stealStat: 0.98, defenseRating: 99,
+                skillName: 'Magnet Clamps', skillDesc: 'Instantly rips ball & freezes rival',
+                hyperName: 'Absolute Zero', hyperDesc: 'Freezes rival completely for 6 seconds', hyperCost: 2500,
+                unlockCost: 0, skin: '#c2410c', hair: 'athletic', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#10b981'
             },
             {
-                id: 'julius',
-                name: 'JULIUS',
-                role: 'Speed Demon Slasher',
-                heightCm: 165,
-                speed: 420,
-                jumpForce: 630,
-                shotAccuracy: 0.86,
-                dunkReach: 170,
-                stealStat: 0.72,
-                defenseRating: 75,
-                skillName: 'Warp Dash',
-                skillDesc: 'Instant teleport dash behind opponent',
-                unlockCost: 0,
-                skin: '#fde047',
-                hair: 'parted',
-                glasses: false,
-                beard: false,
-                earpiece: false,
-                tongueOut: false,
-                shirtColor: '#8b5cf6'
+                id: 'julius', name: 'JULIUS', role: 'Speed Demon Slasher',
+                heightCm: 165, speed: 420, jumpForce: 630, shotAccuracy: 0.86, dunkReach: 170, stealStat: 0.72, defenseRating: 75,
+                skillName: 'Warp Dash', skillDesc: 'Instant teleport dash behind rival',
+                hyperName: 'Time Skip', hyperDesc: 'Teleports directly to hoop with ball', hyperCost: 1500,
+                unlockCost: 0, skin: '#fde047', hair: 'parted', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#8b5cf6'
             },
             {
-                id: 'jason',
-                name: 'JASON',
-                role: 'Quick Crossover Guard',
-                heightCm: 166,
-                speed: 415,
-                jumpForce: 620,
-                shotAccuracy: 0.76,
-                dunkReach: 160,
-                stealStat: 0.70,
-                defenseRating: 73,
-                skillName: 'Ankle Breaker',
-                skillDesc: 'Crossover lunge that trips opponent',
-                unlockCost: 0,
-                skin: '#fde047',
-                hair: 'crop',
-                glasses: false,
-                beard: false,
-                earpiece: false,
-                tongueOut: false,
-                shirtColor: '#6366f1'
+                id: 'jason', name: 'JASON', role: 'Quick Crossover Guard',
+                heightCm: 166, speed: 415, jumpForce: 620, shotAccuracy: 0.76, dunkReach: 160, stealStat: 0.70, defenseRating: 73,
+                skillName: 'Ankle Breaker', skillDesc: 'Crossover lunge that trips opponent',
+                hyperName: 'Tornado Cross', hyperDesc: 'Violently knocks rival into their hoop', hyperCost: 1500,
+                unlockCost: 0, skin: '#fde047', hair: 'crop', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#6366f1'
             },
             {
-                id: 'ritvik',
-                name: 'RITVIK',
-                role: 'Balanced Rim Finisher',
-                heightCm: 178,
-                speed: 290,
-                jumpForce: 660,
-                shotAccuracy: 0.46,
-                dunkReach: 175,
-                stealStat: 0.52,
-                defenseRating: 62,
-                skillName: 'Sky Glide',
-                skillDesc: 'Extended hangtime during jump shots',
-                unlockCost: 0,
-                skin: '#d97706',
-                hair: 'crop',
-                glasses: false,
-                beard: false,
-                earpiece: false,
-                tongueOut: false,
-                shirtColor: '#f97316'
+                id: 'ritvik', name: 'RITVIK', role: 'Balanced Rim Finisher',
+                heightCm: 178, speed: 290, jumpForce: 660, shotAccuracy: 0.46, dunkReach: 175, stealStat: 0.52, defenseRating: 62,
+                skillName: 'Sky Glide', skillDesc: 'Extended hangtime jump shots',
+                hyperName: 'Gravity Well', hyperDesc: 'Pulls the ball directly to his hands', hyperCost: 1200,
+                unlockCost: 0, skin: '#d97706', hair: 'crop', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#f97316'
             },
             {
-                id: 'alvin',
-                name: 'ALVIN',
-                role: 'High-Altitude Slasher',
-                heightCm: 176,
-                speed: 295,
-                jumpForce: 720,
-                shotAccuracy: 0.48,
-                dunkReach: 185,
-                stealStat: 0.54,
-                defenseRating: 64,
-                skillName: 'Sky Launch',
-                skillDesc: 'Rocket jump high above the rim',
-                unlockCost: 0,
-                skin: '#fcd34d',
-                hair: 'wavy',
-                glasses: false,
-                beard: false,
-                earpiece: false,
-                tongueOut: false,
-                shirtColor: '#ea580c'
+                id: 'alvin', name: 'ALVIN', role: 'High-Altitude Slasher',
+                heightCm: 176, speed: 295, jumpForce: 720, shotAccuracy: 0.48, dunkReach: 185, stealStat: 0.54, defenseRating: 64,
+                skillName: 'Sky Launch', skillDesc: 'Rocket jump high above rim',
+                hyperName: 'Orbital Block', hyperDesc: 'Jumps infinitely high to swat anything', hyperCost: 1200,
+                unlockCost: 0, skin: '#fcd34d', hair: 'wavy', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#ea580c'
             },
             {
-                id: 'lebron',
-                name: 'LEBRON JAMES',
-                role: 'Freight Train',
-                heightCm: 206,
-                speed: 350,
-                jumpForce: 640,
-                shotAccuracy: 0.84,
-                dunkReach: 180,
-                stealStat: 0.70,
-                defenseRating: 88,
-                skillName: 'Bulldozer',
-                skillDesc: 'Shoves defender backward on drive',
-                unlockCost: 0,
-                skin: '#854d0e',
-                hair: 'crop',
-                glasses: false,
-                beard: true,
-                earpiece: false,
-                tongueOut: false,
-                shirtColor: '#581c87'
+                id: 'lebron', name: 'LEBRON JAMES', role: 'Freight Train',
+                heightCm: 206, speed: 350, jumpForce: 640, shotAccuracy: 0.84, dunkReach: 180, stealStat: 0.70, defenseRating: 88,
+                skillName: 'Bulldozer', skillDesc: 'Shoves defender backward on drive',
+                hyperName: 'Kings Decree', hyperDesc: 'Next shot counts for double points', hyperCost: 3000,
+                unlockCost: 0, skin: '#854d0e', hair: 'crop', glasses: false, beard: true, earpiece: false, tongueOut: false, shirtColor: '#581c87'
             },
             {
-                id: 'curry',
-                name: 'CHEF CURRY',
-                role: 'Deep Assassin',
-                heightCm: 188,
-                speed: 360,
-                jumpForce: 590,
-                shotAccuracy: 0.98,
-                dunkReach: 90,
-                stealStat: 0.75,
-                defenseRating: 70,
-                skillName: 'Logo Splash',
-                skillDesc: 'Enlarges green window from past half-court',
-                unlockCost: 0,
-                skin: '#ca8a04',
-                hair: 'crop',
-                glasses: false,
-                beard: true,
-                earpiece: false,
-                tongueOut: false,
-                shirtColor: '#1d4ed8'
+                id: 'curry', name: 'CHEF CURRY', role: 'Deep Assassin',
+                heightCm: 188, speed: 360, jumpForce: 590, shotAccuracy: 0.98, dunkReach: 90, stealStat: 0.75, defenseRating: 70,
+                skillName: 'Logo Splash', skillDesc: 'Enlarges green window from half-court',
+                hyperName: 'Aimbot', hyperDesc: 'Ball magically homes into the net', hyperCost: 3000,
+                unlockCost: 0, skin: '#ca8a04', hair: 'crop', glasses: false, beard: true, earpiece: false, tongueOut: false, shirtColor: '#1d4ed8'
             },
             {
-                id: 'kd',
-                name: 'KEVIN DURANT',
-                role: 'Slim Reaper',
-                heightCm: 208,
-                speed: 345,
-                jumpForce: 630,
-                shotAccuracy: 0.94,
-                dunkReach: 160,
-                stealStat: 0.65,
-                defenseRating: 80,
-                skillName: 'Uncontestable',
-                skillDesc: 'Completely ignores shot contests for 4.5s',
-                unlockCost: 0,
-                skin: '#78350f',
-                hair: 'crop',
-                glasses: false,
-                beard: false,
-                earpiece: false,
-                tongueOut: false,
-                shirtColor: '#0f172a'
+                id: 'kd', name: 'KEVIN DURANT', role: 'Slim Reaper',
+                heightCm: 208, speed: 345, jumpForce: 630, shotAccuracy: 0.94, dunkReach: 160, stealStat: 0.65, defenseRating: 80,
+                skillName: 'Uncontestable', skillDesc: 'Ignores shot contests for 4.5s',
+                hyperName: 'Reapers Toll', hyperDesc: 'Steals ball and drains rival stamina', hyperCost: 3000,
+                unlockCost: 0, skin: '#78350f', hair: 'crop', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#0f172a'
             },
             {
-                id: 'jordan',
-                name: 'AIR JORDAN',
-                role: 'Hangtime Legend',
-                heightCm: 198,
-                speed: 380,
-                jumpForce: 700,
-                shotAccuracy: 0.90,
-                dunkReach: 190,
-                stealStat: 0.85,
-                defenseRating: 95,
-                skillName: 'Air Walk',
-                skillDesc: 'Takes off for a slam from the free-throw line',
-                unlockCost: 0,
-                skin: '#78350f',
-                hair: 'crop',
-                glasses: false,
-                beard: false,
-                earpiece: false,
-                tongueOut: true,
-                shirtColor: '#dc2626'
+                id: 'jordan', name: 'AIR JORDAN', role: 'Hangtime Legend',
+                heightCm: 198, speed: 380, jumpForce: 700, shotAccuracy: 0.90, dunkReach: 190, stealStat: 0.85, defenseRating: 95,
+                skillName: 'Air Walk', skillDesc: 'Slam from the free-throw line',
+                hyperName: 'Last Dance', hyperDesc: 'Guaranteed contact dunk over rival', hyperCost: 3000,
+                unlockCost: 0, skin: '#78350f', hair: 'crop', glasses: false, beard: false, earpiece: false, tongueOut: true, shirtColor: '#dc2626'
+            },
+            {
+                id: 'ayansh', name: 'AYANSH', role: 'Precision Marksman',
+                heightCm: 182, speed: 380, jumpForce: 610, shotAccuracy: 0.88, dunkReach: 120, stealStat: 0.65, defenseRating: 70,
+                skillName: 'Quick Draw', skillDesc: 'Extremely fast shot meter charge',
+                hyperName: 'Rainmaker', hyperDesc: 'Automatically Greens the next shot', hyperCost: 1500,
+                unlockCost: 0, skin: '#93c5fd', hair: 'wavy', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#eab308'
+            },
+            {
+                id: 'suhaas', name: 'SUHAAS', role: 'Bench Warmer (Hard Mode)',
+                heightCm: 160, speed: 250, jumpForce: 450, shotAccuracy: 0.35, dunkReach: 0, stealStat: 0.30, defenseRating: 40,
+                skillName: 'Desperate Swipe', skillDesc: 'Slightly higher steal chance for 1s',
+                hyperName: 'Underdog Surge', hyperDesc: 'Temporarily maxes ALL stats for 8s', hyperCost: 800,
+                unlockCost: 0, skin: '#fca5a5', hair: 'parted', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#475569'
             }
         ];
 
-        let selectedP1Idx = 2; // Default John
-        let selectedP2Idx = 3; // Default Shivnand
+        let selectedP1Idx = 2; // John
+        let selectedP2Idx = 3; // Shivnand
         let currentActivePicker = 1;
 
         function isPlayerUnlocked(player) {
             if (!player.unlockCost || player.unlockCost === 0) return true;
             return localStorage.getItem(`hoops_unlocked_${player.id}`) === 'true';
         }
+        function isHyperUnlocked(player) {
+            if (!player.hyperCost || player.hyperCost === 0) return true;
+            return localStorage.getItem(`hoops_hyper_unlocked_${player.id}`) === 'true';
+        }
 
         function unlockPlayerWithCoins(player) {
             let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
             if (coins >= player.unlockCost) {
-                coins -= player.unlockCost;
-                localStorage.setItem('arcade_coins', coins);
-                localStorage.setItem(`hoops_unlocked_${player.id}`, 'true');
-                playSound('skill');
-                triggerBanner(`UNLOCKED ${player.name}! 🌟`);
-                updateCoinsDisplay();
-                refreshRosterCardsUI();
-            } else {
-                alert(`You need ${player.unlockCost} Coins to unlock ${player.name}! You have ${coins}.`);
-            }
+                coins -= player.unlockCost; localStorage.setItem('arcade_coins', coins); localStorage.setItem(`hoops_unlocked_${player.id}`, 'true');
+                playSound('skill'); triggerBanner(`UNLOCKED ${player.name}! 🌟`);
+                updateCoinsDisplay(); refreshRosterCardsUI();
+            } else alert(`You need ${player.unlockCost} Coins to unlock ${player.name}! You have ${coins}.`);
+        }
+
+        function unlockHyperWithCoins(player, event) {
+            event.stopPropagation();
+            let coins = parseInt(localStorage.getItem('arcade_coins')) || 0;
+            if (coins >= player.hyperCost) {
+                coins -= player.hyperCost; localStorage.setItem('arcade_coins', coins); localStorage.setItem(`hoops_hyper_unlocked_${player.id}`, 'true');
+                playSound('hyper'); triggerBanner(`HYPER UNLOCKED FOR ${player.name}! 💥`);
+                updateCoinsDisplay(); refreshRosterCardsUI();
+            } else alert(`You need ${player.hyperCost} Coins to unlock ${player.hyperName}! You have ${coins}.`);
         }
 
         function updateCoinsDisplay() {
@@ -971,24 +654,24 @@
 
         function refreshRosterCardsUI() {
             ROSTER.forEach((p, idx) => {
-                const card = document.getElementById(`card-${idx}`);
-                if (!card) return;
+                const card = document.getElementById(`card-${idx}`); if (!card) return;
                 card.className = 'roster-card';
                 const unlocked = isPlayerUnlocked(p);
                 if (!unlocked) card.classList.add('locked-card');
-
-                const isP1 = (idx === selectedP1Idx);
-                const isP2 = (idx === selectedP2Idx);
-
+                const isP1 = (idx === selectedP1Idx); const isP2 = (idx === selectedP2Idx);
                 if (isP1 && isP2) card.classList.add('both-pick');
-                else if (isP1) card.classList.add('p1-pick');
-                else if (isP2) card.classList.add('p2-pick');
+                else if (isP1) card.classList.add('p1-pick'); else if (isP2) card.classList.add('p2-pick');
 
-                const badgeContainer = card.querySelector('.badge-container');
-                badgeContainer.innerHTML = '';
+                const badgeContainer = card.querySelector('.badge-container'); badgeContainer.innerHTML = '';
                 if (!unlocked) badgeContainer.innerHTML += `<span class="pick-badge badge-lock">🪙 ${p.unlockCost}</span>`;
                 if (isP1) badgeContainer.innerHTML += `<span class="pick-badge badge-p1">P1</span>`;
                 if (isP2) badgeContainer.innerHTML += `<span class="pick-badge badge-p2">P2</span>`;
+
+                const hyperSection = card.querySelector('.hyper-section');
+                if (unlocked) {
+                    if (isHyperUnlocked(p)) hyperSection.innerHTML = `<div class="card-hyper-desc">🔥 HYP: ${p.hyperName}</div>`;
+                    else hyperSection.innerHTML = `<button class="hyper-unlock-btn" onclick="unlockHyperWithCoins(ROSTER[${idx}], event)">Unlock Hyper (🪙 ${p.hyperCost})</button>`;
+                } else hyperSection.innerHTML = '';
             });
             document.getElementById('p1-pick-name').innerText = ROSTER[selectedP1Idx].name;
             document.getElementById('p2-pick-name').innerText = ROSTER[selectedP2Idx].name;
@@ -997,8 +680,7 @@
         const rosterContainer = document.getElementById('roster-container');
         ROSTER.forEach((p, idx) => {
             const card = document.createElement('div');
-            card.className = 'roster-card';
-            card.id = `card-${idx}`;
+            card.className = 'roster-card'; card.id = `card-${idx}`;
             const jumpLabel = (p.jumpForce > 730) ? '95+' : ((p.jumpForce > 690) ? '90' : ((p.jumpForce > 650) ? '85' : '75'));
             card.innerHTML = `
                 <div class="badge-container"></div>
@@ -1009,88 +691,42 @@
                 <div class="card-stat">🚀 Jump: <strong>${jumpLabel}</strong></div>
                 <div class="card-stat">🎯 3PT: <strong>${Math.round(p.shotAccuracy * 100)}%</strong></div>
                 <div class="card-stat">💥 Dunk: <strong>${p.dunkReach > 0 ? 'YES' : 'NO'}</strong></div>
-                <div class="card-stat">🛡️ Stl: <strong>${Math.round(p.stealStat * 100)}%</strong></div>
                 <div class="card-skill-desc">⚡ ${p.skillName}</div>
+                <div class="hyper-section" style="width:100%; text-align:center;"></div>
             `;
             card.onclick = () => {
                 if (!isPlayerUnlocked(p)) {
-                    if (confirm(`Unlock ${p.name} for ${p.unlockCost} Arcade Coins?`)) {
-                        unlockPlayerWithCoins(p);
-                    }
+                    if (confirm(`Unlock ${p.name} for ${p.unlockCost} Arcade Coins?`)) unlockPlayerWithCoins(p);
                     return;
                 }
-
-                if (currentActivePicker === 1) {
-                    selectedP1Idx = idx;
-                    setActivePicker(2);
-                } else {
-                    selectedP2Idx = idx;
-                    setActivePicker(1);
-                }
+                if (currentActivePicker === 1) { selectedP1Idx = idx; setActivePicker(2); } 
+                else { selectedP2Idx = idx; setActivePicker(1); }
                 refreshRosterCardsUI();
             };
             rosterContainer.appendChild(card);
         });
 
-        updateCoinsDisplay();
-        refreshRosterCardsUI();
+        updateCoinsDisplay(); refreshRosterCardsUI();
 
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
-        const GRAVITY = 1180;
-        const COURT_Y = 515;
-
-        let gameMode = '1P';
-        let matchActive = false;
-        let p1Score = 0, p2Score = 0;
-        let timeLeft = 60;
-        let timerInterval = null;
-        let screenShake = 0;
+        const canvas = document.getElementById('game-canvas'); const ctx = canvas.getContext('2d');
+        const GRAVITY = 1180; const COURT_Y = 515;
+        let gameMode = '1P', matchActive = false, p1Score = 0, p2Score = 0, timeLeft = 60, timerInterval = null, screenShake = 0;
 
         function createEntity(data, startX, facing) {
             const scaledH = Math.round(data.heightCm * 0.515);
             return {
-                ...data,
-                x: startX,
-                height: scaledH,
-                width: Math.round(scaledH * 0.46),
-                y: COURT_Y - scaledH,
-                vx: 0,
-                vy: 0,
-                facing: facing,
-                onGround: true,
-                isCharging: false,
-                chargeTimer: 0,
-                isDunking: false,
-                stealCooldown: 0,
-                pickupLockout: 0,
-                stunTimer: 0,
-                swipeVisualTimer: 0,
-                isClamping: false,
-                skillCooldown: 0,
-                skillActiveTimer: 0,
-                aiDecisionTimer: 0,
-                aiState: 'IDLE',
-                aiTargetX: startX
+                ...data, x: startX, height: scaledH, width: Math.round(scaledH * 0.46), y: COURT_Y - scaledH,
+                vx: 0, vy: 0, facing: facing, onGround: true, isCharging: false, chargeTimer: 0, isDunking: false,
+                stealCooldown: 0, pickupLockout: 0, stunTimer: 0, swipeVisualTimer: 0, isClamping: false,
+                skillCooldown: 0, skillActiveTimer: 0, hyperCooldown: 0, hyperActiveTimer: 0, hyperUsed: false,
+                aiDecisionTimer: 0, aiState: 'IDLE', baseStats: { speed: data.speed, jumpForce: data.jumpForce, shotAccuracy: data.shotAccuracy, dunkReach: data.dunkReach }
             };
         }
 
         let p1 = createEntity(ROSTER[selectedP1Idx], 220, 1);
         let p2 = createEntity(ROSTER[selectedP2Idx], 740, -1);
 
-        const ball = {
-            x: 250,
-            y: COURT_Y - 70,
-            vx: 0,
-            vy: 0,
-            radius: 13,
-            holder: null,
-            lastTouchedBy: null,
-            rotation: 0,
-            isFireball: false,
-            inFlight: false
-        };
-
+        const ball = { x: 250, y: COURT_Y - 70, vx: 0, vy: 0, radius: 13, holder: null, lastTouchedBy: null, rotation: 0, isFireball: false, inFlight: false, isHyperAimbot: false, hyperTargetX: 0, hyperTargetY: 0 };
         const hoops = [
             { side: 'left', bbX: 52, bbY: 210, bbH: 110, rimX: 62, rimY: 288, rimW: 46, netWiggle: 0 },
             { side: 'right', bbX: 940, bbY: 210, bbH: 110, rimX: 892, rimY: 288, rimW: 46, netWiggle: 0 }
@@ -1098,139 +734,104 @@
 
         function activateSkill(user, rival) {
             if (user.skillCooldown > 0 || !matchActive || user.stunTimer > 0) return;
-            user.skillCooldown = 15;
-            user.skillActiveTimer = 4.5;
-            playSound('skill');
-            triggerBanner(`${user.name}: ${user.skillName.toUpperCase()}! ⚡`);
+            user.skillCooldown = 15; user.skillActiveTimer = 4.5; playSound('skill'); triggerBanner(`${user.name}: ${user.skillName.toUpperCase()}! ⚡`);
 
             if (user.id === 'shivnand') {
                 const dist = Math.hypot((user.x + user.width/2) - (rival.x + rival.width/2), user.y - rival.y);
                 if (ball.holder === rival && dist < 170) {
-                    ball.holder = user;
-                    ball.lastTouchedBy = user;
-                    ball.inFlight = false;
-                    rival.pickupLockout = 1.0;
-                    rival.stunTimer = 0.8;
-                    screenShake = 12;
-                    playSound('steal');
+                    ball.holder = user; ball.lastTouchedBy = user; ball.inFlight = false; rival.pickupLockout = 1.0; rival.stunTimer = 0.8; screenShake = 12; playSound('steal');
                 }
-            } else if (user.id === 'julius') {
-                user.x += user.facing * 140;
-                user.vx = user.facing * 350;
-            } else if (user.id === 'jason') {
+            } else if (user.id === 'julius') { user.x += user.facing * 140; user.vx = user.facing * 350; }
+            else if (user.id === 'jason') {
                 const dist = Math.abs((user.x + user.width/2) - (rival.x + rival.width/2));
-                if (dist < 130) {
-                    rival.stunTimer = 1.2;
-                    rival.vx = -user.facing * 180;
-                    triggerBanner('ANKLES BROKEN! 💥');
-                }
-            } else if (user.id === 'alvin' || user.id === 'ritvik') {
-                user.vy = -user.jumpForce * 1.2;
-                user.onGround = false;
-            } else if (user.id === 'lebron') {
-                rival.vx = user.facing * 450;
-                rival.pickupLockout = 0.8;
-                rival.stunTimer = 0.6;
-            }
+                if (dist < 130) { rival.stunTimer = 1.2; rival.vx = -user.facing * 180; triggerBanner('ANKLES BROKEN! 💥'); }
+            } else if (user.id === 'alvin' || user.id === 'ritvik') { user.vy = -user.jumpForce * 1.2; user.onGround = false; }
+            else if (user.id === 'lebron') { rival.vx = user.facing * 450; rival.pickupLockout = 0.8; rival.stunTimer = 0.6; }
+            else if (user.id === 'ayansh') { user.chargeTimer = 0.45; } // fast charge
+        }
+
+        // --- NEW: UNIVERSAL HYPER ENGINE ---
+        function activateHyper(user, rival) {
+            if (!isHyperUnlocked(user) || user.hyperCooldown > 0 || !matchActive || user.stunTimer > 0) return;
+            user.hyperCooldown = 40; // Long cooldown
+            user.hyperActiveTimer = 6.0; 
+            playSound('hyper'); screenShake = 15; 
+            triggerBanner(`🔥 ${user.name} HYPER: ${user.hyperName.toUpperCase()}!`);
+
+            if (user.id === 'suhaas') {
+                user.speed = 500; user.jumpForce = 850; user.shotAccuracy = 1.0; user.dunkReach = 200; user.stealStat = 1.0;
+                setTimeout(() => { user.speed = user.baseStats.speed; user.jumpForce = user.baseStats.jumpForce; user.shotAccuracy = user.baseStats.shotAccuracy; user.dunkReach = user.baseStats.dunkReach; }, 8000);
+            } else if (user.id === 'shivnand') { rival.stunTimer = 6.0; }
+            else if (user.id === 'kaijie') { rival.stunTimer = 2.0; rival.vx = -user.facing * 300; }
+            else if (user.id === 'julius' || user.id === 'john') { 
+                if (ball.holder === user) { user.x = (user === p1) ? hoops[1].rimX - 20 : hoops[0].rimX + 20; executeDunk(user, user === p1 ? hoops[1] : hoops[0]); }
+            } else if (user.id === 'jason') { rival.vx = user.facing * 800; rival.stunTimer = 1.5; }
+            else if (user.id === 'ritvik') { if (!ball.holder && ball.inFlight) { ball.vx = (user.x - ball.x)*5; ball.vy = (user.y - ball.y)*5; } }
+            else if (user.id === 'kd') { if (ball.holder === rival) { ball.holder = user; ball.lastTouchedBy = user; } rival.stunTimer = 2.0; }
         }
 
         function attemptSteal(stealer, target) {
             if (stealer.stealCooldown > 0 || stealer.stunTimer > 0) return;
-            stealer.stealCooldown = 0.32;
-            stealer.swipeVisualTimer = 0.18;
-            playSound('swipe');
-
-            const dir = (target.x > stealer.x) ? 1 : -1;
-            stealer.vx = dir * 210;
-
+            stealer.stealCooldown = 0.32; stealer.swipeVisualTimer = 0.18; playSound('swipe');
+            const dir = (target.x > stealer.x) ? 1 : -1; stealer.vx = dir * 210;
             if (ball.holder !== target) return;
-
             const dist = Math.hypot((stealer.x + stealer.width/2) - (target.x + target.width/2), stealer.y - target.y);
             if (dist < 94) {
                 let successProb = stealer.stealStat * (stealer.id === 'shivnand' ? 0.98 : 0.78);
                 if (stealer.skillActiveTimer > 0 && stealer.id === 'kaijie') successProb = 0.95;
-
+                if (stealer.hyperActiveTimer > 0 && stealer.id === 'suhaas') successProb = 1.0;
                 if (Math.random() < successProb) {
-                    ball.holder = stealer;
-                    ball.lastTouchedBy = stealer;
-                    ball.inFlight = false;
-                    target.isCharging = false;
-                    stealer.isCharging = false;
-                    target.pickupLockout = 0.65;
-                    target.vx = -dir * 120;
-
-                    screenShake = 9;
-                    playSound('steal');
-                    triggerBanner(`${stealer.name} CLEAN STRIP! ⚡`);
+                    ball.holder = stealer; ball.lastTouchedBy = stealer; ball.inFlight = false; target.isCharging = false; stealer.isCharging = false; target.pickupLockout = 0.65; target.vx = -dir * 120; screenShake = 9; playSound('steal'); triggerBanner(`${stealer.name} CLEAN STRIP! ⚡`);
                 }
             }
         }
 
         function getArcTrajectory(startX, startY, targetX, targetY, gravity) {
-            const dx = targetX - startX;
-            const dy = targetY - startY;
-            const dist = Math.abs(dx);
+            const dx = targetX - startX; const dy = targetY - startY; const dist = Math.abs(dx);
             const flightTime = Math.min(1.25, Math.max(0.70, 0.65 + dist * 0.00075));
-            return {
-                vx: dx / flightTime,
-                vy: (dy - 0.5 * gravity * flightTime * flightTime) / flightTime
-            };
+            return { vx: dx / flightTime, vy: (dy - 0.5 * gravity * flightTime * flightTime) / flightTime };
         }
 
         function isShotContested(shooter, defender) {
             if (shooter.skillActiveTimer > 0 && (shooter.id === 'kd' || shooter.id === 'sharran')) return false;
             const dist = Math.abs((shooter.x + shooter.width/2) - (defender.x + defender.width/2));
             const activeGuard = dist < 82 && (!defender.onGround || defender.defenseRating > 65);
-            defender.isClamping = activeGuard;
-            return activeGuard;
+            defender.isClamping = activeGuard; return activeGuard;
         }
 
         function releaseJumpShot(shooter, targetHoop, defender) {
-            ball.holder = null;
-            ball.lastTouchedBy = shooter;
-            ball.inFlight = true;
-
-            const targetX = targetHoop.rimX + targetHoop.rimW / 2;
-            const targetY = targetHoop.rimY;
+            ball.holder = null; ball.lastTouchedBy = shooter; ball.inFlight = true;
+            const targetX = targetHoop.rimX + targetHoop.rimW / 2; const targetY = targetHoop.rimY;
             const distToHoop = Math.abs(targetX - (shooter.x + shooter.width / 2));
-
-            const sweetSpot = 0.45;
+            const sweetSpot = (shooter.id === 'ayansh' && shooter.skillActiveTimer > 0) ? 0.2 : 0.45;
             const diff = Math.abs(shooter.chargeTimer - sweetSpot);
             const contested = isShotContested(shooter, defender);
-
             const distPenaltyRatio = Math.min(1.0, distToHoop / 650);
+            
             let allowedGreenWindow = 0.11 * (1 - (distPenaltyRatio * 0.65));
+            if (shooter.skillActiveTimer > 0 && (shooter.id === 'kaijie' || shooter.id === 'curry' || shooter.id === 'sharran')) allowedGreenWindow = 0.35;
+            if (contested) allowedGreenWindow *= (defender.id === 'shivnand' ? 0.3 : 0.6);
 
-            if (shooter.skillActiveTimer > 0 && (shooter.id === 'kaijie' || shooter.id === 'curry' || shooter.id === 'sharran')) {
-                allowedGreenWindow = 0.35;
+            let isGreen = diff <= allowedGreenWindow;
+            // Hyper Overrides
+            if (shooter.hyperActiveTimer > 0 && (shooter.id === 'curry' || shooter.id === 'sharran' || shooter.id === 'ayansh' || shooter.id === 'kaijie')) {
+                isGreen = true; shooter.hyperActiveTimer = 0; // consumed
             }
 
-            if (contested) {
-                allowedGreenWindow *= (defender.id === 'shivnand' ? 0.3 : 0.6);
-            }
-
-            const isGreen = diff <= allowedGreenWindow;
             const perfectArc = getArcTrajectory(ball.x, ball.y, targetX, targetY, GRAVITY);
 
             if (isGreen) {
                 ball.isFireball = true;
-                ball.vx = perfectArc.vx;
-                ball.vy = perfectArc.vy;
+                if (shooter.hyperActiveTimer > 0 && shooter.id === 'curry') {
+                    ball.isHyperAimbot = true; ball.hyperTargetX = targetX; ball.hyperTargetY = targetY; ball.vy = -800; // flies up then homes
+                } else { ball.vx = perfectArc.vx; ball.vy = perfectArc.vy; }
                 triggerBanner('🔥 PERFECT GREEN!');
             } else if (shooter.chargeTimer > 0.85 || distToHoop > 750) {
-                ball.isFireball = false;
-                const dir = Math.sign(targetX - ball.x);
-                ball.vx = dir * 210;
-                ball.vy = -640;
-                triggerBanner('BRICK!');
+                ball.isFireball = false; const dir = Math.sign(targetX - ball.x); ball.vx = dir * 210; ball.vy = -640; triggerBanner('BRICK!');
             } else {
-                ball.isFireball = false;
-                let penalty = (1 - shooter.shotAccuracy) + (distPenaltyRatio * 0.5);
+                ball.isFireball = false; let penalty = (1 - shooter.shotAccuracy) + (distPenaltyRatio * 0.5);
                 if (contested) penalty += (defender.defenseRating / 100) * 0.65;
-
-                const spread = (diff * 260 + penalty * 180);
-                ball.vx = perfectArc.vx + (Math.random() - 0.5) * spread;
-                ball.vy = perfectArc.vy + (Math.random() - 0.5) * (spread * 0.5);
+                const spread = (diff * 260 + penalty * 180); ball.vx = perfectArc.vx + (Math.random() - 0.5) * spread; ball.vy = perfectArc.vy + (Math.random() - 0.5) * (spread * 0.5);
                 if (contested) triggerBanner('CONTESTED!');
             }
             playSound('bounce');
@@ -1238,458 +839,248 @@
 
         function executeDunk(player, targetHoop) {
             if (player.dunkReach <= 0 || player.stunTimer > 0) return;
-
-            player.isDunking = true;
-            player.vx = 0; player.vy = -160;
-            player.x = (targetHoop.side === 'right') ? targetHoop.rimX - 10 : targetHoop.rimX + 30;
-
+            player.isDunking = true; player.vx = 0; player.vy = -160; player.x = (targetHoop.side === 'right') ? targetHoop.rimX - 10 : targetHoop.rimX + 30;
             setTimeout(() => {
                 if (!player.isDunking) return;
-                player.isDunking = false;
-                ball.holder = null;
-                ball.inFlight = false;
-                ball.x = targetHoop.rimX + 23;
-                ball.y = targetHoop.rimY + 5;
-                ball.vx = 0; ball.vy = 420;
-                targetHoop.netWiggle = 1.0;
-                screenShake = 16;
-                playSound('dunk');
-                triggerBanner('💥 MONSTER SLAM!');
+                player.isDunking = false; ball.holder = null; ball.inFlight = false; ball.x = targetHoop.rimX + 23; ball.y = targetHoop.rimY + 5; ball.vx = 0; ball.vy = 420;
+                targetHoop.netWiggle = 1.0; screenShake = 16; playSound('dunk'); triggerBanner('💥 MONSTER SLAM!');
+                let points = 2;
+                if (player.hyperActiveTimer > 0 && player.id === 'lebron') { points = 4; player.hyperActiveTimer = 0; triggerBanner('👑 KING DECREE! +4'); }
 
-                if (targetHoop.side === 'right') {
-                    p1Score += 2;
-                    document.getElementById('p1-score').innerText = p1Score;
-                    setTimeout(() => resetRound(p2), 600);
-                } else {
-                    p2Score += 2;
-                    document.getElementById('p2-score').innerText = p2Score;
-                    setTimeout(() => resetRound(p1), 600);
-                }
+                if (targetHoop.side === 'right') { p1Score += points; document.getElementById('p1-score').innerText = p1Score; setTimeout(() => resetRound(p2), 600); } 
+                else { p2Score += points; document.getElementById('p2-score').innerText = p2Score; setTimeout(() => resetRound(p1), 600); }
             }, 300);
         }
 
         function triggerBanner(text) {
-            const b = document.getElementById('banner-popup');
-            b.innerText = text;
-            b.style.transform = 'translateX(-50%) scale(1.15)';
-            setTimeout(() => { b.style.transform = 'translateX(-50%) scale(0)'; }, 900);
+            const b = document.getElementById('banner-popup'); b.innerText = text; b.style.transform = 'translateX(-50%) scale(1.15)'; setTimeout(() => { b.style.transform = 'translateX(-50%) scale(0)'; }, 900);
         }
 
         function startMatch(mode) {
-            gameMode = mode;
-            p1Score = 0; p2Score = 0; timeLeft = 60;
-            matchActive = true;
-
-            p1 = createEntity(ROSTER[selectedP1Idx], 220, 1);
-            p2 = createEntity(ROSTER[selectedP2Idx], 740, -1);
-
-            document.getElementById('p1-name-hud').innerText = p1.name;
-            document.getElementById('p2-name-hud').innerText = (gameMode === '1P') ? `${p2.name} (AI)` : p2.name;
-            document.getElementById('p1-score').innerText = '0';
-            document.getElementById('p2-score').innerText = '0';
-            document.getElementById('match-timer').innerText = '60';
-
-            document.getElementById('select-modal').style.display = 'none';
-            document.getElementById('end-modal').style.display = 'none';
-
+            gameMode = mode; p1Score = 0; p2Score = 0; timeLeft = 60; matchActive = true;
+            p1 = createEntity(ROSTER[selectedP1Idx], 220, 1); p2 = createEntity(ROSTER[selectedP2Idx], 740, -1);
+            document.getElementById('p1-name-hud').innerText = p1.name; document.getElementById('p2-name-hud').innerText = (gameMode === '1P') ? `${p2.name} (AI)` : p2.name;
+            document.getElementById('p1-score').innerText = '0'; document.getElementById('p2-score').innerText = '0'; document.getElementById('match-timer').innerText = '60';
+            document.getElementById('select-modal').style.display = 'none'; document.getElementById('end-modal').style.display = 'none';
             resetRound(p1);
-
             if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (matchActive && timeLeft > 0) {
-                    timeLeft--;
-                    document.getElementById('match-timer').innerText = timeLeft;
-                    if (timeLeft <= 0) finishMatch();
-                }
-            }, 1000);
+            timerInterval = setInterval(() => { if (matchActive && timeLeft > 0) { timeLeft--; document.getElementById('match-timer').innerText = timeLeft; if (timeLeft <= 0) finishMatch(); } }, 1000);
         }
 
         function resetRound(inboundPlayer) {
             p1.x = 220; p1.y = COURT_Y - p1.height; p1.vx = 0; p1.vy = 0; p1.isDunking = false; p1.stunTimer = 0;
             p2.x = 740; p2.y = COURT_Y - p2.height; p2.vx = 0; p2.vy = 0; p2.isDunking = false; p2.stunTimer = 0;
-            ball.holder = inboundPlayer;
-            ball.vx = 0; ball.vy = 0;
-            ball.isFireball = false;
-            ball.inFlight = false;
+            ball.holder = inboundPlayer; ball.vx = 0; ball.vy = 0; ball.isFireball = false; ball.inFlight = false; ball.isHyperAimbot = false;
         }
 
         function finishMatch() {
-            matchActive = false;
-            clearInterval(timerInterval);
-            document.getElementById('end-modal').style.display = 'flex';
+            matchActive = false; clearInterval(timerInterval); document.getElementById('end-modal').style.display = 'flex';
             const winner = p1Score > p2Score ? `${p1.name} WINS!` : (p2Score > p1Score ? `${p2.name} WINS!` : "DRAW MATCH!");
-            document.getElementById('end-title').innerText = winner;
-            document.getElementById('final-score-text').innerText = `${p1Score} - ${p2Score}`;
-
+            document.getElementById('end-title').innerText = winner; document.getElementById('final-score-text').innerText = `${p1Score} - ${p2Score}`;
             const multiplier = parseFloat(localStorage.getItem('arcade_multiplier')) || 1.0;
             const rewardCoins = Math.round((p1Score * 10 + 20) * multiplier);
             let currentCoins = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            localStorage.setItem('arcade_coins', currentCoins + rewardCoins);
-            updateCoinsDisplay();
+            localStorage.setItem('arcade_coins', currentCoins + rewardCoins); updateCoinsDisplay();
         }
 
         function openMenu() {
-            document.getElementById('end-modal').style.display = 'none';
-            document.getElementById('select-modal').style.display = 'flex';
-            updateCoinsDisplay();
-            refreshRosterCardsUI();
+            document.getElementById('end-modal').style.display = 'none'; document.getElementById('select-modal').style.display = 'flex'; updateCoinsDisplay(); refreshRosterCardsUI();
         }
 
         function updateAI(dt) {
             if (gameMode !== '1P' || !matchActive || p2.isDunking || p2.stunTimer > 0) return;
-
-            p2.aiDecisionTimer += dt;
-            const targetHoop = hoops[0];
-            const distToRim = (p2.x + p2.width / 2) - (targetHoop.rimX + 23);
-            const distToPlayer = Math.abs(p2.x - p1.x);
+            p2.aiDecisionTimer += dt; const targetHoop = hoops[0]; const distToRim = (p2.x + p2.width / 2) - (targetHoop.rimX + 23); const distToPlayer = Math.abs(p2.x - p1.x);
 
             if (p2.aiDecisionTimer >= 1.0) {
                 p2.aiDecisionTimer = 0;
-                if (p2.skillCooldown <= 0 && ((p2Score < p1Score) || distToRim < 250) && Math.random() < 0.4) {
-                    activateSkill(p2, p1);
-                }
+                if (p2.skillCooldown <= 0 && ((p2Score < p1Score) || distToRim < 250) && Math.random() < 0.4) activateSkill(p2, p1);
+                if (p2.hyperCooldown <= 0 && isHyperUnlocked(p2) && p2Score < p1Score && Math.random() < 0.3) activateHyper(p2, p1);
 
                 if (ball.holder === p2) {
                     const roll = Math.random();
-                    if (p2.dunkReach > 150 && roll < 0.40) {
-                        p2.aiState = 'DRIVE_DUNK';
-                    } else if (roll < 0.75) {
-                        p2.aiState = 'SHOOT';
-                    } else {
-                        p2.aiState = 'DRIBBLE_RESET';
-                    }
+                    if (p2.dunkReach > 150 && roll < 0.40) p2.aiState = 'DRIVE_DUNK';
+                    else if (roll < 0.75) p2.aiState = 'SHOOT';
+                    else p2.aiState = 'DRIBBLE_RESET';
                 }
             }
 
             if (ball.holder === p2) {
                 if (p2.aiState === 'DRIVE_DUNK' && p2.dunkReach > 0) {
-                    p2.vx = -p2.speed * 0.95;
-                    p2.facing = -1;
-                    if (distToRim < p2.dunkReach && p2.onGround) {
-                        p2.vy = -p2.jumpForce;
-                        p2.onGround = false;
-                        setTimeout(() => executeDunk(p2, targetHoop), 110);
-                    }
+                    p2.vx = -p2.speed * 0.95; p2.facing = -1;
+                    if (distToRim < p2.dunkReach && p2.onGround) { p2.vy = -p2.jumpForce; p2.onGround = false; setTimeout(() => executeDunk(p2, targetHoop), 110); }
                 } else if (p2.aiState === 'SHOOT') {
-                    if (distToRim > 310) {
-                        p2.vx = -p2.speed * 0.85;
-                        p2.facing = -1;
-                    } else if (distToPlayer < 65) {
-                        p2.vx = p2.speed * 0.75;
-                        p2.facing = -1;
-                    } else {
-                        p2.vx = 0;
-                        if (p2.onGround) {
-                            p2.chargeTimer = 0.45;
-                            releaseJumpShot(p2, targetHoop, p1);
-                            p2.aiState = 'IDLE';
-                        }
-                    }
+                    if (distToRim > 310) { p2.vx = -p2.speed * 0.85; p2.facing = -1; }
+                    else if (distToPlayer < 65) { p2.vx = p2.speed * 0.75; p2.facing = -1; }
+                    else { p2.vx = 0; if (p2.onGround) { p2.chargeTimer = 0.45; releaseJumpShot(p2, targetHoop, p1); p2.aiState = 'IDLE'; } }
                 } else {
-                    if (distToRim > 220) p2.vx = -p2.speed * 0.65;
-                    else p2.vx = p2.speed * 0.65;
+                    if (distToRim > 220) p2.vx = -p2.speed * 0.65; else p2.vx = p2.speed * 0.65;
                 }
             } else if (ball.holder === p1) {
                 const guardDist = p2.x - p1.x;
                 if (guardDist > 65) { p2.vx = -p2.speed * 0.85; p2.facing = -1; }
                 else if (guardDist < -45) { p2.vx = p2.speed * 0.85; p2.facing = 1; }
                 else {
-                    p2.vx = 0;
-                    if (p2.stealCooldown <= 0 && Math.random() < 0.05) {
-                        attemptSteal(p2, p1);
-                    }
-                    if ((!p1.onGround || p1.isCharging) && p2.onGround && Math.random() < 0.1) {
-                        p2.vy = -p2.jumpForce * 0.95;
-                        p2.onGround = false;
-                    }
+                    p2.vx = 0; if (p2.stealCooldown <= 0 && Math.random() < 0.05) attemptSteal(p2, p1);
+                    if ((!p1.onGround || p1.isCharging) && p2.onGround && Math.random() < 0.1) { p2.vy = -p2.jumpForce * 0.95; p2.onGround = false; }
                 }
             } else {
-                if (ball.x < p2.x - 16) { p2.vx = -p2.speed * 0.9; p2.facing = -1; }
-                else if (ball.x > p2.x + 16) { p2.vx = p2.speed * 0.9; p2.facing = 1; }
-                else p2.vx = 0;
-
-                if (ball.y < p2.y - 20 && p2.onGround && Math.abs(ball.x - p2.x) < 65) {
-                    p2.vy = -p2.jumpForce * 0.9;
-                    p2.onGround = false;
-                }
+                if (ball.x < p2.x - 16) { p2.vx = -p2.speed * 0.9; p2.facing = -1; } else if (ball.x > p2.x + 16) { p2.vx = p2.speed * 0.9; p2.facing = 1; } else p2.vx = 0;
+                if (ball.y < p2.y - 20 && p2.onGround && Math.abs(ball.x - p2.x) < 65) { p2.vy = -p2.jumpForce * 0.9; p2.onGround = false; }
             }
         }
 
         const keys = {};
         window.addEventListener('keydown', e => {
-            getAudioContext();
-            keys[e.code] = true;
-
+            getAudioContext(); keys[e.code] = true;
             if (e.code === 'KeyM') toggleMusicPlayback();
-
-            if (e.code === 'KeyW' && p1.onGround && !p1.isDunking && p1.stunTimer <= 0) {
-                p1.vy = -p1.jumpForce;
-                p1.onGround = false;
-            }
-
+            if (e.code === 'KeyW' && p1.onGround && !p1.isDunking && p1.stunTimer <= 0) { p1.vy = -p1.jumpForce; p1.onGround = false; }
             if (e.code === 'KeyE') activateSkill(p1, p2);
+            if (e.code === 'KeyR') activateHyper(p1, p2);
 
             if (e.code === 'Space' || e.code === 'KeyF') {
                 if (ball.holder === p1 && !p1.isCharging && p1.stunTimer <= 0) {
-                    let reach = p1.dunkReach;
-                    if (p1.skillActiveTimer > 0 && (p1.id === 'john' || p1.id === 'jordan')) reach += 160;
+                    let reach = p1.dunkReach; if (p1.skillActiveTimer > 0 && (p1.id === 'john' || p1.id === 'jordan')) reach += 160;
                     const distToRim = Math.abs((hoops[1].rimX + 23) - (p1.x + p1.width/2));
-                    if (distToRim < reach && p1.y < COURT_Y - 40) {
-                        executeDunk(p1, hoops[1]);
-                    } else {
-                        p1.isCharging = true;
-                        p1.chargeTimer = 0;
-                    }
+                    if (distToRim < reach && p1.y < COURT_Y - 40) executeDunk(p1, hoops[1]); else { p1.isCharging = true; p1.chargeTimer = 0; }
                 } else if (!ball.holder) {
-                    const pHandX = p1.x + p1.width / 2;
-                    const pHandY = p1.y + p1.height * 0.2;
-                    if (Math.hypot(pHandX - ball.x, pHandY - ball.y) < 65) {
-                        ball.holder = p1;
-                        ball.lastTouchedBy = p1;
-                        ball.inFlight = false;
-                        playSound('bounce');
-                    }
-                } else {
-                    attemptSteal(p1, p2);
-                }
+                    if (Math.hypot((p1.x + p1.width/2) - ball.x, (p1.y + p1.height * 0.2) - ball.y) < 65) { ball.holder = p1; ball.lastTouchedBy = p1; ball.inFlight = false; playSound('bounce'); }
+                } else attemptSteal(p1, p2);
             }
 
             if (gameMode === '2P') {
-                if (e.code === 'ArrowUp' && p2.onGround && !p2.isDunking && p2.stunTimer <= 0) {
-                    p2.vy = -p2.jumpForce;
-                    p2.onGround = false;
-                }
+                if (e.code === 'ArrowUp' && p2.onGround && !p2.isDunking && p2.stunTimer <= 0) { p2.vy = -p2.jumpForce; p2.onGround = false; }
                 if (e.code === 'KeyO') activateSkill(p2, p1);
+                if (e.code === 'KeyP') activateHyper(p2, p1);
                 if (e.code === 'KeyL' || e.code === 'Enter') {
                     if (ball.holder === p2 && !p2.isCharging && p2.stunTimer <= 0) {
-                        let reach = p2.dunkReach;
-                        if (p2.skillActiveTimer > 0 && (p2.id === 'john' || p2.id === 'jordan')) reach += 160;
+                        let reach = p2.dunkReach; if (p2.skillActiveTimer > 0 && (p2.id === 'john' || p2.id === 'jordan')) reach += 160;
                         const distToRim = Math.abs((hoops[0].rimX + 23) - (p2.x + p2.width/2));
-                        if (distToRim < reach && p2.y < COURT_Y - 40) {
-                            executeDunk(p2, hoops[0]);
-                        } else {
-                            p2.isCharging = true;
-                            p2.chargeTimer = 0;
-                        }
+                        if (distToRim < reach && p2.y < COURT_Y - 40) executeDunk(p2, hoops[0]); else { p2.isCharging = true; p2.chargeTimer = 0; }
                     } else if (!ball.holder) {
-                        const pHandX = p2.x + p2.width / 2;
-                        const pHandY = p2.y + p2.height * 0.2;
-                        if (Math.hypot(pHandX - ball.x, pHandY - ball.y) < 65) {
-                            ball.holder = p2;
-                            ball.lastTouchedBy = p2;
-                            ball.inFlight = false;
-                            playSound('bounce');
-                        }
-                    } else {
-                        attemptSteal(p2, p1);
-                    }
+                        if (Math.hypot((p2.x + p2.width/2) - ball.x, (p2.y + p2.height * 0.2) - ball.y) < 65) { ball.holder = p2; ball.lastTouchedBy = p2; ball.inFlight = false; playSound('bounce'); }
+                    } else attemptSteal(p2, p1);
                 }
             }
         });
 
         window.addEventListener('keyup', e => {
             keys[e.code] = false;
-            if ((e.code === 'Space' || e.code === 'KeyF') && p1.isCharging) {
-                if (ball.holder === p1) releaseJumpShot(p1, hoops[1], p2);
-                p1.isCharging = false;
-            }
-            if (gameMode === '2P' && (e.code === 'KeyL' || e.code === 'Enter') && p2.isCharging) {
-                if (ball.holder === p2) releaseJumpShot(p2, hoops[0], p1);
-                p2.isCharging = false;
-            }
+            if ((e.code === 'Space' || e.code === 'KeyF') && p1.isCharging) { if (ball.holder === p1) releaseJumpShot(p1, hoops[1], p2); p1.isCharging = false; }
+            if (gameMode === '2P' && (e.code === 'KeyL' || e.code === 'Enter') && p2.isCharging) { if (ball.holder === p2) releaseJumpShot(p2, hoops[0], p1); p2.isCharging = false; }
         });
 
         const bindTouch = (id, start, end) => {
             const el = document.getElementById(id);
+            if (!el) return;
             el.addEventListener('touchstart', e => { e.preventDefault(); getAudioContext(); start(); }, { passive: false });
             if (end) el.addEventListener('touchend', e => { e.preventDefault(); end(); }, { passive: false });
         };
 
         bindTouch('t-left', () => keys['KeyA'] = true, () => keys['KeyA'] = false);
         bindTouch('t-right', () => keys['KeyD'] = true, () => keys['KeyD'] = false);
-        bindTouch('t-jump', () => {
-            if (p1.onGround && !p1.isDunking && p1.stunTimer <= 0) { p1.vy = -p1.jumpForce; p1.onGround = false; }
-        });
+        bindTouch('t-jump', () => { if (p1.onGround && !p1.isDunking && p1.stunTimer <= 0) { p1.vy = -p1.jumpForce; p1.onGround = false; } });
         bindTouch('t-skill', () => activateSkill(p1, p2));
+        bindTouch('t-hyper', () => activateHyper(p1, p2));
         bindTouch('t-action', () => {
             if (ball.holder === p1 && p1.stunTimer <= 0) {
-                let reach = p1.dunkReach;
-                if (p1.skillActiveTimer > 0 && (p1.id === 'john' || p1.id === 'jordan')) reach += 160;
+                let reach = p1.dunkReach; if (p1.skillActiveTimer > 0 && (p1.id === 'john' || p1.id === 'jordan')) reach += 160;
                 const distToRim = Math.abs((hoops[1].rimX + 23) - (p1.x + p1.width/2));
-                if (distToRim < reach && p1.y < COURT_Y - 40) executeDunk(p1, hoops[1]);
-                else { p1.isCharging = true; p1.chargeTimer = 0; }
+                if (distToRim < reach && p1.y < COURT_Y - 40) executeDunk(p1, hoops[1]); else { p1.isCharging = true; p1.chargeTimer = 0; }
             } else if (!ball.holder) {
-                const pHandX = p1.x + p1.width / 2;
-                const pHandY = p1.y + p1.height * 0.2;
-                if (Math.hypot(pHandX - ball.x, pHandY - ball.y) < 65) {
-                    ball.holder = p1;
-                    ball.lastTouchedBy = p1;
-                    ball.inFlight = false;
-                    playSound('bounce');
-                }
-            } else {
-                attemptSteal(p1, p2);
-            }
-        }, () => {
-            if (p1.isCharging && ball.holder === p1) { releaseJumpShot(p1, hoops[1], p2); }
-            p1.isCharging = false;
-        });
+                if (Math.hypot((p1.x + p1.width/2) - ball.x, (p1.y + p1.height * 0.2) - ball.y) < 65) { ball.holder = p1; ball.lastTouchedBy = p1; ball.inFlight = false; playSound('bounce'); }
+            } else attemptSteal(p1, p2);
+        }, () => { if (p1.isCharging && ball.holder === p1) { releaseJumpShot(p1, hoops[1], p2); } p1.isCharging = false; });
 
         function updatePhysics(dt) {
             if (!matchActive) return;
 
             if (screenShake > 0.5) screenShake *= 0.88;
-            if (p1.stealCooldown > 0) p1.stealCooldown -= dt;
-            if (p2.stealCooldown > 0) p2.stealCooldown -= dt;
-            if (p1.pickupLockout > 0) p1.pickupLockout -= dt;
-            if (p2.pickupLockout > 0) p2.pickupLockout -= dt;
-            if (p1.stunTimer > 0) p1.stunTimer -= dt;
-            if (p2.stunTimer > 0) p2.stunTimer -= dt;
-            if (p1.swipeVisualTimer > 0) p1.swipeVisualTimer -= dt;
-            if (p2.swipeVisualTimer > 0) p2.swipeVisualTimer -= dt;
+            [p1, p2].forEach(p => {
+                if (p.stealCooldown > 0) p.stealCooldown -= dt; if (p.pickupLockout > 0) p.pickupLockout -= dt;
+                if (p.stunTimer > 0) p.stunTimer -= dt; if (p.swipeVisualTimer > 0) p.swipeVisualTimer -= dt;
+                if (p.skillCooldown > 0) p.skillCooldown -= dt; if (p.skillActiveTimer > 0) p.skillActiveTimer -= dt;
+                if (p.hyperCooldown > 0) p.hyperCooldown -= dt; if (p.hyperActiveTimer > 0) p.hyperActiveTimer -= dt;
+            });
 
-            if (p1.skillCooldown > 0) p1.skillCooldown -= dt;
-            if (p2.skillCooldown > 0) p2.skillCooldown -= dt;
-            if (p1.skillActiveTimer > 0) p1.skillActiveTimer -= dt;
-            if (p2.skillActiveTimer > 0) p2.skillActiveTimer -= dt;
+            document.getElementById('p1-skill-hud').innerText = p1.skillCooldown <= 0 ? '[E] SUPER READY' : `[E] ${Math.ceil(p1.skillCooldown)}s`;
+            document.getElementById('p2-skill-hud').innerText = p2.skillCooldown <= 0 ? '[O] SUPER READY' : `[O] ${Math.ceil(p2.skillCooldown)}s`;
+            document.getElementById('p1-hyper-hud').innerText = (!isHyperUnlocked(p1)) ? '[R] HYPER LOCKED' : (p1.hyperCooldown <= 0 ? '[R] HYPER READY' : `[R] ${Math.ceil(p1.hyperCooldown)}s`);
+            document.getElementById('p2-hyper-hud').innerText = (!isHyperUnlocked(p2)) ? '[P] HYPER LOCKED' : (p2.hyperCooldown <= 0 ? '[P] HYPER READY' : `[P] ${Math.ceil(p2.hyperCooldown)}s`);
 
-            document.getElementById('p1-skill-hud').innerText = p1.skillCooldown <= 0 ? '[E] READY' : `[E] ${Math.ceil(p1.skillCooldown)}s`;
-            document.getElementById('p2-skill-hud').innerText = p2.skillCooldown <= 0 ? '[O] READY' : `[O] ${Math.ceil(p2.skillCooldown)}s`;
-
-            isShotContested(p1, p2);
-            isShotContested(p2, p1);
+            isShotContested(p1, p2); isShotContested(p2, p1);
 
             const p1SpeedBonus = (p1.skillActiveTimer > 0 && p1.id === 'kaijie') ? 1.25 : 1.0;
             const p2SpeedBonus = (p2.skillActiveTimer > 0 && p2.id === 'kaijie') ? 1.25 : 1.0;
 
             if (!p1.isDunking && p1.stunTimer <= 0) {
-                if (keys['KeyA']) { p1.vx = -p1.speed * p1SpeedBonus; p1.facing = -1; }
-                else if (keys['KeyD']) { p1.vx = p1.speed * p1SpeedBonus; p1.facing = 1; }
-                else p1.vx *= 0.82;
-
+                if (keys['KeyA']) { p1.vx = -p1.speed * p1SpeedBonus; p1.facing = -1; } else if (keys['KeyD']) { p1.vx = p1.speed * p1SpeedBonus; p1.facing = 1; } else p1.vx *= 0.82;
                 if (p1.isCharging) p1.chargeTimer += dt;
             }
 
             if (gameMode === '2P' && !p2.isDunking && p2.stunTimer <= 0) {
-                if (keys['ArrowLeft']) { p2.vx = -p2.speed * p2SpeedBonus; p2.facing = -1; }
-                else if (keys['ArrowRight']) { p2.vx = p2.speed * p2SpeedBonus; p2.facing = 1; }
-                else p2.vx *= 0.82;
-
+                if (keys['ArrowLeft']) { p2.vx = -p2.speed * p2SpeedBonus; p2.facing = -1; } else if (keys['ArrowRight']) { p2.vx = p2.speed * p2SpeedBonus; p2.facing = 1; } else p2.vx *= 0.82;
                 if (p2.isCharging) p2.chargeTimer += dt;
             }
 
             [p1, p2].forEach(p => {
                 if (!p.isDunking) {
-                    p.vy += GRAVITY * dt;
-                    p.x += p.vx * dt;
-                    p.y += p.vy * dt;
-
-                    if (p.y >= COURT_Y - p.height) {
-                        p.y = COURT_Y - p.height;
-                        p.vy = 0;
-                        p.onGround = true;
-                    }
+                    p.vy += GRAVITY * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+                    if (p.y >= COURT_Y - p.height) { p.y = COURT_Y - p.height; p.vy = 0; p.onGround = true; }
                     p.x = Math.max(45, Math.min(955 - p.width, p.x));
                 }
             });
 
             if (ball.holder) {
-                const h = ball.holder;
-                ball.x = h.x + (h.facing === 1 ? h.width - 6 : 6);
-                ball.y = h.isDunking ? h.y - 12 : h.y + Math.round(h.height * 0.45);
-                ball.vx = 0; ball.vy = 0;
-                ball.inFlight = false;
+                const h = ball.holder; ball.x = h.x + (h.facing === 1 ? h.width - 6 : 6); ball.y = h.isDunking ? h.y - 12 : h.y + Math.round(h.height * 0.45); ball.vx = 0; ball.vy = 0; ball.inFlight = false;
             } else {
-                ball.vy += GRAVITY * dt;
-                ball.x += ball.vx * dt;
-                ball.y += ball.vy * dt;
-                ball.rotation += ball.vx * 0.015;
+                if (ball.isHyperAimbot) {
+                    const dx = ball.hyperTargetX - ball.x; const dy = ball.hyperTargetY - ball.y;
+                    ball.vx += dx * 0.1; ball.vy += dy * 0.1;
+                } else { ball.vy += GRAVITY * dt; }
+                
+                ball.x += ball.vx * dt; ball.y += ball.vy * dt; ball.rotation += ball.vx * 0.015;
 
                 [p1, p2].forEach(defender => {
-                    if (ball.inFlight && ball.lastTouchedBy !== defender && !defender.onGround && defender.stunTimer <= 0) {
-                        const defHandX = defender.x + defender.width / 2;
-                        const defHandY = defender.y + 10;
+                    if (ball.inFlight && ball.lastTouchedBy !== defender && !defender.onGround && defender.stunTimer <= 0 && !ball.isHyperAimbot) {
+                        const defHandX = defender.x + defender.width / 2; const defHandY = defender.y + 10;
                         if (Math.hypot(defHandX - ball.x, defHandY - ball.y) < 42) {
-                            ball.inFlight = false;
-                            ball.isFireball = false;
-                            ball.vx = defender.facing * 180;
-                            ball.vy = 120;
-                            defender.pickupLockout = 0.25;
-                            screenShake = 10;
-                            playSound('block');
-                            triggerBanner(`${defender.name} REJECTED! 🚫`);
+                            ball.inFlight = false; ball.isFireball = false; ball.vx = defender.facing * 180; ball.vy = 120; defender.pickupLockout = 0.25; screenShake = 10; playSound('block'); triggerBanner(`${defender.name} REJECTED! 🚫`);
                         }
                     }
                 });
 
-                if (ball.x - ball.radius <= 35) {
-                    ball.x = 35 + ball.radius;
-                    ball.vx = Math.abs(ball.vx) * 0.75;
-                    ball.inFlight = false;
-                    playSound('bounce');
-                } else if (ball.x + ball.radius >= 965) {
-                    ball.x = 965 - ball.radius;
-                    ball.vx = -Math.abs(ball.vx) * 0.75;
-                    ball.inFlight = false;
-                    playSound('bounce');
-                }
+                if (ball.x - ball.radius <= 35) { ball.x = 35 + ball.radius; ball.vx = Math.abs(ball.vx) * 0.75; ball.inFlight = false; playSound('bounce'); } 
+                else if (ball.x + ball.radius >= 965) { ball.x = 965 - ball.radius; ball.vx = -Math.abs(ball.vx) * 0.75; ball.inFlight = false; playSound('bounce'); }
 
                 if (ball.y >= COURT_Y - ball.radius) {
-                    ball.y = COURT_Y - ball.radius;
-                    ball.vy = -ball.vy * 0.65;
-                    ball.vx *= 0.88;
-                    ball.isFireball = false;
-                    ball.inFlight = false;
+                    ball.y = COURT_Y - ball.radius; ball.vy = -ball.vy * 0.65; ball.vx *= 0.88; ball.isFireball = false; ball.isHyperAimbot = false; ball.inFlight = false;
                     if (Math.abs(ball.vy) > 60) playSound('bounce');
                 }
 
                 hoops.forEach(h => {
-                    if (!ball.isFireball) {
-                        if (ball.x + ball.radius >= h.bbX - 4 && ball.x - ball.radius <= h.bbX + 12 &&
-                            ball.y >= h.bbY && ball.y <= h.bbY + h.bbH) {
-                            ball.vx = -ball.vx * 0.72;
-                            ball.x = (ball.vx > 0) ? h.bbX + 14 : h.bbX - 8;
-                            ball.inFlight = false;
-                            playSound('bounce');
+                    if (!ball.isFireball && !ball.isHyperAimbot) {
+                        if (ball.x + ball.radius >= h.bbX - 4 && ball.x - ball.radius <= h.bbX + 12 && ball.y >= h.bbY && ball.y <= h.bbY + h.bbH) {
+                            ball.vx = -ball.vx * 0.72; ball.x = (ball.vx > 0) ? h.bbX + 14 : h.bbX - 8; ball.inFlight = false; playSound('bounce');
                         }
                     }
-
-                    if (ball.vy > 0 && ball.y >= h.rimY - 4 && ball.y <= h.rimY + 16 &&
-                        ball.x > h.rimX + 4 && ball.x < h.rimX + h.rimW - 4) {
-
-                        h.netWiggle = 1.0;
-                        playSound('swish');
-
+                    if (ball.vy > 0 && ball.y >= h.rimY - 4 && ball.y <= h.rimY + 16 && ball.x > h.rimX + 4 && ball.x < h.rimX + h.rimW - 4) {
+                        h.netWiggle = 1.0; playSound('swish');
                         if (h.side === 'right' && ball.lastTouchedBy === p1) {
-                            p1Score += ball.isFireball ? 3 : 2;
-                            document.getElementById('p1-score').innerText = p1Score;
-                            triggerBanner(ball.isFireball ? '🔥 3-POINT SWISH!' : 'BUCKET! +2');
-                            setTimeout(() => resetRound(p2), 500);
+                            p1Score += ball.isFireball ? 3 : 2; document.getElementById('p1-score').innerText = p1Score; triggerBanner(ball.isFireball ? '🔥 3-POINT SWISH!' : 'BUCKET! +2'); setTimeout(() => resetRound(p2), 500);
                         } else if (h.side === 'left' && ball.lastTouchedBy === p2) {
-                            p2Score += ball.isFireball ? 3 : 2;
-                            document.getElementById('p2-score').innerText = p2Score;
-                            triggerBanner('RIVAL SCORED!');
-                            setTimeout(() => resetRound(p1), 500);
+                            p2Score += ball.isFireball ? 3 : 2; document.getElementById('p2-score').innerText = p2Score; triggerBanner('RIVAL SCORED!'); setTimeout(() => resetRound(p1), 500);
                         }
-                        ball.isFireball = false;
-                        ball.inFlight = false;
+                        ball.isFireball = false; ball.isHyperAimbot = false; ball.inFlight = false;
                     }
-
                     if (h.netWiggle > 0) h.netWiggle -= dt * 2;
                 });
 
                 [p1, p2].forEach(p => {
                     if (p.pickupLockout <= 0 && p.stunTimer <= 0) {
-                        const cx = p.x + p.width / 2;
-                        const cy = p.y + p.height / 2;
-                        const grabRange = p.onGround ? (p.width * 0.95) : 58;
+                        const cx = p.x + p.width / 2; const cy = p.y + p.height / 2; const grabRange = p.onGround ? (p.width * 0.95) : 58;
                         const canGrab = !ball.inFlight || (ball.vy > -160) || Math.abs(ball.vx) < 140;
-
                         if (canGrab && Math.hypot(cx - ball.x, cy - ball.y) < grabRange) {
-                            ball.holder = p;
-                            ball.lastTouchedBy = p;
-                            ball.isFireball = false;
-                            ball.inFlight = false;
+                            ball.holder = p; ball.lastTouchedBy = p; ball.isFireball = false; ball.isHyperAimbot = false; ball.inFlight = false;
                         }
                     }
                 });
@@ -1698,240 +1089,87 @@
 
         function render() {
             ctx.save();
-            if (screenShake > 0.5) {
-                ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
-            }
+            if (screenShake > 0.5) ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const bg = ctx.createLinearGradient(0, 0, 0, COURT_Y);
-            bg.addColorStop(0, '#130628');
-            bg.addColorStop(1, '#2c0d5a');
-            ctx.fillStyle = bg;
-            ctx.fillRect(0, 0, canvas.width, COURT_Y);
+            const bg = ctx.createLinearGradient(0, 0, 0, COURT_Y); bg.addColorStop(0, '#130628'); bg.addColorStop(1, '#2c0d5a'); ctx.fillStyle = bg; ctx.fillRect(0, 0, canvas.width, COURT_Y);
+            const wood = ctx.createLinearGradient(0, COURT_Y, 0, canvas.height); wood.addColorStop(0, '#d97706'); wood.addColorStop(1, '#92400e'); ctx.fillStyle = wood; ctx.fillRect(0, COURT_Y, canvas.width, canvas.height - COURT_Y);
 
-            const wood = ctx.createLinearGradient(0, COURT_Y, 0, canvas.height);
-            wood.addColorStop(0, '#d97706');
-            wood.addColorStop(1, '#92400e');
-            ctx.fillStyle = wood;
-            ctx.fillRect(0, COURT_Y, canvas.width, canvas.height - COURT_Y);
-
-            ctx.strokeStyle = '#fff'; ctx.lineWidth = 4;
-            ctx.strokeRect(35, COURT_Y, canvas.width - 70, canvas.height - COURT_Y - 14);
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.strokeRect(35, COURT_Y, canvas.width - 70, canvas.height - COURT_Y - 14);
             ctx.beginPath(); ctx.arc(canvas.width / 2, COURT_Y, 78, Math.PI, 0); ctx.stroke();
 
             hoops.forEach(h => {
-                ctx.fillStyle = '#1e293b';
-                ctx.fillRect(h.side === 'left' ? h.bbX - 16 : h.bbX + 16, h.bbY, 16, COURT_Y - h.bbY);
-
-                ctx.fillStyle = 'rgba(255,255,255,0.4)';
-                ctx.strokeStyle = '#38bdf8';
-                ctx.lineWidth = 5;
-                ctx.fillRect(h.bbX, h.bbY, 8, h.bbH);
-                ctx.strokeRect(h.bbX, h.bbY, 8, h.bbH);
-
-                ctx.strokeStyle = '#f97316'; ctx.lineWidth = 6;
-                ctx.beginPath(); ctx.moveTo(h.rimX, h.rimY); ctx.lineTo(h.rimX + h.rimW, h.rimY); ctx.stroke();
-
+                ctx.fillStyle = '#1e293b'; ctx.fillRect(h.side === 'left' ? h.bbX - 16 : h.bbX + 16, h.bbY, 16, COURT_Y - h.bbY);
+                ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 5; ctx.fillRect(h.bbX, h.bbY, 8, h.bbH); ctx.strokeRect(h.bbX, h.bbY, 8, h.bbH);
+                ctx.strokeStyle = '#f97316'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(h.rimX, h.rimY); ctx.lineTo(h.rimX + h.rimW, h.rimY); ctx.stroke();
                 const swing = Math.sin(performance.now() * 0.02) * 12 * h.netWiggle;
-                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(h.rimX + 4, h.rimY);
-                ctx.lineTo(h.rimX + 10 + swing, h.rimY + 34);
-                ctx.lineTo(h.rimX + h.rimW - 10 + swing, h.rimY + 34);
-                ctx.lineTo(h.rimX + h.rimW - 4, h.rimY);
-                ctx.stroke();
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(h.rimX + 4, h.rimY); ctx.lineTo(h.rimX + 10 + swing, h.rimY + 34); ctx.lineTo(h.rimX + h.rimW - 10 + swing, h.rimY + 34); ctx.lineTo(h.rimX + h.rimW - 4, h.rimY); ctx.stroke();
             });
 
             [p1, p2].forEach((p) => {
-                const bounce = Math.sin(performance.now() * 0.009) * 2;
-                const headRadius = Math.round(p.height * 0.22);
-                const torsoHeight = Math.round(p.height * 0.42);
+                const bounce = Math.sin(performance.now() * 0.009) * 2; const headRadius = Math.round(p.height * 0.22); const torsoHeight = Math.round(p.height * 0.42);
 
-                if (p.skillActiveTimer > 0) {
-                    ctx.save();
-                    ctx.strokeStyle = '#facc15';
-                    ctx.lineWidth = 4;
-                    ctx.beginPath();
-                    ctx.arc(p.x + p.width/2, p.y + p.height/2, p.height * 0.6, 0, Math.PI*2);
-                    ctx.stroke();
-                    ctx.restore();
+                if (p.hyperActiveTimer > 0) {
+                    ctx.save(); ctx.strokeStyle = '#ff007f'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(p.x + p.width/2, p.y + p.height/2, p.height * 0.6 + Math.sin(performance.now()*0.02)*10, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+                } else if (p.skillActiveTimer > 0) {
+                    ctx.save(); ctx.strokeStyle = '#facc15'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(p.x + p.width/2, p.y + p.height/2, p.height * 0.6, 0, Math.PI*2); ctx.stroke(); ctx.restore();
                 }
-
-                if (p.stunTimer > 0) {
-                    ctx.save();
-                    ctx.fillStyle = '#facc15';
-                    ctx.font = '16px Impact';
-                    ctx.fillText('💫', p.x + p.width/2 - 8, p.y - 12);
-                    ctx.restore();
-                }
+                if (p.stunTimer > 0) { ctx.save(); ctx.fillStyle = '#facc15'; ctx.font = '16px Impact'; ctx.fillText('💫', p.x + p.width/2 - 8, p.y - 12); ctx.restore(); }
 
                 if (p.isClamping) {
-                    ctx.save();
-                    ctx.strokeStyle = (p === p1) ? 'rgba(0,243,255,0.7)' : 'rgba(244,63,94,0.7)';
-                    ctx.lineWidth = 3;
-                    ctx.setLineDash([6, 4]);
-                    ctx.beginPath();
-                    ctx.ellipse(p.x + p.width/2, COURT_Y - 4, p.width * 0.8, 11, 0, 0, Math.PI*2);
-                    ctx.stroke();
-                    ctx.restore();
-                } else {
-                    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-                    ctx.beginPath();
-                    ctx.ellipse(p.x + p.width/2, COURT_Y - 4, p.width * 0.65, 7, 0, 0, Math.PI*2);
-                    ctx.fill();
-                }
+                    ctx.save(); ctx.strokeStyle = (p === p1) ? 'rgba(0,243,255,0.7)' : 'rgba(244,63,94,0.7)'; ctx.lineWidth = 3; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.ellipse(p.x + p.width/2, COURT_Y - 4, p.width * 0.8, 11, 0, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+                } else { ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(p.x + p.width/2, COURT_Y - 4, p.width * 0.65, 7, 0, 0, Math.PI*2); ctx.fill(); }
 
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(p.x + (p.facing === 1 ? 4 : p.width - 20), p.y + p.height - 12, 18, 12);
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(p.x + (p.facing === 1 ? 4 : p.width - 20), p.y + p.height - 12, 18, 12);
+                ctx.fillStyle = p.shirtColor; ctx.beginPath(); ctx.roundRect(p.x + 6, p.y + headRadius * 1.6 + bounce, p.width - 12, torsoHeight, 6); ctx.fill();
+                if (p.shirtColor === '#38bdf8') { ctx.fillStyle = '#0284c7'; ctx.fillRect(p.x + p.width/2 - 4, p.y + headRadius * 1.6 + bounce, 8, 14); }
 
-                ctx.fillStyle = p.shirtColor;
-                ctx.beginPath();
-                ctx.roundRect(p.x + 6, p.y + headRadius * 1.6 + bounce, p.width - 12, torsoHeight, 6);
-                ctx.fill();
-
-                if (p.shirtColor === '#38bdf8') {
-                    ctx.fillStyle = '#0284c7';
-                    ctx.fillRect(p.x + p.width/2 - 4, p.y + headRadius * 1.6 + bounce, 8, 14);
-                }
-
-                ctx.fillStyle = p.skin;
-                ctx.beginPath();
-                ctx.arc(p.x + p.width/2, p.y + headRadius + bounce, headRadius, 0, Math.PI*2);
-                ctx.fill();
-
-                if (p.beard) {
-                    ctx.fillStyle = '#171717';
-                    ctx.beginPath();
-                    ctx.arc(p.x + p.width/2, p.y + headRadius * 1.25 + bounce, headRadius * 0.7, 0, Math.PI);
-                    ctx.fill();
-                }
+                ctx.fillStyle = p.skin; ctx.beginPath(); ctx.arc(p.x + p.width/2, p.y + headRadius + bounce, headRadius, 0, Math.PI*2); ctx.fill();
+                if (p.beard) { ctx.fillStyle = '#171717'; ctx.beginPath(); ctx.arc(p.x + p.width/2, p.y + headRadius * 1.25 + bounce, headRadius * 0.7, 0, Math.PI); ctx.fill(); }
 
                 ctx.fillStyle = '#171717';
-                if (p.hair === 'parted') {
-                    ctx.beginPath();
-                    ctx.arc(p.x + p.width/2, p.y + headRadius * 0.7 + bounce, headRadius * 1.05, Math.PI * 0.9, 0.1);
-                    ctx.fill();
-                    ctx.fillRect(p.x + 2, p.y + headRadius * 0.5 + bounce, 9, 15);
-                    ctx.fillRect(p.x + p.width - 11, p.y + headRadius * 0.5 + bounce, 9, 15);
-                } else if (p.hair === 'wavy') {
-                    ctx.beginPath();
-                    ctx.arc(p.x + p.width/2, p.y + headRadius * 0.6 + bounce, headRadius * 1.1, Math.PI, 0);
-                    ctx.arc(p.x + 8, p.y + headRadius * 0.7 + bounce, 8, 0, Math.PI*2);
-                    ctx.arc(p.x + p.width/2, p.y + headRadius * 0.65 + bounce, 8, 0, Math.PI*2);
-                    ctx.arc(p.x + p.width - 8, p.y + headRadius * 0.7 + bounce, 8, 0, Math.PI*2);
-                    ctx.fill();
-                } else if (p.hair === 'athletic') {
-                    ctx.beginPath();
-                    ctx.arc(p.x + p.width/2, p.y + headRadius * 0.65 + bounce, headRadius * 1.02, Math.PI, 0);
-                    ctx.fill();
-                    ctx.fillRect(p.x + 4, p.y + 2 + bounce, p.width - 8, 7);
-                } else {
-                    ctx.fillRect(p.x + 3, p.y - 2 + bounce, p.width - 6, 9);
-                }
+                if (p.hair === 'parted') { ctx.beginPath(); ctx.arc(p.x + p.width/2, p.y + headRadius * 0.7 + bounce, headRadius * 1.05, Math.PI * 0.9, 0.1); ctx.fill(); ctx.fillRect(p.x + 2, p.y + headRadius * 0.5 + bounce, 9, 15); ctx.fillRect(p.x + p.width - 11, p.y + headRadius * 0.5 + bounce, 9, 15); } 
+                else if (p.hair === 'wavy') { ctx.beginPath(); ctx.arc(p.x + p.width/2, p.y + headRadius * 0.6 + bounce, headRadius * 1.1, Math.PI, 0); ctx.arc(p.x + 8, p.y + headRadius * 0.7 + bounce, 8, 0, Math.PI*2); ctx.arc(p.x + p.width/2, p.y + headRadius * 0.65 + bounce, 8, 0, Math.PI*2); ctx.arc(p.x + p.width - 8, p.y + headRadius * 0.7 + bounce, 8, 0, Math.PI*2); ctx.fill(); } 
+                else if (p.hair === 'athletic') { ctx.beginPath(); ctx.arc(p.x + p.width/2, p.y + headRadius * 0.65 + bounce, headRadius * 1.02, Math.PI, 0); ctx.fill(); ctx.fillRect(p.x + 4, p.y + 2 + bounce, p.width - 8, 7); } 
+                else { ctx.fillRect(p.x + 3, p.y - 2 + bounce, p.width - 6, 9); }
 
-                if (p.glasses) {
-                    ctx.strokeStyle = '#000000'; ctx.lineWidth = 2.4;
-                    ctx.strokeRect(p.x + 8, p.y + headRadius * 0.6 + bounce, 9, 8);
-                    ctx.strokeRect(p.x + p.width - 17, p.y + headRadius * 0.6 + bounce, 9, 8);
-                    ctx.beginPath(); ctx.moveTo(p.x + 17, p.y + headRadius * 0.8 + bounce); ctx.lineTo(p.x + p.width - 17, p.y + headRadius * 0.8 + bounce); ctx.stroke();
-                }
-
-                if (p.earpiece) {
-                    ctx.fillStyle = '#ffffff';
-                    ctx.beginPath();
-                    ctx.arc(p.x + (p.facing === 1 ? p.width - 4 : 4), p.y + headRadius * 0.95 + bounce, 4.5, 0, Math.PI*2);
-                    ctx.fill();
-                    ctx.fillRect(p.x + (p.facing === 1 ? p.width - 5 : 3), p.y + headRadius * 1.1 + bounce, 2.5, 7);
-                }
+                if (p.glasses) { ctx.strokeStyle = '#000000'; ctx.lineWidth = 2.4; ctx.strokeRect(p.x + 8, p.y + headRadius * 0.6 + bounce, 9, 8); ctx.strokeRect(p.x + p.width - 17, p.y + headRadius * 0.6 + bounce, 9, 8); ctx.beginPath(); ctx.moveTo(p.x + 17, p.y + headRadius * 0.8 + bounce); ctx.lineTo(p.x + p.width - 17, p.y + headRadius * 0.8 + bounce); ctx.stroke(); }
+                if (p.earpiece) { ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(p.x + (p.facing === 1 ? p.width - 4 : 4), p.y + headRadius * 0.95 + bounce, 4.5, 0, Math.PI*2); ctx.fill(); ctx.fillRect(p.x + (p.facing === 1 ? p.width - 5 : 3), p.y + headRadius * 1.1 + bounce, 2.5, 7); }
 
                 const eyeX = p.facing === 1 ? p.width/2 + 5 : p.width/2 - 7;
-                ctx.fillStyle = '#000';
-                ctx.beginPath();
-                ctx.arc(p.x + eyeX, p.y + headRadius * 0.9 + bounce, 2.5, 0, Math.PI*2);
-                ctx.fill();
+                ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + headRadius * 0.9 + bounce, 2.5, 0, Math.PI*2); ctx.fill();
+                if (p.tongueOut) { ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + headRadius * 1.3 + bounce, 5, 0, Math.PI); ctx.fill(); ctx.fillStyle = '#fb7185'; ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + headRadius * 1.45 + bounce, 4, 0, Math.PI); ctx.fill(); }
 
-                if (p.tongueOut) {
-                    ctx.fillStyle = '#000';
-                    ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + headRadius * 1.3 + bounce, 5, 0, Math.PI); ctx.fill();
-                    ctx.fillStyle = '#fb7185';
-                    ctx.beginPath(); ctx.arc(p.x + eyeX, p.y + headRadius * 1.45 + bounce, 4, 0, Math.PI); ctx.fill();
-                }
-
-                if (p.swipeVisualTimer > 0) {
-                    ctx.save();
-                    ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3.5;
-                    const armStartX = p.x + (p.facing === 1 ? p.width - 12 : 12);
-                    const armEndX = armStartX + (p.facing * 38);
-                    ctx.beginPath();
-                    ctx.moveTo(armStartX, p.y + headRadius * 2 + bounce);
-                    ctx.lineTo(armEndX, p.y + headRadius * 1.6 + bounce);
-                    ctx.stroke();
-
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-                    ctx.beginPath();
-                    ctx.arc(armEndX, p.y + headRadius * 1.6 + bounce, 14, -0.6, 0.6);
-                    ctx.stroke();
-                    ctx.restore();
-                }
+                if (p.swipeVisualTimer > 0) { ctx.save(); ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3.5; const armStartX = p.x + (p.facing === 1 ? p.width - 12 : 12); const armEndX = armStartX + (p.facing * 38); ctx.beginPath(); ctx.moveTo(armStartX, p.y + headRadius * 2 + bounce); ctx.lineTo(armEndX, p.y + headRadius * 1.6 + bounce); ctx.stroke(); ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'; ctx.beginPath(); ctx.arc(armEndX, p.y + headRadius * 1.6 + bounce, 14, -0.6, 0.6); ctx.stroke(); ctx.restore(); }
 
                 if (p.isCharging && ball.holder === p) {
-                    const meterW = 54;
-                    const meterH = 9;
-                    const meterX = p.x + (p.width - meterW) / 2;
-                    const meterY = p.y - 22;
+                    const meterW = 54; const meterH = 9; const meterX = p.x + (p.width - meterW) / 2; const meterY = p.y - 22;
+                    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(meterX, meterY, meterW, meterH);
 
-                    ctx.fillStyle = 'rgba(0,0,0,0.85)';
-                    ctx.fillRect(meterX, meterY, meterW, meterH);
-
-                    const targetHoop = (p === p1) ? hoops[1] : hoops[0];
-                    const targetX = targetHoop.rimX + targetHoop.rimW / 2;
-                    const distToHoop = Math.abs(targetX - (p.x + p.width / 2));
-                    const distPenaltyRatio = Math.min(1.0, distToHoop / 650);
-
-                    let sweetHalf = 0.10 * (1 - (distPenaltyRatio * 0.65));
+                    const targetHoop = (p === p1) ? hoops[1] : hoops[0]; const targetX = targetHoop.rimX + targetHoop.rimW / 2; const distToHoop = Math.abs(targetX - (p.x + p.width / 2)); const distPenaltyRatio = Math.min(1.0, distToHoop / 650);
+                    let sweetHalf = (p.id === 'ayansh' && p.skillActiveTimer > 0) ? 0.2 : (0.10 * (1 - (distPenaltyRatio * 0.65)));
                     if (p.skillActiveTimer > 0 && (p.id === 'kaijie' || p.id === 'curry' || p.id === 'sharran')) sweetHalf = 0.30;
+                    if (p.hyperActiveTimer > 0 && (p.id === 'kaijie' || p.id === 'curry' || p.id === 'sharran' || p.id === 'ayansh')) sweetHalf = 0.45; // Maxed out visual meter for auto-greens
 
-                    ctx.fillStyle = '#22c55e';
-                    const greenStart = meterW * (0.45 - sweetHalf);
-                    ctx.fillRect(meterX + greenStart, meterY, meterW * (sweetHalf * 2), meterH);
+                    ctx.fillStyle = '#22c55e'; const greenStart = meterW * (0.45 - sweetHalf); ctx.fillRect(meterX + greenStart, meterY, meterW * (sweetHalf * 2), meterH);
 
-                    const fillRatio = Math.min(1.0, p.chargeTimer / 0.85);
-                    const isCurrentlyGreen = Math.abs(p.chargeTimer - 0.45) <= sweetHalf;
-                    ctx.fillStyle = isCurrentlyGreen ? '#22c55e' : (fillRatio > 0.8 ? '#ef4444' : '#facc15');
-                    ctx.fillRect(meterX + 1, meterY + 1, (meterW - 2) * fillRatio, meterH - 2);
-
-                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
-                    ctx.strokeRect(meterX, meterY, meterW, meterH);
+                    const fillRatio = Math.min(1.0, p.chargeTimer / 0.85); const isCurrentlyGreen = Math.abs(p.chargeTimer - 0.45) <= sweetHalf;
+                    ctx.fillStyle = isCurrentlyGreen ? '#22c55e' : (fillRatio > 0.8 ? '#ef4444' : '#facc15'); ctx.fillRect(meterX + 1, meterY + 1, (meterW - 2) * fillRatio, meterH - 2);
+                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(meterX, meterY, meterW, meterH);
                 }
             });
 
-            ctx.save();
-            ctx.translate(ball.x, ball.y);
-            ctx.rotate(ball.rotation);
-
-            const bGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, ball.radius);
-            bGrad.addColorStop(0, ball.isFireball ? '#fef08a' : '#fb923c');
-            bGrad.addColorStop(1, ball.isFireball ? '#dc2626' : '#c2410c');
-            ctx.fillStyle = bGrad;
-            ctx.beginPath(); ctx.arc(0, 0, ball.radius, 0, Math.PI * 2); ctx.fill();
-
-            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.arc(0, 0, ball.radius, -0.6, 0.6); ctx.stroke();
-            ctx.restore();
-
+            ctx.save(); ctx.translate(ball.x, ball.y); ctx.rotate(ball.rotation);
+            const bGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, ball.radius); bGrad.addColorStop(0, ball.isFireball ? '#fef08a' : '#fb923c'); bGrad.addColorStop(1, ball.isFireball ? '#dc2626' : '#c2410c'); ctx.fillStyle = bGrad; ctx.beginPath(); ctx.arc(0, 0, ball.radius, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, ball.radius, -0.6, 0.6); ctx.stroke(); ctx.restore();
             ctx.restore();
         }
 
         let lastTime = performance.now();
         function loop(time) {
             requestAnimationFrame(loop);
-            const dt = Math.min((time - lastTime) / 1000, 0.02);
-            lastTime = time;
-
-            scheduleTrapSteps();
-            updateAI(dt);
-            updatePhysics(dt);
-            render();
+            const dt = Math.min((time - lastTime) / 1000, 0.02); lastTime = time;
+            scheduleTrapSteps(); updateAI(dt); updatePhysics(dt); render();
         }
 
         requestAnimationFrame(loop);
