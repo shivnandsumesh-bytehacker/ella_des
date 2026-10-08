@@ -48,33 +48,34 @@
 
         #scoreboard {
             position: absolute;
-            top: 8px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             align-items: center;
-            background: linear-gradient(180deg, #4c1d95, #1e0b36);
-            border: 2px solid #a855f7;
-            border-radius: 12px;
-            padding: 4px 18px;
-            gap: 16px;
+            background: linear-gradient(180deg, #3b0764, #0f172a);
+            border: 2px solid #c084fc;
+            border-radius: 14px;
+            padding: 6px 24px;
+            gap: 20px;
             z-index: 10;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.8);
         }
-        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 110px; }
-        .team-title { font-size: 0.75rem; letter-spacing: 1px; font-weight: bold; }
-        .score-num { font-size: 2.1rem; line-height: 1; font-weight: 900; color: #fff; }
-        .skill-status { font-size: 0.6rem; font-family: sans-serif; font-weight: 900; color: var(--gold); }
-        .hyper-status { font-size: 0.6rem; font-family: sans-serif; font-weight: 900; color: var(--hyper); margin-top: 2px; }
+        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 120px; }
+        .team-title { font-size: 0.8rem; letter-spacing: 1.5px; font-weight: bold; text-shadow: 0 0 8px currentColor; }
+        .score-num { font-size: 2.4rem; line-height: 1; font-weight: 900; color: #fff; text-shadow: 0 4px 0 #000; margin: 2px 0; }
+        .skill-status { font-size: 0.65rem; font-family: sans-serif; font-weight: 900; color: var(--gold); }
+        .hyper-status { font-size: 0.65rem; font-family: sans-serif; font-weight: 900; color: var(--hyper); margin-top: 2px; }
         .timer-box {
             background: #020617;
             border: 2px solid var(--gold);
             border-radius: 8px;
-            padding: 3px 12px;
-            font-size: 1.6rem;
+            padding: 4px 16px;
+            font-size: 1.8rem;
             color: var(--gold);
             font-family: monospace;
             font-weight: 900;
+            text-shadow: 0 0 10px var(--gold);
         }
 
         /* Top Audio Controls Bar */
@@ -113,19 +114,20 @@
 
         #banner-popup {
             position: absolute;
-            top: 78px;
+            top: 85px;
             left: 50%;
             transform: translateX(-50%) scale(0);
-            background: #f59e0b;
-            color: #000;
-            padding: 6px 24px;
-            font-size: 1.8rem;
+            background: linear-gradient(90deg, #f59e0b, #ea580c);
+            color: #fff;
+            padding: 8px 32px;
+            font-size: 2rem;
             font-weight: 900;
             border: 3px solid #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             pointer-events: none;
             z-index: 30;
+            text-shadow: 0 2px 4px #000;
             transition: transform 0.16s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -139,6 +141,12 @@
         }
         #touch-left { left: 10px; }
         #touch-right { right: 10px; }
+
+        @keyframes hyperPulse {
+            0% { box-shadow: 0 0 5px currentColor; }
+            50% { box-shadow: 0 0 20px currentColor; transform: scale(1.05); }
+            100% { box-shadow: 0 0 5px currentColor; }
+        }
 
         .ctrl-btn {
             width: 52px;
@@ -154,11 +162,14 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: transform 0.1s;
         }
-        .ctrl-btn:active { background: var(--p1-cyan); color: #000; transform: scale(0.92); }
+        .ctrl-btn:active { background: var(--p1-cyan); color: #000; transform: scale(0.92) !important; }
         .ctrl-btn.act { border-color: var(--gold); color: var(--gold); }
         .ctrl-btn.skill-btn { border-color: #a855f7; color: var(--p1-cyan); }
         .ctrl-btn.hyper-btn { border-color: var(--hyper); color: var(--hyper); }
+        
+        .ctrl-btn.ready { animation: hyperPulse 1.5s infinite; border-width: 3px; }
 
         .overlay {
             position: absolute;
@@ -223,26 +234,10 @@
             align-items: center;
         }
         .roster-card:hover { transform: translateY(-2px); }
-        .roster-card.p1-pick {
-            border-color: var(--p1-cyan) !important;
-            box-shadow: 0 0 14px var(--p1-cyan);
-            background: #162a4d;
-        }
-        .roster-card.p2-pick {
-            border-color: var(--p2-pink) !important;
-            box-shadow: 0 0 14px var(--p2-pink);
-            background: #3e1227;
-        }
-        .roster-card.both-pick {
-            border-color: var(--gold) !important;
-            box-shadow: 0 0 16px var(--gold);
-            background: #3c2415;
-        }
-        .roster-card.locked-card {
-            filter: grayscale(0.65);
-            opacity: 0.85;
-            border-color: #64748b;
-        }
+        .roster-card.p1-pick { border-color: var(--p1-cyan) !important; box-shadow: 0 0 14px var(--p1-cyan); background: #162a4d; }
+        .roster-card.p2-pick { border-color: var(--p2-pink) !important; box-shadow: 0 0 14px var(--p2-pink); background: #3e1227; }
+        .roster-card.both-pick { border-color: var(--gold) !important; box-shadow: 0 0 16px var(--gold); background: #3c2415; }
+        .roster-card.locked-card { filter: grayscale(0.65); opacity: 0.85; border-color: #64748b; }
 
         .badge-container {
             position: absolute;
@@ -254,13 +249,7 @@
             justify-content: flex-end;
             width: 90%;
         }
-        .pick-badge {
-            font-size: 0.58rem;
-            font-family: sans-serif;
-            font-weight: 900;
-            padding: 1px 4px;
-            border-radius: 4px;
-        }
+        .pick-badge { font-size: 0.58rem; font-family: sans-serif; font-weight: 900; padding: 1px 4px; border-radius: 4px; }
         .badge-p1 { background: var(--p1-cyan); color: #000; }
         .badge-p2 { background: var(--p2-pink); color: #fff; }
         .badge-lock { background: var(--gold); color: #000; }
@@ -505,7 +494,7 @@
         }
 
         // ==========================================
-        // ROSTER DATABASE (Updated with Suhaas, Ayansh, and Hypers)
+        // ROSTER DATABASE
         // ==========================================
         const ROSTER = [
             {
@@ -533,14 +522,14 @@
                 id: 'shivnand', name: 'SHIVNAND', role: 'Lockdown Clamp God',
                 heightCm: 165, speed: 410, jumpForce: 740, shotAccuracy: 0.45, dunkReach: 195, stealStat: 0.98, defenseRating: 99,
                 skillName: 'Magnet Clamps', skillDesc: 'Instantly rips ball & freezes rival',
-                hyperName: 'Absolute Zero', hyperDesc: 'Freezes rival completely for 6 seconds', hyperCost: 2500,
+                hyperName: 'Absolute Zero', hyperDesc: 'Freezes rival completely for 5 seconds', hyperCost: 2500,
                 unlockCost: 0, skin: '#c2410c', hair: 'athletic', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#10b981'
             },
             {
                 id: 'julius', name: 'JULIUS', role: 'Speed Demon Slasher',
                 heightCm: 165, speed: 420, jumpForce: 630, shotAccuracy: 0.86, dunkReach: 170, stealStat: 0.72, defenseRating: 75,
                 skillName: 'Warp Dash', skillDesc: 'Instant teleport dash behind rival',
-                hyperName: 'Time Skip', hyperDesc: 'Teleports directly to hoop with ball', hyperCost: 1500,
+                hyperName: 'Time Skip', hyperDesc: 'Teleports directly to the hoop with ball', hyperCost: 1500,
                 unlockCost: 0, skin: '#fde047', hair: 'parted', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#8b5cf6'
             },
             {
@@ -594,17 +583,31 @@
             },
             {
                 id: 'ayansh', name: 'AYANSH', role: 'Precision Marksman',
-                heightCm: 182, speed: 380, jumpForce: 610, shotAccuracy: 0.88, dunkReach: 120, stealStat: 0.65, defenseRating: 70,
+                heightCm: 165, speed: 380, jumpForce: 610, shotAccuracy: 0.88, dunkReach: 120, stealStat: 0.65, defenseRating: 70,
                 skillName: 'Quick Draw', skillDesc: 'Extremely fast shot meter charge',
                 hyperName: 'Rainmaker', hyperDesc: 'Automatically Greens the next shot', hyperCost: 1500,
                 unlockCost: 0, skin: '#93c5fd', hair: 'wavy', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#eab308'
             },
             {
                 id: 'suhaas', name: 'SUHAAS', role: 'Bench Warmer (Hard Mode)',
-                heightCm: 160, speed: 250, jumpForce: 450, shotAccuracy: 0.35, dunkReach: 0, stealStat: 0.30, defenseRating: 40,
+                heightCm: 170, speed: 250, jumpForce: 450, shotAccuracy: 0.35, dunkReach: 0, stealStat: 0.30, defenseRating: 40,
                 skillName: 'Desperate Swipe', skillDesc: 'Slightly higher steal chance for 1s',
                 hyperName: 'Underdog Surge', hyperDesc: 'Temporarily maxes ALL stats for 8s', hyperCost: 800,
                 unlockCost: 0, skin: '#fca5a5', hair: 'parted', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#475569'
+            },
+            {
+                id: 'darryl', name: 'DARRYL', role: 'Sniper & Slasher',
+                heightCm: 169, speed: 330, jumpForce: 690, shotAccuracy: 0.88, dunkReach: 150, stealStat: 0.60, defenseRating: 75,
+                skillName: 'Chakra Shot', skillDesc: 'Uncontestable deep three',
+                hyperName: 'Tiger Leap', hyperDesc: 'Jumps from anywhere to dunk', hyperCost: 1800,
+                unlockCost: 0, skin: '#a16207', hair: 'parted', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#f59e0b'
+            },
+            {
+                id: 'achutha', name: 'ACHUTHA', role: 'Dribble God',
+                heightCm: 172, speed: 450, jumpForce: 650, shotAccuracy: 0.72, dunkReach: 140, stealStat: 0.85, defenseRating: 70,
+                skillName: 'Tornado Spin', skillDesc: 'Violently breaks defender ankles',
+                hyperName: 'Mirage Drive', hyperDesc: 'Teleports through rival for an easy lay', hyperCost: 2000,
+                unlockCost: 0, skin: '#854d0e', hair: 'wavy', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#8b5cf6'
             }
         ];
 
@@ -734,7 +737,7 @@
 
         function activateSkill(user, rival) {
             if (user.skillCooldown > 0 || !matchActive || user.stunTimer > 0) return;
-            user.skillCooldown = 15; user.skillActiveTimer = 4.5; playSound('skill'); triggerBanner(`${user.name}: ${user.skillName.toUpperCase()}! ⚡`);
+            user.skillCooldown = 15; user.skillActiveTimer = 5.0; playSound('skill'); triggerBanner(`${user.name}: ${user.skillName.toUpperCase()}! ⚡`);
 
             if (user.id === 'shivnand') {
                 const dist = Math.hypot((user.x + user.width/2) - (rival.x + rival.width/2), user.y - rival.y);
@@ -747,27 +750,29 @@
                 if (dist < 130) { rival.stunTimer = 1.2; rival.vx = -user.facing * 180; triggerBanner('ANKLES BROKEN! 💥'); }
             } else if (user.id === 'alvin' || user.id === 'ritvik') { user.vy = -user.jumpForce * 1.2; user.onGround = false; }
             else if (user.id === 'lebron') { rival.vx = user.facing * 450; rival.pickupLockout = 0.8; rival.stunTimer = 0.6; }
-            else if (user.id === 'ayansh') { user.chargeTimer = 0.45; } // fast charge
+            else if (user.id === 'ayansh') { user.chargeTimer = 0.45; }
+            else if (user.id === 'achutha') { rival.stunTimer = 1.8; rival.vx = -user.facing * 300; triggerBanner('TORNADO SPIN! 🌪️'); }
         }
 
-        // --- NEW: UNIVERSAL HYPER ENGINE ---
+        // --- UNIVERSAL HYPER ENGINE ---
         function activateHyper(user, rival) {
             if (!isHyperUnlocked(user) || user.hyperCooldown > 0 || !matchActive || user.stunTimer > 0) return;
-            user.hyperCooldown = 40; // Long cooldown
+            user.hyperCooldown = 40; 
             user.hyperActiveTimer = 6.0; 
             playSound('hyper'); screenShake = 15; 
-            triggerBanner(`🔥 ${user.name} HYPER: ${user.hyperName.toUpperCase()}!`);
+            triggerBanner(`🔥 ${user.name}: ${user.hyperName.toUpperCase()}!`);
 
             if (user.id === 'suhaas') {
                 user.speed = 500; user.jumpForce = 850; user.shotAccuracy = 1.0; user.dunkReach = 200; user.stealStat = 1.0;
                 setTimeout(() => { user.speed = user.baseStats.speed; user.jumpForce = user.baseStats.jumpForce; user.shotAccuracy = user.baseStats.shotAccuracy; user.dunkReach = user.baseStats.dunkReach; }, 8000);
-            } else if (user.id === 'shivnand') { rival.stunTimer = 6.0; }
+            } else if (user.id === 'shivnand') { rival.stunTimer = 5.0; } // NERFED from 6.0 to 5.0
             else if (user.id === 'kaijie') { rival.stunTimer = 2.0; rival.vx = -user.facing * 300; }
-            else if (user.id === 'julius' || user.id === 'john') { 
+            else if (user.id === 'julius' || user.id === 'john' || user.id === 'darryl') { 
                 if (ball.holder === user) { user.x = (user === p1) ? hoops[1].rimX - 20 : hoops[0].rimX + 20; executeDunk(user, user === p1 ? hoops[1] : hoops[0]); }
             } else if (user.id === 'jason') { rival.vx = user.facing * 800; rival.stunTimer = 1.5; }
             else if (user.id === 'ritvik') { if (!ball.holder && ball.inFlight) { ball.vx = (user.x - ball.x)*5; ball.vy = (user.y - ball.y)*5; } }
             else if (user.id === 'kd') { if (ball.holder === rival) { ball.holder = user; ball.lastTouchedBy = user; } rival.stunTimer = 2.0; }
+            else if (user.id === 'achutha') { user.x = rival.x + (user.facing * 80); rival.stunTimer = 2.0; triggerBanner('MIRAGE DRIVE! 💨'); }
         }
 
         function attemptSteal(stealer, target) {
@@ -793,7 +798,7 @@
         }
 
         function isShotContested(shooter, defender) {
-            if (shooter.skillActiveTimer > 0 && (shooter.id === 'kd' || shooter.id === 'sharran')) return false;
+            if (shooter.skillActiveTimer > 0 && (shooter.id === 'kd' || shooter.id === 'sharran' || shooter.id === 'darryl')) return false;
             const dist = Math.abs((shooter.x + shooter.width/2) - (defender.x + defender.width/2));
             const activeGuard = dist < 82 && (!defender.onGround || defender.defenseRating > 65);
             defender.isClamping = activeGuard; return activeGuard;
@@ -813,9 +818,8 @@
             if (contested) allowedGreenWindow *= (defender.id === 'shivnand' ? 0.3 : 0.6);
 
             let isGreen = diff <= allowedGreenWindow;
-            // Hyper Overrides
             if (shooter.hyperActiveTimer > 0 && (shooter.id === 'curry' || shooter.id === 'sharran' || shooter.id === 'ayansh' || shooter.id === 'kaijie')) {
-                isGreen = true; shooter.hyperActiveTimer = 0; // consumed
+                isGreen = true; shooter.hyperActiveTimer = 0;
             }
 
             const perfectArc = getArcTrajectory(ball.x, ball.y, targetX, targetY, GRAVITY);
@@ -823,7 +827,7 @@
             if (isGreen) {
                 ball.isFireball = true;
                 if (shooter.hyperActiveTimer > 0 && shooter.id === 'curry') {
-                    ball.isHyperAimbot = true; ball.hyperTargetX = targetX; ball.hyperTargetY = targetY; ball.vy = -800; // flies up then homes
+                    ball.isHyperAimbot = true; ball.hyperTargetX = targetX; ball.hyperTargetY = targetY; ball.vy = -800;
                 } else { ball.vx = perfectArc.vx; ball.vy = perfectArc.vy; }
                 triggerBanner('🔥 PERFECT GREEN!');
             } else if (shooter.chargeTimer > 0.85 || distToHoop > 750) {
@@ -1006,6 +1010,9 @@
             document.getElementById('p2-skill-hud').innerText = p2.skillCooldown <= 0 ? '[O] SUPER READY' : `[O] ${Math.ceil(p2.skillCooldown)}s`;
             document.getElementById('p1-hyper-hud').innerText = (!isHyperUnlocked(p1)) ? '[R] HYPER LOCKED' : (p1.hyperCooldown <= 0 ? '[R] HYPER READY' : `[R] ${Math.ceil(p1.hyperCooldown)}s`);
             document.getElementById('p2-hyper-hud').innerText = (!isHyperUnlocked(p2)) ? '[P] HYPER LOCKED' : (p2.hyperCooldown <= 0 ? '[P] HYPER READY' : `[P] ${Math.ceil(p2.hyperCooldown)}s`);
+
+            document.getElementById('t-skill').classList.toggle('ready', p1.skillCooldown <= 0);
+            document.getElementById('t-hyper').classList.toggle('ready', p1.hyperCooldown <= 0 && isHyperUnlocked(p1));
 
             isShotContested(p1, p2); isShotContested(p2, p1);
 
