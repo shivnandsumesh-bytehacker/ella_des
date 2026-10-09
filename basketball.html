@@ -7,16 +7,17 @@
     <style>
         :root {
             --gold: #facc15;
-            --purple-card: #1e1138;
+            --purple-card: rgba(30, 17, 56, 0.7);
             --p1-cyan: #00f3ff;
             --p2-pink: #f43f5e;
             --green: #22c55e;
             --red: #ef4444;
             --hyper: #ff007f;
+            --panel: rgba(11, 19, 41, 0.85);
         }
         * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
         body {
-            background: #090414;
+            background: #05020a;
             color: #fff;
             font-family: 'Impact', 'Arial Black', sans-serif;
             text-align: center;
@@ -38,63 +39,83 @@
             height: 600px;
             max-width: 100vw;
             max-height: 86vh;
-            border: 3px solid #9333ea;
-            border-radius: 14px;
-            box-shadow: 0 8px 40px rgba(147, 51, 234, 0.45);
+            border: 4px solid #a855f7;
+            border-radius: 16px;
+            box-shadow: 0 0 50px rgba(168, 85, 247, 0.4), inset 0 0 30px rgba(0,0,0,0.8);
             overflow: hidden;
-            background: #110726;
+            background: radial-gradient(circle at center, #1b0c3b 0%, #090414 100%);
         }
-        #game-canvas { width: 100%; height: 100%; display: block; }
+        
+        /* CRT Scanline Overlay */
+        #game-wrapper::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        #game-canvas { width: 100%; height: 100%; display: block; position: relative; z-index: 1; }
+
+        .cyber-glass {
+            background: var(--panel);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
 
         #scoreboard {
             position: absolute;
-            top: 10px;
+            top: 12px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             align-items: center;
-            background: linear-gradient(180deg, #3b0764, #0f172a);
-            border: 2px solid #c084fc;
-            border-radius: 14px;
-            padding: 6px 24px;
-            gap: 20px;
+            border-radius: 16px;
+            padding: 8px 28px;
+            gap: 24px;
             z-index: 10;
-            box-shadow: 0 6px 25px rgba(0,0,0,0.8);
         }
         .team-box { display: flex; flex-direction: column; align-items: center; min-width: 120px; }
-        .team-title { font-size: 0.8rem; letter-spacing: 1.5px; font-weight: bold; text-shadow: 0 0 8px currentColor; }
-        .score-num { font-size: 2.4rem; line-height: 1; font-weight: 900; color: #fff; text-shadow: 0 4px 0 #000; margin: 2px 0; }
+        .team-title { font-size: 0.85rem; letter-spacing: 1.5px; font-weight: bold; text-shadow: 0 0 10px currentColor; }
+        .score-num { font-size: 2.8rem; line-height: 1; font-weight: 900; color: #fff; text-shadow: 0 5px 0 rgba(0,0,0,0.8), 0 0 20px currentColor; margin: 4px 0; }
         .skill-status { font-size: 0.65rem; font-family: sans-serif; font-weight: 900; color: var(--gold); }
         .hyper-status { font-size: 0.65rem; font-family: sans-serif; font-weight: 900; color: var(--hyper); margin-top: 2px; }
+        
         .timer-box {
             background: #020617;
             border: 2px solid var(--gold);
-            border-radius: 8px;
-            padding: 4px 16px;
-            font-size: 1.8rem;
+            border-radius: 10px;
+            padding: 4px 18px;
+            font-size: 2rem;
             color: var(--gold);
             font-family: monospace;
             font-weight: 900;
-            text-shadow: 0 0 10px var(--gold);
+            text-shadow: 0 0 15px var(--gold);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
         }
 
-        /* Top Audio Controls Bar */
+        /* Top Audio & Quit Controls */
         .audio-controls-bar {
             position: absolute;
-            top: 10px;
+            top: 14px;
             right: 14px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             z-index: 25;
         }
         .music-pill {
             background: rgba(15, 23, 42, 0.88);
             border: 1.5px solid #a855f7;
             color: var(--p1-cyan);
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 20px;
-            font-size: 0.72rem;
+            font-size: 0.75rem;
             font-weight: bold;
             font-family: sans-serif;
             cursor: pointer;
@@ -104,71 +125,69 @@
             align-items: center;
             gap: 4px;
         }
-        .music-pill:active { transform: scale(0.94); background: var(--p1-cyan); color: #000; }
+        .music-pill:active { transform: scale(0.92); background: var(--p1-cyan); color: #000; }
         .music-pill.active { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 14px var(--gold); }
-        .upload-pill {
-            background: rgba(30, 17, 56, 0.88);
-            border-color: var(--gold);
-            color: var(--gold);
-        }
+        .music-pill.quit-btn { border-color: var(--danger); color: var(--danger); }
+        .music-pill.quit-btn:active { background: var(--danger); color: #fff; }
 
         #banner-popup {
             position: absolute;
-            top: 85px;
+            top: 95px;
             left: 50%;
             transform: translateX(-50%) scale(0);
-            background: linear-gradient(90deg, #f59e0b, #ea580c);
+            background: linear-gradient(135deg, #f59e0b, #ea580c);
             color: #fff;
-            padding: 8px 32px;
-            font-size: 2rem;
+            padding: 10px 36px;
+            font-size: 2.2rem;
             font-weight: 900;
             border: 3px solid #fff;
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            box-shadow: 0 10px 40px rgba(234, 88, 12, 0.8);
             pointer-events: none;
             z-index: 30;
-            text-shadow: 0 2px 4px #000;
+            text-shadow: 0 3px 6px rgba(0,0,0,0.8);
             transition: transform 0.16s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            letter-spacing: 1px;
         }
 
         .touch-zone {
             position: absolute;
-            bottom: 10px;
+            bottom: 12px;
             display: flex;
-            gap: 8px;
+            gap: 10px;
             z-index: 25;
             touch-action: none;
         }
-        #touch-left { left: 10px; }
-        #touch-right { right: 10px; }
+        #touch-left { left: 14px; }
+        #touch-right { right: 14px; }
 
         @keyframes hyperPulse {
             0% { box-shadow: 0 0 5px currentColor; }
-            50% { box-shadow: 0 0 20px currentColor; transform: scale(1.05); }
+            50% { box-shadow: 0 0 25px currentColor; transform: scale(1.08); }
             100% { box-shadow: 0 0 5px currentColor; }
         }
 
         .ctrl-btn {
-            width: 52px;
-            height: 52px;
+            width: 55px;
+            height: 55px;
             background: rgba(30, 17, 56, 0.85);
             border: 2px solid #a855f7;
-            border-radius: 12px;
+            border-radius: 14px;
             color: #fff;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             font-weight: bold;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: all 0.15s;
+            backdrop-filter: blur(4px);
         }
-        .ctrl-btn:active { background: var(--p1-cyan); color: #000; transform: scale(0.92) !important; }
+        .ctrl-btn:active { background: var(--p1-cyan); color: #000; transform: scale(0.90) !important; }
         .ctrl-btn.act { border-color: var(--gold); color: var(--gold); }
         .ctrl-btn.skill-btn { border-color: #a855f7; color: var(--p1-cyan); }
         .ctrl-btn.hyper-btn { border-color: var(--hyper); color: var(--hyper); }
-        
         .ctrl-btn.ready { animation: hyperPulse 1.5s infinite; border-width: 3px; }
 
         .overlay {
@@ -182,120 +201,136 @@
             z-index: 50;
             padding: 10px;
         }
+        
         .title {
-            font-size: 2.1rem;
+            font-size: 2.6rem;
             color: var(--gold);
-            text-shadow: 3px 3px 0 #ea580c, 5px 5px 0 #000;
-            margin: 0 0 6px 0;
+            text-shadow: 4px 4px 0 #ea580c, 6px 6px 0 #000, 0 0 30px rgba(250, 204, 21, 0.5);
+            margin: 0 0 10px 0;
+            letter-spacing: 2px;
         }
 
         .select-header-tabs {
             display: flex;
             gap: 16px;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         .tab-indicator {
-            padding: 5px 14px;
+            padding: 6px 16px;
             border-radius: 8px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-family: sans-serif;
             font-weight: 900;
             letter-spacing: 0.5px;
             border: 2px solid transparent;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s;
         }
-        .tab-p1 { background: rgba(0, 243, 255, 0.18); color: var(--p1-cyan); border-color: var(--p1-cyan); }
-        .tab-p1.selected { background: var(--p1-cyan); color: #000; box-shadow: 0 0 14px var(--p1-cyan); }
-        .tab-p2 { background: rgba(244, 63, 94, 0.18); color: var(--p2-pink); border-color: var(--p2-pink); }
-        .tab-p2.selected { background: var(--p2-pink); color: #fff; box-shadow: 0 0 14px var(--p2-pink); }
+        .tab-p1 { background: rgba(0, 243, 255, 0.15); color: var(--p1-cyan); border-color: var(--p1-cyan); }
+        .tab-p1.selected { background: var(--p1-cyan); color: #000; box-shadow: 0 0 20px var(--p1-cyan); transform: scale(1.05); }
+        .tab-p2 { background: rgba(244, 63, 94, 0.15); color: var(--p2-pink); border-color: var(--p2-pink); }
+        .tab-p2.selected { background: var(--p2-pink); color: #fff; box-shadow: 0 0 20px var(--p2-pink); transform: scale(1.05); }
 
         .roster-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 8px;
-            max-width: 960px;
-            max-height: 330px;
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            gap: 10px;
+            max-width: 980px;
+            max-height: 340px;
             overflow-y: auto;
             width: 100%;
-            padding: 6px;
-            margin-bottom: 10px;
+            padding: 8px;
+            margin-bottom: 16px;
         }
+        .roster-grid::-webkit-scrollbar { width: 8px; }
+        .roster-grid::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 4px; }
+        
         .roster-card {
             position: relative;
             background: var(--purple-card);
             border: 2px solid #6b21a8;
-            border-radius: 10px;
-            padding: 8px 6px;
+            border-radius: 12px;
+            padding: 10px 6px;
             cursor: pointer;
-            transition: all 0.12s;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             flex-direction: column;
             align-items: center;
+            backdrop-filter: blur(8px);
         }
-        .roster-card:hover { transform: translateY(-2px); }
-        .roster-card.p1-pick { border-color: var(--p1-cyan) !important; box-shadow: 0 0 14px var(--p1-cyan); background: #162a4d; }
-        .roster-card.p2-pick { border-color: var(--p2-pink) !important; box-shadow: 0 0 14px var(--p2-pink); background: #3e1227; }
-        .roster-card.both-pick { border-color: var(--gold) !important; box-shadow: 0 0 16px var(--gold); background: #3c2415; }
-        .roster-card.locked-card { filter: grayscale(0.65); opacity: 0.85; border-color: #64748b; }
+        .roster-card:hover { transform: translateY(-4px); border-color: #c084fc; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .roster-card.p1-pick { border-color: var(--p1-cyan) !important; box-shadow: 0 0 20px rgba(0,243,255,0.4); background: rgba(22, 42, 77, 0.9); }
+        .roster-card.p2-pick { border-color: var(--p2-pink) !important; box-shadow: 0 0 20px rgba(244,63,94,0.4); background: rgba(62, 18, 39, 0.9); }
+        .roster-card.both-pick { border-color: var(--gold) !important; box-shadow: 0 0 25px rgba(250,204,21,0.5); background: rgba(60, 36, 21, 0.9); }
+        .roster-card.locked-card { filter: grayscale(0.8); opacity: 0.7; border-color: #475569; }
 
         .badge-container {
             position: absolute;
-            top: 4px;
-            right: 4px;
+            top: 6px;
+            right: 6px;
             display: flex;
-            gap: 3px;
+            gap: 4px;
             flex-wrap: wrap;
             justify-content: flex-end;
             width: 90%;
         }
-        .pick-badge { font-size: 0.58rem; font-family: sans-serif; font-weight: 900; padding: 1px 4px; border-radius: 4px; }
+        .pick-badge { font-size: 0.6rem; font-family: sans-serif; font-weight: 900; padding: 2px 5px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
         .badge-p1 { background: var(--p1-cyan); color: #000; }
         .badge-p2 { background: var(--p2-pink); color: #fff; }
         .badge-lock { background: var(--gold); color: #000; }
 
-        .card-name { font-size: 0.92rem; color: #fff; margin-bottom: 2px; margin-top: 10px; }
-        .card-type { font-size: 0.58rem; color: #38bdf8; font-family: sans-serif; text-transform: uppercase; margin-bottom: 4px; }
-        .card-stat { font-size: 0.65rem; color: #cbd5e1; font-family: sans-serif; text-align: left; width: 95%; line-height: 1.25; }
+        .card-name { font-size: 1rem; color: #fff; margin-bottom: 2px; margin-top: 12px; letter-spacing: 1px; text-shadow: 0 2px 4px #000; }
+        .card-type { font-size: 0.6rem; color: #38bdf8; font-family: sans-serif; text-transform: uppercase; margin-bottom: 6px; font-weight: bold; }
+        .card-stat { font-size: 0.68rem; color: #cbd5e1; font-family: sans-serif; text-align: left; width: 95%; line-height: 1.3; }
         .card-stat strong { color: var(--gold); }
-        .card-skill-desc { font-size: 0.58rem; color: #a855f7; font-family: sans-serif; margin-top: 3px; font-weight: bold; }
-        .card-hyper-desc { font-size: 0.58rem; color: var(--hyper); font-family: sans-serif; margin-top: 2px; font-weight: bold; }
+        .card-skill-desc { font-size: 0.6rem; color: #c084fc; font-family: sans-serif; margin-top: 5px; font-weight: bold; line-height: 1.1; }
+        .card-hyper-desc { font-size: 0.6rem; color: var(--hyper); font-family: sans-serif; margin-top: 3px; font-weight: bold; line-height: 1.1; }
         
         .hyper-unlock-btn {
-            font-size: 0.6rem; padding: 3px 6px; margin-top: 4px;
+            font-size: 0.65rem; padding: 4px 8px; margin-top: 6px;
             background: linear-gradient(180deg, var(--hyper), #be123c);
-            border: 1px solid #fff; color: #fff; border-radius: 4px;
+            border: 1px solid #fff; color: #fff; border-radius: 6px;
             cursor: pointer; font-family: sans-serif; font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
         }
+        .hyper-unlock-btn:active { transform: scale(0.95); }
 
-        .btn-row { display: flex; gap: 14px; margin-top: 4px; }
+        .btn-row { display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
         .btn {
-            background: linear-gradient(180deg, #facc15, #eab308);
+            background: linear-gradient(180deg, #facc15, #d97706);
             color: #000;
             border: 2px solid #fff;
-            padding: 8px 22px;
-            font-size: 1.15rem;
+            padding: 10px 24px;
+            font-size: 1.2rem;
             font-family: inherit;
             font-weight: 900;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
-            box-shadow: 0 4px 0 #a16207;
+            box-shadow: 0 6px 0 #92400e, 0 10px 20px rgba(0,0,0,0.5);
+            transition: transform 0.1s, box-shadow 0.1s;
+            letter-spacing: 1px;
         }
-        .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #a16207; }
+        .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #92400e, 0 4px 10px rgba(0,0,0,0.5); }
+        .btn.blue { background: linear-gradient(180deg, #06b6d4, #0369a1); box-shadow: 0 6px 0 #075985, 0 10px 20px rgba(0,0,0,0.5); color: #fff; }
+        .btn.blue:active { box-shadow: 0 2px 0 #075985, 0 4px 10px rgba(0,0,0,0.5); }
+        .btn.green { background: linear-gradient(180deg, #10b981, #047857); box-shadow: 0 6px 0 #064e3b, 0 10px 20px rgba(0,0,0,0.5); color: #fff; }
+        .btn.green:active { box-shadow: 0 2px 0 #064e3b, 0 4px 10px rgba(0,0,0,0.5); }
 
         .controls-bar {
             width: 1000px;
             max-width: 100vw;
-            background: #150a2a;
-            border: 1.5px solid #4c1d95;
-            border-radius: 8px;
-            margin-top: 4px;
-            padding: 4px 12px;
+            background: rgba(15, 10, 30, 0.9);
+            border: 2px solid #4c1d95;
+            border-radius: 10px;
+            margin-top: 8px;
+            padding: 6px 16px;
             display: flex;
             justify-content: space-around;
-            font-size: 0.72rem;
+            font-size: 0.75rem;
             font-family: sans-serif;
             color: #cbd5e1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
         }
         .controls-bar strong { color: var(--gold); }
         .controls-bar span.hyper { color: var(--hyper); font-weight: bold; }
@@ -307,9 +342,10 @@
         <canvas id="game-canvas" width="1000" height="600"></canvas>
 
         <div class="audio-controls-bar">
+            <button class="music-pill quit-btn" onclick="openMenu()">🚪 QUIT</button>
             <button class="music-pill" id="music-pill" onclick="toggleMusicPlayback()">🔥 TRAP: OFF</button>
             <label class="music-pill upload-pill" title="Upload and loop your own MP3/WAV/M4A song file">
-                📁 Upload Song
+                📁 Upload
                 <input type="file" id="custom-song-input" 
                        accept=".mp3,.wav,.m4a,.aac,.ogg,.flac,audio/mpeg,audio/wav,audio/aac,audio/mp4,audio/x-m4a,video/mp4,video/quicktime" 
                        style="display:none;" onchange="handleSongUpload(event)">
@@ -318,7 +354,7 @@
 
         <audio id="bgm-player" loop preload="auto"></audio>
 
-        <div id="scoreboard">
+        <div id="scoreboard" class="cyber-glass">
             <div class="team-box">
                 <span class="team-title" id="p1-name-hud" style="color:var(--p1-cyan);">PLAYER 1</span>
                 <span class="score-num" id="p1-score">0</span>
@@ -349,24 +385,25 @@
 
         <div id="select-modal" class="overlay">
             <h1 class="title">RIVALS & ALL-STARS</h1>
-            <div style="font-size:0.8rem; font-family:sans-serif; color:var(--gold); margin-bottom:6px;">
-                🪙 Arcade Wallet: <strong id="hub-coins-text">0</strong> Coins
+            <div style="font-size:0.9rem; font-family:sans-serif; color:var(--gold); margin-bottom:10px; font-weight:bold;">
+                🪙 Arcade Wallet: <strong id="hub-coins-text" style="font-size:1.1rem;">0</strong> Coins
             </div>
             <div class="select-header-tabs">
                 <div class="tab-indicator tab-p1 selected" id="tab-btn-p1" onclick="setActivePicker(1)">P1 SELECTION: <span id="p1-pick-name">JOHN</span></div>
                 <div class="tab-indicator tab-p2" id="tab-btn-p2" onclick="setActivePicker(2)">P2 / RIVAL: <span id="p2-pick-name">SHIVNAND</span></div>
             </div>
-            <div class="roster-grid" id="roster-container"></div>
+            <div class="roster-grid cyber-glass" id="roster-container"></div>
             <div class="btn-row">
                 <button class="btn" onclick="startMatch('1P')">▶ VS AI</button>
-                <button class="btn" style="background:#06b6d4; box-shadow:0 4px 0 #0891b2; color:#fff;" onclick="startMatch('2P')">👥 LOCAL 2-PLAYER</button>
+                <button class="btn blue" onclick="startMatch('2P')">👥 LOCAL 2P</button>
+                <button class="btn green" onclick="startMatch('PRACTICE')">🏀 PRACTICE</button>
             </div>
         </div>
 
-        <div id="end-modal" class="overlay" style="display:none;">
+        <div id="end-modal" class="overlay" style="display:none; backdrop-filter: blur(16px);">
             <h1 class="title" id="end-title">MATCH OVER</h1>
-            <h2 id="final-score-text" style="color:var(--gold); font-size:2.2rem; margin:10px 0;">0 - 0</h2>
-            <button class="btn" onclick="openMenu()">🔄 PLAY AGAIN</button>
+            <h2 id="final-score-text" style="color:var(--gold); font-size:3rem; margin:15px 0; text-shadow: 0 4px 10px rgba(0,0,0,0.8);">0 - 0</h2>
+            <button class="btn" onclick="openMenu()">🔄 RETURN TO ROSTER</button>
         </div>
     </div>
 
@@ -494,7 +531,7 @@
         }
 
         // ==========================================
-        // ROSTER DATABASE
+        // ROSTER DATABASE (Updated Heights, Skin Tones, New Players)
         // ==========================================
         const ROSTER = [
             {
@@ -523,7 +560,7 @@
                 heightCm: 165, speed: 410, jumpForce: 740, shotAccuracy: 0.45, dunkReach: 195, stealStat: 0.98, defenseRating: 99,
                 skillName: 'Magnet Clamps', skillDesc: 'Instantly rips ball & freezes rival',
                 hyperName: 'Absolute Zero', hyperDesc: 'Freezes rival completely for 5 seconds', hyperCost: 2500,
-                unlockCost: 0, skin: '#c2410c', hair: 'athletic', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#10b981'
+                unlockCost: 0, skin: '#b45309', hair: 'athletic', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#10b981'
             },
             {
                 id: 'julius', name: 'JULIUS', role: 'Speed Demon Slasher',
@@ -589,7 +626,7 @@
                 unlockCost: 0, skin: '#93c5fd', hair: 'wavy', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#eab308'
             },
             {
-                id: 'suhaas', name: 'SUHAAS', role: 'Bench Warmer (Hard Mode)',
+                id: 'suhaas', name: 'SUHAAS', role: 'Bench Warmer',
                 heightCm: 170, speed: 250, jumpForce: 450, shotAccuracy: 0.35, dunkReach: 0, stealStat: 0.30, defenseRating: 40,
                 skillName: 'Desperate Swipe', skillDesc: 'Slightly higher steal chance for 1s',
                 hyperName: 'Underdog Surge', hyperDesc: 'Temporarily maxes ALL stats for 8s', hyperCost: 800,
@@ -600,14 +637,14 @@
                 heightCm: 169, speed: 330, jumpForce: 690, shotAccuracy: 0.88, dunkReach: 150, stealStat: 0.60, defenseRating: 75,
                 skillName: 'Chakra Shot', skillDesc: 'Uncontestable deep three',
                 hyperName: 'Tiger Leap', hyperDesc: 'Jumps from anywhere to dunk', hyperCost: 1800,
-                unlockCost: 0, skin: '#a16207', hair: 'parted', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#f59e0b'
+                unlockCost: 0, skin: '#b45309', hair: 'parted', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#f59e0b'
             },
             {
                 id: 'achutha', name: 'ACHUTHA', role: 'Dribble God',
-                heightCm: 172, speed: 450, jumpForce: 650, shotAccuracy: 0.72, dunkReach: 140, stealStat: 0.85, defenseRating: 70,
+                heightCm: 163, speed: 450, jumpForce: 600, shotAccuracy: 0.72, dunkReach: 0, stealStat: 0.85, defenseRating: 70,
                 skillName: 'Tornado Spin', skillDesc: 'Violently breaks defender ankles',
                 hyperName: 'Mirage Drive', hyperDesc: 'Teleports through rival for an easy lay', hyperCost: 2000,
-                unlockCost: 0, skin: '#854d0e', hair: 'wavy', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#8b5cf6'
+                unlockCost: 0, skin: '#dca570', hair: 'wavy', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#8b5cf6'
             }
         ];
 
@@ -754,7 +791,6 @@
             else if (user.id === 'achutha') { rival.stunTimer = 1.8; rival.vx = -user.facing * 300; triggerBanner('TORNADO SPIN! 🌪️'); }
         }
 
-        // --- UNIVERSAL HYPER ENGINE ---
         function activateHyper(user, rival) {
             if (!isHyperUnlocked(user) || user.hyperCooldown > 0 || !matchActive || user.stunTimer > 0) return;
             user.hyperCooldown = 40; 
@@ -765,7 +801,7 @@
             if (user.id === 'suhaas') {
                 user.speed = 500; user.jumpForce = 850; user.shotAccuracy = 1.0; user.dunkReach = 200; user.stealStat = 1.0;
                 setTimeout(() => { user.speed = user.baseStats.speed; user.jumpForce = user.baseStats.jumpForce; user.shotAccuracy = user.baseStats.shotAccuracy; user.dunkReach = user.baseStats.dunkReach; }, 8000);
-            } else if (user.id === 'shivnand') { rival.stunTimer = 5.0; } // NERFED from 6.0 to 5.0
+            } else if (user.id === 'shivnand') { rival.stunTimer = 5.0; }
             else if (user.id === 'kaijie') { rival.stunTimer = 2.0; rival.vx = -user.facing * 300; }
             else if (user.id === 'julius' || user.id === 'john' || user.id === 'darryl') { 
                 if (ball.holder === user) { user.x = (user === p1) ? hoops[1].rimX - 20 : hoops[0].rimX + 20; executeDunk(user, user === p1 ? hoops[1] : hoops[0]); }
@@ -863,12 +899,24 @@
         function startMatch(mode) {
             gameMode = mode; p1Score = 0; p2Score = 0; timeLeft = 60; matchActive = true;
             p1 = createEntity(ROSTER[selectedP1Idx], 220, 1); p2 = createEntity(ROSTER[selectedP2Idx], 740, -1);
-            document.getElementById('p1-name-hud').innerText = p1.name; document.getElementById('p2-name-hud').innerText = (gameMode === '1P') ? `${p2.name} (AI)` : p2.name;
-            document.getElementById('p1-score').innerText = '0'; document.getElementById('p2-score').innerText = '0'; document.getElementById('match-timer').innerText = '60';
+            document.getElementById('p1-name-hud').innerText = p1.name;
+            
+            if (gameMode === 'PRACTICE') {
+                document.getElementById('p2-name-hud').innerText = 'DUMMY AI';
+                document.getElementById('match-timer').innerText = '∞';
+            } else {
+                document.getElementById('p2-name-hud').innerText = (gameMode === '1P') ? `${p2.name} (AI)` : p2.name;
+                document.getElementById('match-timer').innerText = '60';
+            }
+            
+            document.getElementById('p1-score').innerText = '0'; document.getElementById('p2-score').innerText = '0'; 
             document.getElementById('select-modal').style.display = 'none'; document.getElementById('end-modal').style.display = 'none';
             resetRound(p1);
             if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => { if (matchActive && timeLeft > 0) { timeLeft--; document.getElementById('match-timer').innerText = timeLeft; if (timeLeft <= 0) finishMatch(); } }, 1000);
+            
+            if (gameMode !== 'PRACTICE') {
+                timerInterval = setInterval(() => { if (matchActive && timeLeft > 0) { timeLeft--; document.getElementById('match-timer').innerText = timeLeft; if (timeLeft <= 0) finishMatch(); } }, 1000);
+            }
         }
 
         function resetRound(inboundPlayer) {
@@ -888,10 +936,12 @@
         }
 
         function openMenu() {
+            matchActive = false; if (timerInterval) clearInterval(timerInterval);
             document.getElementById('end-modal').style.display = 'none'; document.getElementById('select-modal').style.display = 'flex'; updateCoinsDisplay(); refreshRosterCardsUI();
         }
 
         function updateAI(dt) {
+            if (gameMode === 'PRACTICE') return; // AI is a passive dummy in practice
             if (gameMode !== '1P' || !matchActive || p2.isDunking || p2.stunTimer > 0) return;
             p2.aiDecisionTimer += dt; const targetHoop = hoops[0]; const distToRim = (p2.x + p2.width / 2) - (targetHoop.rimX + 23); const distToPlayer = Math.abs(p2.x - p1.x);
 
@@ -1099,7 +1149,6 @@
             if (screenShake > 0.5) ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const bg = ctx.createLinearGradient(0, 0, 0, COURT_Y); bg.addColorStop(0, '#130628'); bg.addColorStop(1, '#2c0d5a'); ctx.fillStyle = bg; ctx.fillRect(0, 0, canvas.width, COURT_Y);
             const wood = ctx.createLinearGradient(0, COURT_Y, 0, canvas.height); wood.addColorStop(0, '#d97706'); wood.addColorStop(1, '#92400e'); ctx.fillStyle = wood; ctx.fillRect(0, COURT_Y, canvas.width, canvas.height - COURT_Y);
 
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.strokeRect(35, COURT_Y, canvas.width - 70, canvas.height - COURT_Y - 14);
@@ -1156,7 +1205,7 @@
                     const targetHoop = (p === p1) ? hoops[1] : hoops[0]; const targetX = targetHoop.rimX + targetHoop.rimW / 2; const distToHoop = Math.abs(targetX - (p.x + p.width / 2)); const distPenaltyRatio = Math.min(1.0, distToHoop / 650);
                     let sweetHalf = (p.id === 'ayansh' && p.skillActiveTimer > 0) ? 0.2 : (0.10 * (1 - (distPenaltyRatio * 0.65)));
                     if (p.skillActiveTimer > 0 && (p.id === 'kaijie' || p.id === 'curry' || p.id === 'sharran')) sweetHalf = 0.30;
-                    if (p.hyperActiveTimer > 0 && (p.id === 'kaijie' || p.id === 'curry' || p.id === 'sharran' || p.id === 'ayansh')) sweetHalf = 0.45; // Maxed out visual meter for auto-greens
+                    if (p.hyperActiveTimer > 0 && (p.id === 'kaijie' || p.id === 'curry' || p.id === 'sharran' || p.id === 'ayansh')) sweetHalf = 0.45;
 
                     ctx.fillStyle = '#22c55e'; const greenStart = meterW * (0.45 - sweetHalf); ctx.fillRect(meterX + greenStart, meterY, meterW * (sweetHalf * 2), meterH);
 
