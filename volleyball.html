@@ -65,7 +65,6 @@
             overflow: hidden;
         }
 
-        /* Scoreboard with Super Meters */
         .scoreboard {
             width: 100%;
             display: flex;
@@ -124,6 +123,41 @@
 
         .modal { position: absolute; inset: 0; background: rgba(3, 7, 18, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
         .modal-card { background: var(--card); border: 2px solid var(--primary); border-radius: 14px; padding: 24px; max-width: 500px; width: 95%; text-align: center; box-shadow: 0 0 40px rgba(0, 243, 255, 0.25); }
+        
+        .cyber-glass {
+            background: rgba(11, 19, 41, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid var(--primary);
+            box-shadow: 0 8px 32px rgba(0, 243, 255, 0.2);
+            border-radius: 16px;
+        }
+        
+        .title {
+            font-size: 3.5rem;
+            color: var(--gold);
+            text-shadow: 4px 4px 0 #ea580c, 6px 6px 0 #000;
+            margin: 0 0 5px 0;
+            letter-spacing: 2px;
+            line-height: 1.1;
+        }
+
+        .mode-card {
+            flex: 1;
+            min-width: 200px;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .mode-card.ai-mode { background: rgba(0, 243, 255, 0.1); border: 2px solid var(--primary); }
+        .mode-card.ai-mode:hover { background: rgba(0, 243, 255, 0.2); transform: translateY(-8px); box-shadow: 0 10px 25px rgba(0, 243, 255, 0.4); }
+        .mode-card.local-mode { background: rgba(255, 0, 127, 0.1); border: 2px solid var(--accent); }
+        .mode-card.local-mode:hover { background: rgba(255, 0, 127, 0.2); transform: translateY(-8px); box-shadow: 0 10px 25px rgba(255, 0, 127, 0.4); }
+
         .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 16px; }
         .btn { background: var(--primary); color: #000; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 1.1rem; }
         .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--primary); }
@@ -175,13 +209,23 @@
             <div class="slot"><div class="slot-val">[S / ↓]</div>Dive</div>
         </div>
 
-        <!-- Start Menu -->
+        <!-- Start Menu (Upgraded UI) -->
         <div id="start-modal" class="modal">
-            <div class="modal-card">
-                <h2 style="color:var(--primary); font-size: 2rem; margin:0 0 10px 0;">SELECT GAMEMODE</h2>
-                <div class="btn-grid">
-                    <button class="btn" onclick="startGame('AI')">👤 1P vs AI</button>
-                    <button class="btn" style="background:var(--accent);" onclick="startGame('LOCAL')">👥 Local 2P</button>
+            <div class="modal-card cyber-glass" style="max-width: 600px; padding: 30px;">
+                <h1 class="title">VOLLEYBALL<br><span style="color: #fff; text-shadow: 0 0 15px #fff;">LEGENDS</span></h1>
+                <p style="color:#94a3b8; font-size: 1rem; margin-bottom: 25px;">Select your match type to enter the arena.</p>
+                
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <div class="mode-card ai-mode" onclick="startGame('AI')">
+                        <div style="font-size: 3.5rem; margin-bottom: 10px;">🤖</div>
+                        <h3 style="color: var(--primary); margin: 0 0 5px 0; font-size: 1.4rem;">1P vs AI</h3>
+                        <p style="color: #cbd5e1; font-size: 0.85rem; margin: 0;">Play against the Smart CPU.<br>Build your skills!</p>
+                    </div>
+                    <div class="mode-card local-mode" onclick="startGame('LOCAL')">
+                        <div style="font-size: 3.5rem; margin-bottom: 10px;">👥</div>
+                        <h3 style="color: var(--accent); margin: 0 0 5px 0; font-size: 1.4rem;">LOCAL 2P</h3>
+                        <p style="color: #cbd5e1; font-size: 0.85rem; margin: 0;">Grab a friend and play on<br>the same keyboard!</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -224,7 +268,6 @@
                     g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
                     o.connect(g); g.connect(ctx.destination); o.start(); o.stop(t + 0.18);
                 } else if (type === 'hyper') {
-                    // Huge bassy explosion sound for Hyper Smash
                     const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sawtooth';
                     o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(20, t + 0.4);
                     g.gain.setValueAtTime(0.8, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
@@ -248,7 +291,7 @@
         const GRAVITY = 0.44;
         const JUMP_FORCE = -13.5;
 
-        let gameMode = 'AI'; // 'AI' or 'LOCAL'
+        let gameMode = 'AI'; 
         let scoreP1 = 0, scoreP2 = 0;
         let rallyHits = 0;
         let currentServer = 'P1';
@@ -256,7 +299,7 @@
         let gold = 0;
 
         let screenShake = 0;
-        let hitStopFrames = 0; // Freeze frame counter for hyper hits
+        let hitStopFrames = 0; 
 
         function updateWallet() {
             gold = parseInt(localStorage.getItem('arcade_coins')) || 0;
@@ -362,19 +405,17 @@
 
             const dx = ball.x - player.x; const dy = ball.y - (player.y - 45); const dist = Math.hypot(dx, dy);
 
-            // Hit detection radius
             if (dist < 95 && ((dir === 1 && ball.x < NET_X + 25) || (dir === -1 && ball.x > NET_X - 25))) {
                 ball.lastHitter = player.id; ball.hitCooldown = 12; player.swingTimer = 16;
                 rallyHits++; document.getElementById('rally-hits').innerText = rallyHits;
                 
-                // HYPER SMASH CHECK
                 if (hitType === 'spike' && player.superMeter >= 100 && !player.onGround) {
-                    player.superMeter = 0; chargeSuper(player, 0); // reset UI
-                    ball.vx = dir * 21.0; // Incredibly fast
+                    player.superMeter = 0; chargeSuper(player, 0);
+                    ball.vx = dir * 21.0; 
                     ball.vy = 12.0;
                     ball.isSpike = true;
                     ball.isHyper = true;
-                    hitStopFrames = 12; // Freeze the game for dramatic effect
+                    hitStopFrames = 12; 
                     screenShake = 25;
                     showAnnouncement("HYPER SMASH! 🔥", "linear-gradient(90deg, #ff007f, #facc15)");
                     playSound('hyper');
@@ -382,7 +423,7 @@
                     return;
                 }
 
-                chargeSuper(player, 15); // Normal hit builds meter
+                chargeSuper(player, 15); 
 
                 if (hitType === 'spike' && !player.onGround) {
                     ball.vx = dir * 14.8; ball.vy = 8.8; ball.isSpike = true; ball.isHyper = false;
@@ -401,7 +442,7 @@
 
             if (scorerId === 'P1') {
                 scoreP1++; document.getElementById('score-p1').innerText = scoreP1;
-                showAnnouncement("POINT P1! 🎉", "var(--primary)"); addCoins(15); playSound('cheer');
+                showAnnouncement("POINT P1! 🎉", "var(--primary)"); addCoins(15);
             } else {
                 scoreP2++; document.getElementById('score-p2').innerText = scoreP2;
                 showAnnouncement(gameMode === 'AI' ? "POINT AI! 💥" : "POINT P2! 🎉", "var(--accent)");
@@ -485,7 +526,6 @@
 
             if (p.y >= FLOOR_Y) { p.y = FLOOR_Y; p.vy = 0; p.onGround = true; }
             
-            // Net & Wall bounds
             if (p.id === 'P1') p.x = Math.max(50, Math.min(NET_X - 25, p.x));
             else p.x = Math.max(NET_X + 25, Math.min(910, p.x));
             
@@ -493,11 +533,8 @@
         }
 
         function updateGame() {
-            // Hit Stop Freeze Frame
             if (hitStopFrames > 0) {
-                hitStopFrames--;
-                screenShake = 10; // Maintain shake during freeze
-                return; // Skip physics updates for dramatic pause
+                hitStopFrames--; screenShake = 10; return; 
             }
 
             updatePlayer(p1, 1);
@@ -505,12 +542,11 @@
             if (gameMode === 'LOCAL') {
                 updatePlayer(p2, -1);
             } else {
-                // SMARTER AI LOGIC
+                // IMPROVED, SMART AI LOGIC
                 if (matchState === 'RALLY') {
                     if (ball.x > NET_X - 40) {
                         p2.targetX = Math.max(NET_X + 45, Math.min(900, ball.x + (ball.vx * 9)));
                         
-                        // Smart AI Diving
                         const distToLanding = Math.abs(p2.x - p2.targetX);
                         if (distToLanding > 120 && ball.y > 250 && ball.vy > 0 && p2.onGround && !p2.isDiving) {
                             p2.faceDir = p2.targetX > p2.x ? 1 : -1;
@@ -525,24 +561,27 @@
 
                         const distToBall = Math.hypot(p2.x - ball.x, (p2.y - 45) - ball.y);
                         if (distToBall < 88 && ball.x > NET_X && ball.hitCooldown <= 0) {
-                            // AI Uses Hyper Smash!
-                            if (p2.superMeter >= 100 && !p2.onGround && ball.y < NET_TOP_Y + 80) {
-                                executeHit(p2, 'spike', -1);
-                            } else if (!p2.onGround && ball.y < NET_TOP_Y + 70 && ball.x > NET_X + 60) {
-                                executeHit(p2, 'spike', -1);
-                            } else if (Math.random() < 0.35) {
-                                executeHit(p2, 'set', -1);
+                            
+                            // Smart Decision Making Matrix
+                            if (p2.superMeter >= 100 && !p2.onGround && ball.y < NET_TOP_Y + 90) {
+                                executeHit(p2, 'spike', -1); 
+                            } else if (!p2.onGround && ball.y < NET_TOP_Y + 80) {
+                                if (Math.random() < 0.2) executeHit(p2, 'set', -1); // Occasional tricky floater
+                                else executeHit(p2, 'spike', -1);
                             } else {
-                                executeHit(p2, 'bump', -1);
+                                if (ball.x > 800) executeHit(p2, 'set', -1); // Deep court? Set it forward.
+                                else if (Math.random() < 0.4) executeHit(p2, 'set', -1); // Mix up sets and bumps
+                                else executeHit(p2, 'bump', -1);
                             }
                         }
 
-                        // Jump Logic
+                        // Smart Jump Logic (Won't just blindly jump every time)
                         if (p2.onGround && ball.y < 350 && Math.abs(p2.x - ball.x) < 55) {
-                            p2.vy = JUMP_FORCE; p2.onGround = false;
+                            if (Math.random() < 0.8) { // 80% chance to jump, 20% fakeout ground bump
+                                p2.vy = JUMP_FORCE; p2.onGround = false;
+                            }
                         }
                     } else {
-                        // Return to base or block
                         if (!p1.onGround && p1.x > NET_X - 90 && p2.onGround) {
                             p2.targetX = NET_X + 40;
                             if (Math.abs(p2.x - p2.targetX) < 20) { p2.vy = JUMP_FORCE; p2.onGround = false; }
@@ -560,13 +599,11 @@
 
             // Ball Physics
             if (matchState === 'RALLY') {
-                // Ball Trail Logging
                 ball.trail.push({ x: ball.x, y: ball.y });
                 if (ball.trail.length > (ball.isHyper ? 12 : 6)) ball.trail.shift();
 
                 ball.x += ball.vx; ball.y += ball.vy; ball.vy += GRAVITY; ball.rotation += ball.vx * 0.04;
 
-                // Passive Body Contact Bump
                 if (ball.hitCooldown <= 0) {
                     const distP1 = Math.hypot(p1.x - ball.x, (p1.y - 45) - ball.y);
                     if (distP1 < 44 && ball.x < NET_X + 10) {
@@ -582,16 +619,13 @@
                     particles.push({ x: ball.x, y: ball.y, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, color: ball.isHyper ? '#facc15' : '#ff007f', life: 0.6 });
                 }
 
-                // Net Collision
                 if (Math.abs(ball.x - NET_X) < ball.radius + NET_WIDTH / 2 && ball.y >= NET_TOP_Y) {
                     ball.vx = -ball.vx * 0.7; ball.x = ball.x < NET_X ? NET_X - ball.radius - 8 : NET_X + ball.radius + 8; playSound('bump');
                 }
 
-                // Wall Bounds
                 if (ball.x <= 30 + ball.radius) { ball.x = 30 + ball.radius; ball.vx = -ball.vx * 0.75; playSound('bump'); } 
                 else if (ball.x >= 930 - ball.radius) { ball.x = 930 - ball.radius; ball.vx = -ball.vx * 0.75; playSound('bump'); }
 
-                // Floor Scoring
                 if (ball.y >= FLOOR_Y - ball.radius) {
                     ball.y = FLOOR_Y - ball.radius; ball.vx = 0; ball.vy = 0; screenShake = ball.isHyper ? 15 : 5;
                     if (ball.isHyper) createExplosion(ball.x, ball.y, '#facc15', 30);
@@ -644,7 +678,6 @@
             ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'; ctx.beginPath(); ctx.ellipse(0, 2, 20, 6, 0, 0, Math.PI * 2); ctx.fill();
             if (c.isDiving) ctx.rotate(c.faceDir * 1.1);
 
-            // Aura if super is full
             if (c.superMeter >= 100) {
                 ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3; ctx.beginPath();
                 ctx.arc(0, -40, 50 + Math.sin(Date.now()*0.01)*5, 0, Math.PI*2); ctx.stroke();
@@ -662,17 +695,12 @@
         }
 
         function drawBall() {
-            // Trail
             if (ball.trail.length > 1) {
                 ctx.beginPath();
                 ctx.moveTo(ball.trail[0].x, ball.trail[0].y);
-                for (let i = 1; i < ball.trail.length; i++) {
-                    ctx.lineTo(ball.trail[i].x, ball.trail[i].y);
-                }
+                for (let i = 1; i < ball.trail.length; i++) { ctx.lineTo(ball.trail[i].x, ball.trail[i].y); }
                 ctx.strokeStyle = ball.isHyper ? 'rgba(250, 204, 21, 0.6)' : 'rgba(255, 255, 255, 0.4)';
-                ctx.lineWidth = ball.radius * 1.5;
-                ctx.lineCap = 'round';
-                ctx.stroke();
+                ctx.lineWidth = ball.radius * 1.5; ctx.lineCap = 'round'; ctx.stroke();
             }
 
             ctx.save(); ctx.translate(ball.x, ball.y); ctx.rotate(ball.rotation);
@@ -690,7 +718,6 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             updateWallet();
-            // Wait at menu first
         });
     </script>
 </body>
