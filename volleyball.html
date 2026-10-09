@@ -10,7 +10,6 @@
             --primary: #00f3ff;
             --primary-glow: rgba(0, 243, 255, 0.4);
             --accent: #ff007f;
-            --accent-glow: rgba(255, 0, 127, 0.4);
             --gold: #facc15;
             --emerald: #10b981;
             --bg: #030712;
@@ -48,7 +47,6 @@
         }
         .stats { font-size: 1.05rem; font-weight: bold; color: var(--gold); }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
-        a.nav:hover { text-shadow: 0 0 8px var(--primary); }
 
         #game-wrapper {
             width: 100%;
@@ -63,13 +61,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
             padding: 6px;
             overflow: hidden;
-            touch-action: none;
         }
 
-        /* Arena Scoreboard */
+        /* Scoreboard with Super Meters */
         .scoreboard {
             width: 100%;
             display: flex;
@@ -78,155 +74,59 @@
             background: var(--panel-bg);
             border: 1.5px solid rgba(0, 243, 255, 0.35);
             border-radius: 10px;
-            padding: 6px 18px;
+            padding: 8px 24px;
             margin-bottom: 4px;
-            font-size: 0.85rem;
             z-index: 10;
         }
-        .team-box { display: flex; align-items: center; gap: 10px; font-weight: bold; }
-        .score-display { font-size: 1.6rem; font-weight: bold; font-family: monospace; color: var(--gold); }
+        .team-box { display: flex; flex-direction: column; align-items: center; min-width: 120px; }
+        .score-row { display: flex; align-items: center; gap: 12px; font-weight: bold; }
+        .score-display { font-size: 2rem; font-weight: 900; font-family: monospace; color: var(--gold); text-shadow: 0 0 10px var(--gold); }
+        
+        .super-meter-bg { width: 100%; height: 8px; background: #1e293b; border-radius: 4px; margin-top: 6px; overflow: hidden; border: 1px solid #334155; }
+        .super-meter-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #ff007f, #facc15); transition: width 0.2s; }
+        .super-meter-fill.ready { box-shadow: 0 0 10px #facc15; animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.5); }
+            100% { filter: brightness(1); }
+        }
+
         .match-info { text-align: center; }
-        .rally-count { font-size: 0.95rem; font-weight: bold; color: var(--primary); font-family: monospace; }
-        .server-status { font-size: 0.75rem; color: #94a3b8; }
+        .rally-count { font-size: 1.1rem; font-weight: bold; color: var(--primary); font-family: monospace; }
+        .server-status { font-size: 0.8rem; color: #94a3b8; font-weight: bold; margin-top: 4px;}
 
-        /* Canvas Court */
-        #canvas-container {
-            position: relative;
-            flex: 1;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        canvas {
-            background: #020617;
-            border: 2px solid #1e293b;
-            border-radius: 10px;
-            max-width: 100%;
-            max-height: 100%;
-            display: block;
-            touch-action: none;
-        }
+        #canvas-container { position: relative; flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; }
+        canvas { background: #020617; border: 2px solid #1e293b; border-radius: 10px; max-width: 100%; max-height: 100%; display: block; }
 
-        /* Banners */
         #announcement-banner {
             position: absolute;
-            top: 70px;
+            top: 80px;
             left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 243, 255, 0.95);
-            color: #000;
-            font-weight: bold;
-            padding: 8px 28px;
+            transform: translateX(-50%) scale(0);
+            background: linear-gradient(90deg, var(--accent), #ff5e00);
+            color: #fff;
+            font-weight: 900;
+            padding: 10px 32px;
             border-radius: 20px;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             display: none;
             pointer-events: none;
-            box-shadow: 0 0 25px var(--primary);
+            box-shadow: 0 10px 25px rgba(255, 0, 127, 0.6);
             z-index: 25;
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Touchscreen Overlay */
-        .touch-zone {
-            position: absolute;
-            bottom: 56px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            z-index: 15;
-            touch-action: none;
-        }
-        #touch-left { left: 12px; }
-        #touch-right { right: 12px; }
-
-        .touch-btn {
-            width: 48px;
-            height: 48px;
-            background: var(--panel-bg);
-            border: 2px solid var(--primary);
-            border-radius: 50%;
-            color: #fff;
-            font-size: 0.72rem;
-            font-weight: bold;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.1s, background 0.1s;
-        }
-        .touch-btn:active { background: var(--primary); color: #000; transform: scale(0.92); }
-        .touch-btn.spike { border-color: var(--accent); color: var(--accent); }
-        .touch-btn.spike:active { background: var(--accent); color: #fff; }
-        .touch-btn.set { border-color: var(--gold); color: var(--gold); }
-        .touch-btn.set:active { background: var(--gold); color: #000; }
-
-        /* Desktop Controls Bar */
-        .hud-bottom {
-            position: absolute;
-            bottom: 6px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 6px;
-            pointer-events: auto;
-            z-index: 10;
-        }
-        .slot {
-            background: var(--panel-bg);
-            border: 1.5px solid #334155;
-            border-radius: 8px;
-            padding: 4px 8px;
-            min-width: 54px;
-            text-align: center;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
+        .hud-bottom { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+        .slot { background: var(--panel-bg); border: 1.5px solid #334155; border-radius: 8px; padding: 4px 10px; text-align: center; font-size: 0.7rem; cursor: pointer; transition: all 0.15s; }
         .slot:hover { border-color: var(--primary); transform: translateY(-2px); }
         .slot-val { font-weight: bold; color: var(--gold); font-size: 0.82rem; }
 
-        /* Modal */
-        .modal {
-            position: absolute;
-            inset: 0;
-            background: rgba(3, 7, 18, 0.94);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            padding: 20px;
-        }
-        .modal-card {
-            background: var(--card);
-            border: 2px solid var(--primary);
-            border-radius: 14px;
-            padding: 24px;
-            max-width: 500px;
-            width: 95%;
-            text-align: center;
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.25);
-        }
-        .btn-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 10px;
-            margin-top: 16px;
-        }
-        .btn {
-            background: var(--primary);
-            color: #000;
-            border: none;
-            padding: 10px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
+        .modal { position: absolute; inset: 0; background: rgba(3, 7, 18, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+        .modal-card { background: var(--card); border: 2px solid var(--primary); border-radius: 14px; padding: 24px; max-width: 500px; width: 95%; text-align: center; box-shadow: 0 0 40px rgba(0, 243, 255, 0.25); }
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 16px; }
+        .btn { background: var(--primary); color: #000; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 1.1rem; }
         .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--primary); }
-
-        .controls-info { margin-top: 5px; font-size: 0.78rem; color: #94a3b8; max-width: 1000px; }
     </style>
 </head>
 <body>
@@ -240,61 +140,63 @@
     <div id="game-wrapper">
         <div class="scoreboard">
             <div class="team-box">
-                <span style="color:var(--primary);">🔵 YOU</span>
-                <span class="score-display" id="score-p1">0</span>
+                <div class="score-row">
+                    <span id="p1-name-display" style="color:var(--primary);">P1</span>
+                    <span class="score-display" id="score-p1">0</span>
+                </div>
+                <div class="super-meter-bg"><div id="p1-super" class="super-meter-fill"></div></div>
             </div>
+            
             <div class="match-info">
                 <div class="rally-count">RALLY: <span id="rally-hits">0</span></div>
                 <div class="server-status" id="serve-status">Serve: You (P1)</div>
             </div>
+
             <div class="team-box">
-                <span class="score-display" id="score-ai">0</span>
-                <span style="color:var(--accent);">🔴 RIVAL AI</span>
+                <div class="score-row">
+                    <span class="score-display" id="score-p2">0</span>
+                    <span id="p2-name-display" style="color:var(--accent);">AI RIVAL</span>
+                </div>
+                <div class="super-meter-bg"><div id="p2-super" class="super-meter-fill"></div></div>
             </div>
         </div>
 
-        <div id="announcement-banner">SPIKE! 💥</div>
+        <div id="announcement-banner">HYPER SMASH! 💥</div>
 
         <div id="canvas-container">
             <canvas id="court-canvas" width="960" height="520"></canvas>
         </div>
 
-        <div class="touch-zone" id="touch-left">
-            <div class="touch-btn" id="tbtn-left">◀</div>
-            <div class="touch-btn" id="tbtn-right">▶</div>
-            <div class="touch-btn" id="tbtn-jump">▲<br><small>JUMP</small></div>
-        </div>
-
-        <div class="touch-zone" id="touch-right">
-            <div class="touch-btn" id="tbtn-dive">🌊<br><small>DIVE</small></div>
-            <div class="touch-btn set" id="tbtn-set">🎯<br><small>SET</small></div>
-            <div class="touch-btn spike" id="tbtn-hit">🏐<br><small>HIT</small></div>
-        </div>
-
         <div class="hud-bottom">
-            <div class="slot" onclick="executePlayerAction('jump')"><div class="slot-val">[W / ↑]</div>Jump / Block</div>
-            <div class="slot" onclick="executePlayerAction('bump')"><div class="slot-val">[Space / J]</div>Bump / Receive</div>
-            <div class="slot" onclick="executePlayerAction('set')"><div class="slot-val" style="color:var(--gold);">[K]</div>Set / Float</div>
-            <div class="slot" onclick="executePlayerAction('spike')"><div class="slot-val" style="color:var(--accent);">[L]</div>Spike / Smash</div>
-            <div class="slot" onclick="executePlayerAction('dive')"><div class="slot-val">[S / ↓]</div>Dive / Save</div>
-            <div class="slot" onclick="resetMatch()"><div class="slot-val" style="color:var(--primary);">[R]</div>Restart</div>
+            <div class="slot"><div class="slot-val">[W / ↑]</div>Jump</div>
+            <div class="slot"><div class="slot-val">[Space / J]</div>Bump</div>
+            <div class="slot"><div class="slot-val" style="color:var(--gold);">[K]</div>Set</div>
+            <div class="slot"><div class="slot-val" style="color:var(--accent);">[L]</div>Spike</div>
+            <div class="slot"><div class="slot-val">[S / ↓]</div>Dive</div>
         </div>
 
-        <div id="end-modal" class="modal" style="display: none;">
+        <!-- Start Menu -->
+        <div id="start-modal" class="modal">
             <div class="modal-card">
-                <h2 id="end-title" style="color:var(--primary); margin:0 0 6px 0;">VICTORY! 🏆</h2>
-                <p style="color:#94a3b8; font-size:1rem; margin:6px 0;">Final Score: <span id="final-p1" style="color:var(--primary); font-weight:bold;">0</span> - <span id="final-ai" style="color:var(--accent); font-weight:bold;">0</span></p>
-                <p style="color:var(--gold); font-size:0.9rem;" id="end-bounty">+150 Gold Coins Earned! 🪙</p>
+                <h2 style="color:var(--primary); font-size: 2rem; margin:0 0 10px 0;">SELECT GAMEMODE</h2>
                 <div class="btn-grid">
-                    <button class="btn" onclick="resetMatch()">🔄 Play Again</button>
-                    <button class="btn" style="background:#334155; color:#fff;" onclick="location.href='index.html'">← Arcade Hub</button>
+                    <button class="btn" onclick="startGame('AI')">👤 1P vs AI</button>
+                    <button class="btn" style="background:var(--accent);" onclick="startGame('LOCAL')">👥 Local 2P</button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="controls-info">
-        <strong>Move:</strong> [A]/[D] or Left/Right &nbsp;|&nbsp; <strong>Jump/Block:</strong> [W] / Up &nbsp;|&nbsp; <strong>Bump/Serve:</strong> [Space] / [J] &nbsp;|&nbsp; <strong>Set Floater:</strong> [K] &nbsp;|&nbsp; <strong>Spike:</strong> [L] in mid-air &nbsp;|&nbsp; <strong>Dive:</strong> [S] / Down
+        <!-- End Menu -->
+        <div id="end-modal" class="modal" style="display: none;">
+            <div class="modal-card">
+                <h2 id="end-title" style="color:var(--primary); font-size: 2.2rem; margin:0 0 6px 0;">VICTORY! 🏆</h2>
+                <p style="color:#94a3b8; font-size:1.2rem; margin:10px 0;">Final Score: <span id="final-p1" style="color:var(--primary); font-weight:bold;">0</span> - <span id="final-p2" style="color:var(--accent); font-weight:bold;">0</span></p>
+                <p style="color:var(--gold); font-size:1rem; font-weight:bold;" id="end-bounty">+150 Gold Coins Earned! 🪙</p>
+                <div class="btn-grid">
+                    <button class="btn" onclick="location.reload()">🔄 Play Again</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -309,50 +211,29 @@
             try {
                 const ctx = getAudioContext();
                 if (!ctx) return;
-
+                const t = ctx.currentTime;
+                
                 if (type === 'bump') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(260, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(90, ctx.currentTime + 0.1);
-                    gain.gain.setValueAtTime(0.35, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.1);
+                    const o = ctx.createOscillator(); const g = ctx.createGain();
+                    o.frequency.setValueAtTime(260, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.1);
+                    g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+                    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(t + 0.1);
                 } else if (type === 'spike') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(580, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(70, ctx.currentTime + 0.18);
-                    gain.gain.setValueAtTime(0.5, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.18);
+                    const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'triangle';
+                    o.frequency.setValueAtTime(580, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.18);
+                    g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+                    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(t + 0.18);
+                } else if (type === 'hyper') {
+                    // Huge bassy explosion sound for Hyper Smash
+                    const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sawtooth';
+                    o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(20, t + 0.4);
+                    g.gain.setValueAtTime(0.8, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+                    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(t + 0.4);
                 } else if (type === 'whistle') {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(2200, ctx.currentTime);
-                    osc.frequency.setValueAtTime(2600, ctx.currentTime + 0.08);
-                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(); osc.stop(ctx.currentTime + 0.35);
-                } else if (type === 'cheer') {
-                    [440, 554.37, 659.25, 880].forEach((freq, idx) => {
-                        setTimeout(() => {
-                            const osc = ctx.createOscillator();
-                            const gain = ctx.createGain();
-                            osc.type = 'triangle';
-                            osc.frequency.value = freq;
-                            gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-                            osc.connect(gain); gain.connect(ctx.destination);
-                            osc.start(); osc.stop(ctx.currentTime + 0.25);
-                        }, idx * 60);
-                    });
+                    const o = ctx.createOscillator(); const g = ctx.createGain();
+                    o.frequency.setValueAtTime(2200, t); o.frequency.setValueAtTime(2600, t + 0.08);
+                    g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+                    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(t + 0.35);
                 }
             } catch(e){}
         }
@@ -367,11 +248,15 @@
         const GRAVITY = 0.44;
         const JUMP_FORCE = -13.5;
 
-        let scoreP1 = 0, scoreAI = 0;
+        let gameMode = 'AI'; // 'AI' or 'LOCAL'
+        let scoreP1 = 0, scoreP2 = 0;
         let rallyHits = 0;
-        let currentServer = 'PLAYER';
+        let currentServer = 'P1';
         let matchState = 'SERVE';
         let gold = 0;
+
+        let screenShake = 0;
+        let hitStopFrames = 0; // Freeze frame counter for hyper hits
 
         function updateWallet() {
             gold = parseInt(localStorage.getItem('arcade_coins')) || 0;
@@ -383,618 +268,429 @@
             updateWallet();
         }
 
-        function showAnnouncement(text, color = "var(--primary)") {
+        function showAnnouncement(text, color) {
             const b = document.getElementById("announcement-banner");
             b.innerText = text;
             b.style.background = color;
+            b.style.transform = 'translateX(-50%) scale(1.1)';
             b.style.display = "block";
-            setTimeout(() => { b.style.display = "none"; }, 1500);
+            setTimeout(() => { b.style.transform = 'translateX(-50%) scale(0)'; setTimeout(() => { b.style.display = "none"; }, 150); }, 1200);
         }
 
         const p1 = {
-            x: 220, y: FLOOR_Y, vx: 0, vy: 0,
+            id: 'P1', x: 220, y: FLOOR_Y, vx: 0, vy: 0,
             width: 44, height: 75, headRadius: 22,
-            onGround: true, isDiving: false, diveTimer: 0,
-            armAngle: 0, swingTimer: 0,
-            faceDir: 1, speed: 6.5,
-            color: '#00f3ff', skinColor: '#ffe0bd', hairColor: '#facc15'
+            onGround: true, isDiving: false, diveTimer: 0, swingTimer: 0,
+            faceDir: 1, speed: 7.0, superMeter: 0,
+            color: '#00f3ff', skinColor: '#ffe0bd', hairColor: '#facc15',
+            keys: { left: false, right: false, up: false, down: false, bump: false, set: false, spike: false }
         };
 
-        const ai = {
-            x: 740, y: FLOOR_Y, vx: 0, vy: 0,
+        const p2 = {
+            id: 'P2', x: 740, y: FLOOR_Y, vx: 0, vy: 0,
             width: 44, height: 75, headRadius: 22,
-            onGround: true, isDiving: false, diveTimer: 0,
-            armAngle: 0, swingTimer: 0,
-            faceDir: -1, speed: 5.8,
+            onGround: true, isDiving: false, diveTimer: 0, swingTimer: 0,
+            faceDir: -1, speed: 7.0, superMeter: 0,
+            color: '#ff007f', skinColor: '#d4a373', hairColor: '#1e293b',
             targetX: 740,
-            color: '#ff007f', skinColor: '#d4a373', hairColor: '#1e293b'
+            keys: { left: false, right: false, up: false, down: false, bump: false, set: false, spike: false }
         };
 
         const ball = {
-            x: 220, y: 300,
-            vx: 0, vy: 0,
-            radius: 14,
-            rotation: 0,
-            lastHitter: null,
-            hitCooldown: 0,
-            isSpike: false
+            x: 220, y: 300, vx: 0, vy: 0, radius: 14, rotation: 0,
+            lastHitter: null, hitCooldown: 0, isSpike: false, isHyper: false,
+            trail: []
         };
 
         let particles = [];
-        const keys = { a: false, d: false, w: false, s: false };
         let lastTime = performance.now();
 
-        function resetServe(server = 'PLAYER') {
-            matchState = 'SERVE';
-            currentServer = server;
-            rallyHits = 0;
+        function startGame(mode) {
+            gameMode = mode;
+            document.getElementById('start-modal').style.display = 'none';
+            document.getElementById('p1-name-display').innerText = 'PLAYER 1';
+            document.getElementById('p2-name-display').innerText = mode === 'AI' ? 'AI RIVAL' : 'PLAYER 2';
+            resetServe('P1');
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resetServe(server) {
+            matchState = 'SERVE'; currentServer = server; rallyHits = 0;
             document.getElementById('rally-hits').innerText = rallyHits;
-            document.getElementById('serve-status').innerText = `Serve: ${server === 'PLAYER' ? 'You (P1)' : 'Rival AI'}`;
+            document.getElementById('serve-status').innerText = `Serve: ${server === 'P1' ? 'Player 1' : (gameMode === 'AI' ? 'AI' : 'Player 2')}`;
 
             p1.x = 220; p1.y = FLOOR_Y; p1.vx = 0; p1.vy = 0; p1.onGround = true; p1.isDiving = false;
-            ai.x = 740; ai.y = FLOOR_Y; ai.vx = 0; ai.vy = 0; ai.onGround = true; ai.isDiving = false;
+            p2.x = 740; p2.y = FLOOR_Y; p2.vx = 0; p2.vy = 0; p2.onGround = true; p2.isDiving = false;
 
-            ball.isSpike = false;
-            ball.lastHitter = null;
-            ball.hitCooldown = 0;
+            ball.isSpike = false; ball.isHyper = false; ball.lastHitter = null; ball.hitCooldown = 0; ball.trail = [];
 
-            if (server === 'PLAYER') {
+            if (server === 'P1') {
                 ball.x = 220; ball.y = 300; ball.vx = 0; ball.vy = 0;
-                showAnnouncement("YOUR SERVE! [Space / J]", "var(--primary)");
+                showAnnouncement("P1 SERVE! [Space]", "var(--primary)");
             } else {
                 ball.x = 740; ball.y = 300; ball.vx = 0; ball.vy = 0;
-                showAnnouncement("AI SERVING...", "var(--accent)");
-
-                setTimeout(() => {
-                    if (matchState === 'SERVE' && currentServer === 'AI') {
-                        executeAIServe();
-                    }
-                }, 1000);
+                showAnnouncement(gameMode === 'AI' ? "AI SERVING..." : "P2 SERVE! [Enter]", "var(--accent)");
+                
+                if (gameMode === 'AI') {
+                    setTimeout(() => { if (matchState === 'SERVE' && currentServer === 'P2') { executeHit(p2, 'bump', -1); } }, 1000);
+                }
             }
             playSound('whistle');
         }
 
-        function executePlayerAction(action) {
+        function chargeSuper(player, amount) {
+            player.superMeter = Math.min(100, player.superMeter + amount);
+            const fill = document.getElementById(player.id === 'P1' ? 'p1-super' : 'p2-super');
+            fill.style.width = `${player.superMeter}%`;
+            fill.classList.toggle('ready', player.superMeter >= 100);
+        }
+
+        function executeHit(player, hitType, dir) {
             getAudioContext();
-            if (matchState === 'SERVE' && currentServer === 'PLAYER') {
-                if (action === 'bump' || action === 'spike' || action === 'set') {
+            
+            if (matchState === 'SERVE' && currentServer === player.id) {
+                if (hitType === 'bump' || hitType === 'spike' || hitType === 'set') {
                     matchState = 'RALLY';
-                    ball.vx = 9.2;
-                    ball.vy = -13.0;
-                    ball.lastHitter = 'PLAYER';
-                    ball.hitCooldown = 15;
-                    p1.swingTimer = 16;
+                    ball.vx = dir * 9.2; ball.vy = -13.0;
+                    ball.lastHitter = player.id; ball.hitCooldown = 15; player.swingTimer = 16;
                     playSound('bump');
                     return;
                 }
             }
 
-            if (action === 'jump' && p1.onGround && !p1.isDiving) {
-                p1.vy = JUMP_FORCE;
-                p1.onGround = false;
-                playSound('bump');
-            } else if (action === 'dive' && p1.onGround && !p1.isDiving) {
-                p1.isDiving = true;
-                p1.diveTimer = 20;
-                p1.vx = p1.faceDir * 11.0;
-                p1.vy = -3;
-                p1.onGround = false;
-            } else if (action === 'bump' || action === 'spike' || action === 'set') {
-                tryPlayerHit(action);
-            }
-        }
-
-        function tryPlayerHit(hitType) {
             if (matchState !== 'RALLY' || ball.hitCooldown > 0) return;
 
-            const dx = ball.x - p1.x;
-            const dy = ball.y - (p1.y - 45);
-            const dist = Math.hypot(dx, dy);
+            const dx = ball.x - player.x; const dy = ball.y - (player.y - 45); const dist = Math.hypot(dx, dy);
 
-            if (dist < 95 && ball.x < NET_X + 25) {
-                ball.lastHitter = 'PLAYER';
-                ball.hitCooldown = 12;
-                p1.swingTimer = 16;
-                rallyHits++;
-                document.getElementById('rally-hits').innerText = rallyHits;
-
-                if (hitType === 'spike' && !p1.onGround) {
-                    // Power Spike diagonal Smash
-                    ball.vx = 14.8;
-                    ball.vy = 8.8;
+            // Hit detection radius
+            if (dist < 95 && ((dir === 1 && ball.x < NET_X + 25) || (dir === -1 && ball.x > NET_X - 25))) {
+                ball.lastHitter = player.id; ball.hitCooldown = 12; player.swingTimer = 16;
+                rallyHits++; document.getElementById('rally-hits').innerText = rallyHits;
+                
+                // HYPER SMASH CHECK
+                if (hitType === 'spike' && player.superMeter >= 100 && !player.onGround) {
+                    player.superMeter = 0; chargeSuper(player, 0); // reset UI
+                    ball.vx = dir * 21.0; // Incredibly fast
+                    ball.vy = 12.0;
                     ball.isSpike = true;
-                    showAnnouncement("SPIKE! 💥", "var(--accent)");
-                    playSound('spike');
-                    createExplosion(ball.x, ball.y, '#ff007f');
+                    ball.isHyper = true;
+                    hitStopFrames = 12; // Freeze the game for dramatic effect
+                    screenShake = 25;
+                    showAnnouncement("HYPER SMASH! 🔥", "linear-gradient(90deg, #ff007f, #facc15)");
+                    playSound('hyper');
+                    createExplosion(ball.x, ball.y, '#facc15', 25);
+                    return;
+                }
+
+                chargeSuper(player, 15); // Normal hit builds meter
+
+                if (hitType === 'spike' && !player.onGround) {
+                    ball.vx = dir * 14.8; ball.vy = 8.8; ball.isSpike = true; ball.isHyper = false;
+                    playSound('spike'); createExplosion(ball.x, ball.y, player.color, 12);
                 } else if (hitType === 'set') {
-                    // Floater set up in the air
-                    ball.vx = 3.8;
-                    ball.vy = -14.8;
-                    ball.isSpike = false;
-                    showAnnouncement("SET! 🎯", "var(--gold)");
-                    playSound('bump');
+                    ball.vx = dir * 3.8; ball.vy = -14.8; ball.isSpike = false; ball.isHyper = false; playSound('bump');
                 } else {
-                    // Standard arc over net
-                    ball.vx = 8.8;
-                    ball.vy = -12.2;
-                    ball.isSpike = false;
-                    playSound('bump');
+                    ball.vx = dir * 8.8; ball.vy = -12.2; ball.isSpike = false; ball.isHyper = false; playSound('bump');
                 }
             }
         }
 
-        function executeAIServe() {
-            if (matchState !== 'SERVE') return;
-            matchState = 'RALLY';
-            ball.vx = -9.2;
-            ball.vy = -13.0;
-            ball.lastHitter = 'AI';
-            ball.hitCooldown = 15;
-            ai.swingTimer = 16;
-            playSound('bump');
-        }
-
-        function executeAIHit(hitType) {
-            if (matchState !== 'RALLY' || ball.hitCooldown > 0) return;
-
-            ball.lastHitter = 'AI';
-            ball.hitCooldown = 12;
-            ai.swingTimer = 16;
-            rallyHits++;
-            document.getElementById('rally-hits').innerText = rallyHits;
-
-            const distToNet = ball.x - NET_X;
-
-            if (hitType === 'spike' && distToNet < 160 && ball.y < NET_TOP_Y + 70) {
-                // Ensure spike angle clears the net top cleanly
-                ball.vx = -14.2;
-                ball.vy = 7.5;
-                ball.isSpike = true;
-                showAnnouncement("AI SPIKE! 💥", "var(--accent)");
-                playSound('spike');
-                createExplosion(ball.x, ball.y, '#ff007f');
-            } else if (hitType === 'set') {
-                ball.vx = -3.8;
-                ball.vy = -14.5;
-                ball.isSpike = false;
-                playSound('bump');
-            } else {
-                // High arc return that safely clears net
-                ball.vx = -8.8;
-                ball.vy = -12.4;
-                ball.isSpike = false;
-                playSound('bump');
-            }
-        }
-
-        function scorePoint(scorer) {
+        function scorePoint(scorerId) {
             matchState = 'SCORED';
             playSound('whistle');
 
-            if (scorer === 'PLAYER') {
-                scoreP1++;
-                document.getElementById('score-p1').innerText = scoreP1;
-                showAnnouncement("POINT PLAYER! 🎉 (+25 Gold)", "var(--emerald)");
-                addCoins(25);
-                playSound('cheer');
+            if (scorerId === 'P1') {
+                scoreP1++; document.getElementById('score-p1').innerText = scoreP1;
+                showAnnouncement("POINT P1! 🎉", "var(--primary)"); addCoins(15); playSound('cheer');
             } else {
-                scoreAI++;
-                document.getElementById('score-ai').innerText = scoreAI;
-                showAnnouncement("POINT AI! 💥", "var(--accent)");
+                scoreP2++; document.getElementById('score-p2').innerText = scoreP2;
+                showAnnouncement(gameMode === 'AI' ? "POINT AI! 💥" : "POINT P2! 🎉", "var(--accent)");
             }
 
             setTimeout(() => {
-                if (scoreP1 >= 11 && scoreP1 - scoreAI >= 2) {
-                    endMatch(true);
-                } else if (scoreAI >= 11 && scoreAI - scoreP1 >= 2) {
-                    endMatch(false);
-                } else {
-                    resetServe(scorer === 'PLAYER' ? 'PLAYER' : 'AI');
-                }
+                if (scoreP1 >= 11 && scoreP1 - scoreP2 >= 2) endMatch(true);
+                else if (scoreP2 >= 11 && scoreP2 - scoreP1 >= 2) endMatch(false);
+                else resetServe(scorerId);
             }, 1800);
         }
 
-        function endMatch(won) {
+        function endMatch(p1Won) {
             const m = document.getElementById('end-modal');
             document.getElementById('final-p1').innerText = scoreP1;
-            document.getElementById('final-ai').innerText = scoreAI;
+            document.getElementById('final-p2').innerText = scoreP2;
 
-            if (won) {
-                document.getElementById('end-title').innerText = "CHAMPIONSHIP VICTORY! 🏆";
+            if (p1Won) {
+                document.getElementById('end-title').innerText = "P1 CHAMPION! 🏆";
                 document.getElementById('end-title').style.color = "var(--primary)";
-                document.getElementById('end-bounty').innerText = "+150 Gold Coins Earned! 🪙";
-                addCoins(150);
+                document.getElementById('end-bounty').innerText = "+150 Gold Coins Earned! 🪙"; addCoins(150);
             } else {
-                document.getElementById('end-title').innerText = "DEFEAT! 💀";
+                document.getElementById('end-title').innerText = gameMode === 'AI' ? "DEFEAT! 💀" : "P2 CHAMPION! 🏆";
                 document.getElementById('end-title').style.color = "var(--accent)";
-                document.getElementById('end-bounty').innerText = "+25 Consolation Gold Coins";
-                addCoins(25);
+                document.getElementById('end-bounty').innerText = "+25 Consolation Gold Coins"; addCoins(25);
             }
             m.style.display = 'flex';
         }
 
-        function resetMatch() {
-            scoreP1 = 0; scoreAI = 0;
-            document.getElementById('score-p1').innerText = 0;
-            document.getElementById('score-ai').innerText = 0;
-            document.getElementById('end-modal').style.display = 'none';
-            resetServe('PLAYER');
-        }
-
-        function createExplosion(x, y, color) {
-            for (let i = 0; i < 14; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const spd = Math.random() * 5 + 2;
-                particles.push({
-                    x, y,
-                    vx: Math.cos(angle) * spd,
-                    vy: Math.sin(angle) * spd,
-                    color, life: 1.0
-                });
+        function createExplosion(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2; const spd = Math.random() * 6 + 2;
+                particles.push({ x, y, vx: Math.cos(angle) * spd, vy: Math.sin(angle) * spd, color, life: 1.0 });
             }
-        }
-
-        function setupTouchListeners() {
-            const bindBtn = (id, actionStart, actionEnd = null) => {
-                const el = document.getElementById(id);
-                el.addEventListener("touchstart", e => { e.preventDefault(); actionStart(); }, { passive: false });
-                if (actionEnd) el.addEventListener("touchend", e => { e.preventDefault(); actionEnd(); }, { passive: false });
-            };
-
-            bindBtn("tbtn-left", () => { keys.a = true; }, () => { keys.a = false; });
-            bindBtn("tbtn-right", () => { keys.d = true; }, () => { keys.d = false; });
-            bindBtn("tbtn-jump", () => executePlayerAction('jump'));
-            bindBtn("tbtn-hit", () => executePlayerAction(p1.onGround ? 'bump' : 'spike'));
-            bindBtn("tbtn-set", () => executePlayerAction('set'));
-            bindBtn("tbtn-dive", () => executePlayerAction('dive'));
         }
 
         window.addEventListener("keydown", e => {
             const k = e.key.toLowerCase();
-            if (["a", "d", "w", "s", "k", "j", "l", "r", " ", "arrowleft", "arrowright", "arrowup", "arrowdown"].includes(k)) {
-                e.preventDefault();
+            if (["w","a","s","d"," ","j","k","l", "arrowup","arrowleft","arrowdown","arrowright","enter","1","2","3"].includes(k)) e.preventDefault();
+            
+            // P1 Controls
+            if (k === 'a') p1.keys.left = true;
+            if (k === 'd') p1.keys.right = true;
+            if (k === 'w' && p1.onGround && !p1.isDiving) { p1.vy = JUMP_FORCE; p1.onGround = false; playSound('bump'); }
+            if (k === 's' && p1.onGround && !p1.isDiving) { p1.isDiving = true; p1.diveTimer = 20; p1.vx = p1.faceDir * 11.0; p1.vy = -3; p1.onGround = false; }
+            if (k === ' ' || k === 'j') executeHit(p1, 'bump', 1);
+            if (k === 'k') executeHit(p1, 'set', 1);
+            if (k === 'l') executeHit(p1, 'spike', 1);
+
+            // P2 Controls (Active if LOCAL)
+            if (gameMode === 'LOCAL') {
+                if (e.code === 'ArrowLeft') p2.keys.left = true;
+                if (e.code === 'ArrowRight') p2.keys.right = true;
+                if (e.code === 'ArrowUp' && p2.onGround && !p2.isDiving) { p2.vy = JUMP_FORCE; p2.onGround = false; playSound('bump'); }
+                if (e.code === 'ArrowDown' && p2.onGround && !p2.isDiving) { p2.isDiving = true; p2.diveTimer = 20; p2.vx = p2.faceDir * 11.0; p2.vy = -3; p2.onGround = false; }
+                if (e.code === 'Enter' || k === '1') executeHit(p2, 'bump', -1);
+                if (k === '2') executeHit(p2, 'set', -1);
+                if (k === '3') executeHit(p2, 'spike', -1);
             }
-            if (k === 'a' || e.code === 'ArrowLeft') keys.a = true;
-            if (k === 'd' || e.code === 'ArrowRight') keys.d = true;
-            if (k === 'w' || e.code === 'ArrowUp') executePlayerAction('jump');
-            if (k === 's' || e.code === 'ArrowDown') executePlayerAction('dive');
-            if (k === ' ' || k === 'j') executePlayerAction('bump');
-            if (k === 'k') executePlayerAction('set');
-            if (k === 'l') executePlayerAction('spike');
-            if (k === 'r') resetMatch();
         });
 
         window.addEventListener("keyup", e => {
             const k = e.key.toLowerCase();
-            if (k === 'a' || e.code === 'ArrowLeft') keys.a = false;
-            if (k === 'd' || e.code === 'ArrowRight') keys.d = false;
+            if (k === 'a') p1.keys.left = false;
+            if (k === 'd') p1.keys.right = false;
+            if (e.code === 'ArrowLeft') p2.keys.left = false;
+            if (e.code === 'ArrowRight') p2.keys.right = false;
         });
 
-        function updateGame() {
-            // Player Motion
-            if (p1.isDiving) {
-                p1.diveTimer--;
-                p1.vx *= 0.94;
-                if (p1.diveTimer <= 0) p1.isDiving = false;
+        function updatePlayer(p, dirX) {
+            if (p.isDiving) {
+                p.diveTimer--; p.vx *= 0.94;
+                if (p.diveTimer <= 0) p.isDiving = false;
             } else {
-                if (keys.a) { p1.vx = -p1.speed; p1.faceDir = -1; }
-                else if (keys.d) { p1.vx = p1.speed; p1.faceDir = 1; }
-                else { p1.vx *= 0.75; }
+                if (p.keys.left) { p.vx = -p.speed; p.faceDir = -1; }
+                else if (p.keys.right) { p.vx = p.speed; p.faceDir = 1; }
+                else { p.vx *= 0.75; }
             }
 
-            p1.x += p1.vx;
-            p1.y += p1.vy;
-            p1.vy += GRAVITY;
+            p.x += p.vx; p.y += p.vy; p.vy += GRAVITY;
 
-            if (p1.y >= FLOOR_Y) {
-                p1.y = FLOOR_Y;
-                p1.vy = 0;
-                p1.onGround = true;
+            if (p.y >= FLOOR_Y) { p.y = FLOOR_Y; p.vy = 0; p.onGround = true; }
+            
+            // Net & Wall bounds
+            if (p.id === 'P1') p.x = Math.max(50, Math.min(NET_X - 25, p.x));
+            else p.x = Math.max(NET_X + 25, Math.min(910, p.x));
+            
+            if (p.swingTimer > 0) p.swingTimer--;
+        }
+
+        function updateGame() {
+            // Hit Stop Freeze Frame
+            if (hitStopFrames > 0) {
+                hitStopFrames--;
+                screenShake = 10; // Maintain shake during freeze
+                return; // Skip physics updates for dramatic pause
             }
-            p1.x = Math.max(50, Math.min(NET_X - 25, p1.x));
-            if (p1.swingTimer > 0) p1.swingTimer--;
 
-            // AI Logic
-            if (matchState === 'RALLY') {
-                if (ball.x > NET_X - 40) {
-                    // Predict landing spot
-                    ai.targetX = Math.max(NET_X + 45, Math.min(900, ball.x + (ball.vx * 9)));
-
-                    if (ai.x < ai.targetX - 10) ai.vx = ai.speed;
-                    else if (ai.x > ai.targetX + 10) ai.vx = -ai.speed;
-                    else ai.vx = 0;
-
-                    const distToBall = Math.hypot(ai.x - ball.x, (ai.y - 45) - ball.y);
-                    if (distToBall < 88 && ball.x > NET_X && ball.hitCooldown <= 0) {
-                        if (!ai.onGround && ball.y < NET_TOP_Y + 60 && ball.x > NET_X + 60) {
-                            executeAIHit('spike');
-                        } else if (Math.random() < 0.3) {
-                            executeAIHit('set');
-                        } else {
-                            executeAIHit('bump');
+            updatePlayer(p1, 1);
+            
+            if (gameMode === 'LOCAL') {
+                updatePlayer(p2, -1);
+            } else {
+                // SMARTER AI LOGIC
+                if (matchState === 'RALLY') {
+                    if (ball.x > NET_X - 40) {
+                        p2.targetX = Math.max(NET_X + 45, Math.min(900, ball.x + (ball.vx * 9)));
+                        
+                        // Smart AI Diving
+                        const distToLanding = Math.abs(p2.x - p2.targetX);
+                        if (distToLanding > 120 && ball.y > 250 && ball.vy > 0 && p2.onGround && !p2.isDiving) {
+                            p2.faceDir = p2.targetX > p2.x ? 1 : -1;
+                            p2.isDiving = true; p2.diveTimer = 20; p2.vx = p2.faceDir * 12.0; p2.vy = -4; p2.onGround = false;
                         }
-                    }
 
-                    // Jump for spike setup or block
-                    if (ai.onGround && ball.y < 340 && Math.abs(ai.x - ball.x) < 55) {
-                        ai.vy = JUMP_FORCE;
-                        ai.onGround = false;
-                    }
-                } else {
-                    // Net Block if player jumps near net to spike
-                    if (!p1.onGround && p1.x > NET_X - 90 && ai.onGround) {
-                        ai.targetX = NET_X + 40;
-                        if (Math.abs(ai.x - ai.targetX) < 20) {
-                            ai.vy = JUMP_FORCE;
-                            ai.onGround = false;
+                        if (!p2.isDiving) {
+                            if (p2.x < p2.targetX - 10) { p2.keys.left = false; p2.keys.right = true; }
+                            else if (p2.x > p2.targetX + 10) { p2.keys.left = true; p2.keys.right = false; }
+                            else { p2.keys.left = false; p2.keys.right = false; }
+                        }
+
+                        const distToBall = Math.hypot(p2.x - ball.x, (p2.y - 45) - ball.y);
+                        if (distToBall < 88 && ball.x > NET_X && ball.hitCooldown <= 0) {
+                            // AI Uses Hyper Smash!
+                            if (p2.superMeter >= 100 && !p2.onGround && ball.y < NET_TOP_Y + 80) {
+                                executeHit(p2, 'spike', -1);
+                            } else if (!p2.onGround && ball.y < NET_TOP_Y + 70 && ball.x > NET_X + 60) {
+                                executeHit(p2, 'spike', -1);
+                            } else if (Math.random() < 0.35) {
+                                executeHit(p2, 'set', -1);
+                            } else {
+                                executeHit(p2, 'bump', -1);
+                            }
+                        }
+
+                        // Jump Logic
+                        if (p2.onGround && ball.y < 350 && Math.abs(p2.x - ball.x) < 55) {
+                            p2.vy = JUMP_FORCE; p2.onGround = false;
                         }
                     } else {
-                        ai.targetX = 720;
+                        // Return to base or block
+                        if (!p1.onGround && p1.x > NET_X - 90 && p2.onGround) {
+                            p2.targetX = NET_X + 40;
+                            if (Math.abs(p2.x - p2.targetX) < 20) { p2.vy = JUMP_FORCE; p2.onGround = false; }
+                        } else { p2.targetX = 720; }
+
+                        if (p2.x < p2.targetX - 10) { p2.keys.left = false; p2.keys.right = true; }
+                        else if (p2.x > p2.targetX + 10) { p2.keys.left = true; p2.keys.right = false; }
+                        else { p2.keys.left = false; p2.keys.right = false; }
                     }
-
-                    if (ai.x < ai.targetX - 10) ai.vx = ai.speed;
-                    else if (ai.x > ai.targetX + 10) ai.vx = -ai.speed;
-                    else ai.vx = 0;
                 }
+                updatePlayer(p2, -1);
             }
 
-            ai.x += ai.vx;
-            ai.y += ai.vy;
-            ai.vy += GRAVITY;
-
-            if (ai.y >= FLOOR_Y) {
-                ai.y = FLOOR_Y;
-                ai.vy = 0;
-                ai.onGround = true;
-            }
-            ai.x = Math.max(NET_X + 25, Math.min(910, ai.x));
-
-            if (ai.swingTimer > 0) ai.swingTimer--;
             if (ball.hitCooldown > 0) ball.hitCooldown--;
 
             // Ball Physics
             if (matchState === 'RALLY') {
-                ball.x += ball.vx;
-                ball.y += ball.vy;
-                ball.vy += GRAVITY;
-                ball.rotation += ball.vx * 0.04;
+                // Ball Trail Logging
+                ball.trail.push({ x: ball.x, y: ball.y });
+                if (ball.trail.length > (ball.isHyper ? 12 : 6)) ball.trail.shift();
+
+                ball.x += ball.vx; ball.y += ball.vy; ball.vy += GRAVITY; ball.rotation += ball.vx * 0.04;
 
                 // Passive Body Contact Bump
                 if (ball.hitCooldown <= 0) {
                     const distP1 = Math.hypot(p1.x - ball.x, (p1.y - 45) - ball.y);
                     if (distP1 < 44 && ball.x < NET_X + 10) {
-                        ball.lastHitter = 'PLAYER';
-                        ball.hitCooldown = 12;
-                        ball.vx = 7.8;
-                        ball.vy = -11.0;
-                        ball.isSpike = false;
-                        playSound('bump');
+                        ball.lastHitter = 'P1'; ball.hitCooldown = 12; ball.vx = 7.8; ball.vy = -11.0; ball.isSpike = false; ball.isHyper = false; playSound('bump');
                     }
-
-                    const distAI = Math.hypot(ai.x - ball.x, (ai.y - 45) - ball.y);
-                    if (distAI < 44 && ball.x > NET_X - 10) {
-                        ball.lastHitter = 'AI';
-                        ball.hitCooldown = 12;
-                        ball.vx = -7.8;
-                        ball.vy = -11.0;
-                        ball.isSpike = false;
-                        playSound('bump');
+                    const distP2 = Math.hypot(p2.x - ball.x, (p2.y - 45) - ball.y);
+                    if (distP2 < 44 && ball.x > NET_X - 10) {
+                        ball.lastHitter = 'P2'; ball.hitCooldown = 12; ball.vx = -7.8; ball.vy = -11.0; ball.isSpike = false; ball.isHyper = false; playSound('bump');
                     }
                 }
 
-                if (ball.isSpike) {
-                    particles.push({
-                        x: ball.x, y: ball.y,
-                        vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
-                        color: '#ff007f', life: 0.5
-                    });
+                if (ball.isSpike && Math.random() > 0.5) {
+                    particles.push({ x: ball.x, y: ball.y, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, color: ball.isHyper ? '#facc15' : '#ff007f', life: 0.6 });
                 }
 
-                // Net Collision (Only below top band)
+                // Net Collision
                 if (Math.abs(ball.x - NET_X) < ball.radius + NET_WIDTH / 2 && ball.y >= NET_TOP_Y) {
-                    ball.vx = -ball.vx * 0.7;
-                    ball.x = ball.x < NET_X ? NET_X - ball.radius - 8 : NET_X + ball.radius + 8;
-                    playSound('bump');
+                    ball.vx = -ball.vx * 0.7; ball.x = ball.x < NET_X ? NET_X - ball.radius - 8 : NET_X + ball.radius + 8; playSound('bump');
                 }
 
                 // Wall Bounds
-                if (ball.x <= 30 + ball.radius) {
-                    ball.x = 30 + ball.radius;
-                    ball.vx = -ball.vx * 0.75;
-                    playSound('bump');
-                } else if (ball.x >= 930 - ball.radius) {
-                    ball.x = 930 - ball.radius;
-                    ball.vx = -ball.vx * 0.75;
-                    playSound('bump');
-                }
+                if (ball.x <= 30 + ball.radius) { ball.x = 30 + ball.radius; ball.vx = -ball.vx * 0.75; playSound('bump'); } 
+                else if (ball.x >= 930 - ball.radius) { ball.x = 930 - ball.radius; ball.vx = -ball.vx * 0.75; playSound('bump'); }
 
-                // Floor Hit Scoring
+                // Floor Scoring
                 if (ball.y >= FLOOR_Y - ball.radius) {
-                    ball.y = FLOOR_Y - ball.radius;
-                    ball.vx = 0; ball.vy = 0;
-
-                    if (ball.x < NET_X) {
-                        scorePoint('AI');
-                    } else {
-                        scorePoint('PLAYER');
-                    }
+                    ball.y = FLOOR_Y - ball.radius; ball.vx = 0; ball.vy = 0; screenShake = ball.isHyper ? 15 : 5;
+                    if (ball.isHyper) createExplosion(ball.x, ball.y, '#facc15', 30);
+                    if (ball.x < NET_X) scorePoint('P2'); else scorePoint('P1');
                 }
             }
         }
 
         function render() {
+            ctx.save();
+            if (screenShake > 0.5) {
+                ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+                screenShake *= 0.85;
+            }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Stadium Background
-            const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            bg.addColorStop(0, '#091026');
-            bg.addColorStop(1, '#020617');
-            ctx.fillStyle = bg;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const bg = ctx.createLinearGradient(0, 0, 0, canvas.height); bg.addColorStop(0, '#0f172a'); bg.addColorStop(1, '#020617'); ctx.fillStyle = bg; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Crowd
             ctx.fillStyle = '#1e293b';
-            for (let i = 0; i < canvas.width; i += 22) {
-                const bounce = Math.sin(Date.now() * 0.006 + i) * 3;
-                ctx.beginPath();
-                ctx.arc(i, 230 + bounce, 12, 0, Math.PI * 2);
-                ctx.fill();
+            for (let i = 0; i < canvas.width; i += 24) {
+                const bounce = Math.sin(Date.now() * 0.005 + i) * 4;
+                ctx.beginPath(); ctx.arc(i, 230 + bounce, 14, 0, Math.PI * 2); ctx.fill();
             }
 
-            // Court Sand Floor
-            const sandGrad = ctx.createLinearGradient(0, FLOOR_Y, 0, canvas.height);
-            sandGrad.addColorStop(0, '#047857');
-            sandGrad.addColorStop(1, '#064e3b');
-            ctx.fillStyle = sandGrad;
-            ctx.fillRect(0, FLOOR_Y, canvas.width, canvas.height - FLOOR_Y);
+            const sandGrad = ctx.createLinearGradient(0, FLOOR_Y, 0, canvas.height); sandGrad.addColorStop(0, '#047857'); sandGrad.addColorStop(1, '#064e3b'); ctx.fillStyle = sandGrad; ctx.fillRect(0, FLOOR_Y, canvas.width, canvas.height - FLOOR_Y);
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.strokeRect(40, FLOOR_Y, canvas.width - 80, canvas.height - FLOOR_Y);
+            ctx.beginPath(); ctx.moveTo(NET_X - 160, FLOOR_Y); ctx.lineTo(NET_X - 160, canvas.height); ctx.moveTo(NET_X + 160, FLOOR_Y); ctx.lineTo(NET_X + 160, canvas.height); ctx.stroke();
 
-            // Court Lines
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(40, FLOOR_Y, canvas.width - 80, canvas.height - FLOOR_Y);
+            ctx.fillStyle = '#cbd5e1'; ctx.fillRect(NET_X - NET_WIDTH / 2, NET_TOP_Y, NET_WIDTH, FLOOR_Y - NET_TOP_Y);
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+            for (let ny = NET_TOP_Y; ny < FLOOR_Y; ny += 14) { ctx.beginPath(); ctx.moveTo(NET_X - NET_WIDTH / 2, ny); ctx.lineTo(NET_X + NET_WIDTH / 2, ny); ctx.stroke(); }
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(NET_X - NET_WIDTH / 2 - 2, NET_TOP_Y, NET_WIDTH + 4, 10);
 
-            ctx.beginPath();
-            ctx.moveTo(NET_X - 160, FLOOR_Y); ctx.lineTo(NET_X - 160, canvas.height);
-            ctx.moveTo(NET_X + 160, FLOOR_Y); ctx.lineTo(NET_X + 160, canvas.height);
-            ctx.stroke();
-
-            // Volleyball Net
-            ctx.fillStyle = '#64748b';
-            ctx.fillRect(NET_X - NET_WIDTH / 2, NET_TOP_Y, NET_WIDTH, FLOOR_Y - NET_TOP_Y);
-
-            ctx.strokeStyle = '#cbd5e1';
-            ctx.lineWidth = 1;
-            for (let ny = NET_TOP_Y; ny < FLOOR_Y; ny += 14) {
-                ctx.beginPath(); ctx.moveTo(NET_X - NET_WIDTH / 2, ny); ctx.lineTo(NET_X + NET_WIDTH / 2, ny); ctx.stroke();
-            }
-
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(NET_X - NET_WIDTH / 2 - 2, NET_TOP_Y, NET_WIDTH + 4, 10);
-
-            // Dynamic Ball Shadow (Aids depth perception)
             if (matchState === 'RALLY') {
-                ctx.save();
-                const shadowScale = Math.max(0.4, 1.0 - (FLOOR_Y - ball.y) / 450);
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-                ctx.beginPath();
-                ctx.ellipse(ball.x, FLOOR_Y + 3, ball.radius * 1.4 * shadowScale, 5 * shadowScale, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
+                ctx.save(); const shadowScale = Math.max(0.4, 1.0 - (FLOOR_Y - ball.y) / 450); ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; ctx.beginPath(); ctx.ellipse(ball.x, FLOOR_Y + 3, ball.radius * 1.4 * shadowScale, 5 * shadowScale, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
             }
 
-            drawPlayer(p1);
-            drawPlayer(ai);
-            drawBall();
+            drawPlayer(p1); drawPlayer(p2); drawBall();
 
-            // Particles
             for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.x += p.vx; p.y += p.vy; p.life -= 0.04;
+                const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.04;
                 if (p.life <= 0) { particles.splice(i, 1); continue; }
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.life;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 3.5 * p.life, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1.0;
+                ctx.fillStyle = p.color; ctx.globalAlpha = p.life; ctx.beginPath(); ctx.arc(p.x, p.y, 4 * p.life, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1.0;
             }
+            ctx.restore();
         }
 
         function drawPlayer(c) {
-            ctx.save();
-            ctx.translate(c.x, c.y);
-
-            // Ground Shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-            ctx.beginPath();
-            ctx.ellipse(0, 2, 20, 6, 0, 0, Math.PI * 2);
-            ctx.fill();
-
+            ctx.save(); ctx.translate(c.x, c.y);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'; ctx.beginPath(); ctx.ellipse(0, 2, 20, 6, 0, 0, Math.PI * 2); ctx.fill();
             if (c.isDiving) ctx.rotate(c.faceDir * 1.1);
 
-            // Jersey Body
-            ctx.fillStyle = c.color;
-            ctx.fillRect(-15, -45, 30, 35);
-
-            // Head
-            ctx.fillStyle = c.skinColor;
-            ctx.beginPath();
-            ctx.arc(0, -62, c.headRadius, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Hair
-            ctx.fillStyle = c.hairColor;
-            ctx.beginPath();
-            ctx.arc(0, -70, c.headRadius - 4, Math.PI, Math.PI * 2);
-            ctx.fill();
-
-            // Eyes
-            ctx.fillStyle = '#000000';
-            const eyeX = c.faceDir * 6;
-            ctx.beginPath();
-            ctx.arc(eyeX - 2, -62, 3, 0, Math.PI * 2);
-            ctx.arc(eyeX + 8, -62, 3, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Arms (Animated Swing)
-            ctx.fillStyle = c.skinColor;
-            if (c.swingTimer > 0) {
-                ctx.fillRect(c.faceDir * 10, -58, 20 * c.faceDir, 8);
-            } else {
-                ctx.fillRect(c.faceDir * 8, -36, 16 * c.faceDir, 8);
+            // Aura if super is full
+            if (c.superMeter >= 100) {
+                ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3; ctx.beginPath();
+                ctx.arc(0, -40, 50 + Math.sin(Date.now()*0.01)*5, 0, Math.PI*2); ctx.stroke();
             }
 
-            // Shorts & Shoes
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(-14, -10, 12, 10);
-            ctx.fillRect(2, -10, 12, 10);
+            ctx.fillStyle = c.color; ctx.fillRect(-15, -45, 30, 35);
+            ctx.fillStyle = c.skinColor; ctx.beginPath(); ctx.arc(0, -62, c.headRadius, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = c.hairColor; ctx.beginPath(); ctx.arc(0, -70, c.headRadius - 4, Math.PI, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#000000'; const eyeX = c.faceDir * 6; ctx.beginPath(); ctx.arc(eyeX - 2, -62, 3, 0, Math.PI * 2); ctx.arc(eyeX + 8, -62, 3, 0, Math.PI * 2); ctx.fill();
 
+            ctx.fillStyle = c.skinColor;
+            if (c.swingTimer > 0) ctx.fillRect(c.faceDir * 10, -58, 20 * c.faceDir, 8); else ctx.fillRect(c.faceDir * 8, -36, 16 * c.faceDir, 8);
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(-14, -10, 12, 10); ctx.fillRect(2, -10, 12, 10);
             ctx.restore();
         }
 
         function drawBall() {
-            ctx.save();
-            ctx.translate(ball.x, ball.y);
-            ctx.rotate(ball.rotation);
+            // Trail
+            if (ball.trail.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(ball.trail[0].x, ball.trail[0].y);
+                for (let i = 1; i < ball.trail.length; i++) {
+                    ctx.lineTo(ball.trail[i].x, ball.trail[i].y);
+                }
+                ctx.strokeStyle = ball.isHyper ? 'rgba(250, 204, 21, 0.6)' : 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = ball.radius * 1.5;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            }
 
-            ctx.fillStyle = ball.isSpike ? '#ff007f' : '#ffffff';
-            ctx.beginPath();
-            ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#0284c7';
-            ctx.beginPath();
-            ctx.arc(0, 0, ball.radius, 0, Math.PI * 0.65);
-            ctx.lineTo(0, 0);
-            ctx.fill();
-
-            ctx.fillStyle = '#facc15';
-            ctx.beginPath();
-            ctx.arc(0, 0, ball.radius, Math.PI * 0.65, Math.PI * 1.35);
-            ctx.lineTo(0, 0);
-            ctx.fill();
-
-            ctx.strokeStyle = '#1e293b';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
-            ctx.stroke();
-
+            ctx.save(); ctx.translate(ball.x, ball.y); ctx.rotate(ball.rotation);
+            ctx.fillStyle = ball.isHyper ? '#facc15' : (ball.isSpike ? '#ff007f' : '#ffffff');
+            ctx.beginPath(); ctx.arc(0, 0, ball.radius, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#0284c7'; ctx.beginPath(); ctx.arc(0, 0, ball.radius, 0, Math.PI * 0.65); ctx.lineTo(0, 0); ctx.fill();
+            ctx.fillStyle = ball.isHyper ? '#ea580c' : '#facc15'; ctx.beginPath(); ctx.arc(0, 0, ball.radius, Math.PI * 0.65, Math.PI * 1.35); ctx.lineTo(0, 0); ctx.fill();
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, ball.radius, 0, Math.PI * 2); ctx.stroke();
             ctx.restore();
         }
 
-        // Unified 60FPS Game Loop
         function gameLoop(now) {
-            updateGame();
-            render();
-            requestAnimationFrame(gameLoop);
+            updateGame(); render(); requestAnimationFrame(gameLoop);
         }
 
         document.addEventListener("DOMContentLoaded", () => {
             updateWallet();
-            setupTouchListeners();
-            resetServe('PLAYER');
-            requestAnimationFrame(gameLoop);
+            // Wait at menu first
         });
     </script>
 </body>
