@@ -17,14 +17,14 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: flex-start; /* Changed from center to prevent top clipping */
-            min-height: 100vh; 
+            height: 100vh;
+            height: 100dvh;
             box-sizing: border-box; 
             touch-action: none; 
             overflow: hidden; 
         }
         
-        header { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 16px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 8px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,243,255,0.2); flex-shrink: 0; }
+        header { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 16px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 6px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,243,255,0.2); flex-shrink: 0; }
         .stats { font-size: 1rem; font-weight: bold; color: var(--gold); }
         
         .status-bar { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; max-width: 600px; margin-bottom: 6px; font-weight: bold; font-size: 1.1rem; flex-shrink: 0; }
@@ -33,20 +33,25 @@
         .hud-name { font-size: 0.8rem; text-transform: uppercase; margin-bottom: 2px; }
         .hud-score { font-family: monospace; font-size: 1.2rem; }
         
-        /* Flex 1 allows the container to dynamically fill remaining space without pushing UI off screen */
-        #game-container { position: relative; max-width: 100%; width: 100%; display: flex; justify-content: center; align-items: center; flex: 1; min-height: 0; }
+        /* Rigid Flex Container ensures the canvas shrinks on iPads */
+        #game-container { position: relative; max-width: 100%; width: 100%; display: flex; justify-content: center; align-items: center; flex: 1 1 0; min-height: 0; }
         
-        /* Object-fit contain ensures the game maintains its aspect ratio when scaling down */
-        canvas { background: #020617; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 30px rgba(0, 243, 255, 0.3); max-width: 100%; max-height: 100%; display: block; object-fit: contain; }
+        canvas { background: #020617; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 30px rgba(0, 243, 255, 0.3); max-width: 100%; max-height: 100%; aspect-ratio: 540 / 600; display: block; object-fit: contain; }
         
-        #boss-hp-container { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 80%; height: 12px; background: rgba(0,0,0,0.8); border: 2px solid var(--accent); border-radius: 6px; display: none; overflow: hidden; z-index: 5;}
+        #boss-hp-container { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 70%; height: 12px; background: rgba(0,0,0,0.8); border: 2px solid var(--accent); border-radius: 6px; display: none; overflow: hidden; z-index: 5;}
         #boss-hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, var(--accent)); transition: width 0.1s; }
 
-        #announcement { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 2rem; font-weight: 900; color: var(--gold); text-shadow: 0 4px 10px #000; pointer-events: none; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; width: 100%; text-align: center; }
+        #announcement { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 2rem; font-weight: 900; color: var(--gold); text-shadow: 0 4px 10px #000; pointer-events: none; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; width: 100%; text-align: center; letter-spacing: 1px;}
+        #cutscene-warning { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.2rem; font-weight: 900; color: #ef4444; text-shadow: 0 0 15px #ef4444; pointer-events: none; z-index: 10; width: 100%; text-align: center; display: none; animation: flashWarning 0.5s infinite; }
+
+        @keyframes flashWarning {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
 
         .touch-controls { width: 100%; max-width: 500px; display: flex; justify-content: space-between; margin-top: 8px; gap: 10px; flex-shrink: 0; }
         .touch-group { display: flex; gap: 10px; }
-        .ctrl-btn { width: 65px; height: 65px; background: rgba(30, 41, 59, 0.9); border: 2px solid var(--primary); border-radius: 12px; color: white; font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; transition: transform 0.1s; }
+        .ctrl-btn { width: 60px; height: 60px; background: rgba(30, 41, 59, 0.9); border: 2px solid var(--primary); border-radius: 12px; color: white; font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; transition: transform 0.1s; }
         .ctrl-btn:active { background: var(--primary); color: #000; transform: scale(0.92); }
         .ctrl-btn.fire { border-color: var(--accent); width: 85px; color: var(--accent); }
         .ctrl-btn.fire:active { background: var(--accent); color: #fff; }
@@ -66,7 +71,7 @@
         .mode-btn.coop { border-color: #a855f7; }
         .mode-btn.coop:hover { border-color: #d946ef; background: rgba(217, 70, 239, 0.2); box-shadow: 0 0 15px rgba(217, 70, 239, 0.4); }
 
-        .btn-restart { background: var(--primary); color: #000; border: none; padding: 8px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 0 #0284c7; margin-top: 8px; margin-bottom: 4px; flex-shrink: 0; }
+        .btn-restart { background: var(--primary); color: #000; border: none; padding: 8px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 0 #0284c7; margin-top: 6px; margin-bottom: 4px; flex-shrink: 0; }
         .btn-restart:active { transform: translateY(2px); box-shadow: 0 2px 0 #0284c7; }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
     </style>
@@ -80,7 +85,8 @@
 
     <div class="status-bar">
         <div class="player-hud" id="hud-p1" style="color:var(--primary)">
-            <div class="hud-name">PLAYER 1 <span id="p1-powerup" style="font-size:0.6rem; color:var(--gold);"></span></div>
+            <div class="hud-name">PLAYER 1</div>
+            <div id="p1-powerup" style="font-size:0.6rem; color:var(--gold); font-weight:bold; height:12px;"></div>
             <div id="p1-lives">❤️❤️❤️</div>
             <div class="hud-score" id="p1-score">00000</div>
         </div>
@@ -91,7 +97,8 @@
         </div>
 
         <div class="player-hud right" id="hud-p2" style="color:var(--accent); display:none;">
-            <div class="hud-name"><span id="p2-powerup" style="font-size:0.6rem; color:var(--gold);"></span> PLAYER 2</div>
+            <div class="hud-name">PLAYER 2</div>
+            <div id="p2-powerup" style="font-size:0.6rem; color:var(--gold); font-weight:bold; height:12px;"></div>
             <div id="p2-lives">❤️❤️❤️</div>
             <div class="hud-score" id="p2-score">00000</div>
         </div>
@@ -101,6 +108,7 @@
         <canvas id="spaceCanvas" width="540" height="600"></canvas>
         <div id="boss-hp-container"><div id="boss-hp-fill"></div></div>
         <div id="announcement">WAVE 1</div>
+        <div id="cutscene-warning">WARNING<br>MOTHERSHIP DETECTED</div>
 
         <!-- Start Menu Modal -->
         <div id="start-modal" class="modal">
@@ -108,13 +116,17 @@
                 <h1 class="title">GALACTIC<br><span style="color: #fff;">DEFENDER</span></h1>
                 <p style="color:#94a3b8; font-size: 0.9rem; margin-bottom: 20px;">Select your mission deployment.</p>
                 
+                <button class="mode-btn easy" onclick="startGame('EASY')">
+                    🟢 CASUAL (EASY)
+                    <span>5 Lives • Slower Enemies • Weak Bosses</span>
+                </button>
                 <button class="mode-btn normal" onclick="startGame('NORMAL')">
-                    👤 1-PLAYER ARCADE
-                    <span>Standard Mode • Balanced Difficulty</span>
+                    🟡 ARCADE (NORMAL)
+                    <span>3 Lives • Balanced Difficulty</span>
                 </button>
                 <button class="mode-btn coop" onclick="startGame('COOP')">
                     👥 2-PLAYER LOCAL CO-OP
-                    <span>Share the keyboard • Double the firepower</span>
+                    <span>Share keyboard • Bosses have 200% HP</span>
                 </button>
                 <button class="mode-btn hard" onclick="startGame('HARD')">
                     🔴 IRONMAN (HARD)
@@ -179,6 +191,11 @@
                     osc.type = 'sine'; osc.frequency.setValueAtTime(440, t); osc.frequency.setValueAtTime(554, t + 0.1); osc.frequency.setValueAtTime(659, t + 0.2); osc.frequency.setValueAtTime(880, t + 0.3);
                     gain.gain.setValueAtTime(0.2, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
                     osc.start(t); osc.stop(t + 0.4);
+                } else if (type === 'siren') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, t); osc.frequency.linearRampToValueAtTime(500, t + 0.5); osc.frequency.linearRampToValueAtTime(300, t + 1.0);
+                    gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0.001, t + 1.0);
+                    osc.start(t); osc.stop(t + 1.0);
                 }
             } catch(e) {}
         }
@@ -187,15 +204,15 @@
         const canvas = document.getElementById("spaceCanvas");
         const ctx = canvas.getContext("2d");
 
-        let wave = 1, gameActive = false, screenShake = 0, isCoop = false;
+        let wave = 1, gameActive = false, screenShake = 0, isCoop = false, isCutscene = false, cutsceneTimer = 0;
         let difficulty = { speed: 1.0, fireRate: 1.0, bossHp: 1.0, startLives: 3 };
         
-        let p1 = { id: 1, x: 220, y: 550, w: 40, h: 20, speed: 6.5, cooldown: 0, powerup: null, powerupTimer: 0, invulnTimer: 0, lives: 3, score: 0, color: '#00f3ff', keys: { left: false, right: false, shoot: false } };
-        let p2 = { id: 2, x: 280, y: 550, w: 40, h: 20, speed: 6.5, cooldown: 0, powerup: null, powerupTimer: 0, invulnTimer: 0, lives: 3, score: 0, color: '#ff007f', keys: { left: false, right: false, shoot: false } };
+        let p1 = { id: 1, x: 220, y: 550, w: 40, h: 20, speed: 6.5, cooldown: 0, rapidTimer: 0, dualTimer: 0, invulnTimer: 0, lives: 3, score: 0, color: '#00f3ff', keys: { left: false, right: false, shoot: false } };
+        let p2 = { id: 2, x: 280, y: 550, w: 40, h: 20, speed: 6.5, cooldown: 0, rapidTimer: 0, dualTimer: 0, invulnTimer: 0, lives: 3, score: 0, color: '#ff007f', keys: { left: false, right: false, shoot: false } };
         
         let bullets = [], alienBullets = [], aliens = [], particles = [], stars = [], bunkers = [], powerups = [];
         let alienDir = 1, alienSpeed = 1, bossMode = false;
-        let boss = { active: false, x: 200, y: 40, w: 100, h: 60, hp: 0, maxHp: 0, speed: 2, dir: 1, timer: 0 };
+        let boss = { active: false, x: 200, y: -100, w: 100, h: 60, hp: 0, maxHp: 0, speed: 2, dir: 1, timer: 0 };
 
         // --- Initialization ---
         function applyGlobalTheme() {
@@ -225,16 +242,24 @@
         }
 
         function updateHUD() {
-            // P1
             let h1 = ""; for (let i = 0; i < p1.lives; i++) h1 += "❤️"; if (p1.lives <= 0) h1 = "💀";
             document.getElementById("p1-lives").innerText = h1;
             document.getElementById("p1-score").innerText = String(p1.score).padStart(5, '0');
             
-            // P2
+            let p1pw = [];
+            if (p1.dualTimer > 0) p1pw.push("DUAL");
+            if (p1.rapidTimer > 0) p1pw.push("RAPID");
+            document.getElementById("p1-powerup").innerText = p1pw.join(" + ");
+
             if (isCoop) {
                 let h2 = ""; for (let i = 0; i < p2.lives; i++) h2 += "❤️"; if (p2.lives <= 0) h2 = "💀";
                 document.getElementById("p2-lives").innerText = h2;
                 document.getElementById("p2-score").innerText = String(p2.score).padStart(5, '0');
+                
+                let p2pw = [];
+                if (p2.dualTimer > 0) p2pw.push("DUAL");
+                if (p2.rapidTimer > 0) p2pw.push("RAPID");
+                document.getElementById("p2-powerup").innerText = p2pw.join(" + ");
             }
         }
 
@@ -259,16 +284,21 @@
 
         function spawnAliens() {
             aliens = []; alienBullets = []; powerups = [];
-            [p1, p2].forEach(p => { p.powerup = null; p.powerupTimer = 0; document.getElementById(`p${p.id}-powerup`).innerText = ""; });
+            [p1, p2].forEach(p => { p.rapidTimer = 0; p.dualTimer = 0; });
+            updateHUD();
 
             if (wave % 5 === 0) {
                 bossMode = true; boss.active = true;
                 boss.maxHp = Math.round((80 + (wave * 20)) * difficulty.bossHp * (isCoop ? 2.0 : 1.0));
                 boss.hp = boss.maxHp;
-                boss.y = 40; boss.x = canvas.width/2 - boss.w/2;
-                document.getElementById('boss-hp-container').style.display = 'block';
-                document.getElementById('boss-hp-fill').style.width = '100%';
-                announce(`⚠️ BOSS WAVE ${wave} ⚠️`);
+                boss.y = -80; // Start off screen
+                boss.x = canvas.width/2 - boss.w/2;
+                
+                // Trigger Cutscene
+                isCutscene = true;
+                cutsceneTimer = 180; // 3 seconds at 60fps
+                document.getElementById('cutscene-warning').style.display = 'block';
+                playSound('siren'); setTimeout(() => playSound('siren'), 1000); setTimeout(() => playSound('siren'), 2000);
             } else {
                 bossMode = false; boss.active = false;
                 document.getElementById('boss-hp-container').style.display = 'none';
@@ -300,9 +330,9 @@
             if (p.invulnTimer > 0 || p.lives <= 0) return;
 
             p.lives--;
-            updateHUD();
             createExplosion(p.x, p.y, p.color);
-            p.powerup = null; document.getElementById(`p${p.id}-powerup`).innerText = "";
+            p.rapidTimer = 0; p.dualTimer = 0; 
+            updateHUD();
             playSound('player_hit');
             screenShake = 15;
 
@@ -324,7 +354,8 @@
 
         function startGame(mode) {
             isCoop = (mode === 'COOP');
-            if (mode === 'COOP') difficulty = { speed: 1.0, fireRate: 1.5, bossHp: 2.0, startLives: 3 };
+            if (mode === 'EASY') difficulty = { speed: 0.75, fireRate: 0.5, bossHp: 0.6, startLives: 5 };
+            else if (mode === 'COOP') difficulty = { speed: 1.0, fireRate: 1.5, bossHp: 2.0, startLives: 3 };
             else if (mode === 'NORMAL') difficulty = { speed: 1.0, fireRate: 1.0, bossHp: 1.0, startLives: 3 };
             else if (mode === 'HARD') difficulty = { speed: 1.3, fireRate: 1.6, bossHp: 1.5, startLives: 1 };
 
@@ -333,15 +364,17 @@
             document.getElementById("hud-p2").style.display = isCoop ? "flex" : "none";
             document.getElementById("touch-ui").style.display = isCoop ? "none" : "flex"; 
             
-            wave = 1; gameActive = true;
+            wave = 1; gameActive = true; isCutscene = false;
             bullets = []; alienBullets = []; particles = []; powerups = [];
             
-            p1.lives = difficulty.startLives; p1.score = 0; p1.x = isCoop ? 180 : 250; p1.powerup = null; p1.powerupTimer = 0; p1.invulnTimer = 0;
-            p2.lives = difficulty.startLives; p2.score = 0; p2.x = 320; p2.powerup = null; p2.powerupTimer = 0; p2.invulnTimer = 0;
+            p1.lives = difficulty.startLives; p1.score = 0; p1.x = isCoop ? 180 : 250; p1.rapidTimer = 0; p1.dualTimer = 0; p1.invulnTimer = 0;
+            p2.lives = difficulty.startLives; p2.score = 0; p2.x = 320; p2.rapidTimer = 0; p2.dualTimer = 0; p2.invulnTimer = 0;
             if(!isCoop) p2.lives = 0;
 
             document.getElementById("wave").innerText = 1;
             document.getElementById('announcement').style.transform = "translate(-50%, -50%) scale(0)";
+            document.getElementById('cutscene-warning').style.display = 'none';
+            document.getElementById('boss-hp-container').style.display = 'none';
             
             updateHUD();
             initBunkers();
@@ -389,27 +422,23 @@
             if (p.keys.right) p.x += p.speed;
             p.x = Math.max(10, Math.min(canvas.width - 10 - p.w, p.x));
 
-            if (p.powerupTimer > 0) {
-                p.powerupTimer--;
-                if (p.powerupTimer <= 0) {
-                    p.powerup = null;
-                    document.getElementById(`p${p.id}-powerup`).innerText = "";
-                }
-            }
+            let updateHudFlag = false;
+            if (p.rapidTimer > 0) { p.rapidTimer--; if (p.rapidTimer === 0) updateHudFlag = true; }
+            if (p.dualTimer > 0) { p.dualTimer--; if (p.dualTimer === 0) updateHudFlag = true; }
+            if (updateHudFlag) updateHUD();
 
             if (p.cooldown > 0) p.cooldown--;
             if (p.keys.shoot && p.cooldown === 0) {
                 playSound(p.id === 1 ? 'shoot' : 'shoot2');
-                if (p.powerup === 'dual') {
-                    bullets.push({ x: p.x, y: p.y, w: 6, h: 14, speed: 10, color: '#a855f7', owner: p });
-                    bullets.push({ x: p.x + p.w - 6, y: p.y, w: 6, h: 14, speed: 10, color: '#a855f7', owner: p });
-                    p.cooldown = 14;
-                } else if (p.powerup === 'rapid') {
-                    bullets.push({ x: p.x + p.w / 2 - 3, y: p.y, w: 6, h: 14, speed: 12, color: '#facc15', owner: p });
-                    p.cooldown = 6;
+                
+                const speed = p.rapidTimer > 0 ? 13 : 9;
+                p.cooldown = p.rapidTimer > 0 ? 6 : 14;
+
+                if (p.dualTimer > 0) {
+                    bullets.push({ x: p.x, y: p.y, w: 6, h: 14, speed: speed, color: p.color, owner: p });
+                    bullets.push({ x: p.x + p.w - 6, y: p.y, w: 6, h: 14, speed: speed, color: p.color, owner: p });
                 } else {
-                    bullets.push({ x: p.x + p.w / 2 - 3, y: p.y, w: 6, h: 14, speed: 9, color: p.color, owner: p });
-                    p.cooldown = 16;
+                    bullets.push({ x: p.x + p.w / 2 - 3, y: p.y, w: 6, h: 14, speed: speed, color: p.color, owner: p });
                 }
             }
         }
@@ -424,13 +453,28 @@
 
             [p1, p2].forEach(p => updatePlayer(p));
 
+            if (isCutscene) {
+                cutsceneTimer--;
+                boss.y += 0.6; // Boss descends slowly
+                
+                if (cutsceneTimer <= 0) {
+                    isCutscene = false;
+                    document.getElementById('cutscene-warning').style.display = 'none';
+                    document.getElementById('boss-hp-container').style.display = 'block';
+                    document.getElementById('boss-hp-fill').style.width = '100%';
+                }
+                
+                // Allow players to move during cutscene but bullets are handled below
+            }
+
+            // Powerups
             powerups.forEach((pw, idx) => {
                 pw.y += pw.speed;
                 [p1, p2].forEach(p => {
                     if (p.lives > 0 && p.invulnTimer <= 0 && pw.x < p.x + p.w && pw.x + 16 > p.x && pw.y < p.y + p.h && pw.y + 16 > p.y) {
-                        p.powerup = pw.type;
-                        p.powerupTimer = 600; 
-                        document.getElementById(`p${p.id}-powerup`).innerText = pw.type === 'dual' ? "DUAL BLASTER" : "RAPID FIRE";
+                        if (pw.type === 'dual') p.dualTimer = 600;
+                        if (pw.type === 'rapid') p.rapidTimer = 600;
+                        updateHUD();
                         playSound('powerup');
                         addCoins(2);
                         powerups.splice(idx, 1);
@@ -439,6 +483,7 @@
                 if (pw.y > canvas.height) powerups.splice(idx, 1);
             });
 
+            // Player Bullets
             bullets.forEach((b, bIdx) => {
                 b.y -= b.speed;
                 
@@ -449,11 +494,17 @@
                     }
                 });
 
-                if (bossMode && boss.active) {
+                if (bossMode && boss.active && !isCutscene) {
                     if (b.x < boss.x + boss.w && b.x + b.w > boss.x && b.y < boss.y + boss.h && b.y + b.h > boss.y) {
                         boss.hp--;
                         b.y = -100;
                         document.getElementById('boss-hp-fill').style.width = `${(boss.hp / boss.maxHp) * 100}%`;
+                        
+                        // Boss drops powerups when taking damage
+                        if (Math.random() < 0.02) {
+                            powerups.push({ x: boss.x + boss.w/2, y: boss.y + boss.h, speed: 2.5, type: Math.random() > 0.5 ? 'dual' : 'rapid' });
+                        }
+
                         if (boss.hp <= 0) {
                             boss.active = false;
                             createExplosion(boss.x + boss.w/2, boss.y + boss.h/2, '#ff007f');
@@ -465,7 +516,7 @@
                             setTimeout(() => { wave++; spawnAliens(); }, 2000);
                         }
                     }
-                } else {
+                } else if (!bossMode) {
                     aliens.forEach(a => {
                         if (a.alive && b.x < a.x + a.w && b.x + b.w > a.x && b.y < a.y + a.h && b.y + b.h > a.y) {
                             a.alive = false;
@@ -483,7 +534,8 @@
             });
             bullets = bullets.filter(b => b.y > 0);
 
-            if (bossMode && boss.active) {
+            // Enemies
+            if (bossMode && boss.active && !isCutscene) {
                 boss.x += boss.speed * boss.dir * difficulty.speed;
                 if (boss.x <= 10 || boss.x + boss.w >= canvas.width - 10) boss.dir *= -1;
                 
@@ -553,18 +605,6 @@
             particles = particles.filter(p => p.life > 0);
         }
 
-        function gameOver() {
-            gameActive = false;
-            document.getElementById('boss-hp-container').style.display = 'none';
-            document.getElementById('announcement').style.transform = "translate(-50%, -50%) scale(0)";
-            
-            setTimeout(() => {
-                document.getElementById('end-modal').style.display = "flex";
-                document.getElementById('final-score').innerText = p1.score + (isCoop ? p2.score : 0);
-                document.getElementById('final-wave').innerText = wave;
-            }, 1000);
-        }
-
         function drawPlayer(p) {
             if (p.lives <= 0) return;
             if (p.invulnTimer === 0 || Math.floor(p.invulnTimer / 6) % 2 === 0) {
@@ -572,8 +612,11 @@
                 ctx.shadowBlur = 10; ctx.shadowColor = p.color;
                 ctx.fillRect(p.x, p.y, p.w, p.h);
                 ctx.fillRect(p.x + 14, p.y - 10, 12, 10);
-                if (p.powerup === 'dual') {
-                    ctx.fillStyle = "#a855f7"; ctx.fillRect(p.x - 4, p.y + 4, 8, 16); ctx.fillRect(p.x + p.w - 4, p.y + 4, 8, 16);
+                if (p.dualTimer > 0) {
+                    ctx.fillStyle = p.color; ctx.fillRect(p.x - 4, p.y + 4, 8, 16); ctx.fillRect(p.x + p.w - 4, p.y + 4, 8, 16);
+                }
+                if (p.rapidTimer > 0) {
+                    ctx.fillStyle = "#facc15"; ctx.fillRect(p.x + 14, p.y - 4, 12, 4); // Visual indicator for rapid fire
                 }
                 ctx.shadowBlur = 0;
             }
@@ -617,6 +660,11 @@
             ctx.shadowBlur = 0;
 
             if (bossMode && boss.active) {
+                // Flash warning overlay during cutscene
+                if (isCutscene) {
+                    ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
                 ctx.fillStyle = "#ff007f";
                 ctx.shadowBlur = 15; ctx.shadowColor = "#ff007f";
                 ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
