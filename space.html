@@ -2,31 +2,49 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Space Invaders - Arcade Edition</title>
     <script src="arcade.js"></script>
     <style>
         :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; --gold: #facc15; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; touch-action: none; overflow: hidden; }
+        body { 
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            padding: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start; /* Changed from center to prevent top clipping */
+            min-height: 100vh; 
+            box-sizing: border-box; 
+            touch-action: none; 
+            overflow: hidden; 
+        }
         
-        header { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 10px 16px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 10px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,243,255,0.2); }
+        header { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 16px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 8px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,243,255,0.2); flex-shrink: 0; }
         .stats { font-size: 1rem; font-weight: bold; color: var(--gold); }
         
-        .status-bar { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; max-width: 600px; margin-bottom: 6px; font-weight: bold; font-size: 1.1rem; }
+        .status-bar { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; max-width: 600px; margin-bottom: 6px; font-weight: bold; font-size: 1.1rem; flex-shrink: 0; }
         .player-hud { display: flex; flex-direction: column; text-align: left; }
         .player-hud.right { text-align: right; }
         .hud-name { font-size: 0.8rem; text-transform: uppercase; margin-bottom: 2px; }
         .hud-score { font-family: monospace; font-size: 1.2rem; }
         
-        #game-container { position: relative; max-width: 100%; display: flex; justify-content: center; align-items: center; }
-        canvas { background: #020617; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 30px rgba(0, 243, 255, 0.3); max-width: 100%; display: block; }
+        /* Flex 1 allows the container to dynamically fill remaining space without pushing UI off screen */
+        #game-container { position: relative; max-width: 100%; width: 100%; display: flex; justify-content: center; align-items: center; flex: 1; min-height: 0; }
+        
+        /* Object-fit contain ensures the game maintains its aspect ratio when scaling down */
+        canvas { background: #020617; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 30px rgba(0, 243, 255, 0.3); max-width: 100%; max-height: 100%; display: block; object-fit: contain; }
         
         #boss-hp-container { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 80%; height: 12px; background: rgba(0,0,0,0.8); border: 2px solid var(--accent); border-radius: 6px; display: none; overflow: hidden; z-index: 5;}
         #boss-hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, var(--accent)); transition: width 0.1s; }
 
         #announcement { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 2rem; font-weight: 900; color: var(--gold); text-shadow: 0 4px 10px #000; pointer-events: none; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; width: 100%; text-align: center; }
 
-        .touch-controls { width: 100%; max-width: 500px; display: flex; justify-content: space-between; margin-top: 10px; gap: 10px; }
+        .touch-controls { width: 100%; max-width: 500px; display: flex; justify-content: space-between; margin-top: 8px; gap: 10px; flex-shrink: 0; }
         .touch-group { display: flex; gap: 10px; }
         .ctrl-btn { width: 65px; height: 65px; background: rgba(30, 41, 59, 0.9); border: 2px solid var(--primary); border-radius: 12px; color: white; font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; transition: transform 0.1s; }
         .ctrl-btn:active { background: var(--primary); color: #000; transform: scale(0.92); }
@@ -48,7 +66,7 @@
         .mode-btn.coop { border-color: #a855f7; }
         .mode-btn.coop:hover { border-color: #d946ef; background: rgba(217, 70, 239, 0.2); box-shadow: 0 0 15px rgba(217, 70, 239, 0.4); }
 
-        .btn-restart { background: var(--primary); color: #000; border: none; padding: 8px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 0 #0284c7; margin-top: 10px; }
+        .btn-restart { background: var(--primary); color: #000; border: none; padding: 8px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 0 #0284c7; margin-top: 8px; margin-bottom: 4px; flex-shrink: 0; }
         .btn-restart:active { transform: translateY(2px); box-shadow: 0 2px 0 #0284c7; }
         a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
     </style>
@@ -293,7 +311,6 @@
                 p.invulnTimer = 120;
             }
 
-            // Game over if BOTH players are dead
             if (p1.lives <= 0 && (!isCoop || p2.lives <= 0)) {
                 gameOver();
             }
@@ -314,7 +331,7 @@
             document.getElementById("start-modal").style.display = "none";
             document.getElementById("end-modal").style.display = "none";
             document.getElementById("hud-p2").style.display = isCoop ? "flex" : "none";
-            document.getElementById("touch-ui").style.display = isCoop ? "none" : "flex"; // Hide touch in local coop to avoid clutter
+            document.getElementById("touch-ui").style.display = isCoop ? "none" : "flex"; 
             
             wave = 1; gameActive = true;
             bullets = []; alienBullets = []; particles = []; powerups = [];
@@ -335,12 +352,10 @@
         window.addEventListener("keydown", e => {
             if (["ArrowLeft","ArrowRight","ArrowUp","Space","KeyA","KeyD","KeyW","a","d","w","A","D","W"," "].includes(e.key) || e.code === "Space") e.preventDefault();
             
-            // P1 (WASD / Space)
             if (e.key === "a" || e.key === "A") p1.keys.left = true;
             if (e.key === "d" || e.key === "D") p1.keys.right = true;
             if (e.key === " " || e.code === "Space" || e.key === "w" || e.key === "W") p1.keys.shoot = true;
 
-            // P2 (Arrows / Enter)
             if (e.key === "ArrowLeft") p2.keys.left = true;
             if (e.key === "ArrowRight") p2.keys.right = true;
             if (e.key === "ArrowUp" || e.key === "Enter") p2.keys.shoot = true;
@@ -356,7 +371,6 @@
             if (e.key === "ArrowUp" || e.key === "Enter") p2.keys.shoot = false;
         });
 
-        // Touch strictly maps to P1
         const bindTouch = (id, field) => {
             const el = document.getElementById(id);
             if(!el) return;
@@ -410,7 +424,6 @@
 
             [p1, p2].forEach(p => updatePlayer(p));
 
-            // Powerups
             powerups.forEach((pw, idx) => {
                 pw.y += pw.speed;
                 [p1, p2].forEach(p => {
@@ -426,7 +439,6 @@
                 if (pw.y > canvas.height) powerups.splice(idx, 1);
             });
 
-            // Player Bullets
             bullets.forEach((b, bIdx) => {
                 b.y -= b.speed;
                 
@@ -462,7 +474,6 @@
                             addCoins(1);
                             createExplosion(a.x, a.y, a.color);
                             
-                            // Powerup Drop Logic
                             if (Math.random() < 0.08) {
                                 powerups.push({ x: a.x + 8, y: a.y, speed: 2.5, type: Math.random() > 0.5 ? 'dual' : 'rapid' });
                             }
@@ -472,7 +483,6 @@
             });
             bullets = bullets.filter(b => b.y > 0);
 
-            // Enemies
             if (bossMode && boss.active) {
                 boss.x += boss.speed * boss.dir * difficulty.speed;
                 if (boss.x <= 10 || boss.x + boss.w >= canvas.width - 10) boss.dir *= -1;
@@ -512,7 +522,6 @@
                     });
 
                     if (a.y + a.h >= canvas.height - 20) {
-                        // Alien reached absolute bottom - instant game over
                         p1.lives = 0; p2.lives = 0; updateHUD(); gameOver();
                     }
                 });
@@ -523,7 +532,6 @@
                 }
             }
 
-            // Enemy Bullets
             alienBullets.forEach(ab => {
                 ab.y += ab.speed;
                 bunkers.forEach(bk => {
@@ -541,7 +549,6 @@
             });
             alienBullets = alienBullets.filter(ab => ab.y < canvas.height);
 
-            // Particles
             particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.04; });
             particles = particles.filter(p => p.life > 0);
         }
@@ -582,7 +589,6 @@
             ctx.fillStyle = "#020617";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Stars
             ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
             stars.forEach(s => { ctx.fillRect(s.x, s.y, s.size, s.size); });
 
@@ -591,14 +597,12 @@
                 if (isCoop) drawPlayer(p2);
             }
 
-            // Powerups
             powerups.forEach(p => {
                 ctx.fillStyle = p.type === 'dual' ? '#a855f7' : '#facc15';
                 ctx.shadowBlur = 8; ctx.shadowColor = ctx.fillStyle;
                 ctx.beginPath(); ctx.arc(p.x + 8, p.y + 8, 8, 0, Math.PI*2); ctx.fill();
             });
 
-            // Bunkers
             ctx.shadowBlur = 5; ctx.shadowColor = "#10b981";
             bunkers.forEach(bk => {
                 if (bk.alive) {
@@ -608,12 +612,10 @@
             });
             ctx.shadowBlur = 0;
 
-            // Bullets
             bullets.forEach(b => { ctx.fillStyle = b.color; ctx.shadowBlur = 8; ctx.shadowColor = b.color; ctx.fillRect(b.x, b.y, b.w, b.h); });
             alienBullets.forEach(ab => { ctx.fillStyle = ab.color; ctx.shadowBlur = 8; ctx.shadowColor = ab.color; ctx.fillRect(ab.x, ab.y, ab.w, ab.h); });
             ctx.shadowBlur = 0;
 
-            // Enemies
             if (bossMode && boss.active) {
                 ctx.fillStyle = "#ff007f";
                 ctx.shadowBlur = 15; ctx.shadowColor = "#ff007f";
@@ -629,7 +631,7 @@
                         ctx.fillStyle = a.color;
                         ctx.shadowBlur = 8; ctx.shadowColor = a.color;
                         ctx.fillRect(a.x, a.y, a.w, a.h);
-                        ctx.fillStyle = "#000"; // Alien eyes
+                        ctx.fillStyle = "#000"; 
                         ctx.fillRect(a.x + 6, a.y + 6, 6, 6);
                         ctx.fillRect(a.x + a.w - 12, a.y + 6, 6, 6);
                     }
@@ -637,7 +639,6 @@
             }
             ctx.shadowBlur = 0;
 
-            // Particles
             particles.forEach(p => {
                 ctx.fillStyle = p.color;
                 ctx.globalAlpha = Math.max(0, p.life);
