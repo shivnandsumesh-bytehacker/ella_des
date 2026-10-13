@@ -13,10 +13,11 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             text-align: center; 
             margin: 0; 
-            padding: 10px; 
+            padding: 15px; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
+            justify-content: flex-start; 
             height: 100vh;
             height: 100dvh;
             box-sizing: border-box; 
@@ -24,56 +25,68 @@
             overflow: hidden; 
         }
         
-        header { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 8px 16px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 6px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,243,255,0.2); flex-shrink: 0; }
-        .stats { font-size: 1rem; font-weight: bold; color: var(--gold); }
+        header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 10px 20px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 10px; box-sizing: border-box; box-shadow: 0 4px 15px rgba(0,243,255,0.2); flex-shrink: 0; }
+        .stats { font-size: 1.1rem; font-weight: bold; color: var(--gold); }
         
-        .status-bar { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; max-width: 600px; margin-bottom: 6px; font-weight: bold; font-size: 1.1rem; flex-shrink: 0; }
+        .status-bar { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; max-width: 800px; margin-bottom: 10px; font-weight: bold; font-size: 1.2rem; flex-shrink: 0; }
         .player-hud { display: flex; flex-direction: column; text-align: left; }
         .player-hud.right { text-align: right; }
-        .hud-name { font-size: 0.8rem; text-transform: uppercase; margin-bottom: 2px; }
-        .hud-score { font-family: monospace; font-size: 1.2rem; }
+        .hud-name { font-size: 0.9rem; text-transform: uppercase; margin-bottom: 4px; }
+        .hud-score { font-family: monospace; font-size: 1.4rem; }
         
-        /* Rigid Flex Container ensures the canvas shrinks on iPads */
-        #game-container { position: relative; max-width: 100%; width: 100%; display: flex; justify-content: center; align-items: center; flex: 1 1 0; min-height: 0; }
+        /* Middle row layout for side-by-side controls and canvas */
+        .play-area {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            flex: 1 1 0;
+            min-height: 0;
+        }
+
+        .touch-group-side { display: flex; gap: 15px; flex-shrink: 0; }
         
-        canvas { background: #020617; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 30px rgba(0, 243, 255, 0.3); max-width: 100%; max-height: 100%; aspect-ratio: 540 / 600; display: block; object-fit: contain; }
+        #game-container { position: relative; height: 100%; display: flex; justify-content: center; align-items: center; flex: 1 1 0; min-height: 0; }
+        
+        canvas { background: #020617; border: 3px solid var(--primary); border-radius: 12px; box-shadow: 0 0 30px rgba(0, 243, 255, 0.3); max-width: 100%; height: 100%; aspect-ratio: 540 / 600; display: block; object-fit: contain; }
         
         #boss-hp-container { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 70%; height: 12px; background: rgba(0,0,0,0.8); border: 2px solid var(--accent); border-radius: 6px; display: none; overflow: hidden; z-index: 5;}
         #boss-hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444, var(--accent)); transition: width 0.1s; }
 
-        #announcement { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 2rem; font-weight: 900; color: var(--gold); text-shadow: 0 4px 10px #000; pointer-events: none; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; width: 100%; text-align: center; letter-spacing: 1px;}
-        #cutscene-warning { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.2rem; font-weight: 900; color: #ef4444; text-shadow: 0 0 15px #ef4444; pointer-events: none; z-index: 10; width: 100%; text-align: center; display: none; animation: flashWarning 0.5s infinite; }
+        #announcement { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 2.5rem; font-weight: 900; color: var(--gold); text-shadow: 0 4px 10px #000; pointer-events: none; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; width: 100%; text-align: center; letter-spacing: 1px;}
+        #cutscene-warning { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; font-weight: 900; color: #ef4444; text-shadow: 0 0 15px #ef4444; pointer-events: none; z-index: 10; width: 100%; text-align: center; display: none; animation: flashWarning 0.5s infinite; }
 
         @keyframes flashWarning {
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
         }
 
-        .touch-controls { width: 100%; max-width: 500px; display: flex; justify-content: space-between; margin-top: 8px; gap: 10px; flex-shrink: 0; }
-        .touch-group { display: flex; gap: 10px; }
-        .ctrl-btn { width: 60px; height: 60px; background: rgba(30, 41, 59, 0.9); border: 2px solid var(--primary); border-radius: 12px; color: white; font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; transition: transform 0.1s; }
+        .ctrl-btn { width: 75px; height: 75px; background: rgba(30, 41, 59, 0.9); border: 2px solid var(--primary); border-radius: 16px; color: white; font-size: 2rem; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; transition: transform 0.1s; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .ctrl-btn:active { background: var(--primary); color: #000; transform: scale(0.92); }
-        .ctrl-btn.fire { border-color: var(--accent); width: 85px; color: var(--accent); }
+        .ctrl-btn.fire { border-color: var(--accent); width: 90px; color: var(--accent); font-size: 2.5rem; }
         .ctrl-btn.fire:active { background: var(--accent); color: #fff; }
 
-        /* Modals & UI */
-        .modal { position: absolute; inset: 0; background: rgba(3, 7, 18, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; padding: 20px; backdrop-filter: blur(8px); border-radius: 12px;}
-        .modal-card { background: rgba(11, 19, 41, 0.85); border: 2px solid var(--primary); border-radius: 16px; padding: 25px; max-width: 400px; width: 95%; text-align: center; box-shadow: 0 8px 32px rgba(0, 243, 255, 0.25); backdrop-filter: blur(12px); }
+        /* Fixed Modals covering the whole screen */
+        .modal { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 20px; backdrop-filter: blur(8px);}
+        .modal-card { background: rgba(11, 19, 41, 0.85); border: 2px solid var(--primary); border-radius: 16px; padding: 35px 25px; max-width: 450px; width: 95%; text-align: center; box-shadow: 0 8px 40px rgba(0, 243, 255, 0.3); backdrop-filter: blur(12px); }
         
-        .title { font-size: 2.5rem; color: var(--primary); text-shadow: 0 0 15px var(--primary-glow); margin: 0 0 15px 0; letter-spacing: 2px; line-height: 1.1; font-family: 'Impact', sans-serif;}
+        .title { font-size: 3rem; color: var(--primary); text-shadow: 0 0 20px var(--primary-glow); margin: 0 0 20px 0; letter-spacing: 2px; line-height: 1.1; font-family: 'Impact', sans-serif;}
         
-        .mode-btn { background: rgba(30, 41, 59, 0.8); border: 2px solid #334155; color: #fff; padding: 12px; width: 100%; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 1.1rem; margin-bottom: 10px; transition: all 0.15s; display: flex; flex-direction: column; align-items: center; }
-        .mode-btn span { font-size: 0.75rem; color: #94a3b8; font-weight: normal; margin-top: 4px; }
+        .mode-btn { background: rgba(30, 41, 59, 0.8); border: 2px solid #334155; color: #fff; padding: 15px; width: 100%; font-weight: bold; border-radius: 10px; cursor: pointer; font-size: 1.2rem; margin-bottom: 12px; transition: all 0.15s; display: flex; flex-direction: column; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        .mode-btn span { font-size: 0.8rem; color: #94a3b8; font-weight: normal; margin-top: 6px; }
         .mode-btn:hover { transform: translateY(-3px); }
-        .mode-btn.easy:hover { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); box-shadow: 0 0 15px rgba(34, 197, 94, 0.4); }
-        .mode-btn.normal:hover { border-color: #facc15; background: rgba(250, 204, 21, 0.2); box-shadow: 0 0 15px rgba(250, 204, 21, 0.4); }
-        .mode-btn.hard:hover { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        .mode-btn.easy:hover { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+        .mode-btn.normal:hover { border-color: #facc15; background: rgba(250, 204, 21, 0.2); box-shadow: 0 0 20px rgba(250, 204, 21, 0.4); }
+        .mode-btn.hard:hover { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
         .mode-btn.coop { border-color: #a855f7; }
-        .mode-btn.coop:hover { border-color: #d946ef; background: rgba(217, 70, 239, 0.2); box-shadow: 0 0 15px rgba(217, 70, 239, 0.4); }
+        .mode-btn.coop:hover { border-color: #d946ef; background: rgba(217, 70, 239, 0.2); box-shadow: 0 0 20px rgba(217, 70, 239, 0.4); }
 
-        .btn-restart { background: var(--primary); color: #000; border: none; padding: 8px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 0 #0284c7; margin-top: 6px; margin-bottom: 4px; flex-shrink: 0; }
-        .btn-restart:active { transform: translateY(2px); box-shadow: 0 2px 0 #0284c7; }
-        a.nav { color: var(--primary); text-decoration: none; font-weight: bold; }
+        .btn-restart { background: var(--primary); color: #000; border: none; padding: 10px 24px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 5px 0 #0284c7; margin-top: 15px; margin-bottom: 5px; flex-shrink: 0; }
+        .btn-restart:active { transform: translateY(3px); box-shadow: 0 2px 0 #0284c7; }
+        a.nav { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.1rem;}
     </style>
 </head>
 <body>
@@ -86,75 +99,79 @@
     <div class="status-bar">
         <div class="player-hud" id="hud-p1" style="color:var(--primary)">
             <div class="hud-name">PLAYER 1</div>
-            <div id="p1-powerup" style="font-size:0.6rem; color:var(--gold); font-weight:bold; height:12px;"></div>
+            <div id="p1-powerup" style="font-size:0.7rem; color:var(--gold); font-weight:bold; height:14px;"></div>
             <div id="p1-lives">❤️❤️❤️</div>
             <div class="hud-score" id="p1-score">00000</div>
         </div>
         
         <div style="text-align: center;">
-            <div style="font-size:0.8rem; color:#94a3b8; text-transform:uppercase;">Wave</div>
-            <div id="wave" style="color:var(--gold); font-size:1.8rem; line-height:1;">1</div>
+            <div style="font-size:0.9rem; color:#94a3b8; text-transform:uppercase;">Wave</div>
+            <div id="wave" style="color:var(--gold); font-size:2.2rem; line-height:1;">1</div>
         </div>
 
         <div class="player-hud right" id="hud-p2" style="color:var(--accent); display:none;">
             <div class="hud-name">PLAYER 2</div>
-            <div id="p2-powerup" style="font-size:0.6rem; color:var(--gold); font-weight:bold; height:12px;"></div>
+            <div id="p2-powerup" style="font-size:0.7rem; color:var(--gold); font-weight:bold; height:14px;"></div>
             <div id="p2-lives">❤️❤️❤️</div>
             <div class="hud-score" id="p2-score">00000</div>
         </div>
     </div>
 
-    <div id="game-container">
-        <canvas id="spaceCanvas" width="540" height="600"></canvas>
-        <div id="boss-hp-container"><div id="boss-hp-fill"></div></div>
-        <div id="announcement">WAVE 1</div>
-        <div id="cutscene-warning">WARNING<br>MOTHERSHIP DETECTED</div>
-
-        <!-- Start Menu Modal -->
-        <div id="start-modal" class="modal">
-            <div class="modal-card">
-                <h1 class="title">GALACTIC<br><span style="color: #fff;">DEFENDER</span></h1>
-                <p style="color:#94a3b8; font-size: 0.9rem; margin-bottom: 20px;">Select your mission deployment.</p>
-                
-                <button class="mode-btn easy" onclick="startGame('EASY')">
-                    🟢 CASUAL (EASY)
-                    <span>5 Lives • Slower Enemies • Weak Bosses</span>
-                </button>
-                <button class="mode-btn normal" onclick="startGame('NORMAL')">
-                    🟡 ARCADE (NORMAL)
-                    <span>3 Lives • Balanced Difficulty</span>
-                </button>
-                <button class="mode-btn coop" onclick="startGame('COOP')">
-                    👥 2-PLAYER LOCAL CO-OP
-                    <span>Share keyboard • Bosses have 200% HP</span>
-                </button>
-                <button class="mode-btn hard" onclick="startGame('HARD')">
-                    🔴 IRONMAN (HARD)
-                    <span>1 Life • Fast Enemies • Bullet Hell</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Game Over Modal -->
-        <div id="end-modal" class="modal" style="display: none;">
-            <div class="modal-card">
-                <h1 class="title" style="color: #ef4444; text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">EARTH FALLS</h1>
-                <p style="color:#94a3b8; font-size: 1.1rem; margin-bottom: 5px;">Total Score: <span id="final-score" style="color:var(--gold); font-weight:bold;">0</span></p>
-                <p style="color:#94a3b8; font-size: 1.1rem; margin-bottom: 20px;">Waves Cleared: <span id="final-wave" style="color:var(--primary); font-weight:bold;">0</span></p>
-                <button class="mode-btn normal" onclick="openMenu()">🔄 RETURN TO MENU</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="touch-controls" id="touch-ui">
-        <div class="touch-group">
+    <!-- Middle Row: Left Controls + Game + Right Controls -->
+    <div class="play-area">
+        <div class="touch-group-side" id="touch-left-wrap">
             <div class="ctrl-btn" id="btn-left">◀</div>
             <div class="ctrl-btn" id="btn-right">▶</div>
         </div>
-        <div class="ctrl-btn fire" id="btn-shoot">🔥</div>
+
+        <div id="game-container">
+            <canvas id="spaceCanvas" width="540" height="600"></canvas>
+            <div id="boss-hp-container"><div id="boss-hp-fill"></div></div>
+            <div id="announcement">WAVE 1</div>
+            <div id="cutscene-warning">WARNING<br>MOTHERSHIP DETECTED</div>
+        </div>
+
+        <div class="touch-group-side" id="touch-right-wrap">
+            <div class="ctrl-btn fire" id="btn-shoot">🔥</div>
+        </div>
     </div>
 
     <button class="btn-restart" onclick="openMenu()">Abort Mission</button>
+
+    <!-- Start Menu Modal (Fixed Overlay) -->
+    <div id="start-modal" class="modal">
+        <div class="modal-card">
+            <h1 class="title">GALACTIC<br><span style="color: #fff;">DEFENDER</span></h1>
+            <p style="color:#94a3b8; font-size: 1rem; margin-bottom: 25px;">Select your mission deployment.</p>
+            
+            <button class="mode-btn easy" onclick="startGame('EASY')">
+                🟢 CASUAL (EASY)
+                <span>5 Lives • Slower Enemies • Weak Bosses</span>
+            </button>
+            <button class="mode-btn normal" onclick="startGame('NORMAL')">
+                🟡 ARCADE (NORMAL)
+                <span>3 Lives • Balanced Difficulty</span>
+            </button>
+            <button class="mode-btn coop" onclick="startGame('COOP')">
+                👥 2-PLAYER LOCAL CO-OP
+                <span>Share keyboard • Bosses have 200% HP</span>
+            </button>
+            <button class="mode-btn hard" onclick="startGame('HARD')">
+                🔴 IRONMAN (HARD)
+                <span>1 Life • Fast Enemies • Bullet Hell</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Over Modal (Fixed Overlay) -->
+    <div id="end-modal" class="modal" style="display: none;">
+        <div class="modal-card">
+            <h1 class="title" style="color: #ef4444; text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);">EARTH FALLS</h1>
+            <p style="color:#94a3b8; font-size: 1.2rem; margin-bottom: 5px;">Total Score: <span id="final-score" style="color:var(--gold); font-weight:bold;">0</span></p>
+            <p style="color:#94a3b8; font-size: 1.2rem; margin-bottom: 25px;">Waves Cleared: <span id="final-wave" style="color:var(--primary); font-weight:bold;">0</span></p>
+            <button class="mode-btn normal" onclick="openMenu()">🔄 RETURN TO MENU</button>
+        </div>
+    </div>
 
     <script>
         // --- Audio Engine ---
@@ -294,9 +311,8 @@
                 boss.y = -80; // Start off screen
                 boss.x = canvas.width/2 - boss.w/2;
                 
-                // Trigger Cutscene
                 isCutscene = true;
-                cutsceneTimer = 180; // 3 seconds at 60fps
+                cutsceneTimer = 180;
                 document.getElementById('cutscene-warning').style.display = 'block';
                 playSound('siren'); setTimeout(() => playSound('siren'), 1000); setTimeout(() => playSound('siren'), 2000);
             } else {
@@ -362,7 +378,10 @@
             document.getElementById("start-modal").style.display = "none";
             document.getElementById("end-modal").style.display = "none";
             document.getElementById("hud-p2").style.display = isCoop ? "flex" : "none";
-            document.getElementById("touch-ui").style.display = isCoop ? "none" : "flex"; 
+            
+            // Hide touch controls if Local Co-op to avoid clutter
+            document.getElementById("touch-left-wrap").style.display = isCoop ? "none" : "flex";
+            document.getElementById("touch-right-wrap").style.display = isCoop ? "none" : "flex";
             
             wave = 1; gameActive = true; isCutscene = false;
             bullets = []; alienBullets = []; particles = []; powerups = [];
@@ -455,7 +474,7 @@
 
             if (isCutscene) {
                 cutsceneTimer--;
-                boss.y += 0.6; // Boss descends slowly
+                boss.y += 0.6; 
                 
                 if (cutsceneTimer <= 0) {
                     isCutscene = false;
@@ -463,11 +482,8 @@
                     document.getElementById('boss-hp-container').style.display = 'block';
                     document.getElementById('boss-hp-fill').style.width = '100%';
                 }
-                
-                // Allow players to move during cutscene but bullets are handled below
             }
 
-            // Powerups
             powerups.forEach((pw, idx) => {
                 pw.y += pw.speed;
                 [p1, p2].forEach(p => {
@@ -483,7 +499,6 @@
                 if (pw.y > canvas.height) powerups.splice(idx, 1);
             });
 
-            // Player Bullets
             bullets.forEach((b, bIdx) => {
                 b.y -= b.speed;
                 
@@ -500,7 +515,6 @@
                         b.y = -100;
                         document.getElementById('boss-hp-fill').style.width = `${(boss.hp / boss.maxHp) * 100}%`;
                         
-                        // Boss drops powerups when taking damage
                         if (Math.random() < 0.02) {
                             powerups.push({ x: boss.x + boss.w/2, y: boss.y + boss.h, speed: 2.5, type: Math.random() > 0.5 ? 'dual' : 'rapid' });
                         }
@@ -534,7 +548,6 @@
             });
             bullets = bullets.filter(b => b.y > 0);
 
-            // Enemies
             if (bossMode && boss.active && !isCutscene) {
                 boss.x += boss.speed * boss.dir * difficulty.speed;
                 if (boss.x <= 10 || boss.x + boss.w >= canvas.width - 10) boss.dir *= -1;
@@ -605,6 +618,18 @@
             particles = particles.filter(p => p.life > 0);
         }
 
+        function gameOver() {
+            gameActive = false;
+            document.getElementById('boss-hp-container').style.display = 'none';
+            document.getElementById('announcement').style.transform = "translate(-50%, -50%) scale(0)";
+            
+            setTimeout(() => {
+                document.getElementById('end-modal').style.display = "flex";
+                document.getElementById('final-score').innerText = p1.score + (isCoop ? p2.score : 0);
+                document.getElementById('final-wave').innerText = wave;
+            }, 1000);
+        }
+
         function drawPlayer(p) {
             if (p.lives <= 0) return;
             if (p.invulnTimer === 0 || Math.floor(p.invulnTimer / 6) % 2 === 0) {
@@ -616,7 +641,7 @@
                     ctx.fillStyle = p.color; ctx.fillRect(p.x - 4, p.y + 4, 8, 16); ctx.fillRect(p.x + p.w - 4, p.y + 4, 8, 16);
                 }
                 if (p.rapidTimer > 0) {
-                    ctx.fillStyle = "#facc15"; ctx.fillRect(p.x + 14, p.y - 4, 12, 4); // Visual indicator for rapid fire
+                    ctx.fillStyle = "#facc15"; ctx.fillRect(p.x + 14, p.y - 4, 12, 4); 
                 }
                 ctx.shadowBlur = 0;
             }
@@ -660,7 +685,6 @@
             ctx.shadowBlur = 0;
 
             if (bossMode && boss.active) {
-                // Flash warning overlay during cutscene
                 if (isCutscene) {
                     ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -702,7 +726,6 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // --- Start Game ---
         applyGlobalTheme();
         updateWallet();
         initStars();
