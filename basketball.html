@@ -486,7 +486,7 @@
                 unlockCost: 0, skin: '#93c5fd', hair: 'wavy', glasses: false, beard: false, earpiece: false, tongueOut: false, shirtColor: '#eab308'
             },
             {
-                id: 'suhaas', name: 'SUHAAS', role: 'Bench Warmer (Hard Mode)',
+                id: 'suhaas', name: 'SUHAAS', role: 'Bench Warmer',
                 heightCm: 170, speed: 250, jumpForce: 450, shotAccuracy: 0.35, dunkReach: 0, stealStat: 0.30, defenseRating: 40,
                 skillName: 'Desperate Swipe', skillDesc: 'Slightly higher steal chance for 1s',
                 hyperName: 'Underdog Surge', hyperDesc: 'Temporarily maxes ALL stats for 8s', hyperCost: 800,
@@ -508,9 +508,9 @@
             },
             {
                 id: 'wengle', name: 'WENGLE', role: 'Baseline Specialist',
-                heightCm: 173, speed: 390, jumpForce: 630, shotAccuracy: 0.85, dunkReach: 0, stealStat: 0.65, defenseRating: 72,
-                skillName: 'Ghost Floater', skillDesc: 'Instantly charges a perfect jump shot',
-                hyperName: 'Bank Economy', hyperDesc: 'Baseline teleport + Unblockable layup', hyperCost: 1500,
+                heightCm: 173, speed: 390, jumpForce: 650, shotAccuracy: 0.85, dunkReach: 160, stealStat: 0.65, defenseRating: 72,
+                skillName: 'Ghost Floater', skillDesc: 'Freezes rival + Auto-Greens shot',
+                hyperName: 'Bank Economy', hyperDesc: 'Baseline teleport dunk', hyperCost: 1500,
                 unlockCost: 0, skin: '#fef08a', hair: 'parted', glasses: true, beard: false, earpiece: false, tongueOut: false, shirtColor: '#0ea5e9'
             }
         ];
@@ -626,6 +626,7 @@
                 vx: 0, vy: 0, facing: facing, onGround: true, isCharging: false, chargeTimer: 0, isDunking: false,
                 stealCooldown: 0, pickupLockout: 0, stunTimer: 0, swipeVisualTimer: 0, isClamping: false,
                 skillCooldown: 0, skillActiveTimer: 0, hyperCooldown: 0, hyperActiveTimer: 0, hyperUsed: false,
+                superMeter: 0, // NEW: Dedicated hyper superMeter
                 aiDecisionTimer: 0, aiState: 'IDLE', baseStats: { speed: data.speed, jumpForce: data.jumpForce, shotAccuracy: data.shotAccuracy, dunkReach: data.dunkReach }
             };
         }
@@ -638,6 +639,17 @@
             { side: 'left', bbX: 52, bbY: 210, bbH: 110, rimX: 62, rimY: 288, rimW: 46, netWiggle: 0 },
             { side: 'right', bbX: 940, bbY: 210, bbH: 110, rimX: 892, rimY: 288, rimW: 46, netWiggle: 0 }
         ];
+
+        function chargeSuper(player, amount) {
+            player.superMeter = Math.min(100, player.superMeter + amount);
+            if (player === p1) {
+                document.getElementById('p1-super').style.width = `${player.superMeter}%`;
+                document.getElementById('p1-super').classList.toggle('ready', player.superMeter >= 100);
+            } else {
+                document.getElementById('p2-super').style.width = `${player.superMeter}%`;
+                document.getElementById('p2-super').classList.toggle('ready', player.superMeter >= 100);
+            }
+        }
 
         function activateSkill(user, rival) {
             if (user.skillCooldown > 0 || !matchActive || user.stunTimer > 0) return;
@@ -656,7 +668,11 @@
             else if (user.id === 'lebron') { rival.vx = user.facing * 450; rival.pickupLockout = 0.8; rival.stunTimer = 0.6; }
             else if (user.id === 'ayansh') { user.chargeTimer = 0.45; }
             else if (user.id === 'achutha') { rival.stunTimer = 1.8; rival.vx = -user.facing * 300; triggerBanner('TORNADO SPIN! 🌪️'); }
-            else if (user.id === 'wengle') { user.chargeTimer = 0.45; triggerBanner('GHOST FLOATER! 👻'); }
+            else if (user.id === 'wengle') { 
+                user.chargeTimer = 0.45; 
+                rival.stunTimer = 2.5; 
+                triggerBanner('GHOST FLOATER! 👻'); 
+            }
         }
 
         function activateHyper(user, rival) {
@@ -669,7 +685,7 @@
             if (user.id === 'suhaas') {
                 user.speed = 500; user.jumpForce = 850; user.shotAccuracy = 1.0; user.dunkReach = 200; user.stealStat = 1.0;
                 setTimeout(() => { user.speed = user.baseStats.speed; user.jumpForce = user.baseStats.jumpForce; user.shotAccuracy = user.baseStats.shotAccuracy; user.dunkReach = user.baseStats.dunkReach; }, 8000);
-            } else if (user.id === 'shivnand') { rival.stunTimer = 5.0; } 
+            } else if (user.id === 'shivnand') { rival.stunTimer = 5.0; }
             else if (user.id === 'kaijie') { rival.stunTimer = 2.0; rival.vx = -user.facing * 300; }
             else if (user.id === 'julius' || user.id === 'john' || user.id === 'darryl') { 
                 if (ball.holder === user) { user.x = (user === p1) ? hoops[1].rimX - 20 : hoops[0].rimX + 20; executeDunk(user, user === p1 ? hoops[1] : hoops[0]); }
@@ -679,12 +695,12 @@
             else if (user.id === 'achutha') { user.x = rival.x + (user.facing * 80); rival.stunTimer = 2.0; triggerBanner('MIRAGE DRIVE! 💨'); }
             else if (user.id === 'wengle') {
                 // Secretly drains 50% of the rival's super meter without announcing it
-                rival.hyperCooldown = Math.max(0, rival.hyperCooldown + 20);
+                rival.superMeter = Math.max(0, rival.superMeter - 50);
+                chargeSuper(rival, 0); // Updates the HUD downward
                 
-                // Teleports near the basket for an unblockable layup shot
-                user.x = (user === p1) ? hoops[1].rimX - 40 : hoops[0].rimX + 40;
-                user.vy = -JUMP_FORCE * 0.8;
-                user.onGround = false;
+                // Teleports near the basket for an unblockable dunk
+                user.x = (user === p1) ? hoops[1].rimX - 30 : hoops[0].rimX + 30;
+                executeDunk(user, user === p1 ? hoops[1] : hoops[0]);
             }
         }
 
@@ -711,7 +727,7 @@
         }
 
         function isShotContested(shooter, defender) {
-            if (shooter.skillActiveTimer > 0 && (shooter.id === 'kd' || shooter.id === 'sharran' || shooter.id === 'darryl')) return false;
+            if (shooter.skillActiveTimer > 0 && ['kd', 'sharran', 'darryl', 'wengle'].includes(shooter.id)) return false;
             const dist = Math.abs((shooter.x + shooter.width/2) - (defender.x + defender.width/2));
             const activeGuard = dist < 82 && (!defender.onGround || defender.defenseRating > 65);
             defender.isClamping = activeGuard; return activeGuard;
@@ -795,6 +811,7 @@
             }
             
             document.getElementById('p1-score').innerText = '0'; document.getElementById('p2-score').innerText = '0'; 
+            chargeSuper(p1, 0); chargeSuper(p2, 0); // Reset super UI
             document.getElementById('select-modal').style.display = 'none'; document.getElementById('end-modal').style.display = 'none';
             resetRound(p1);
             if (timerInterval) clearInterval(timerInterval);
