@@ -103,8 +103,8 @@
         .music-pill { background: rgba(15, 23, 42, 0.88); border: 1.5px solid #a855f7; color: var(--p1-cyan); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; font-family: sans-serif; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.6); transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px; }
         .music-pill:active { transform: scale(0.92); background: var(--p1-cyan); color: #000; }
         .music-pill.active { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 14px var(--gold); }
-        .music-pill.quit-btn { border-color: var(--danger); color: var(--danger); }
-        .music-pill.quit-btn:active { background: var(--danger); color: #fff; }
+        .music-pill.quit-btn { border-color: var(--red); color: var(--red); }
+        .music-pill.quit-btn:active { background: var(--red); color: #fff; }
         .upload-pill { background: rgba(30, 17, 56, 0.88); border-color: var(--gold); color: var(--gold); }
 
         #banner-popup {
@@ -626,7 +626,6 @@
                 vx: 0, vy: 0, facing: facing, onGround: true, isCharging: false, chargeTimer: 0, isDunking: false,
                 stealCooldown: 0, pickupLockout: 0, stunTimer: 0, swipeVisualTimer: 0, isClamping: false,
                 skillCooldown: 0, skillActiveTimer: 0, hyperCooldown: 0, hyperActiveTimer: 0, hyperUsed: false,
-                superMeter: 0, // NEW: Dedicated hyper superMeter
                 aiDecisionTimer: 0, aiState: 'IDLE', baseStats: { speed: data.speed, jumpForce: data.jumpForce, shotAccuracy: data.shotAccuracy, dunkReach: data.dunkReach }
             };
         }
@@ -639,17 +638,6 @@
             { side: 'left', bbX: 52, bbY: 210, bbH: 110, rimX: 62, rimY: 288, rimW: 46, netWiggle: 0 },
             { side: 'right', bbX: 940, bbY: 210, bbH: 110, rimX: 892, rimY: 288, rimW: 46, netWiggle: 0 }
         ];
-
-        function chargeSuper(player, amount) {
-            player.superMeter = Math.min(100, player.superMeter + amount);
-            if (player === p1) {
-                document.getElementById('p1-super').style.width = `${player.superMeter}%`;
-                document.getElementById('p1-super').classList.toggle('ready', player.superMeter >= 100);
-            } else {
-                document.getElementById('p2-super').style.width = `${player.superMeter}%`;
-                document.getElementById('p2-super').classList.toggle('ready', player.superMeter >= 100);
-            }
-        }
 
         function activateSkill(user, rival) {
             if (user.skillCooldown > 0 || !matchActive || user.stunTimer > 0) return;
@@ -694,13 +682,19 @@
             else if (user.id === 'kd') { if (ball.holder === rival) { ball.holder = user; ball.lastTouchedBy = user; } rival.stunTimer = 2.0; }
             else if (user.id === 'achutha') { user.x = rival.x + (user.facing * 80); rival.stunTimer = 2.0; triggerBanner('MIRAGE DRIVE! 💨'); }
             else if (user.id === 'wengle') {
-                // Secretly drains 50% of the rival's super meter without announcing it
-                rival.superMeter = Math.max(0, rival.superMeter - 50);
-                chargeSuper(rival, 0); // Updates the HUD downward
+                // Secretly delays rival's Super and Hyper cooldowns without announcing it
+                rival.skillCooldown = Math.min(15, rival.skillCooldown + 10);
+                rival.hyperCooldown = Math.min(40, rival.hyperCooldown + 20);
                 
-                // Teleports near the basket for an unblockable dunk
-                user.x = (user === p1) ? hoops[1].rimX - 30 : hoops[0].rimX + 30;
-                executeDunk(user, user === p1 ? hoops[1] : hoops[0]);
+                // Teleports near the basket for an unblockable dunk if holding ball, or steals & dunks
+                if (ball.holder === rival) {
+                    ball.holder = user;
+                    ball.lastTouchedBy = user;
+                }
+                if (ball.holder === user) {
+                    user.x = (user === p1) ? hoops[1].rimX - 30 : hoops[0].rimX + 30;
+                    executeDunk(user, user === p1 ? hoops[1] : hoops[0]);
+                }
             }
         }
 
@@ -761,7 +755,7 @@
                 ball.isFireball = true;
                 if (consumedHyper && (shooter.id === 'curry' || shooter.id === 'wengle')) {
                     ball.isHyperAimbot = true; ball.hyperTargetX = targetX; ball.hyperTargetY = targetY; 
-                    ball.vy = (shooter.id === 'wengle') ? -600 : -800; // Wengle has a softer aimbot arc
+                    ball.vy = (shooter.id === 'wengle') ? -600 : -800;
                 } else { 
                     ball.vx = perfectArc.vx; ball.vy = perfectArc.vy; 
                 }
@@ -811,7 +805,6 @@
             }
             
             document.getElementById('p1-score').innerText = '0'; document.getElementById('p2-score').innerText = '0'; 
-            chargeSuper(p1, 0); chargeSuper(p2, 0); // Reset super UI
             document.getElementById('select-modal').style.display = 'none'; document.getElementById('end-modal').style.display = 'none';
             resetRound(p1);
             if (timerInterval) clearInterval(timerInterval);
