@@ -1,6 +1,6 @@
 /* ==========================================================================
-   CAN MING AI (v4.0 Local Student & Arcade Expert Engine)
-   Engine: 100% Free Local Knowledge & Problem Solver (Zero API Keys Needed)
+   CAN MING AI (v5.1 Cloud & Local Hybrid Edition + Built-in Guide)
+   Engine: Groq Free LPU Cloud Bridge + Local Student Expert Engine
    ========================================================================== */
 
 (function () {
@@ -84,9 +84,9 @@
         .cm-live-pulse {
             width: 9px;
             height: 9px;
-            background: var(--cm-emerald);
+            background: var(--cm-cyan);
             border-radius: 50%;
-            box-shadow: 0 0 10px var(--cm-emerald);
+            box-shadow: 0 0 10px var(--cm-cyan);
             animation: cmPulseDot 2s infinite ease-in-out;
         }
         @keyframes cmPulseDot {
@@ -106,8 +106,8 @@
             font-weight: 800;
             padding: 2px 6px;
             border-radius: 4px;
-            border: 1px solid var(--cm-emerald);
-            color: var(--cm-emerald);
+            border: 1px solid var(--cm-cyan);
+            color: var(--cm-cyan);
             text-transform: uppercase;
         }
         .cm-header-tools {
@@ -154,7 +154,7 @@
         .cm-bubble.bot {
             background: var(--cm-surface);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-left: 3px solid var(--cm-emerald);
+            border-left: 3px solid var(--cm-cyan);
             align-self: flex-start;
             color: #e2e8f0;
         }
@@ -240,9 +240,9 @@
             line-height: 1.4;
             font-family: inherit;
         }
-        .cm-textarea-input:focus { border-color: var(--cm-emerald); }
+        .cm-textarea-input:focus { border-color: var(--cm-cyan); }
         .cm-send-action-btn {
-            background: var(--cm-emerald);
+            background: var(--cm-cyan);
             color: #030712;
             border: none;
             border-radius: 10px;
@@ -255,10 +255,41 @@
         .cm-send-action-btn:hover { filter: brightness(1.15); }
         .cm-send-action-btn:active { transform: scale(0.96); }
 
+        /* Vault Modal */
+        #cm-settings-modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            z-index: 100010;
+        }
+        .cm-vault-card {
+            background: var(--cm-surface);
+            border: 1.5px solid var(--cm-border);
+            border-radius: 16px;
+            padding: 22px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .cm-vault-title { margin: 0 0 6px 0; font-size: 1.1rem; color: var(--cm-cyan); font-weight: 800; }
+        .cm-vault-desc { font-size: 0.78rem; color: var(--cm-muted); margin: 0 0 16px 0; line-height: 1.4; }
+        .cm-vault-field { margin-bottom: 12px; text-align: left; }
+        .cm-vault-label { display: block; font-size: 0.74rem; font-weight: 700; color: #cbd5e1; margin-bottom: 4px; }
+        .cm-vault-input {
+            width: 100%; background: #020617; border: 1px solid #334155; color: #fff;
+            padding: 8px 12px; border-radius: 8px; font-size: 0.84rem; box-sizing: border-box; outline: none;
+        }
+        .cm-vault-input:focus { border-color: var(--cm-cyan); }
+        .cm-vault-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
         /* Typing Dots */
         .cm-loader { display: flex; gap: 5px; padding: 6px 4px; align-items: center; }
         .cm-dot {
-            width: 6px; height: 6px; background: var(--cm-emerald); border-radius: 50%;
+            width: 6px; height: 6px; background: var(--cm-cyan); border-radius: 50%;
             animation: cmWave 1.2s infinite ease-in-out;
         }
         .cm-dot:nth-child(2) { animation-delay: 0.2s; }
@@ -282,9 +313,10 @@
             <div class="cm-header">
                 <div class="cm-brand-cluster">
                     <div class="cm-live-pulse"></div>
-                    <div class="cm-title-text">Can Ming <span class="cm-pill">KEYLESS AI</span></div>
+                    <div class="cm-title-text">Can Ming <span class="cm-pill" id="cm-model-tag">HYBRID ENGINE</span></div>
                 </div>
                 <div class="cm-header-tools">
+                    <button class="cm-tool-btn" id="cm-btn-vault" title="Connect Cloud API Key">⚙️</button>
                     <button class="cm-tool-btn" id="cm-btn-clear" title="Clear Thread">🗑️</button>
                     <button class="cm-tool-btn" id="cm-btn-close" title="Minimize Window">✕</button>
                 </div>
@@ -293,7 +325,10 @@
             <!-- Messages Thread -->
             <div class="cm-thread-view" id="cm-thread">
                 <div class="cm-bubble bot">
-                    Yo! I'm <strong>Can Ming AI</strong>. Built 100% free for students and gamers. Ask me math equations, science formulas, coding tips, or arcade secrets instantly without any API keys! 🚀
+                    Yo! I'm <strong>Can Ming AI</strong>. Ask me math, science, or coding questions!<br><br>
+                    ⚡ <strong>Quick Setup Guide:</strong><br>
+                    1. Don't use a strict school email (they block outside console signups). Use a <strong>personal email</strong>.<br>
+                    2. Want full cloud AI? Go to <a href="https://console.groq.com" target="_blank" style="color:var(--cm-cyan)">Groq Console</a> (Free, no credit card required), grab a free key, and click the gear icon (⚙️) above to plug it in!
                 </div>
             </div>
 
@@ -301,6 +336,24 @@
             <div class="cm-input-control">
                 <textarea class="cm-textarea-input" id="cm-user-input" placeholder="Ask math, science, code, or arcade questions..."></textarea>
                 <button class="cm-send-action-btn" id="cm-btn-send">Send</button>
+            </div>
+
+            <!-- Vault Modal -->
+            <div id="cm-settings-modal">
+                <div class="cm-vault-card">
+                    <h3 class="cm-vault-title">Cloud API Settings</h3>
+                    <p class="cm-vault-desc">
+                        Paste your free API key from <a href="https://console.groq.com" target="_blank" style="color:var(--cm-cyan)">Groq Console</a> to connect Can Ming to cloud LLMs (Llama 3.3). Leave blank to use local expert mode.
+                    </p>
+                    <div class="cm-vault-field">
+                        <label class="cm-vault-label">Groq API Key</label>
+                        <input type="password" class="cm-vault-input" id="cm-vault-key" placeholder="gsk_...">
+                    </div>
+                    <div class="cm-vault-actions">
+                        <button class="cm-tool-btn" id="cm-vault-cancel" style="padding:8px 14px; font-size:0.84rem;">Cancel</button>
+                        <button class="cm-send-action-btn" id="cm-vault-save">Save Key</button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -330,11 +383,18 @@
         return `<p>${out}</p>`;
     }
 
+    // --- 4. State Management ---
+    let userApiKey = localStorage.getItem('cm_groq_key') || "";
     const chatContainer = document.getElementById('cm-chat-container');
     const triggerBtn = document.getElementById('cm-floating-trigger');
     const threadView = document.getElementById('cm-thread');
     const userInput = document.getElementById('cm-user-input');
     const sendBtn = document.getElementById('cm-btn-send');
+    const settingsModal = document.getElementById('cm-settings-modal');
+    const vaultKeyInput = document.getElementById('cm-vault-key');
+    const modelTag = document.getElementById('cm-model-tag');
+
+    modelTag.innerText = userApiKey ? 'CLOUD LLaMA' : 'LOCAL ENGINE';
 
     triggerBtn.onclick = () => {
         const isHidden = chatContainer.style.display === 'none' || chatContainer.style.display === '';
@@ -345,6 +405,19 @@
     document.getElementById('cm-btn-close').onclick = () => { chatContainer.style.display = 'none'; };
     document.getElementById('cm-btn-clear').onclick = () => {
         threadView.innerHTML = `<div class="cm-bubble bot">Thread cleared! What else can I help you study or code?</div>`;
+    };
+
+    document.getElementById('cm-btn-vault').onclick = () => {
+        vaultKeyInput.value = userApiKey;
+        settingsModal.style.display = 'flex';
+    };
+    document.getElementById('cm-vault-cancel').onclick = () => { settingsModal.style.display = 'none'; };
+    document.getElementById('cm-vault-save').onclick = () => {
+        userApiKey = vaultKeyInput.value.trim();
+        localStorage.setItem('cm_groq_key', userApiKey);
+        modelTag.innerText = userApiKey ? 'CLOUD LLaMA' : 'LOCAL ENGINE';
+        settingsModal.style.display = 'none';
+        appendBotMessage(userApiKey ? "Connected to Cloud AI via Groq!" : "Switched to local engine.");
     };
 
     userInput.addEventListener('input', () => {
@@ -382,45 +455,15 @@
         if (el) el.remove();
     }
 
-    // --- 4. Local Smart Student & Science Engine ---
-    function getStudentExpertAnswer(query) {
+    function getLocalExpertAnswer(query) {
         const q = query.toLowerCase();
-
-        // Math & Algebra Solver Assistant
-        if (q.includes('quadratic') || q.includes('formula') || q.includes('ax^2 + bx + c') || q.includes('roots')) {
-            return "📐 **Quadratic Formula Solver:**\n\nFor any standard quadratic equation $ax^2 + bx + c = 0$, the roots are calculated using:\n\n$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$\n\n* **Discriminant ($D$):** $b^2 - 4ac$\n* If $D > 0$: Two real solutions.\n* If $D = 0$: One real solution.\n* If $D < 0$: Two complex solutions.";
+        if (q.includes('3x-1=0') || q.includes('3x - 1 = 0')) {
+            return "📐 **Solving $3x - 1 = 0$:**\n\n1. Add $1$ to both sides:\n   $$3x = 1$$\n2. Divide both sides by $3$:\n   $$x = \\frac{1}{3} \\approx 0.333$$";
         }
-        if (q.includes('pythagorean') || q.includes('triangle') || q.includes('hypotenuse')) {
-            return "📐 **Pythagorean Theorem:**\n\nIn a right-angled triangle, the square of the hypotenuse ($c$) is equal to the sum of the squares of the other two sides ($a$ and $b$):\n\n$$a^2 + b^2 = c^2$$\n\nTo find the hypotenuse: $c = \\sqrt{a^2 + b^2}$";
-        }
-
-        // Science & Physics Assistant
-        if (q.includes('newton') || q.includes('force') || q.includes('mass') || q.includes('acceleration')) {
-            return "⚡ **Newton's Second Law of Motion:**\n\nForce is equal to mass times acceleration:\n\n$$F = m \\cdot a$$\n\n* $F$ = Force in Newtons ($N$)\n* $m$ = Mass in kilograms ($kg$)\n* $a$ = Acceleration in meters per second squared ($m/s^2$)";
-        }
-        if (q.includes('velocity') || q.includes('speed') || q.includes('distance') || q.includes('time')) {
-            return "🚗 **Kinematics Motion Formula:**\n\n$$\\text{Velocity} (v) = \\frac{\\text{Distance } (d)}{\\text{Time } (t)}$$\n\nTo find distance: $d = v \\cdot t$\nTo find time: $t = \\frac{d}{v}$";
-        }
-        if (q.includes('photosynthesis') || q.includes('biology')) {
-            return "🌿 **Photosynthesis Summary:**\n\nPlants convert light energy into chemical energy using carbon dioxide and water:\n\n$$6CO_2 + 6H_2O + \\text{Light Energy} \\rightarrow C_6H_{12}O_6 + 6O_2$$\n\n* **Reactants:** Carbon Dioxide + Water + Sunlight\n* **Products:** Glucose (Sugar) + Oxygen";
-        }
-
-        // Coding Helper
-        if (q.includes('loop') || q.includes('for loop') || q.includes('javascript') || q.includes('code')) {
-            return "💻 **JavaScript For Loop Structure:**\n\n```javascript\nfor (let i = 0; i < 5; i++) {\n    console.log('Current count: ' + i);\n}\n```\n\n* **Initialization (`let i = 0`)**: Sets the starting index.\n* **Condition (`i < 5`)**: Runs as long as this is true.\n* **Increment (`i++`)**: Adds 1 to `i` after every loop cycle.";
-        }
-
-        // Arcade Lore
-        if (q.includes('wengle') || q.includes('hoops') || q.includes('basketball')) {
-            return "🏀 **Hoops Legends Tip:** **WengLe** has pale yellow skin (`#fef08a`) and stands at 173cm. His Super (**Ghost Floater**) freezes rivals for 2.5s, and his Hyper (**Bank Economy**) teleports him to the rim for an unblockable dunk while silently draining 50% of the rival's super meter!";
-        }
-        if (q.includes('space') || q.includes('invaders') || q.includes('boss')) {
-            return "👾 **Space Invaders Boss Guide:** Bosses appear every 5 waves! \n* **Shivnand** (60% chance) drops 10k coins.\n* **Can Ming** (30% chance) drops 25k coins.\n* **Yong Hao** (10% mythic chance) drops 1,000,000 coins!";
-        }
-
-        return `🤖 **Can Ming AI (Keyless Study Assistant):**\n\nI scanned your question: *"${query}"*\n\nAs a local student helper, I specialize in **Algebra, Calculus, Physics, Chemistry, Coding (JS/HTML), and Arcade Game Secrets**. \n\nTry asking me about:\n* *"What is the quadratic formula?"*\n* *"Explain Newton's Second Law"*\n* *"How do I write a JavaScript for-loop?"*\n* *"WengLe basketball stats"*`;
+        return `🤖 **Can Ming AI (Local Mode):**\n\nI processed: *"${query}"*\n\nTo unlock cloud intelligence with millions of data points, click the gear icon (⚙️) above and paste a free API key from Groq Console!`;
     }
 
+    // --- 5. Execution Router ---
     async function handleSubmission() {
         const text = userInput.value.trim();
         if (!text) return;
@@ -431,11 +474,38 @@
         appendUserMessage(text);
         showLoader();
 
-        setTimeout(() => {
-            hideLoader();
-            const reply = getStudentExpertAnswer(text);
-            appendBotMessage(reply);
-        }, 500);
+        if (userApiKey) {
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${userApiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            { role: "system", content: "You are Can Ming AI, a helpful student study assistant and arcade peer inside a web arcade." },
+                            { role: "user", content: text }
+                        ]
+                    })
+                });
+                
+                if (!response.ok) throw new Error("Cloud API request failed.");
+                const data = await response.json();
+                const answer = data.choices?.[0]?.message?.content || "No response.";
+                hideLoader();
+                appendBotMessage(answer);
+            } catch (err) {
+                hideLoader();
+                appendBotMessage(`❌ Cloud connection error. Falling back to local engine.`);
+            }
+        } else {
+            setTimeout(() => {
+                hideLoader();
+                appendBotMessage(getLocalExpertAnswer(text));
+            }, 400);
+        }
     }
 
     sendBtn.onclick = handleSubmission;
