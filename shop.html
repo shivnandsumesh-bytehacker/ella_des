@@ -3,78 +3,367 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arcade Theme Shop</title>
+    <title>Cyber Arcade • Black Market & Shop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #00f3ff; --accent: #ff007f; --bg: #0f172a; --card: #1e293b; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
-        
-        header { width: 100%; max-width: 850px; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 12px 25px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 25px; box-sizing: border-box; }
-        .stats { font-size: 1.2rem; font-weight: bold; color: #facc15; }
-        a.nav { color: var(--primary); text-decoration: none; font-weight: bold; font-size: 1.1rem; }
-        
-        .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; width: 100%; max-width: 850px; }
-        .theme-card { background: var(--card); border: 2px solid var(--primary); border-radius: 12px; padding: 20px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
-        .preview-box { height: 60px; border-radius: 8px; margin: 15px 0; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid rgba(255,255,255,0.2); }
-        
-        .btn { background: var(--primary); color: #000; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
-        .btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+        :root { 
+            --primary: #38bdf8; 
+            --accent: #f43f5e; 
+            --gold: #eab308;
+            --emerald: #10b981;
+            --bg: #090a0f; 
+            --card: #12151e; 
+            --card-border: #222634;
+            --card-hover: #181c28;
+            --text-main: #f8fafc;
+            --text-muted: #8b95a5;
+        }
+
+        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+
+        body { 
+            background-color: var(--bg); 
+            background-image: radial-gradient(#1e2330 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            padding: 20px 16px 40px 16px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        header { 
+            width: 100%; 
+            max-width: 1000px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: rgba(18, 21, 30, 0.85); 
+            backdrop-filter: blur(12px);
+            padding: 14px 22px; 
+            border-radius: 12px; 
+            border: 1px solid var(--card-border); 
+            margin-bottom: 24px; 
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .brand:active { transform: scale(0.98); }
+
+        .stats-badge { 
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem; 
+            font-weight: 700; 
+            color: var(--gold);
+            background: #161922;
+            border: 1px solid #2e3446;
+            padding: 7px 14px;
+            border-radius: 8px;
+        }
+
+        h2 { 
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            margin: 0 0 6px 0;
+            letter-spacing: -0.5px;
+            z-index: 10;
+        }
+
+        .section-title {
+            width: 100%;
+            max-width: 1000px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin: 24px 0 12px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 6px;
+            z-index: 10;
+        }
+
+        .shop-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+            gap: 14px; 
+            width: 100%; 
+            max-width: 1000px; 
+            z-index: 10;
+        }
+
+        .shop-card { 
+            background: rgba(18, 21, 30, 0.9); 
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border); 
+            border-radius: 12px; 
+            padding: 18px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+        .shop-card:hover {
+            transform: translateY(-2px);
+            border-color: #475569;
+        }
+
+        .shop-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0 0 6px 0;
+            font-size: 1.05rem;
+        }
+
+        .shop-card p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin: 0 0 14px 0;
+            line-height: 1.4;
+        }
+
+        .preview-box { 
+            height: 50px; 
+            border-radius: 8px; 
+            margin-bottom: 14px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700; 
+            border: 1px solid rgba(255,255,255,0.1); 
+        }
+
+        .btn { 
+            background: var(--text-main); 
+            color: var(--bg); 
+            border: none; 
+            padding: 10px; 
+            border-radius: 8px; 
+            font-weight: 700; 
+            font-size: 0.85rem;
+            cursor: pointer; 
+            width: 100%; 
+            transition: background 0.15s, transform 0.1s;
+        }
+        .btn:hover { background: #e2e8f0; }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { background: #1f2433; color: #475569; cursor: not-allowed; }
+        .btn.equipped { background: var(--emerald); color: #000; }
     </style>
 </head>
 <body>
 
+    <canvas id="bg-canvas"></canvas>
+
     <header>
-        <a href="index.html" class="nav">← Hub</a>
-        <div class="stats">🪙 Wallet: <span id="coin-count">0</span></div>
+        <div class="brand" onclick="handleEasterEggTap()">⚡ CYBER ARCADE • SHOP</div>
+        <div class="stats-badge">🪙 <span id="coin-count">0</span></div>
     </header>
 
-    <h2>🎨 Global Theme Shop</h2>
-    <p style="color:#94a3b8; margin-bottom: 20px;">Equipped themes automatically customize your entire arcade interface!</p>
+    <h2>Black Market & Upgrades</h2>
+    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:10px; z-index:10;">Unlock animated live themes, stack multipliers, and test your luck.</p>
 
+    <!-- SECTION 1: ANIMATED THEMES -->
+    <div class="section-title">🎨 Animated Live Themes</div>
     <div class="shop-grid">
-        <div class="theme-card">
-            <h3>Cyber Neon</h3>
-            <div class="preview-box" style="background:#0f172a; color:#00f3ff; border-color:#00f3ff;">Default Style</div>
+        <div class="shop-card">
+            <div>
+                <h3>Cyber Neon</h3>
+                <p>Clean classic blue launcher aesthetic.</p>
+                <div class="preview-box" style="background:#090a0f; color:#38bdf8;">DEFAULT</div>
+            </div>
             <button class="btn" id="btn-neon" onclick="equipTheme('neon')">Equip</button>
         </div>
 
-        <div class="theme-card">
-            <h3>Matrix Green</h3>
-            <div class="preview-box" style="background:#051a0e; color:#00ff66; border-color:#00ff66;">Cyber Grid</div>
-            <button class="btn" id="btn-cyber" onclick="handleTheme('cyber', 100)">Buy (100 Coins)</button>
+        <div class="shop-card">
+            <div>
+                <h3>Matrix Rain</h3>
+                <p>Live falling digital green code.</p>
+                <div class="preview-box" style="background:#051a0e; color:#10b981;">100 COINS</div>
+            </div>
+            <button class="btn" id="btn-matrix" onclick="handleTheme('matrix', 100)">Buy</button>
         </div>
 
-        <div class="theme-card">
-            <h3>Sunset Gold</h3>
-            <div class="preview-box" style="background:#2a081d; color:#facc15; border-color:#facc15;">Warm Glow</div>
-            <button class="btn" id="btn-sunset" onclick="handleTheme('sunset', 250)">Buy (250 Coins)</button>
+        <div class="shop-card">
+            <div>
+                <h3>Cyber Glitch</h3>
+                <p>Pulsing hot pink & cyan scanlines.</p>
+                <div class="preview-box" style="background:#120814; color:#ff007f;">250 COINS</div>
+            </div>
+            <button class="btn" id="btn-glitch" onclick="handleTheme('glitch', 250)">Buy</button>
         </div>
 
-        <div class="theme-card">
-            <h3>Purple Haze</h3>
-            <div class="preview-box" style="background:#12072b; color:#a855f7; border-color:#a855f7;">Deep Space</div>
-            <button class="btn" id="btn-purple" onclick="handleTheme('purple', 500)">Buy (500 Coins)</button>
+        <div class="shop-card">
+            <div>
+                <h3>Deep Space</h3>
+                <p>Twinkling starfield cosmic nebula.</p>
+                <div class="preview-box" style="background:#0b0714; color:#c084fc;">500 COINS</div>
+            </div>
+            <button class="btn" id="btn-space" onclick="handleTheme('space', 500)">Buy</button>
+        </div>
+
+        <div class="shop-card">
+            <div>
+                <h3>Volcanic Magma</h3>
+                <p>Rising fiery embers & gold heat.</p>
+                <div class="preview-box" style="background:#1a0808; color:#f59e0b;">750 COINS</div>
+            </div>
+            <button class="btn" id="btn-magma" onclick="handleTheme('magma', 750)">Buy</button>
+        </div>
+    </div>
+
+    <!-- SECTION 2: PASSIVE MULTIPLIERS -->
+    <div class="section-title">⚡ Passive Coin Multipliers</div>
+    <div class="shop-grid">
+        <div class="shop-card">
+            <div>
+                <h3>1.5X Coin Surge</h3>
+                <p>Permanently boost all coin earnings by 50%.</p>
+                <div class="preview-box" style="background:#161922; color:var(--gold);">1,500 COINS</div>
+            </div>
+            <button class="btn" id="perk-mult15" onclick="buyPerk('mult_15', 1500, 1.5)">Unlock</button>
+        </div>
+
+        <div class="shop-card">
+            <div>
+                <h3>2.5X Overdrive</h3>
+                <p>Massive 250% coin multiplier for elite grinders.</p>
+                <div class="preview-box" style="background:#161922; color:var(--gold);">5,000 COINS</div>
+            </div>
+            <button class="btn" id="perk-mult25" onclick="buyPerk('mult_25', 5000, 2.5)">Unlock</button>
+        </div>
+    </div>
+
+    <!-- SECTION 3: MYSTERY LOOT CRATE -->
+    <div class="section-title">🎁 Mystery Loot Crate</div>
+    <div class="shop-grid" style="grid-template-columns: 1fr;">
+        <div class="shop-card" style="flex-direction:row; justify-content:space-between; align-items:center;">
+            <div>
+                <h3>Mystery Coin Vault Crate</h3>
+                <p style="margin:0;">Spend 500 coins for a chance to win up to 10,000 bonus coins!</p>
+            </div>
+            <button class="btn" style="width:auto; padding: 12px 24px;" onclick="openLootCrate()">Open (500 🪙)</button>
         </div>
     </div>
 
     <script>
         let ownedThemes = JSON.parse(localStorage.getItem('arcade_owned_themes')) || ['neon'];
         let activeTheme = localStorage.getItem('arcade_theme') || 'neon';
+        let ownedPerks = JSON.parse(localStorage.getItem('arcade_owned_perks')) || [];
 
         function getCoins() { return parseInt(localStorage.getItem('arcade_coins')) || 0; }
-        function setCoins(val) { localStorage.setItem('arcade_coins', val); }
+        function setCoins(val) { localStorage.setItem('arcade_coins', Math.max(0, val)); }
+
+        // Live Animated Canvas Background Engine
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function initParticles() {
+            particles = [];
+            const count = activeTheme === 'matrix' ? 70 : (activeTheme === 'space' ? 90 : 40);
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vy: activeTheme === 'matrix' ? (Math.random() * 3 + 2) : (activeTheme === 'magma' ? -(Math.random() * 2 + 1) : (Math.random() - 0.5) * 0.5),
+                    vx: activeTheme === 'matrix' ? 0 : (Math.random() - 0.5) * 0.5,
+                    size: activeTheme === 'space' ? Math.random() * 2 + 1 : (Math.random() * 3 + 1),
+                    char: String.fromCharCode(0x30A0 + Math.floor(Math.random() * 96)),
+                    alpha: Math.random()
+                });
+            }
+        }
+
+        function loopCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (activeTheme === 'neon') {
+                ctx.fillStyle = '#090a0f';
+            } else if (activeTheme === 'matrix') {
+                ctx.fillStyle = 'rgba(5, 26, 14, 0.25)';
+            } else if (activeTheme === 'glitch') {
+                ctx.fillStyle = '#120814';
+            } else if (activeTheme === 'space') {
+                ctx.fillStyle = '#0b0714';
+            } else if (activeTheme === 'magma') {
+                ctx.fillStyle = '#1a0808';
+            }
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                p.y += p.vy;
+                p.x += p.vx;
+                if (p.y > canvas.height) p.y = 0;
+                if (p.y < 0) p.y = canvas.height;
+
+                ctx.save();
+                if (activeTheme === 'matrix') {
+                    ctx.fillStyle = '#10b981';
+                    ctx.font = '14px monospace';
+                    ctx.fillText(p.char, p.x, p.y);
+                } else {
+                    ctx.fillStyle = activeTheme === 'glitch' ? '#ff007f' : (activeTheme === 'space' ? '#ffffff' : '#f59e0b');
+                    ctx.globalAlpha = Math.abs(Math.sin(Date.now() * 0.002 + p.x));
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            });
+
+            requestAnimationFrame(loopCanvas);
+        }
+        loopCanvas();
 
         function applyGlobalTheme() {
             const themes = {
-                neon: { primary: '#00f3ff', accent: '#ff007f', bg: '#0f172a', card: '#1e293b' },
-                cyber: { primary: '#00ff66', accent: '#ff9900', bg: '#051a0e', card: '#0b2e1a' },
-                sunset: { primary: '#facc15', accent: '#ff007f', bg: '#2a081d', card: '#421232' },
-                purple: { primary: '#a855f7', accent: '#00f3ff', bg: '#12072b', card: '#231047' }
+                neon: { primary: '#38bdf8', accent: '#f43f5e', bg: '#090a0f', card: '#12151e' },
+                matrix: { primary: '#10b981', accent: '#3b82f6', bg: '#051a0e', card: '#0b2e1a' },
+                glitch: { primary: '#ff007f', accent: '#38bdf8', bg: '#120814', card: '#220f26' },
+                space: { primary: '#c084fc', accent: '#38bdf8', bg: '#0b0714', card: '#150f24' },
+                magma: { primary: '#f59e0b', accent: '#ef4444', bg: '#1a0808', card: '#2b1010' }
             };
             const active = themes[activeTheme] || themes.neon;
             document.documentElement.style.setProperty('--primary', active.primary);
             document.documentElement.style.setProperty('--accent', active.accent);
             document.documentElement.style.setProperty('--bg', active.bg);
             document.documentElement.style.setProperty('--card', active.card);
+            initParticles();
         }
 
         function updateUI() {
@@ -82,21 +371,40 @@
             const coins = getCoins();
             document.getElementById('coin-count').innerText = coins.toLocaleString();
 
-            const themeList = ['neon', 'cyber', 'sunset', 'purple'];
+            const themeList = ['neon', 'matrix', 'glitch', 'space', 'magma'];
             themeList.forEach(t => {
                 const btn = document.getElementById(`btn-${t}`);
                 if (!btn) return;
+                const costs = { matrix: 100, glitch: 250, space: 500, magma: 750 };
 
                 if (activeTheme === t) {
                     btn.innerText = 'Equipped';
+                    btn.className = 'btn equipped';
                     btn.disabled = true;
                 } else if (ownedThemes.includes(t)) {
                     btn.innerText = 'Equip';
+                    btn.className = 'btn';
                     btn.disabled = false;
                 } else {
-                    const costs = { cyber: 100, sunset: 250, purple: 500 };
-                    btn.innerText = `Buy (${costs[t]} Coins)`;
+                    btn.innerText = `Buy (${costs[t]} 🪙)`;
+                    btn.className = 'btn';
                     btn.disabled = coins < costs[t];
+                }
+            });
+
+            const perks = [
+                { id: 'mult_15', cost: 1500, btnId: 'perk-mult15' },
+                { id: 'mult_25', cost: 5000, btnId: 'perk-mult25' }
+            ];
+            perks.forEach(p => {
+                const btn = document.getElementById(p.btnId);
+                if (!btn) return;
+                if (ownedPerks.includes(p.id)) {
+                    btn.innerText = 'Unlocked ✔';
+                    btn.className = 'btn equipped';
+                    btn.disabled = true;
+                } else {
+                    btn.disabled = coins < p.cost;
                 }
             });
         }
@@ -116,6 +424,69 @@
             activeTheme = themeName;
             localStorage.setItem('arcade_theme', activeTheme);
             updateUI();
+        }
+
+        function buyPerk(perkId, cost, multValue) {
+            if (getCoins() >= cost && !ownedPerks.includes(perkId)) {
+                setCoins(getCoins() - cost);
+                ownedPerks.push(perkId);
+                localStorage.setItem('arcade_owned_perks', JSON.stringify(ownedPerks));
+
+                const currentMult = parseFloat(localStorage.getItem('arcade_multiplier')) || 1.0;
+                if (multValue > currentMult) {
+                    localStorage.setItem('arcade_multiplier', multValue);
+                }
+
+                alert(`🎉 Successfully unlocked multiplier upgrade!`);
+                updateUI();
+            }
+        }
+
+        function openLootCrate() {
+            const cost = 500;
+            if (getCoins() < cost) {
+                alert("Not enough coins! You need 500 coins to open a crate.");
+                return;
+            }
+
+            setCoins(getCoins() - cost);
+            const roll = Math.random();
+            let prize = 0;
+            let msg = "";
+
+            if (roll < 0.60) {
+                prize = 300;
+                msg = "🎁 Minor Drop: +300 Coins!";
+            } else if (roll < 0.88) {
+                prize = 1000;
+                msg = "🔥 Lucky Drop: +1,000 Coins!";
+            } else if (roll < 0.98) {
+                prize = 3500;
+                msg = "🌟 Epic Drop: +3,500 Coins!";
+            } else {
+                prize = 10000;
+                msg = "💎 JACKPOT! +10,000 Coins!";
+            }
+
+            setCoins(getCoins() + prize);
+            alert(msg);
+            updateUI();
+        }
+
+        // Secret Easter Egg: 7 rapid taps on the shop header title
+        let easterEggTaps = 0;
+        let lastEasterEggTime = 0;
+        function handleEasterEggTap() {
+            const now = Date.now();
+            easterEggTaps = (now - lastEasterEggTime < 600) ? easterEggTaps + 1 : 1;
+            lastEasterEggTime = now;
+
+            if (easterEggTaps >= 7) {
+                easterEggTaps = 0;
+                setCoins(getCoins() + 2500);
+                alert("🔓 SECRET EASTER EGG FOUND: +2,500 Developer Coins Credited!");
+                updateUI();
+            }
         }
 
         document.addEventListener("DOMContentLoaded", updateUI);
