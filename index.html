@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Prevent iPad Safari from caching old versions after you update -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Cyber Arcade</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -158,11 +162,12 @@
         }
 
         .notif-dot {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             background: var(--accent);
             border-radius: 50%;
             display: inline-block;
+            box-shadow: 0 0 8px var(--accent);
         }
 
         /* Unlocked Perks Bar */
@@ -356,7 +361,7 @@
             border: 1px solid #2e3446;
             border-radius: 14px;
             padding: 24px;
-            max-width: 520px;
+            max-width: 540px;
             width: 100%;
             text-align: left;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
@@ -480,6 +485,7 @@
             font-size: 0.72rem;
             color: var(--primary);
             margin-bottom: 4px;
+            text-transform: uppercase;
         }
         .log-heading {
             font-weight: 700;
@@ -494,8 +500,19 @@
             color: var(--text-muted);
             line-height: 1.5;
         }
-        .log-list li { margin-bottom: 4px; }
+        .log-list li { margin-bottom: 5px; }
         .log-list strong { color: #e2e8f0; }
+
+        .commit-pill {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            background: #1b202e;
+            color: var(--emerald);
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-right: 6px;
+        }
 
         /* Feedback Form */
         .form-group {
@@ -571,7 +588,7 @@
             <div class="stats-badge">🪙 <span id="coin-count">0</span></div>
             <div class="mult-badge" id="mult-badge">2.5X</div>
             <button class="nav-btn" onclick="openChangelogModal()">
-                <span class="notif-dot"></span> Patch Notes
+                <span class="notif-dot" id="patch-notif-dot"></span> Patch Notes
             </button>
             <button class="nav-btn" onclick="openFeedbackModal()">Send Feedback</button>
             <button class="nav-btn" onclick="openCodeModal()">Redeem Code</button>
@@ -858,28 +875,32 @@
         </a>
     </div>
 
-    <!-- Patch Notes (Update Log) Modal -->
+    <!-- Patch Notes (Auto-Updating) Modal -->
     <div id="changelog-modal" class="modal">
         <div class="modal-card">
             <div class="modal-header">
-                <h2 class="modal-title">Patch Notes & Updates</h2>
+                <div>
+                    <h2 class="modal-title">Patch Notes & Live Updates</h2>
+                    <div id="last-modified-label" style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--emerald); margin-top:3px;"></div>
+                </div>
                 <button class="modal-close" onclick="closeChangelogModal()">✕</button>
             </div>
 
-            <div class="log-entry">
-                <div class="log-date">OCTOBER 2026 • LATEST UPDATE</div>
-                <h3 class="log-heading">Roster Expansion, Raid Bosses & Hub Redesign</h3>
-                <ul class="log-list">
-                    <li><strong>Basketball Legends:</strong> Added <strong>WengLe</strong> (Ghost Floater & Bank Economy), <strong>Darryl</strong> (Chakra Shot & Tiger Leap), and <strong>Achutha</strong> (Tornado Spin & Mirage Drive). Added infinite <strong>Free Practice Mode</strong> and nerfed Shivnand's Hyper stun to 5s.</li>
-                    <li><strong>Space Invaders:</strong> Added <strong>2-Player Local Co-Op</strong>, iPad landscape controls, and 3 tiered bosses: <strong>Shivnand</strong> (10k Coins), <strong>Can Ming</strong> (25k Coins), and <strong>Yong Hao</strong> (1,000,000 Coins) with stackable weapon drops.</li>
-                    <li><strong>Volleyball Legends:</strong> Added <strong>Hyper Smash</strong> meter, hit-stop animations, Local 2P mode, and smarter AI court positioning.</li>
-                    <li><strong>Drift Master 3D:</strong> Fixed Nitro + Gas top speed cancellation, smoothed out mountain pass elevation, and added guardrail wall penalties.</li>
-                </ul>
+            <!-- Live GitHub Commits Feed (Populates automatically if GITHUB_REPO is set) -->
+            <div id="github-live-commits" style="display:none; margin-bottom: 18px;">
+                <div class="log-entry" style="border-left-color: var(--emerald);">
+                    <div class="log-date" style="color: var(--emerald);">⚡ LIVE REPOSITORY UPDATES</div>
+                    <h3 class="log-heading">Latest Developer Commits</h3>
+                    <ul class="log-list" id="github-commits-list"></ul>
+                </div>
             </div>
+
+            <!-- Dynamic Patch Notes Container (Rendered from PATCH_NOTES array) -->
+            <div id="patch-notes-container"></div>
         </div>
     </div>
 
-    <!-- Feedback & Game Suggestion Modal -->
+    <!-- Feedback & Game Suggestion Modal (All 25+ Games Auto-Loaded) -->
     <div id="feedback-modal" class="modal">
         <div class="modal-card">
             <div class="modal-header">
@@ -887,7 +908,7 @@
                 <button class="modal-close" onclick="closeFeedbackModal()">✕</button>
             </div>
             <p style="color:var(--text-muted); font-size:0.82rem; margin:0 0 16px 0;">
-                Spot a bug, want a character buffed/nerfed, or have a new game idea? Send it directly to the developers.
+                Pick any game from the arcade, report a bug, suggest a buff/nerf, or pitch a brand new game idea.
             </p>
             <form id="feedback-form" onsubmit="submitFeedbackForm(event)">
                 <div class="form-group">
@@ -895,19 +916,22 @@
                     <input type="text" name="name" class="form-control" placeholder="e.g. John, Darryl..." required>
                 </div>
                 <div class="form-group">
-                    <label>Which Game / Topic?</label>
-                    <select name="game" class="form-control">
-                        <option value="Basketball Legends">Basketball Legends (Buff/Nerf/New Player)</option>
-                        <option value="Space Invaders">Space Invaders</option>
-                        <option value="Volleyball Legends">Volleyball Legends</option>
-                        <option value="Drift Master 3D">Drift Master 3D</option>
-                        <option value="Darry's Bus Terminal">Darry's Bus Terminal</option>
-                        <option value="New Game Suggestion">New Game Idea</option>
-                        <option value="Other / Bug Report">Other / Bug Report</option>
+                    <label>Select Game or Topic (All Arcade Games Included)</label>
+                    <select name="game" id="feedback-game-select" class="form-control" required>
+                        <!-- Auto-populated from all game cards on page load -->
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Your Suggestion or Bug Report</label>
+                    <label>Feedback Type</label>
+                    <select name="category" class="form-control">
+                        <option value="Feature / Improvement">🚀 Feature / Game Improvement</option>
+                        <option value="Character Buff / Nerf">⚖️ Character Balance (Buff / Nerf)</option>
+                        <option value="New Game Idea">💡 Brand New Game Idea</option>
+                        <option value="Bug Report">🐛 Bug / Glitch Report</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Details</label>
                     <textarea name="message" class="form-control" placeholder="Tell us what to add, fix, or change..." required></textarea>
                 </div>
                 <button type="submit" class="nav-btn primary-btn" id="feedback-submit-btn" style="width:100%; justify-content:center; padding:11px;">
@@ -956,9 +980,101 @@
 
     <script>
         // =========================================================================
-        // 📬 PUT YOUR EMAIL ADDRESS HERE TO RECEIVE PLAYER SUGGESTIONS DIRECTLY:
+        // ⚙️ 1. PUT YOUR EMAIL HERE (With quotes) FOR THE FEEDBACK FORM:
         // =========================================================================
         const DEVELOPER_EMAIL = "shivnand_sumesh@students.edu.sg";
+
+        // =========================================================================
+        // ⚙️ 2. OPTIONAL: PUT YOUR GITHUB REPO (e.g. "shivnand/cyber-arcade")
+        // If set, Patch Notes will automatically pull your live GitHub commits!
+        // =========================================================================
+        const GITHUB_REPO = "shivnandsumesh-bytehacker/ella_des"; 
+
+        // =========================================================================
+        // 📜 3. EASY PATCH NOTES LIST (Add new items to the top anytime)
+        // =========================================================================
+        const PATCH_NOTES = [
+            {
+                version: "v2.4 — Roster Expansion, Raid Bosses & Hub Redesign",
+                items: [
+                    "<strong>Cyber Arcade Hub:</strong> Redesigned launcher UI, added auto-scanning Feedback Form for all 25 games, and live Patch Notes.",
+                    "<strong>Basketball Legends:</strong> Added <strong>WengLe</strong> (Ghost Floater & Bank Economy), <strong>Darryl</strong> (Chakra Shot & Tiger Leap), and <strong>Achutha</strong> (Tornado Spin & Mirage Drive). Added <strong>Free Practice Mode</strong> and nerfed Shivnand's Hyper stun to 5s.",
+                    "<strong>Space Invaders:</strong> Added <strong>2-Player Local Co-Op</strong>, iPad landscape controls, and 3 tiered bosses: <strong>Shivnand</strong> (10k Coins), <strong>Can Ming</strong> (25k Coins), and <strong>Yong Hao</strong> (1,000,000 Coins) with unique stackable power drops.",
+                    "<strong>Volleyball Legends:</strong> Added <strong>Hyper Smash</strong> meter, hit-stop animations, Local 2P mode, and smarter AI positioning.",
+                    "<strong>Drift Master 3D:</strong> Fixed Nitro + Gas top speed cancellation, smoothed out mountain pass elevation, and added guardrail wall penalties."
+                ]
+            }
+        ];
+
+        // Automatically populate the Feedback Form with ALL games from the grid
+        function populateFeedbackDropdown() {
+            const select = document.getElementById('feedback-game-select');
+            if (!select) return;
+
+            select.innerHTML = `
+                <option value="New Game Idea">🌟 Suggest a Brand New Game</option>
+                <option value="Cyber Arcade Hub">⚡ Cyber Arcade Hub (General)</option>
+            `;
+
+            const cards = document.querySelectorAll('#games-grid .card h3');
+            const gameNames = Array.from(cards).map(el => el.innerText.trim()).sort();
+
+            gameNames.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.innerText = `🎮 ${name}`;
+                select.appendChild(opt);
+            });
+        }
+
+        // Render Patch Notes + Auto-Detect Last Modified Date + Optional GitHub Live Commits
+        async function initPatchNotes() {
+            // 1. Show exact file modification timestamp automatically
+            const modDate = new Date(document.lastModified);
+            const formattedDate = isNaN(modDate) ? "RECENTLY UPDATED" : modDate.toLocaleDateString(undefined, {
+                month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+            document.getElementById('last-modified-label').innerText = `Last Build: ${formattedDate}`;
+
+            // 2. Light up red notification dot if site was updated since player last opened Patch Notes
+            const versionHash = `${document.lastModified}_${PATCH_NOTES[0]?.version || ''}`;
+            const lastSeen = localStorage.getItem('arcade_seen_patch');
+            const dot = document.getElementById('patch-notif-dot');
+            if (dot) {
+                dot.style.display = (lastSeen === versionHash) ? 'none' : 'inline-block';
+            }
+
+            // 3. Render PATCH_NOTES array
+            const container = document.getElementById('patch-notes-container');
+            container.innerHTML = PATCH_NOTES.map((log, idx) => `
+                <div class="log-entry">
+                    <div class="log-date">${idx === 0 ? `LATEST BUILD • ${formattedDate}` : log.date || 'ARCHIVE'}</div>
+                    <h3 class="log-heading">${log.version}</h3>
+                    <ul class="log-list">
+                        ${log.items.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+
+            // 4. If GITHUB_REPO is configured, fetch live commit messages automatically
+            if (GITHUB_REPO && GITHUB_REPO.includes('/')) {
+                try {
+                    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits?per_page=5`);
+                    if (res.ok) {
+                        const commits = await res.json();
+                        const listEl = document.getElementById('github-commits-list');
+                        listEl.innerHTML = commits.map(c => {
+                            const d = new Date(c.commit.author.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                            const msg = c.commit.message.split('\n')[0];
+                            return `<li><span class="commit-pill">${d}</span> ${msg}</li>`;
+                        }).join('');
+                        document.getElementById('github-live-commits').style.display = 'block';
+                    }
+                } catch (e) {
+                    // Silently ignore if offline or repo is private
+                }
+            }
+        }
 
         let audioCtx = null;
         function getAudioContext() {
@@ -1209,7 +1325,13 @@
         }
         function closeCodeModal() { document.getElementById('code-modal').style.display = 'none'; }
 
-        function openChangelogModal() { document.getElementById('changelog-modal').style.display = 'flex'; }
+        function openChangelogModal() {
+            document.getElementById('changelog-modal').style.display = 'flex';
+            const versionHash = `${document.lastModified}_${PATCH_NOTES[0]?.version || ''}`;
+            localStorage.setItem('arcade_seen_patch', versionHash);
+            const dot = document.getElementById('patch-notif-dot');
+            if (dot) dot.style.display = 'none';
+        }
         function closeChangelogModal() { document.getElementById('changelog-modal').style.display = 'none'; }
 
         function openFeedbackModal() {
@@ -1226,12 +1348,11 @@
             const data = new FormData(form);
 
             if (DEVELOPER_EMAIL === "your-email@example.com") {
-                // Fallback to mailto if developer hasn't set their email in the variable yet
-                const subject = encodeURIComponent(`[Cyber Arcade Feedback] ${data.get('game')} - from ${data.get('name')}`);
+                const subject = encodeURIComponent(`[Cyber Arcade] ${data.get('category')} (${data.get('game')}) - from ${data.get('name')}`);
                 const body = encodeURIComponent(data.get('message'));
                 window.location.href = `mailto:?subject=${subject}&body=${body}`;
                 status.style.color = "var(--emerald)";
-                status.innerText = "Opened your email client to send feedback!";
+                status.innerText = "Opened your mail app! (Put your email in DEVELOPER_EMAIL in code for 1-click send)";
                 return;
             }
 
@@ -1244,7 +1365,8 @@
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify({
                         player_name: data.get('name'),
-                        game_topic: data.get('game'),
+                        game: data.get('game'),
+                        category: data.get('category'),
                         suggestion: data.get('message')
                     })
                 });
@@ -1409,6 +1531,8 @@
             applyGlobalTheme(); 
             updateWallet(); 
             updatePerksBar();
+            populateFeedbackDropdown();
+            initPatchNotes();
         });
     </script>
 </body>
