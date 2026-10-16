@@ -982,7 +982,7 @@
         // =========================================================================
         // ⚙️ 1. PUT YOUR EMAIL HERE (With quotes) FOR THE FEEDBACK FORM:
         // =========================================================================
-        const DEVELOPER_EMAIL = "shivnand_sumesh@students.edu.sg";
+        const DEVELOPER_EMAIL = "shivnand.sumesh@gmail.com";
 
         // =========================================================================
         // ⚙️ 2. OPTIONAL: PUT YOUR GITHUB REPO (e.g. "shivnand/cyber-arcade")
@@ -1347,7 +1347,7 @@
             const btn = document.getElementById('feedback-submit-btn');
             const data = new FormData(form);
 
-            if (DEVELOPER_EMAIL === "shivnand_sumesh@students.edu.sg") {
+            if (DEVELOPER_EMAIL === "shivnand.sumesh@gmail.com") {
                 const subject = encodeURIComponent(`[Cyber Arcade] ${data.get('category')} (${data.get('game')}) - from ${data.get('name')}`);
                 const body = encodeURIComponent(data.get('message'));
                 window.location.href = `mailto:?subject=${subject}&body=${body}`;
