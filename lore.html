@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Chronicles: The Github Protocol</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #38bdf8;
+            --accent: #f43f5e;
+            --gold: #eab308;
+            --emerald: #10b981;
+            --purple: #a855f7;
+            --bg: #07080d;
+            --card: #12151e;
+            --card-border: #252a3a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            touch-action: none;
+        }
+
+        #game-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            background: radial-gradient(circle at center, #111625 0%, #06070b 100%);
+        }
+
+        /* Top HUD */
+        #hud {
+            position: fixed;
+            top: 12px;
+            left: 16px;
+            right: 16px;
+            z-index: 10;
+            display: none;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            gap: 12px;
+        }
+
+        .hud-left, .hud-right {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: auto;
+        }
+
+        .hud-panel {
+            background: rgba(14, 17, 26, 0.88);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            min-width: 230px;
+        }
+
+        .hero-tag {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .bar-wrap {
+            width: 100%;
+            height: 10px;
+            background: #090b10;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #222838;
+            margin-bottom: 6px;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            width: 100%;
+            transition: width 0.12s ease;
+        }
+
+        .shield-fill {
+            height: 4px;
+            background: var(--gold);
+            width: 0%;
+            transition: width 0.12s ease;
+            margin-bottom: 4px;
+        }
+
+        .hyper-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--purple));
+            width: 0%;
+            transition: width 0.12s ease;
+        }
+
+        .bar-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Boss HUD Bar */
+        #boss-hud {
+            position: fixed;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            width: min(500px, 52vw);
+            background: rgba(18, 12, 20, 0.92);
+            border: 1px solid rgba(244, 63, 94, 0.5);
+            border-radius: 10px;
+            padding: 10px 16px;
+            display: none;
+            text-align: center;
+            pointer-events: none;
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.25);
+        }
+
+        #boss-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            color: #fda4af;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .boss-bar-wrap {
+            width: 100%;
+            height: 14px;
+            background: #09060a;
+            border: 1px solid #4c1d24;
+            border-radius: 7px;
+            overflow: hidden;
+        }
+
+        #boss-hp-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #e11d48, #fb7185);
+            transition: width 0.1s linear;
+        }
+
+        .btn-hub {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(18, 21, 30, 0.9);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-hub:hover { border-color: var(--primary); }
+
+        /* Character Select & Briefing Overlay */
+        #start-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: radial-gradient(circle at top, rgba(24, 30, 48, 0.96), rgba(7, 8, 13, 0.99));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 16px;
+            overflow-y: auto;
+        }
+
+        .start-header {
+            width: 100%;
+            max-width: 1020px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .title-block h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.4rem, 3vw, 2.1rem);
+            font-weight: 800;
+            background: linear-gradient(90deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title-block p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            width: 100%;
+            max-width: 1020px;
+            margin: 14px 0;
+        }
+
+        .hero-card {
+            background: var(--card);
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .hero-card:hover {
+            transform: translateY(-3px);
+            border-color: #475569;
+        }
+
+        .hero-card.selected {
+            border-color: var(--primary);
+            background: rgba(56, 189, 248, 0.08);
+            box-shadow: 0 0 24px rgba(56, 189, 248, 0.22);
+        }
+
+        .hero-card-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .hero-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .hero-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .hero-role {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .trait-list {
+            font-size: 0.78rem;
+            color: #cbd5e1;
+            line-height: 1.45;
+            margin: 8px 0 12px 0;
+        }
+
+        .trait-list div { margin-bottom: 5px; }
+        .trait-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            padding: 2px 5px;
+            border-radius: 4px;
+            background: #1e2436;
+            color: var(--gold);
+            font-weight: 700;
+            margin-right: 4px;
+        }
+
+        .boss-preview-bar {
+            width: 100%;
+            max-width: 1020px;
+            background: rgba(15, 18, 28, 0.9);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.8rem;
+        }
+
+        .boss-chain {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+        }
+
+        .boss-pill {
+            padding: 4px 9px;
+            border-radius: 6px;
+            background: #1a1523;
+            border: 1px solid #3b2338;
+            color: #fda4af;
+            font-weight: 700;
+        }
+
+        .boss-pill.final {
+            background: rgba(244, 63, 94, 0.2);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.35);
+        }
+
+        .launch-btn {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            background: var(--primary);
+            color: #05070b;
+            border: none;
+            border-radius: 10px;
+            padding: 13px 34px;
+            cursor: pointer;
+            box-shadow: 0 0 24px rgba(56, 189, 248, 0.4);
+            transition: transform 0.12s, filter 0.12s;
+        }
+        .launch-btn:hover { filter: brightness(1.12); transform: scale(1.02); }
+
+        /* Pre-Game Boot Tip Banner (Community Form Callout) */
+        .boot-tip-banner {
+            width: 100%;
+            max-width: 1020px;
+            background: rgba(16, 185, 129, 0.09);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            border-radius: 10px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            color: #d1fae5;
+        }
+
+        .boot-tip-badge {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--emerald);
+            color: #04130d;
+            font-weight: 800;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            margin-right: 8px;
+        }
+
+        /* Cutscene Dialogue Modal */
+        #dialogue-box {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(680px, 92vw);
+            background: rgba(12, 15, 24, 0.95);
+            border: 2px solid var(--primary);
+            border-radius: 14px;
+            padding: 18px 22px;
+            z-index: 40;
+            display: none;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.75);
+        }
+
+        #dialogue-speaker {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: var(--primary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        #dialogue-text {
+            font-size: 0.92rem;
+            line-height: 1.5;
+            color: var(--text-main);
+            min-height: 44px;
+        }
+
+        .dialogue-next {
+            margin-top: 10px;
+            text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--gold);
+            cursor: pointer;
+        }
+
+        /* Mobile / iPad Touch Controls */
+        #touch-controls {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            pointer-events: none;
+            display: none;
+        }
+
+        .joy-zone {
+            position: absolute;
+            bottom: 26px;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.16);
+            pointer-events: auto;
+            touch-action: none;
+        }
+
+        #joy-left { left: 26px; }
+        #joy-right { right: 26px; }
+
+        .joy-stick {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 52px;
+            height: 52px;
+            margin-left: -26px;
+            margin-top: -26px;
+            border-radius: 50%;
+            background: rgba(56, 189, 248, 0.55);
+            border: 2px solid #fff;
+            pointer-events: none;
+        }
+
+        .action-btns {
+            position: absolute;
+            bottom: 175px;
+            right: 28px;
+            display: flex;
+            gap: 12px;
+            pointer-events: auto;
+        }
+
+        .touch-skill-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 0.72rem;
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.4);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        }
+
+        #btn-dash { background: rgba(56, 189, 248, 0.35); }
+        #btn-hyper { background: rgba(168, 85, 247, 0.45); border-color: var(--gold); }
+
+        /* Victory / Game Over Modal */
+        #end-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            background: rgba(6, 8, 14, 0.88);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .end-card {
+            background: var(--card);
+            border: 2px solid var(--card-border);
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 460px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .end-card h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .reward-box {
+            font-family: 'JetBrains Mono', monospace;
+            background: #090b10;
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 14px;
+            margin: 16px 0;
+            color: var(--gold);
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Top Gameplay HUD -->
+    <div id="hud">
+        <div class="hud-left">
+            <div class="hud-panel">
+                <div class="hero-tag">
+                    <span id="hud-hero-name">SHIVNAND</span>
+                    <span id="hud-sector" style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--primary);">SECTOR 1/4</span>
+                </div>
+                <div class="shield-fill" id="hud-shield-bar"></div>
+                <div class="bar-wrap">
+                    <div class="hp-fill" id="hud-hp-bar"></div>
+                </div>
+                <div class="bar-label">
+                    <span id="hud-hp-text">HP: 100/100</span>
+                    <span id="hud-dash-text">DASH: READY [SPACE]</span>
+                </div>
+                <div class="bar-wrap" style="margin-top:6px; height:8px;">
+                    <div class="hyper-fill" id="hud-hyper-bar"></div>
+                </div>
+                <div class="bar-label">
+                    <span id="hud-hyper-name">HYPER: 5S EMP STUN</span>
+                    <span id="hud-hyper-pct">0% [PRESS E]</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hud-right">
+            <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
+                <div class="btn-hub" style="color:var(--gold);">🪙 <span id="hud-coins">0</span></div>
+                <a href="index.html" class="btn-hub">⬅ Hub</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Boss Health Bar -->
+    <div id="boss-hud">
+        <div id="boss-name">KAI JIE — THE 65% CYBER SNIPER</div>
+        <div class="boss-bar-wrap">
+            <div id="boss-hp-fill"></div>
+        </div>
+    </div>
+
+    <!-- Pre-Game Hero Selection & Briefing Screen -->
+    <div id="start-screen">
+        <div class="start-header">
+            <div class="title-block">
+                <h1>⚡ CYBER CHRONICLES: THE ELLA_DES PROTOCOL</h1>
+                <p>Select your Hero, purify the 4 Corrupted Bosses, and overthrow M Demon at the Core.</p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <div class="btn-hub" style="color:var(--gold);">🪙 Wallet: <span id="menu-wallet">0</span></div>
+                <a href="index.html" class="btn-hub">⬅ Back to Arcade Hub</a>
+            </div>
+        </div>
+
+        <div class="hero-grid" id="hero-select-grid">
+            <!-- Populated by JS -->
+        </div>
+
+        <div class="boss-preview-bar">
+            <div>
+                <strong style="color:var(--text-main);">CORRUPTED BOSS GAUNTLET:</strong>
+                <div class="boss-chain" style="margin-top:4px;">
+                    <span class="boss-pill">1. KAI JIE (5K 🪙)</span> ➔
+                    <span class="boss-pill">2. RITVIK (12.5K 🪙)</span> ➔
+                    <span class="boss-pill">3. DARRYL (25K 🪙)</span> ➔
+                    <span class="boss-pill final">💀 FINAL: M DEMON (250K 🪙)</span>
+                </div>
+            </div>
+            <button class="launch-btn" onclick="startGame()">DEPLOY INTO MAINFRAME 🚀</button>
+        </div>
+
+        <!-- Tiny Tips & Feedback Form Banner Beneath Startup -->
+        <div class="boot-tip-banner">
+            <div>
+                <span class="boot-tip-badge">💡 DEV TIP</span>
+                <span id="rotating-tip-text">
+                    <strong>Want YOUR character or custom powers added next?</strong> Use the <strong>Send Feedback</strong> button on the Arcade Hub main menu—new heroes & bosses are built directly from student form submissions!
+                </span>
+            </div>
+            <a href="index.html" style="color:var(--emerald); font-family:'JetBrains Mono',monospace; font-size:0.75rem; font-weight:700; text-decoration:underline;">Open Hub Form ➔</a>
+        </div>
+    </div>
+
+    <!-- Boss Cutscene Dialogue Box -->
+    <div id="dialogue-box" onclick="advanceDialogue()">
+        <div id="dialogue-speaker">KAI JIE</div>
+        <div id="dialogue-text">...</div>
+        <div class="dialogue-next">TAP OR PRESS [SPACE] TO CONTINUE ▶</div>
+    </div>
+
+    <!-- Mobile / iPad Dual Joystick Controls -->
+    <div id="touch-controls">
+        <div class="joy-zone" id="joy-left">
+            <div class="joy-stick" id="stick-left"></div>
+            <div style="position:absolute; bottom:-20px; width:100%; text-align:center; font-size:0.65rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">MOVE</div>
+        </div>
+        <div class="joy-zone" id="joy-right">
+            <div class="joy-stick" id="stick-right"></div>
+            <div style="position:absolute; bottom:-20px; width:100%; text-align:center; font-size:0.65rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">AIM & FIRE</div>
+        </div>
+        <div class="action-btns">
+            <button class="touch-skill-btn" id="btn-dash" ontouchstart="triggerDash(event)">DASH</button>
+            <button class="touch-skill-btn" id="btn-hyper" ontouchstart="triggerHyper(event)">HYPER</button>
+        </div>
+    </div>
+
+    <!-- Victory / Defeat Modal -->
+    <div id="end-modal">
+        <div class="end-card">
+            <h2 id="end-title">MISSION COMPLETE</h2>
+            <p id="end-desc" style="color:var(--text-muted); font-size:0.9rem; line-height:1.4;"></p>
+            <div class="reward-box" id="end-reward">+0 COINS EARNED</div>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button class="launch-btn" style="padding:10px 20px; font-size:0.95rem;" onclick="location.reload()">Play Again</button>
+                <a href="index.html" class="btn-hub" style="padding:10px 18px;">Return to Hub</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // 1. HERO ROSTER & TRAITS
+        // =========================================================================
+        const HEROES = {
+            shivnand: {
+                id: 'shivnand',
+                name: 'Shivnand',
+                role: 'Lead Architect • Control',
+                icon: '⚡',
+                color: '#38bdf8',
+                hp: 120,
+                speed: 4.5,
+                fireRate: 130,
+                dmg: 14,
+                passiveName: 'Root Access',
+                passiveDesc: '20% faster Dash & Hyper charge rate.',
+                weaponDesc: 'Syntax Blaster (Rapid cyan code bolts)',
+                hyperName: '5s System Stun',
+                hyperDesc: 'Freezes all bosses & deletes enemy bullets for 5 seconds.'
+            },
+            canming: {
+                id: 'canming',
+                name: 'Can Ming',
+                role: 'Grand Ideaist • Speed & Economy',
+                icon: '👑',
+                color: '#eab308',
+                hp: 110,
+                speed: 5.2,
+                fireRate: 115,
+                dmg: 12,
+                passiveName: 'Royal 2.5x Stash',
+                passiveDesc: 'All enemies and bosses drop 2.5x extra Arcade Coins!',
+                weaponDesc: 'Visionary Dual-Lasers (High velocity twin beams)',
+                hyperName: 'Overdrive Decree',
+                hyperDesc: '8s of 2x Fire Rate, speed surge & golden energy ring.'
+            },
+            endra: {
+                id: 'endra',
+                name: 'Endra',
+                role: 'The Vanguard • Heavy Tank',
+                icon: '🔥',
+                color: '#f43f5e',
+                hp: 175,
+                speed: 4.1,
+                fireRate: 260,
+                dmg: 11, // x3 spread = 33 dmg up close
+                passiveName: 'Iron Frame',
+                passiveDesc: '+45% Max HP & passive armor regeneration between waves.',
+                weaponDesc: 'Plasma Scattergun (3-way heavy kinetic spread)',
+                hyperName: 'Core Breaker',
+                hyperDesc: 'Unleashes a massive shockwave nova dealing 220 boss damage.'
+            },
+            wengle: {
+                id: 'wengle',
+                name: 'WengLe',
+                role: 'Bank Economist • Tactical',
+                icon: '🪙',
+                color: '#10b981',
+                hp: 125,
+                speed: 4.6,
+                fireRate: 170,
+                dmg: 16,
+                passiveName: 'Compound Interest',
+                passiveDesc: 'Collecting coins heals HP and builds a 50-HP Gold Shield.',
+                weaponDesc: 'Ghost Floater Orbs (Homing spectral curves)',
+                hyperName: 'Market Crash',
+                hyperDesc: 'Rains explosive golden vaults across the arena + spawns coins.'
+            }
+        };
+
+        // =========================================================================
+        // 2. THE 4 CORRUPTED BOSSES (KAI JIE -> RITVIK -> DARRYL -> M DEMON)
+        // =========================================================================
+        const BOSSES = [
+            {
+                id: 'kaijie',
+                name: 'KAI JIE — THE 65% CYBER SNIPER',
+                shortName: 'KAI JIE',
+                color: '#38bdf8',
+                hp: 900,
+                radius: 30,
+                reward: 5000,
+                intro: [
+                    { speaker: 'KAI JIE [CORRUPTED]', text: 'White AirPod locked in. Target accuracy calculated at 65.0%... raising to 100%.' },
+                    { speaker: 'SYSTEM', text: 'WARNING: Watch out for Kai Jie’s red sniper lock-on lines and ricochet trick-shots!' }
+                ]
+            },
+            {
+                id: 'ritvik',
+                name: 'RITVIK — THE GLITCH PHANTOM',
+                shortName: 'RITVIK',
+                color: '#a855f7',
+                hp: 1400,
+                radius: 32,
+                reward: 12500,
+                intro: [
+                    { speaker: 'RITVIK [CORRUPTED]', text: 'You think you’re fighting one of me? The entire memory grid is under my control!' },
+                    { speaker: 'SYSTEM', text: 'WARNING: Ritvik spawns Phantom Decoys and pulls players into Glitch Vortexes!' }
+                ]
+            },
+            {
+                id: 'darryl',
+                name: 'DARRYL — THE CONVOY COMMANDER',
+                shortName: 'DARRYL',
+                color: '#f97316',
+                hp: 2000,
+                radius: 36,
+                reward: 25000,
+                intro: [
+                    { speaker: 'DARRYL [CORRUPTED]', text: 'Next stop: Terminal Oblivion! Let’s see you dodge a fleet of Double-Decker Buses AND my Tiger Leap!' },
+                    { speaker: 'SYSTEM', text: 'WARNING: Stay out of the red highway lanes when Darryl summons his Double-Decker Bus Convoy!' }
+                ]
+            },
+            {
+                id: 'mdemon',
+                name: 'M DEMON — THE APEX OVERLORD',
+                shortName: 'M DEMON',
+                color: '#f43f5e',
+                hp: 3400,
+                radius: 44,
+                reward: 250000,
+                intro: [
+                    { speaker: 'M DEMON [APEX OVERLORD]', text: 'PATHETIC MORTALS! You freed Kai Jie, Ritvik, and Darryl... but the Ella_Des Core belongs to ME!' },
+                    { speaker: 'M DEMON [APEX OVERLORD]', text: 'Prepare for total deletion. Initiating HELLFIRE PROTOCOL!' }
+                ]
+            }
+        ];
+
+        // Rotating Pre-Game Startup Tips
+        const BOOT_TIPS = [
+            "<strong>Want YOUR character or custom powers added next?</strong> Use the <strong>Send Feedback</strong> button on the Arcade Hub main menu—new heroes & bosses are built directly from student form submissions!",
+            "<strong>PRO TIP:</strong> Use your <strong>DASH [SPACE]</strong> right as Kai Jie's red sniper laser flashes or when Darryl's Double-Decker Bus roars down a lane!",
+            "<strong>ECONOMY TIP:</strong> All coins earned in Cyber Chronicles are multiplied by your Hub Multiplier and saved directly to your Arcade Wallet!",
+            "<strong>LORE SECRET:</strong> Defeating <strong>M Demon</strong> awards a massive <strong>250,000 Coin Bounty</strong> and unlocks the permanent M Demon Slayer perk!"
+        ];
+
+        let selectedHeroKey = 'shivnand';
+        let tipIdx = 0;
+
+        function renderHeroSelection() {
+            const grid = document.getElementById('hero-select-grid');
+            grid.innerHTML = Object.values(HEROES).map(h => `
+                <div class="hero-card ${h.id === selectedHeroKey ? 'selected' : ''}" onclick="selectHero('${h.id}')">
+                    <div>
+                        <div class="hero-card-top">
+                            <div class="hero-avatar" style="background:${h.color}22; color:${h.color};">${h.icon}</div>
+                            <div>
+                                <div class="hero-name">${h.name}</div>
+                                <div class="hero-role" style="color:${h.color};">${h.role}</div>
+                            </div>
+                        </div>
+                        <div class="trait-list">
+                            <div><span class="trait-label">PASSIVE</span> <strong>${h.passiveName}:</strong> ${h.passiveDesc}</div>
+                            <div><span class="trait-label">WEAPON</span> ${h.weaponDesc}</div>
+                            <div><span class="trait-label" style="color:#c084fc;">HYPER</span> <strong>${h.hyperName}:</strong> ${h.hyperDesc}</div>
+                        </div>
+                    </div>
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--text-muted); border-top:1px solid var(--card-border); padding-top:8px; display:flex; justify-content:space-between;">
+                        <span>❤️ HP: ${h.hp}</span>
+                        <span>⚡ SPD: ${h.speed}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectHero(id) {
+            selectedHeroKey = id;
+            renderHeroSelection();
+            playSfx('blip');
+        }
+
+        setInterval(() => {
+            const el = document.getElementById('rotating-tip-text');
+            if (el && document.getElementById('start-screen').style.display !== 'none') {
+                tipIdx = (tipIdx + 1) % BOOT_TIPS.length;
+                el.innerHTML = BOOT_TIPS[tipIdx];
+            }
+        }, 5500);
+
+        // =========================================================================
+        // 3. WEB AUDIO SYNTH SOUND ENGINE
+        // =========================================================================
+        let audioCtx = null;
+        function playSfx(type) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const t = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'shoot') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(520, t);
+                    osc.frequency.exponentialRampToValueAtTime(140, t + 0.08);
+                    gain.gain.setValueAtTime(0.12, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.08);
+                    osc.start(t); osc.stop(t + 0.08);
+                } else if (type === 'hit') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, t);
+                    osc.frequency.linearRampToValueAtTime(70, t + 0.1);
+                    gain.gain.setValueAtTime(0.18, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.1);
+                    osc.start(t); osc.stop(t + 0.1);
+                } else if (type === 'coin') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, t);
+                    osc.frequency.setValueAtTime(1318.5, t + 0.05);
+                    gain.gain.setValueAtTime(0.15, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.16);
+                    osc.start(t); osc.stop(t + 0.16);
+                } else if (type === 'hyper') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(240, t);
+                    osc.frequency.exponentialRampToValueAtTime(960, t + 0.45);
+                    gain.gain.setValueAtTime(0.28, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.45);
+                    osc.start(t); osc.stop(t + 0.45);
+                } else if (type === 'blip') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(640, t);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.05);
+                    osc.start(t); osc.stop(t + 0.05);
+                }
+            } catch (e) {}
+        }
+
+        // =========================================================================
+        // 4. CORE GAME ENGINE, ENTITIES & CONTROLS
+        // =========================================================================
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function getWallet() { return parseInt(localStorage.getItem('arcade_coins')) || 0; }
+        function addWalletCoins(amount) {
+            const hubMult = parseFloat(localStorage.getItem('arcade_multiplier')) || 1.0;
+            const heroMult = (player && player.id === 'canming') ? 2.5 : 1.0;
+            const finalAdded = Math.round(amount * hubMult * heroMult);
+            const updated = getWallet() + finalAdded;
+            localStorage.setItem('arcade_coins', updated);
+            sessionCoins += finalAdded;
+            document.getElementById('hud-coins').innerText = updated.toLocaleString();
+            return finalAdded;
+        }
+
+        let gameActive = false;
+        let isPausedForDialogue = false;
+        let sessionCoins = 0;
+        let sectorIndex = 0;
+        let screenShake = 0;
+
+        let player = null;
+        let activeBoss = null;
+        let bullets = [];
+        let enemyBullets = [];
+        let minions = [];
+        let coins = [];
+        let particles = [];
+        let hazardLanes = []; // For Darryl's Double Decker Buses & Kai Jie's Sniper Lasers
+
+        // Input state
+        const keys = {};
+        const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, down: false };
+        const joyMove = { active: false, dx: 0, dy: 0 };
+        const joyAim = { active: false, dx: 0, dy: 0 };
+
+        window.addEventListener('keydown', e => {
+            keys[e.code] = true;
+            if (e.code === 'Space') {
+                if (isPausedForDialogue) advanceDialogue();
+                else if (gameActive) triggerDash();
+            }
+            if (e.code === 'KeyE' || e.code === 'ShiftLeft') {
+                if (gameActive && !isPausedForDialogue) triggerHyper();
+            }
+        });
+        window.addEventListener('keyup', e => keys[e.code] = false);
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener('mousedown', () => mouse.down = true);
+        window.addEventListener('mouseup', () => mouse.down = false);
+
+        // Setup Dual Touch Joysticks for iPad / Mobile
+        function setupJoystick(zoneId, stickId, stateObj) {
+            const zone = document.getElementById(zoneId);
+            const stick = document.getElementById(stickId);
+            const maxDist = 42;
+
+            function handleTouch(e) {
+                e.preventDefault();
+                const touch = e.targetTouches[0];
+                if (!touch) return;
+                const rect = zone.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                let dx = touch.clientX - cx;
+                let dy = touch.clientY - cy;
+                const dist = Math.hypot(dx, dy);
+                if (dist > maxDist) {
+                    dx = (dx / dist) * maxDist;
+                    dy = (dy / dist) * maxDist;
+                }
+                stick.style.transform = `translate(${dx}px, ${dy}px)`;
+                stateObj.active = true;
+                stateObj.dx = dx / maxDist;
+                stateObj.dy = dy / maxDist;
+            }
+
+            function resetTouch(e) {
+                e.preventDefault();
+                stick.style.transform = `translate(0px, 0px)`;
+                stateObj.active = false;
+                stateObj.dx = 0;
+                stateObj.dy = 0;
+            }
+
+            zone.addEventListener('touchstart', handleTouch, { passive: false });
+            zone.addEventListener('touchmove', handleTouch, { passive: false });
+            zone.addEventListener('touchend', resetTouch, { passive: false });
+            zone.addEventListener('touchcancel', resetTouch, { passive: false });
+        }
+
+        setupJoystick('joy-left', 'stick-left', joyMove);
+        setupJoystick('joy-right', 'stick-right', joyAim);
+
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            document.getElementById('touch-controls').style.display = 'block';
+        }
+
+        // Dialogue Queue System
+        let dialogueQueue = [];
+        function startDialogue(lines) {
+            isPausedForDialogue = true;
+            dialogueQueue = [...lines];
+            document.getElementById('dialogue-box').style.display = 'block';
+            advanceDialogue();
+        }
+
+        function advanceDialogue() {
+            playSfx('blip');
+            if (dialogueQueue.length === 0) {
+                document.getElementById('dialogue-box').style.display = 'none';
+                isPausedForDialogue = false;
+                return;
+            }
+            const next = dialogueQueue.shift();
+            document.getElementById('dialogue-speaker').innerText = next.speaker;
+            document.getElementById('dialogue-text').innerText = next.text;
+        }
+
+        function startGame() {
+            const h = HEROES[selectedHeroKey];
+            player = {
+                ...h,
+                x: canvas.width / 2,
+                y: canvas.height * 0.72,
+                radius: 20,
+                maxHp: h.hp,
+                hp: h.hp,
+                shield: h.id === 'wengle' ? 25 : 0,
+                maxShield: 50,
+                hyper: 40,
+                lastShot: 0,
+                dashCd: 0,
+                dashActive: 0,
+                invuln: 0,
+                overdriveTimer: 0,
+                aimAngle: -Math.PI / 2
+            };
+
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('hud').style.display = 'flex';
+            document.getElementById('hud-hero-name').innerText = h.name.toUpperCase();
+            document.getElementById('hud-hyper-name').innerText = `HYPER: ${h.hyperName.toUpperCase()}`;
+            document.getElementById('hud-coins').innerText = getWallet().toLocaleString();
+
+            sectorIndex = 0;
+            sessionCoins = 0;
+            gameActive = true;
+            spawnSectorBoss(0);
+            requestAnimationFrame(gameLoop);
+        }
+
+        function spawnSectorBoss(index) {
+            const template = BOSSES[index];
+            document.getElementById('hud-sector').innerText = `SECTOR ${index + 1}/4`;
+            document.getElementById('boss-hud').style.display = 'block';
+            document.getElementById('boss-name').innerText = template.name;
+
+            bullets = [];
+            enemyBullets = [];
+            minions = [];
+            hazardLanes = [];
+
+            activeBoss = {
+                ...template,
+                maxHp: template.hp,
+                hp: template.hp,
+                x: canvas.width / 2,
+                y: canvas.height * 0.24,
+                vx: 2.8,
+                vy: 1.4,
+                timer: 0,
+                stunTimer: 0,
+                phase: 1
+            };
+
+            // Heal player slightly between bosses
+            if (index > 0) {
+                player.hp = Math.min(player.maxHp, player.hp + 45);
+            }
+
+            startDialogue(template.intro);
+        }
+
+        function triggerDash(e) {
+            if (e) e.preventDefault();
+            if (!player || player.dashCd > 0 || isPausedForDialogue) return;
+            player.dashCd = player.id === 'shivnand' ? 50 : 68;
+            player.dashActive = 12;
+            player.invuln = 18;
+            playSfx('shoot');
+            spawnParticles(player.x, player.y, player.color, 14);
+        }
+
+        function triggerHyper(e) {
+            if (e) e.preventDefault();
+            if (!player || player.hyper < 100 || isPausedForDialogue) return;
+            player.hyper = 0;
+            playSfx('hyper');
+            screenShake = 16;
+
+            if (player.id === 'shivnand') {
+                // 5s System Stun EMP
+                enemyBullets = [];
+                if (activeBoss) activeBoss.stunTimer = 300; // 5 seconds at 60fps
+                minions.forEach(m => m.hp = 0);
+                spawnParticles(player.x, player.y, '#38bdf8', 55);
+            } else if (player.id === 'canming') {
+                // 8s Overdrive Decree
+                player.overdriveTimer = 480;
+                spawnParticles(player.x, player.y, '#eab308', 45);
+            } else if (player.id === 'endra') {
+                // Core Breaker Nova
+                enemyBullets = [];
+                if (activeBoss) {
+                    activeBoss.hp -= 240;
+                    spawnParticles(activeBoss.x, activeBoss.y, '#f43f5e', 50);
+                }
+                minions.forEach(m => m.hp -= 200);
+                spawnParticles(player.x, player.y, '#f43f5e', 60);
+            } else if (player.id === 'wengle') {
+                // Market Crash Vault Rain
+                enemyBullets = [];
+                player.shield = player.maxShield;
+                if (activeBoss) activeBoss.hp -= 180;
+                for (let i = 0; i < 18; i++) {
+                    coins.push({
+                        x: Math.random() * (canvas.width - 120) + 60,
+                        y: Math.random() * (canvas.height - 120) + 60,
+                        val: 50
+                    });
+                }
+                spawnParticles(canvas.width / 2, canvas.height / 2, '#eab308', 65);
+            }
+        }
+
+        function spawnParticles(x, y, color, count = 12) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    size: Math.random() * 5 + 2,
+                    color,
+                    alpha: 1
+                });
+            }
+        }
+
+        function damagePlayer(dmg) {
+            if (player.invuln > 0) return;
+            player.invuln = 28;
+            screenShake = 10;
+            playSfx('hit');
+
+            if (player.shield > 0) {
+                const absorbed = Math.min(player.shield, dmg);
+                player.shield -= absorbed;
+                dmg -= absorbed;
+            }
+            player.hp -= dmg;
+            spawnParticles(player.x, player.y, '#f43f5e', 16);
+
+            if (player.hp <= 0) {
+                player.hp = 0;
+                endRun(false);
+            }
+        }
+
+        function endRun(victory) {
+            gameActive = false;
+            const modal = document.getElementById('end-modal');
+            const title = document.getElementById('end-title');
+            const desc = document.getElementById('end-desc');
+            const reward = document.getElementById('end-reward');
+
+            modal.style.display = 'flex';
+            if (victory) {
+                localStorage.setItem('mdemon_slayer_unlocked', 'true');
+                title.style.color = 'var(--emerald)';
+                title.innerText = '🏆 ELLA_DES CORE PURIFIED!';
+                desc.innerText = `You defeated Kai Jie, Ritvik, Darryl, and overthrew M Demon! All Arcade Coins have been deposited into your Hub Wallet.`;
+            } else {
+                title.style.color = 'var(--accent)';
+                title.innerText = '💀 SYSTEM TERMINATED';
+                desc.innerText = `You fell in Sector ${sectorIndex + 1} against ${activeBoss ? activeBoss.shortName : 'the corruption'}. You keep all coins collected so far!`;
+            }
+            reward.innerText = `+${sessionCoins.toLocaleString()} COINS BANKED`;
+        }
+
+        // =========================================================================
+        // 5. MAIN GAMEPLAY & BOSS AI LOOP
+        // =========================================================================
+        function gameLoop() {
+            if (!gameActive) return;
+
+            ctx.save();
+            if (screenShake > 0) {
+                ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+                screenShake *= 0.88;
+                if (screenShake < 0.5) screenShake = 0;
+            }
+
+            // Draw Cyber Grid Arena
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.07)';
+            ctx.lineWidth = 1;
+            const gridSize = 48;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            if (!isPausedForDialogue) {
+                updatePlayer();
+                updateBoss();
+                updateEntities();
+            }
+
+            drawEntities();
+            ctx.restore();
+            updateHudUI();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updatePlayer() {
+            let mx = 0, my = 0;
+            if (keys['KeyW'] || keys['ArrowUp']) my -= 1;
+            if (keys['KeyS'] || keys['ArrowDown']) my += 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
+            if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
+
+            if (joyMove.active) {
+                mx = joyMove.dx;
+                my = joyMove.dy;
+            } else if (mx !== 0 || my !== 0) {
+                const len = Math.hypot(mx, my);
+                mx /= len; my /= len;
+            }
+
+            const spdMult = (player.dashActive > 0 ? 2.8 : 1) * (player.overdriveTimer > 0 ? 1.35 : 1);
+            player.x = Math.max(25, Math.min(canvas.width - 25, player.x + mx * player.speed * spdMult));
+            player.y = Math.max(25, Math.min(canvas.height - 25, player.y + my * player.speed * spdMult));
+
+            if (player.dashActive > 0) player.dashActive--;
+            if (player.dashCd > 0) player.dashCd--;
+            if (player.invuln > 0) player.invuln--;
+            if (player.overdriveTimer > 0) player.overdriveTimer--;
+
+            // Aiming & Firing
+            let shouldFire = mouse.down || keys['KeyJ'];
+            if (joyAim.active && Math.hypot(joyAim.dx, joyAim.dy) > 0.2) {
+                player.aimAngle = Math.atan2(joyAim.dy, joyAim.dx);
+                shouldFire = true;
+            } else if (!('ontouchstart' in window)) {
+                player.aimAngle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+                shouldFire = true; // Auto-fire toward cursor for smooth arcade action
+            }
+
+            const now = performance.now();
+            const cd = player.overdriveTimer > 0 ? player.fireRate * 0.5 : player.fireRate;
+            if (shouldFire && now - player.lastShot >= cd) {
+                player.lastShot = now;
+                playSfx('shoot');
+                const a = player.aimAngle;
+
+                if (player.id === 'endra') {
+                    [-0.2, 0, 0.2].forEach(offset => {
+                        bullets.push({
+                            x: player.x, y: player.y,
+                            vx: Math.cos(a + offset) * 11,
+                            vy: Math.sin(a + offset) * 11,
+                            dmg: player.dmg, color: player.color, homing: false
+                        });
+                    });
+                } else if (player.id === 'canming') {
+                    [-7, 7].forEach(shift => {
+                        bullets.push({
+                            x: player.x + Math.cos(a + Math.PI/2) * shift,
+                            y: player.y + Math.sin(a + Math.PI/2) * shift,
+                            vx: Math.cos(a) * 13,
+                            vy: Math.sin(a) * 13,
+                            dmg: player.dmg, color: player.color, homing: false
+                        });
+                    });
+                } else {
+                    bullets.push({
+                        x: player.x, y: player.y,
+                        vx: Math.cos(a) * 12,
+                        vy: Math.sin(a) * 12,
+                        dmg: player.dmg,
+                        color: player.color,
+                        homing: player.id === 'wengle'
+                    });
+                }
+            }
+        }
+
+        function updateBoss() {
+            if (!activeBoss) return;
+            const b = activeBoss;
+
+            if (b.stunTimer > 0) {
+                b.stunTimer--;
+                return;
+            }
+
+            b.timer++;
+            b.x += b.vx;
+            b.y += b.vy;
+
+            if (b.x < 80 || b.x > canvas.width - 80) b.vx *= -1;
+            if (b.y < 80 || b.y > canvas.height * 0.48) b.vy *= -1;
+
+            const angleToPlayer = Math.atan2(player.y - b.y, player.x - b.x);
+            const enraged = b.hp < b.maxHp * 0.5;
+
+            // 1. KAI JIE AI (Sniper Lock-On & Ricochet Shots)
+            if (b.id === 'kaijie') {
+                if (b.timer % (enraged ? 55 : 80) === 0) {
+                    // Spawn Sniper Warning Laser
+                    hazardLanes.push({
+                        type: 'sniper',
+                        x1: b.x, y1: b.y,
+                        angle: angleToPlayer,
+                        timer: 38,
+                        color: '#38bdf8'
+                    });
+                }
+                if (b.timer % 45 === 0) {
+                    for (let i = -1; i <= 1; i++) {
+                        enemyBullets.push({
+                            x: b.x, y: b.y,
+                            vx: Math.cos(angleToPlayer + i * 0.22) * 6.5,
+                            vy: Math.sin(angleToPlayer + i * 0.22) * 6.5,
+                            r: 7, color: '#38bdf8', dmg: 14, bounce: enraged ? 1 : 0
+                        });
+                    }
+                }
+            }
+
+            // 2. RITVIK AI (Glitch Clones & Vortex Rings)
+            else if (b.id === 'ritvik') {
+                if (b.timer % 140 === 0 && minions.length < 3) {
+                    minions.push({
+                        x: b.x + (Math.random() - 0.5) * 180,
+                        y: b.y + 60,
+                        hp: 45,
+                        r: 18,
+                        name: 'RITVIK CLONE',
+                        color: '#a855f7'
+                    });
+                }
+                if (b.timer % (enraged ? 38 : 55) === 0) {
+                    const count = enraged ? 10 : 7;
+                    for (let i = 0; i < count; i++) {
+                        const ang = (Math.PI * 2 / count) * i + b.timer * 0.04;
+                        enemyBullets.push({
+                            x: b.x, y: b.y,
+                            vx: Math.cos(ang) * 5.2,
+                            vy: Math.sin(ang) * 5.2,
+                            r: 8, color: '#c084fc', dmg: 15, bounce: 0
+                        });
+                    }
+                }
+            }
+
+            // 3. DARRYL AI (Double-Decker Bus Convoy Lanes & Tiger Leap)
+            else if (b.id === 'darryl') {
+                if (b.timer % (enraged ? 75 : 105) === 0) {
+                    const laneY = Math.max(100, Math.min(canvas.height - 90, player.y + (Math.random() - 0.5) * 120));
+                    hazardLanes.push({
+                        type: 'bus',
+                        y: laneY,
+                        height: 68,
+                        timer: 50,
+                        busX: -180,
+                        activeBus: false
+                    });
+                }
+                if (b.timer % 50 === 0) {
+                    // Chakra Ring burst
+                    for (let i = -2; i <= 2; i++) {
+                        enemyBullets.push({
+                            x: b.x, y: b.y,
+                            vx: Math.cos(angleToPlayer + i * 0.18) * 6.8,
+                            vy: Math.sin(angleToPlayer + i * 0.18) * 6.8,
+                            r: 9, color: '#f97316', dmg: 16, bounce: 0
+                        });
+                    }
+                }
+            }
+
+            // 4. M DEMON AI (Hellfire Spiral, Bus/Sniper Hybrid & Meteor Slams)
+            else if (b.id === 'mdemon') {
+                if (b.timer % 16 === 0) {
+                    const spiral = b.timer * 0.19;
+                    [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5].forEach(offset => {
+                        enemyBullets.push({
+                            x: b.x, y: b.y,
+                            vx: Math.cos(spiral + offset) * 5.8,
+                            vy: Math.sin(spiral + offset) * 5.8,
+                            r: 8, color: '#f43f5e', dmg: 16, bounce: 0
+                        });
+                    });
+                }
+                if (b.timer % 95 === 0) {
+                    hazardLanes.push({
+                        type: 'sniper',
+                        x1: b.x, y1: b.y,
+                        angle: angleToPlayer,
+                        timer: 34,
+                        color: '#f43f5e'
+                    });
+                }
+                if (enraged && b.timer % 120 === 0) {
+                    hazardLanes.push({
+                        type: 'bus',
+                        y: player.y,
+                        height: 70,
+                        timer: 45,
+                        busX: -180,
+                        activeBus: false
+                    });
+                }
+            }
+        }
+
+        function updateEntities() {
+            // Player Bullets
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const p = bullets[i];
+                if (p.homing && activeBoss) {
+                    const targetAng = Math.atan2(activeBoss.y - p.y, activeBoss.x - p.x);
+                    p.vx = p.vx * 0.92 + Math.cos(targetAng) * 1.1;
+                    p.vy = p.vy * 0.92 + Math.sin(targetAng) * 1.1;
+                }
+                p.x += p.vx;
+                p.y += p.vy;
+
+                let hit = false;
+                // Hit Minions
+                for (let j = minions.length - 1; j >= 0; j--) {
+                    const m = minions[j];
+                    if (Math.hypot(p.x - m.x, p.y - m.y) < m.r + 8) {
+                        m.hp -= p.dmg;
+                        hit = true;
+                        if (m.hp <= 0) {
+                            spawnParticles(m.x, m.y, m.color, 12);
+                            coins.push({ x: m.x, y: m.y, val: 40 });
+                            minions.splice(j, 1);
+                        }
+                        break;
+                    }
+                }
+
+                // Hit Boss
+                if (!hit && activeBoss && Math.hypot(p.x - activeBoss.x, p.y - activeBoss.y) < activeBoss.radius + 8) {
+                    activeBoss.hp -= p.dmg;
+                    hit = true;
+                    const chargeGain = player.id === 'shivnand' ? 2.6 : 2.0;
+                    player.hyper = Math.min(100, player.hyper + chargeGain);
+                    spawnParticles(p.x, p.y, player.color, 3);
+
+                    if (activeBoss.hp <= 0) {
+                        handleBossDefeated();
+                        return;
+                    }
+                }
+
+                if (hit || p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+                    bullets.splice(i, 1);
+                }
+            }
+
+            // Minions chasing player
+            minions.forEach(m => {
+                const ang = Math.atan2(player.y - m.y, player.x - m.x);
+                m.x += Math.cos(ang) * 2.3;
+                m.y += Math.sin(ang) * 2.3;
+                if (Math.hypot(player.x - m.x, player.y - m.y) < player.radius + m.r) {
+                    damagePlayer(12);
+                }
+            });
+
+            // Hazard Lanes (Kai Jie Sniper Beams & Darryl Double-Decker Buses)
+            for (let i = hazardLanes.length - 1; i >= 0; i--) {
+                const h = hazardLanes[i];
+                if (h.type === 'sniper') {
+                    h.timer--;
+                    if (h.timer === 0) {
+                        for (let s = 0; s < 5; s++) {
+                            enemyBullets.push({
+                                x: h.x1, y: h.y1,
+                                vx: Math.cos(h.angle) * (13 + s * 1.5),
+                                vy: Math.sin(h.angle) * (13 + s * 1.5),
+                                r: 9, color: h.color, dmg: 22, bounce: 0
+                            });
+                        }
+                        hazardLanes.splice(i, 1);
+                    }
+                } else if (h.type === 'bus') {
+                    if (h.timer > 0) {
+                        h.timer--;
+                        if (h.timer === 0) h.activeBus = true;
+                    } else if (h.activeBus) {
+                        h.busX += 22;
+                        if (
+                            player.x > h.busX && player.x < h.busX + 160 &&
+                            Math.abs(player.y - h.y) < h.height / 2 + player.radius
+                        ) {
+                            damagePlayer(26);
+                        }
+                        if (h.busX > canvas.width + 200) {
+                            hazardLanes.splice(i, 1);
+                        }
+                    }
+                }
+            }
+
+            // Enemy Bullets
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                const b = enemyBullets[i];
+                b.x += b.vx;
+                b.y += b.vy;
+
+                if (b.bounce > 0) {
+                    if (b.x < 10 || b.x > canvas.width - 10) { b.vx *= -1; b.bounce--; }
+                    if (b.y < 10 || b.y > canvas.height - 10) { b.vy *= -1; b.bounce--; }
+                }
+
+                if (Math.hypot(b.x - player.x, b.y - player.y) < b.r + player.radius - 4) {
+                    damagePlayer(b.dmg);
+                    enemyBullets.splice(i, 1);
+                    continue;
+                }
+
+                if (b.x < -40 || b.x > canvas.width + 40 || b.y < -40 || b.y > canvas.height + 40) {
+                    enemyBullets.splice(i, 1);
+                }
+            }
+
+            // Coins
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const c = coins[i];
+                const dist = Math.hypot(player.x - c.x, player.y - c.y);
+                const magnetRange = player.overdriveTimer > 0 ? 350 : 120;
+                if (dist < magnetRange) {
+                    c.x += (player.x - c.x) * 0.14;
+                    c.y += (player.y - c.y) * 0.14;
+                }
+                if (dist < player.radius + 14) {
+                    playSfx('coin');
+                    addWalletCoins(c.val);
+                    if (player.id === 'wengle') {
+                        player.hp = Math.min(player.maxHp, player.hp + 4);
+                        player.shield = Math.min(player.maxShield, player.shield + 5);
+                    }
+                    coins.splice(i, 1);
+                }
+            }
+
+            // Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const pt = particles[i];
+                pt.x += pt.vx;
+                pt.y += pt.vy;
+                pt.alpha -= 0.03;
+                if (pt.alpha <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function handleBossDefeated() {
+            playSfx('hyper');
+            screenShake = 22;
+            spawnParticles(activeBoss.x, activeBoss.y, activeBoss.color, 75);
+            addWalletCoins(activeBoss.reward);
+
+            // Drop bonus coins
+            for (let i = 0; i < 12; i++) {
+                coins.push({
+                    x: activeBoss.x + (Math.random() - 0.5) * 140,
+                    y: activeBoss.y + (Math.random() - 0.5) * 140,
+                    val: 100
+                });
+            }
+
+            sectorIndex++;
+            if (sectorIndex >= BOSSES.length) {
+                activeBoss = null;
+                setTimeout(() => endRun(true), 600);
+            } else {
+                spawnSectorBoss(sectorIndex);
+            }
+        }
+
+        // =========================================================================
+        // 6. RENDERING & VISUAL EFFECTS
+        // =========================================================================
+        function drawEntities() {
+            // Draw Hazard Lanes
+            hazardLanes.forEach(h => {
+                if (h.type === 'sniper') {
+                    ctx.save();
+                    ctx.strokeStyle = h.color;
+                    ctx.lineWidth = h.timer < 10 ? 4 : 2;
+                    ctx.setLineDash([8, 6]);
+                    ctx.beginPath();
+                    ctx.moveTo(h.x1, h.y1);
+                    ctx.lineTo(h.x1 + Math.cos(h.angle) * 1600, h.y1 + Math.sin(h.angle) * 1600);
+                    ctx.stroke();
+                    ctx.restore();
+                } else if (h.type === 'bus') {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(249, 115, 22, 0.16)';
+                    ctx.fillRect(0, h.y - h.height / 2, canvas.width, h.height);
+                    ctx.strokeStyle = '#f97316';
+                    ctx.strokeRect(0, h.y - h.height / 2, canvas.width, h.height);
+                    ctx.fillStyle = '#fdba74';
+                    ctx.font = '700 12px "JetBrains Mono", monospace';
+                    ctx.fillText('⚠️ DOUBLE-DECKER BUS CONVOY LANE ⚠️', 24, h.y + 4);
+
+                    if (h.activeBus) {
+                        ctx.fillStyle = '#ea580c';
+                        ctx.fillRect(h.busX, h.y - 28, 155, 56);
+                        ctx.strokeStyle = '#fde047';
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(h.busX, h.y - 28, 155, 56);
+                        ctx.fillStyle = '#fff';
+                        ctx.fillText('🚌 DARRYL EXPRESS', h.busX + 12, h.y + 5);
+                    }
+                    ctx.restore();
+                }
+            });
+
+            // Coins
+            coins.forEach(c => {
+                ctx.save();
+                ctx.fillStyle = '#eab308';
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#fef08a';
+                ctx.stroke();
+                ctx.restore();
+            });
+
+            // Minions
+            minions.forEach(m => {
+                ctx.save();
+                ctx.fillStyle = m.color;
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.font = '700 10px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(m.name, m.x, m.y - m.r - 6);
+                ctx.restore();
+            });
+
+            // Boss
+            if (activeBoss) {
+                const b = activeBoss;
+                ctx.save();
+                ctx.shadowColor = b.color;
+                ctx.shadowBlur = 22;
+                ctx.fillStyle = b.stunTimer > 0 ? '#38bdf8' : b.color;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#fff';
+                ctx.font = '800 12px "Space Grotesk", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(b.stunTimer > 0 ? '⚡ STUNNED ⚡' : b.shortName, b.x, b.y + 4);
+                ctx.restore();
+            }
+
+            // Player
+            if (player) {
+                ctx.save();
+                if (player.invuln % 4 > 2) ctx.globalAlpha = 0.5;
+                ctx.shadowColor = player.color;
+                ctx.shadowBlur = 16;
+                ctx.fillStyle = player.color;
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Shield ring
+                if (player.shield > 0) {
+                    ctx.strokeStyle = '#eab308';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(player.x, player.y, player.radius + 6, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Aim pointer
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(player.x, player.y);
+                ctx.lineTo(
+                    player.x + Math.cos(player.aimAngle) * (player.radius + 10),
+                    player.y + Math.sin(player.aimAngle) * (player.radius + 10)
+                );
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#fff';
+                ctx.font = '700 11px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(player.name, player.x, player.y - player.radius - 8);
+                ctx.restore();
+            }
+
+            // Player Bullets
+            bullets.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Enemy Bullets
+            enemyBullets.forEach(b => {
+                ctx.fillStyle = b.color;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Particles
+            particles.forEach(pt => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, pt.alpha);
+                ctx.fillStyle = pt.color;
+                ctx.fillRect(pt.x, pt.y, pt.size, pt.size);
+                ctx.restore();
+            });
+        }
+
+        function updateHudUI() {
+            if (!player) return;
+            document.getElementById('hud-hp-bar').style.width = `${(player.hp / player.maxHp) * 100}%`;
+            document.getElementById('hud-shield-bar').style.width = `${(player.shield / player.maxShield) * 100}%`;
+            document.getElementById('hud-hp-text').innerText = `HP: ${Math.ceil(player.hp)}/${player.maxHp}${player.shield > 0 ? ` (+${Math.ceil(player.shield)}🛡️)` : ''}`;
+            document.getElementById('hud-dash-text').innerText = player.dashCd === 0 ? 'DASH: READY [SPACE]' : `DASH: ${Math.ceil(player.dashCd / 15)}s`;
+
+            document.getElementById('hud-hyper-bar').style.width = `${player.hyper}%`;
+            document.getElementById('hud-hyper-pct').innerText = player.hyper >= 100 ? '🔥 READY [PRESS E]' : `${Math.floor(player.hyper)}%`;
+
+            if (activeBoss) {
+                const pct = Math.max(0, (activeBoss.hp / activeBoss.maxHp) * 100);
+                document.getElementById('boss-hp-fill').style.width = `${pct}%`;
+            }
+        }
+
+        // Initialize Menu
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('menu-wallet').innerText = getWallet().toLocaleString();
+            renderHeroSelection();
+        });
+    </script>
+</body>
+</html>
