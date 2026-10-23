@@ -47,7 +47,6 @@
             width: 100vw;
             height: 100vh;
             z-index: 1;
-            background: radial-gradient(circle at center, #111625 0%, #06070b 100%);
         }
 
         /* Top HUD */
@@ -72,12 +71,13 @@
         }
 
         .hud-panel {
-            background: rgba(14, 17, 26, 0.88);
+            background: rgba(14, 17, 26, 0.9);
             backdrop-filter: blur(8px);
             border: 1px solid var(--card-border);
             border-radius: 10px;
             padding: 10px 14px;
-            min-width: 230px;
+            min-width: 240px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
 
         .hero-tag {
@@ -92,12 +92,12 @@
 
         .bar-wrap {
             width: 100%;
-            height: 10px;
+            height: 11px;
             background: #090b10;
             border-radius: 6px;
             overflow: hidden;
             border: 1px solid #222838;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
 
         .hp-fill {
@@ -108,11 +108,12 @@
         }
 
         .shield-fill {
-            height: 4px;
+            height: 5px;
             background: var(--gold);
             width: 0%;
             transition: width 0.12s ease;
             margin-bottom: 4px;
+            border-radius: 4px;
         }
 
         .hyper-fill {
@@ -137,9 +138,9 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
-            width: min(500px, 52vw);
+            width: min(480px, 48vw);
             background: rgba(18, 12, 20, 0.92);
-            border: 1px solid rgba(244, 63, 94, 0.5);
+            border: 1px solid rgba(244, 63, 94, 0.55);
             border-radius: 10px;
             padding: 10px 16px;
             display: none;
@@ -151,7 +152,7 @@
         #boss-name {
             font-family: 'Space Grotesk', sans-serif;
             font-weight: 800;
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: #fda4af;
             letter-spacing: 0.5px;
             margin-bottom: 6px;
@@ -176,7 +177,7 @@
 
         .btn-hub {
             font-family: 'JetBrains Mono', monospace;
-            background: rgba(18, 21, 30, 0.9);
+            background: rgba(18, 21, 30, 0.92);
             color: var(--text-main);
             border: 1px solid var(--card-border);
             border-radius: 8px;
@@ -207,7 +208,7 @@
 
         .start-header {
             width: 100%;
-            max-width: 1020px;
+            max-width: 1040px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -217,7 +218,7 @@
 
         .title-block h1 {
             font-family: 'Space Grotesk', sans-serif;
-            font-size: clamp(1.4rem, 3vw, 2.1rem);
+            font-size: clamp(1.35rem, 2.8vw, 2rem);
             font-weight: 800;
             background: linear-gradient(90deg, #fff, var(--primary));
             -webkit-background-clip: text;
@@ -225,31 +226,30 @@
         }
 
         .title-block p {
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             color: var(--text-muted);
             margin-top: 2px;
         }
 
         .hero-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
             gap: 14px;
             width: 100%;
-            max-width: 1020px;
-            margin: 14px 0;
+            max-width: 1040px;
+            margin: 12px 0;
         }
 
         .hero-card {
             background: var(--card);
             border: 2px solid var(--card-border);
             border-radius: 12px;
-            padding: 16px;
+            padding: 15px;
             cursor: pointer;
             transition: all 0.18s ease;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            position: relative;
         }
 
         .hero-card:hover {
@@ -259,8 +259,8 @@
 
         .hero-card.selected {
             border-color: var(--primary);
-            background: rgba(56, 189, 248, 0.08);
-            box-shadow: 0 0 24px rgba(56, 189, 248, 0.22);
+            background: rgba(56, 189, 248, 0.09);
+            box-shadow: 0 0 24px rgba(56, 189, 248, 0.25);
         }
 
         .hero-card-top {
@@ -270,16 +270,12 @@
             margin-bottom: 10px;
         }
 
-        .hero-avatar {
-            width: 46px;
-            height: 46px;
+        .hero-preview-canvas {
+            width: 58px;
+            height: 58px;
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 800;
-            border: 1px solid rgba(255,255,255,0.15);
+            background: #090b10;
+            border: 1px solid rgba(255,255,255,0.12);
         }
 
         .hero-name {
@@ -290,22 +286,22 @@
 
         .hero-role {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: var(--primary);
             text-transform: uppercase;
         }
 
         .trait-list {
-            font-size: 0.78rem;
+            font-size: 0.77rem;
             color: #cbd5e1;
             line-height: 1.45;
-            margin: 8px 0 12px 0;
+            margin: 6px 0 10px 0;
         }
 
         .trait-list div { margin-bottom: 5px; }
         .trait-label {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             padding: 2px 5px;
             border-radius: 4px;
             background: #1e2436;
@@ -316,16 +312,16 @@
 
         .boss-preview-bar {
             width: 100%;
-            max-width: 1020px;
-            background: rgba(15, 18, 28, 0.9);
+            max-width: 1040px;
+            background: rgba(15, 18, 28, 0.92);
             border: 1px solid var(--card-border);
             border-radius: 10px;
-            padding: 10px 16px;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
             font-size: 0.8rem;
         }
 
@@ -335,7 +331,7 @@
             gap: 8px;
             flex-wrap: wrap;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.73rem;
         }
 
         .boss-pill {
@@ -356,23 +352,23 @@
 
         .launch-btn {
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 800;
             background: var(--primary);
             color: #05070b;
             border: none;
             border-radius: 10px;
-            padding: 13px 34px;
+            padding: 13px 28px;
             cursor: pointer;
             box-shadow: 0 0 24px rgba(56, 189, 248, 0.4);
             transition: transform 0.12s, filter 0.12s;
         }
         .launch-btn:hover { filter: brightness(1.12); transform: scale(1.02); }
 
-        /* Pre-Game Boot Tip Banner (Community Form Callout) */
+        /* Pre-Game Boot Tip Banner */
         .boot-tip-banner {
             width: 100%;
-            max-width: 1020px;
+            max-width: 1040px;
             background: rgba(16, 185, 129, 0.09);
             border: 1px solid rgba(16, 185, 129, 0.35);
             border-radius: 10px;
@@ -405,13 +401,14 @@
             left: 50%;
             transform: translateX(-50%);
             width: min(680px, 92vw);
-            background: rgba(12, 15, 24, 0.95);
+            background: rgba(12, 15, 24, 0.96);
             border: 2px solid var(--primary);
             border-radius: 14px;
             padding: 18px 22px;
             z-index: 40;
             display: none;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.75);
+            cursor: pointer;
         }
 
         #dialogue-speaker {
@@ -427,7 +424,7 @@
             font-size: 0.92rem;
             line-height: 1.5;
             color: var(--text-main);
-            min-height: 44px;
+            min-height: 40px;
         }
 
         .dialogue-next {
@@ -436,7 +433,6 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
             color: var(--gold);
-            cursor: pointer;
         }
 
         /* Mobile / iPad Touch Controls */
@@ -454,8 +450,8 @@
             width: 130px;
             height: 130px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.18);
             pointer-events: auto;
             touch-action: none;
         }
@@ -472,7 +468,7 @@
             margin-left: -26px;
             margin-top: -26px;
             border-radius: 50%;
-            background: rgba(56, 189, 248, 0.55);
+            background: rgba(56, 189, 248, 0.6);
             border: 2px solid #fff;
             pointer-events: none;
         }
@@ -494,7 +490,7 @@
             font-weight: 800;
             font-size: 0.72rem;
             color: #fff;
-            border: 2px solid rgba(255,255,255,0.4);
+            border: 2px solid rgba(255,255,255,0.45);
             cursor: pointer;
             display: flex;
             flex-direction: column;
@@ -503,8 +499,8 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.5);
         }
 
-        #btn-dash { background: rgba(56, 189, 248, 0.35); }
-        #btn-hyper { background: rgba(168, 85, 247, 0.45); border-color: var(--gold); }
+        #btn-dash { background: rgba(56, 189, 248, 0.45); }
+        #btn-hyper { background: rgba(168, 85, 247, 0.55); border-color: var(--gold); }
 
         /* Victory / Game Over Modal */
         #end-modal {
@@ -558,14 +554,14 @@
             <div class="hud-panel">
                 <div class="hero-tag">
                     <span id="hud-hero-name">SHIVNAND</span>
-                    <span id="hud-sector" style="font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--primary);">SECTOR 1/4</span>
+                    <span id="hud-sector" style="font-family:'JetBrains Mono',monospace; font-size:0.74rem; color:var(--primary);">MAP 1/4</span>
                 </div>
                 <div class="shield-fill" id="hud-shield-bar"></div>
                 <div class="bar-wrap">
                     <div class="hp-fill" id="hud-hp-bar"></div>
                 </div>
                 <div class="bar-label">
-                    <span id="hud-hp-text">HP: 100/100</span>
+                    <span id="hud-hp-text">HP: 260/260</span>
                     <span id="hud-dash-text">DASH: READY [SPACE]</span>
                 </div>
                 <div class="bar-wrap" style="margin-top:6px; height:8px;">
@@ -599,7 +595,7 @@
         <div class="start-header">
             <div class="title-block">
                 <h1>⚡ CYBER CHRONICLES: THE ELLA_DES PROTOCOL</h1>
-                <p>Select your Hero, purify the 4 Corrupted Bosses, and overthrow M Demon at the Core.</p>
+                <p>2.5D Tactical Action RPG • Use Cover Pillars, Heal Pads & Hyper Skills to defeat the 4 Bosses!</p>
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
                 <div class="btn-hub" style="color:var(--gold);">🪙 Wallet: <span id="menu-wallet">0</span></div>
@@ -607,21 +603,19 @@
             </div>
         </div>
 
-        <div class="hero-grid" id="hero-select-grid">
-            <!-- Populated by JS -->
-        </div>
+        <div class="hero-grid" id="hero-select-grid"></div>
 
         <div class="boss-preview-bar">
             <div>
-                <strong style="color:var(--text-main);">CORRUPTED BOSS GAUNTLET:</strong>
+                <strong style="color:var(--text-main);">4 MAPS & CORRUPTED BOSS CAMPAIGN:</strong>
                 <div class="boss-chain" style="margin-top:4px;">
-                    <span class="boss-pill">1. KAI JIE (5K 🪙)</span> ➔
-                    <span class="boss-pill">2. RITVIK (12.5K 🪙)</span> ➔
-                    <span class="boss-pill">3. DARRYL (25K 🪙)</span> ➔
-                    <span class="boss-pill final">💀 FINAL: M DEMON (250K 🪙)</span>
+                    <span class="boss-pill">🏀 MAP 1: KAI JIE (5K 🪙)</span> ➔
+                    <span class="boss-pill">🔮 MAP 2: RITVIK (12.5K 🪙)</span> ➔
+                    <span class="boss-pill">🚌 MAP 3: DARRYL (25K 🪙)</span> ➔
+                    <span class="boss-pill final">😈 FINAL CITADEL: M DEMON (250K 🪙)</span>
                 </div>
             </div>
-            <button class="launch-btn" onclick="startGame()">DEPLOY INTO MAINFRAME 🚀</button>
+            <button class="launch-btn" onclick="startGame()">DEPLOY INTO WORLD 🚀</button>
         </div>
 
         <!-- Tiny Tips & Feedback Form Banner Beneath Startup -->
@@ -640,7 +634,7 @@
     <div id="dialogue-box" onclick="advanceDialogue()">
         <div id="dialogue-speaker">KAI JIE</div>
         <div id="dialogue-text">...</div>
-        <div class="dialogue-next">TAP OR PRESS [SPACE] TO CONTINUE ▶</div>
+        <div class="dialogue-next">TAP OR PRESS [SPACE] TO START BATTLE ▶</div>
     </div>
 
     <!-- Mobile / iPad Dual Joystick Controls -->
@@ -674,151 +668,387 @@
 
     <script>
         // =========================================================================
-        // 1. HERO ROSTER & TRAITS
+        // 1. HERO ROSTER (Buffed HP, Auto-Regen & Custom 2.5D Rig Colors)
         // =========================================================================
         const HEROES = {
             shivnand: {
                 id: 'shivnand',
                 name: 'Shivnand',
                 role: 'Lead Architect • Control',
-                icon: '⚡',
                 color: '#38bdf8',
-                hp: 120,
-                speed: 4.5,
-                fireRate: 130,
-                dmg: 14,
+                suitColor: '#0284c7',
+                skin: '#fcd34d',
+                hair: '#0f172a',
+                visor: '#7dd3fc',
+                hat: 'headphones',
+                weaponType: 'blaster',
+                hp: 260,
+                speed: 5.0,
+                fireRate: 115,
+                dmg: 18,
                 passiveName: 'Root Access',
-                passiveDesc: '20% faster Dash & Hyper charge rate.',
-                weaponDesc: 'Syntax Blaster (Rapid cyan code bolts)',
+                passiveDesc: 'Fastest Dash & Hyper charge + HP regeneration.',
+                weaponDesc: 'Syntax Pulse Rifle (Rapid auto-tracking bolts)',
                 hyperName: '5s System Stun',
-                hyperDesc: 'Freezes all bosses & deletes enemy bullets for 5 seconds.'
+                hyperDesc: 'EMP freezes all bosses for 5 seconds & clears enemy fire.'
             },
             canming: {
                 id: 'canming',
                 name: 'Can Ming',
-                role: 'Grand Ideaist • Speed & Economy',
-                icon: '👑',
+                role: 'Grand Ideaist • 2.5x Coin Carry',
                 color: '#eab308',
-                hp: 110,
-                speed: 5.2,
-                fireRate: 115,
-                dmg: 12,
+                suitColor: '#ca8a04',
+                skin: '#fde68a',
+                hair: '#1e1b4b',
+                visor: '#fef08a',
+                hat: 'crown',
+                weaponType: 'dual',
+                hp: 250,
+                speed: 5.6,
+                fireRate: 105,
+                dmg: 15,
                 passiveName: 'Royal 2.5x Stash',
                 passiveDesc: 'All enemies and bosses drop 2.5x extra Arcade Coins!',
-                weaponDesc: 'Visionary Dual-Lasers (High velocity twin beams)',
+                weaponDesc: 'Twin Golden Pistols (High speed dual lasers)',
                 hyperName: 'Overdrive Decree',
-                hyperDesc: '8s of 2x Fire Rate, speed surge & golden energy ring.'
+                hyperDesc: '8s of 2x Fire Rate, speed surge & heals +80 HP!'
             },
             endra: {
                 id: 'endra',
                 name: 'Endra',
-                role: 'The Vanguard • Heavy Tank',
-                icon: '🔥',
+                role: 'The Vanguard • Juggernaut Tank',
                 color: '#f43f5e',
-                hp: 175,
-                speed: 4.1,
-                fireRate: 260,
-                dmg: 11, // x3 spread = 33 dmg up close
-                passiveName: 'Iron Frame',
-                passiveDesc: '+45% Max HP & passive armor regeneration between waves.',
+                suitColor: '#be123c',
+                skin: '#f59e0b',
+                hair: '#18181b',
+                visor: '#fda4af',
+                hat: 'helmet',
+                weaponType: 'shotgun',
+                hp: 360,
+                speed: 4.6,
+                fireRate: 220,
+                dmg: 15, // x3 spread = 45 dmg per shot!
+                passiveName: 'Titan Armor',
+                passiveDesc: '360 Max HP + heavy armor plating reduces all damage.',
                 weaponDesc: 'Plasma Scattergun (3-way heavy kinetic spread)',
                 hyperName: 'Core Breaker',
-                hyperDesc: 'Unleashes a massive shockwave nova dealing 220 boss damage.'
+                hyperDesc: 'Unleashes a massive shockwave nova dealing 280 boss damage.'
             },
             wengle: {
                 id: 'wengle',
                 name: 'WengLe',
-                role: 'Bank Economist • Tactical',
-                icon: '🪙',
+                role: 'Bank Economist • Homing & Shields',
                 color: '#10b981',
-                hp: 125,
-                speed: 4.6,
-                fireRate: 170,
-                dmg: 16,
+                suitColor: '#047857',
+                skin: '#fde68a',
+                hair: '#064e3b',
+                visor: '#6ee7b7',
+                hat: 'shades',
+                weaponType: 'orb',
+                hp: 280,
+                speed: 5.0,
+                fireRate: 145,
+                dmg: 22,
                 passiveName: 'Compound Interest',
-                passiveDesc: 'Collecting coins heals HP and builds a 50-HP Gold Shield.',
-                weaponDesc: 'Ghost Floater Orbs (Homing spectral curves)',
+                passiveDesc: 'Starts with an 80-HP Gold Shield! Coins heal HP & Shield.',
+                weaponDesc: 'Ghost Floater Launcher (Homing spectral curves)',
                 hyperName: 'Market Crash',
-                hyperDesc: 'Rains explosive golden vaults across the arena + spawns coins.'
+                hyperDesc: 'Drops giant gold vaults on the boss + refills full Shield.'
             }
         };
 
         // =========================================================================
-        // 2. THE 4 CORRUPTED BOSSES (KAI JIE -> RITVIK -> DARRYL -> M DEMON)
+        // 2. THE 4 MAPS & BOSSES (Balanced HP & Slower, Dodgeable Attacks)
         // =========================================================================
         const BOSSES = [
             {
                 id: 'kaijie',
                 name: 'KAI JIE — THE 65% CYBER SNIPER',
                 shortName: 'KAI JIE',
+                mapTitle: 'SECTOR 1: ZERO-G NEON HOOPS COURT',
+                mapTheme: 'court',
                 color: '#38bdf8',
-                hp: 900,
+                suitColor: '#0369a1',
+                hat: 'airpod',
+                weaponType: 'sniper',
+                hp: 750,
                 radius: 30,
                 reward: 5000,
                 intro: [
-                    { speaker: 'KAI JIE [CORRUPTED]', text: 'White AirPod locked in. Target accuracy calculated at 65.0%... raising to 100%.' },
-                    { speaker: 'SYSTEM', text: 'WARNING: Watch out for Kai Jie’s red sniper lock-on lines and ricochet trick-shots!' }
+                    { speaker: 'KAI JIE [CORRUPTED]', text: 'Welcome to my Neon Hoops Court! White AirPod locked in—let’s see if you can hide behind those court pillars!' },
+                    { speaker: 'TACTICAL AI', text: 'TIP: Stand behind the glowing Cover Pillars to block shots, or step on the Green Heal Pads to restore HP!' }
                 ]
             },
             {
                 id: 'ritvik',
                 name: 'RITVIK — THE GLITCH PHANTOM',
                 shortName: 'RITVIK',
+                mapTitle: 'SECTOR 2: CORRUPTED MOTHERBOARD MATRIX',
+                mapTheme: 'matrix',
                 color: '#a855f7',
-                hp: 1400,
+                suitColor: '#6b21a8',
+                hat: 'hood',
+                weaponType: 'staff',
+                hp: 1050,
                 radius: 32,
                 reward: 12500,
                 intro: [
-                    { speaker: 'RITVIK [CORRUPTED]', text: 'You think you’re fighting one of me? The entire memory grid is under my control!' },
-                    { speaker: 'SYSTEM', text: 'WARNING: Ritvik spawns Phantom Decoys and pulls players into Glitch Vortexes!' }
+                    { speaker: 'RITVIK [CORRUPTED]', text: 'You survived Kai Jie, impressive... But inside my Motherboard Matrix, my Glitch Clones will surround you!' },
+                    { speaker: 'TACTICAL AI', text: 'TIP: Defeat Ritvik’s Hologram Clones quickly—they drop bonus Health Kits and Gold Coins!' }
                 ]
             },
             {
                 id: 'darryl',
                 name: 'DARRYL — THE CONVOY COMMANDER',
                 shortName: 'DARRYL',
+                mapTitle: 'SECTOR 3: SUNSHINE BUS TERMINAL HIGHWAY',
+                mapTheme: 'highway',
                 color: '#f97316',
-                hp: 2000,
-                radius: 36,
+                suitColor: '#c2410c',
+                hat: 'cap',
+                weaponType: 'cannon',
+                hp: 1350,
+                radius: 35,
                 reward: 25000,
                 intro: [
-                    { speaker: 'DARRYL [CORRUPTED]', text: 'Next stop: Terminal Oblivion! Let’s see you dodge a fleet of Double-Decker Buses AND my Tiger Leap!' },
-                    { speaker: 'SYSTEM', text: 'WARNING: Stay out of the red highway lanes when Darryl summons his Double-Decker Bus Convoy!' }
+                    { speaker: 'DARRYL [CORRUPTED]', text: 'Attention passengers! The Double-Decker Convoy is departing right through you! Watch the highway lanes!' },
+                    { speaker: 'TACTICAL AI', text: 'TIP: When a highway lane flashes orange, step out of that lane before the Double-Decker Bus drives through!' }
                 ]
             },
             {
                 id: 'mdemon',
                 name: 'M DEMON — THE APEX OVERLORD',
                 shortName: 'M DEMON',
+                mapTitle: 'SECTOR 4: THE ELLA_DES CORE CITADEL',
+                mapTheme: 'citadel',
                 color: '#f43f5e',
-                hp: 3400,
-                radius: 44,
+                suitColor: '#881337',
+                hat: 'horns',
+                weaponType: 'trident',
+                hp: 1900,
+                radius: 42,
                 reward: 250000,
                 intro: [
-                    { speaker: 'M DEMON [APEX OVERLORD]', text: 'PATHETIC MORTALS! You freed Kai Jie, Ritvik, and Darryl... but the Ella_Des Core belongs to ME!' },
-                    { speaker: 'M DEMON [APEX OVERLORD]', text: 'Prepare for total deletion. Initiating HELLFIRE PROTOCOL!' }
+                    { speaker: 'M DEMON [APEX OVERLORD]', text: 'FOOLS! You freed Kai Jie, Ritvik, and Darryl, but my Crimson Citadel will be your tomb!' },
+                    { speaker: 'M DEMON [APEX OVERLORD]', text: 'Witness the true power of the Ella_Des Core!' }
                 ]
             }
         ];
 
-        // Rotating Pre-Game Startup Tips
         const BOOT_TIPS = [
             "<strong>Want YOUR character or custom powers added next?</strong> Use the <strong>Send Feedback</strong> button on the Arcade Hub main menu—new heroes & bosses are built directly from student form submissions!",
-            "<strong>PRO TIP:</strong> Use your <strong>DASH [SPACE]</strong> right as Kai Jie's red sniper laser flashes or when Darryl's Double-Decker Bus roars down a lane!",
-            "<strong>ECONOMY TIP:</strong> All coins earned in Cyber Chronicles are multiplied by your Hub Multiplier and saved directly to your Arcade Wallet!",
-            "<strong>LORE SECRET:</strong> Defeating <strong>M Demon</strong> awards a massive <strong>250,000 Coin Bounty</strong> and unlocks the permanent M Demon Slayer perk!"
+            "<strong>TACTICAL COVER:</strong> Every arena has solid <strong>Cover Pillars</strong> (block boss bullets!) and <strong>Green Heal Pads</strong> that regenerate your HP!",
+            "<strong>AUTO-AIM ASSIST:</strong> Your hero automatically locks onto the nearest boss or clone if you don't manually aim with the mouse/stick!"
         ];
 
-        let selectedHeroKey = 'shivnand';
-        let tipIdx = 0;
+        // =========================================================================
+        // 3. 2.5D CHARACTER & BOSS SPRITE RENDERER
+        // =========================================================================
+        function drawCharacterSprite(ctx, entity, isBoss = false) {
+            const x = entity.x;
+            const y = entity.y;
+            const r = entity.radius || 22;
+            const walkBob = Math.sin(entity.walkPhase || 0) * 4;
+            const aim = entity.aimAngle || 0;
+            const facingLeft = Math.cos(aim) < 0;
 
+            ctx.save();
+            ctx.translate(x, y);
+
+            // 1. Ground Drop Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.48)';
+            ctx.beginPath();
+            ctx.ellipse(0, r * 0.85, r * 0.95, r * 0.42, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 2. Boss Aura / Wings for M Demon
+            if (isBoss) {
+                ctx.strokeStyle = entity.color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.ellipse(0, r * 0.75, r * 1.25 + Math.sin(Date.now() * 0.008) * 5, r * 0.55, 0, 0, Math.PI * 2);
+                ctx.stroke();
+
+                if (entity.hat === 'horns') {
+                    // M Demon Animated Bat Wings
+                    const wingFlap = Math.sin(Date.now() * 0.01) * 10;
+                    ctx.fillStyle = '#4c0519';
+                    ctx.strokeStyle = '#f43f5e';
+                    ctx.lineWidth = 2;
+                    [-1, 1].forEach(dir => {
+                        ctx.beginPath();
+                        ctx.moveTo(0, -5);
+                        ctx.quadraticCurveTo(dir * (r + 28), -28 + wingFlap, dir * (r + 36), 6 + wingFlap);
+                        ctx.quadraticCurveTo(dir * (r + 16), 14, 0, 8);
+                        ctx.fill();
+                        ctx.stroke();
+                    });
+                }
+            }
+
+            // 3. Animated 2.5D Boots / Feet
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = entity.color;
+            ctx.lineWidth = 1.5;
+            const leftFootY = r * 0.55 + walkBob;
+            const rightFootY = r * 0.55 - walkBob;
+            ctx.beginPath();
+            ctx.roundRect(-r * 0.5, leftFootY, r * 0.38, r * 0.32, 4);
+            ctx.roundRect(r * 0.12, rightFootY, r * 0.38, r * 0.32, 4);
+            ctx.fill();
+            ctx.stroke();
+
+            // 4. Armored Torso / Jacket
+            const bodyGrad = ctx.createLinearGradient(0, -r * 0.5, 0, r * 0.6);
+            bodyGrad.addColorStop(0, entity.color);
+            bodyGrad.addColorStop(1, entity.suitColor || '#1e293b');
+            ctx.fillStyle = bodyGrad;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(-r * 0.68, -r * 0.25 + Math.abs(walkBob) * 0.3, r * 1.36, r * 0.9, 9);
+            ctx.fill();
+            ctx.stroke();
+
+            // Chest Emblem
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(0, r * 0.18, r * 0.18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 5. Head & Face
+            const headY = -r * 0.55 + Math.abs(walkBob) * 0.25;
+            ctx.fillStyle = isBoss && entity.hat === 'horns' ? '#be123c' : (entity.skin || '#fde68a');
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, headY, r * 0.56, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // 6. Cyber Visor / Eyes
+            const eyeOffsetX = facingLeft ? -r * 0.14 : r * 0.14;
+            ctx.fillStyle = entity.visor || '#38bdf8';
+            ctx.beginPath();
+            ctx.roundRect(eyeOffsetX - r * 0.32, headY - r * 0.12, r * 0.64, r * 0.22, 4);
+            ctx.fill();
+
+            // 7. Custom Character Hats & Accessories
+            if (entity.hat === 'crown') {
+                // Can Ming Golden Crown
+                ctx.fillStyle = '#facc15';
+                ctx.strokeStyle = '#ca8a04';
+                ctx.beginPath();
+                ctx.moveTo(-r * 0.45, headY - r * 0.42);
+                ctx.lineTo(-r * 0.3, headY - r * 0.85);
+                ctx.lineTo(0, headY - r * 0.58);
+                ctx.lineTo(r * 0.3, headY - r * 0.85);
+                ctx.lineTo(r * 0.45, headY - r * 0.42);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            } else if (entity.hat === 'airpod') {
+                // Kai Jie Signature White AirPod + Spiky Hair
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.arc(0, headY - r * 0.18, r * 0.56, Math.PI, 0);
+                ctx.fill();
+                // Glowing White AirPod on ear
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = '#ffffff';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.roundRect(r * 0.45, headY - 2, 6, 13, 3);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            } else if (entity.hat === 'horns') {
+                // M Demon Curved Horns
+                ctx.fillStyle = '#fef08a';
+                [-1, 1].forEach(dir => {
+                    ctx.beginPath();
+                    ctx.moveTo(dir * r * 0.35, headY - r * 0.4);
+                    ctx.quadraticCurveTo(dir * r * 0.9, headY - r * 1.0, dir * r * 0.55, headY - r * 1.15);
+                    ctx.quadraticCurveTo(dir * r * 0.5, headY - r * 0.7, dir * r * 0.15, headY - r * 0.5);
+                    ctx.fill();
+                });
+            } else if (entity.hat === 'cap') {
+                // Darryl Bus Commander Cap
+                ctx.fillStyle = '#ea580c';
+                ctx.beginPath();
+                ctx.arc(0, headY - r * 0.2, r * 0.58, Math.PI, 0);
+                ctx.fill();
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(facingLeft ? -r * 0.7 : 0, headY - r * 0.25, r * 0.7, 5);
+            } else if (entity.hat === 'hood') {
+                // Ritvik Glitch Hood
+                ctx.strokeStyle = '#c084fc';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, headY, r * 0.62, Math.PI * 0.85, Math.PI * 0.15);
+                ctx.stroke();
+            } else if (entity.hat === 'headphones') {
+                // Shivnand Dev Headphones
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(0, headY, r * 0.6, Math.PI, 0);
+                ctx.stroke();
+            }
+
+            // 8. Rotating 2D Weapon in Hands
+            ctx.save();
+            ctx.rotate(aim);
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = entity.color;
+            ctx.lineWidth = 2;
+
+            if (entity.weaponType === 'sniper') {
+                // Long Sniper Barrel
+                ctx.fillRect(r * 0.3, -4, r * 1.35, 8);
+                ctx.strokeRect(r * 0.3, -4, r * 1.35, 8);
+            } else if (entity.weaponType === 'shotgun' || entity.weaponType === 'cannon') {
+                // Heavy Wide Barrel
+                ctx.fillRect(r * 0.25, -7, r * 1.0, 14);
+                ctx.strokeRect(r * 0.25, -7, r * 1.0, 14);
+            } else {
+                // Standard Cyber Blaster
+                ctx.fillRect(r * 0.3, -5, r * 0.9, 10);
+                ctx.strokeRect(r * 0.3, -5, r * 0.9, 10);
+            }
+            ctx.restore();
+
+            // 9. Shield Bubble & Nameplate
+            if (entity.shield && entity.shield > 0) {
+                ctx.strokeStyle = 'rgba(234, 179, 8, 0.85)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([6, 4]);
+                ctx.beginPath();
+                ctx.arc(0, -4, r * 1.35, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 11px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(
+                entity.stunTimer > 0 ? '⚡ STUNNED ⚡' : (entity.shortName || entity.name),
+                0,
+                -r * 1.38
+            );
+
+            ctx.restore();
+        }
+
+        // Render Hero Previews on Character Select Cards
+        let selectedHeroKey = 'shivnand';
         function renderHeroSelection() {
             const grid = document.getElementById('hero-select-grid');
             grid.innerHTML = Object.values(HEROES).map(h => `
                 <div class="hero-card ${h.id === selectedHeroKey ? 'selected' : ''}" onclick="selectHero('${h.id}')">
                     <div>
                         <div class="hero-card-top">
-                            <div class="hero-avatar" style="background:${h.color}22; color:${h.color};">${h.icon}</div>
+                            <canvas id="preview-${h.id}" width="58" height="58" class="hero-preview-canvas"></canvas>
                             <div>
                                 <div class="hero-name">${h.name}</div>
                                 <div class="hero-role" style="color:${h.color};">${h.role}</div>
@@ -836,6 +1066,15 @@
                     </div>
                 </div>
             `).join('');
+
+            // Draw live 2.5D character sprite previews on the selection cards
+            Object.values(HEROES).forEach(h => {
+                const c = document.getElementById(`preview-${h.id}`);
+                if (c) {
+                    const pCtx = c.getContext('2d');
+                    drawCharacterSprite(pCtx, { ...h, x: 29, y: 36, radius: 16, aimAngle: -0.2 }, false);
+                }
+            });
         }
 
         function selectHero(id) {
@@ -844,6 +1083,7 @@
             playSfx('blip');
         }
 
+        let tipIdx = 0;
         setInterval(() => {
             const el = document.getElementById('rotating-tip-text');
             if (el && document.getElementById('start-screen').style.display !== 'none') {
@@ -853,7 +1093,7 @@
         }, 5500);
 
         // =========================================================================
-        // 3. WEB AUDIO SYNTH SOUND ENGINE
+        // 4. WEB AUDIO SYNTH SOUND ENGINE
         // =========================================================================
         let audioCtx = null;
         function playSfx(type) {
@@ -869,35 +1109,35 @@
                 if (type === 'shoot') {
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(520, t);
-                    osc.frequency.exponentialRampToValueAtTime(140, t + 0.08);
-                    gain.gain.setValueAtTime(0.12, t);
-                    gain.gain.linearRampToValueAtTime(0.01, t + 0.08);
-                    osc.start(t); osc.stop(t + 0.08);
+                    osc.frequency.exponentialRampToValueAtTime(140, t + 0.07);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.07);
+                    osc.start(t); osc.stop(t + 0.07);
                 } else if (type === 'hit') {
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(180, t);
-                    osc.frequency.linearRampToValueAtTime(70, t + 0.1);
-                    gain.gain.setValueAtTime(0.18, t);
+                    osc.frequency.setValueAtTime(160, t);
+                    osc.frequency.linearRampToValueAtTime(65, t + 0.1);
+                    gain.gain.setValueAtTime(0.16, t);
                     gain.gain.linearRampToValueAtTime(0.01, t + 0.1);
                     osc.start(t); osc.stop(t + 0.1);
                 } else if (type === 'coin') {
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(880, t);
                     osc.frequency.setValueAtTime(1318.5, t + 0.05);
-                    gain.gain.setValueAtTime(0.15, t);
-                    gain.gain.linearRampToValueAtTime(0.01, t + 0.16);
-                    osc.start(t); osc.stop(t + 0.16);
+                    gain.gain.setValueAtTime(0.14, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.15);
+                    osc.start(t); osc.stop(t + 0.15);
                 } else if (type === 'hyper') {
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(240, t);
-                    osc.frequency.exponentialRampToValueAtTime(960, t + 0.45);
-                    gain.gain.setValueAtTime(0.28, t);
-                    gain.gain.linearRampToValueAtTime(0.01, t + 0.45);
-                    osc.start(t); osc.stop(t + 0.45);
+                    osc.frequency.setValueAtTime(260, t);
+                    osc.frequency.exponentialRampToValueAtTime(980, t + 0.4);
+                    gain.gain.setValueAtTime(0.24, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.4);
+                    osc.start(t); osc.stop(t + 0.4);
                 } else if (type === 'blip') {
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(640, t);
-                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.setValueAtTime(0.09, t);
                     gain.gain.linearRampToValueAtTime(0.01, t + 0.05);
                     osc.start(t); osc.stop(t + 0.05);
                 }
@@ -905,10 +1145,13 @@
         }
 
         // =========================================================================
-        // 4. CORE GAME ENGINE, ENTITIES & CONTROLS
+        // 5. WORLD MAP, OBSTACLES, CAMERA & GAME ENGINE
         // =========================================================================
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
+
+        const WORLD = { width: 1800, height: 1200 };
+        const camera = { x: 0, y: 0 };
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -937,16 +1180,34 @@
 
         let player = null;
         let activeBoss = null;
+        let pillars = [];
+        let healPads = [];
         let bullets = [];
         let enemyBullets = [];
         let minions = [];
         let coins = [];
+        let medkits = [];
         let particles = [];
-        let hazardLanes = []; // For Darryl's Double Decker Buses & Kai Jie's Sniper Lasers
+        let floatingTexts = [];
+        let hazardLanes = [];
+
+        // Build Map Obstacles & Heal Pads per Sector
+        function generateMapArena() {
+            pillars = [
+                { x: 520, y: 380, w: 95, h: 95 },
+                { x: 1185, y: 380, w: 95, h: 95 },
+                { x: 520, y: 740, w: 95, h: 95 },
+                { x: 1185, y: 740, w: 95, h: 95 }
+            ];
+            healPads = [
+                { x: 260, y: 600, r: 52 },
+                { x: 1540, y: 600, r: 52 }
+            ];
+        }
 
         // Input state
         const keys = {};
-        const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, down: false };
+        const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, down: false, moved: false };
         const joyMove = { active: false, dx: 0, dy: 0 };
         const joyAim = { active: false, dx: 0, dy: 0 };
 
@@ -961,11 +1222,14 @@
             }
         });
         window.addEventListener('keyup', e => keys[e.code] = false);
-        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener('mousemove', e => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            mouse.moved = true;
+        });
         window.addEventListener('mousedown', () => mouse.down = true);
         window.addEventListener('mouseup', () => mouse.down = false);
 
-        // Setup Dual Touch Joysticks for iPad / Mobile
         function setupJoystick(zoneId, stickId, stateObj) {
             const zone = document.getElementById(zoneId);
             const stick = document.getElementById(stickId);
@@ -1012,7 +1276,6 @@
             document.getElementById('touch-controls').style.display = 'block';
         }
 
-        // Dialogue Queue System
         let dialogueQueue = [];
         function startDialogue(lines) {
             isPausedForDialogue = true;
@@ -1037,20 +1300,21 @@
             const h = HEROES[selectedHeroKey];
             player = {
                 ...h,
-                x: canvas.width / 2,
-                y: canvas.height * 0.72,
-                radius: 20,
+                x: WORLD.width / 2,
+                y: WORLD.height * 0.75,
+                radius: 24,
                 maxHp: h.hp,
                 hp: h.hp,
-                shield: h.id === 'wengle' ? 25 : 0,
-                maxShield: 50,
-                hyper: 40,
+                shield: h.id === 'wengle' ? 80 : 30,
+                maxShield: 100,
+                hyper: 50,
                 lastShot: 0,
                 dashCd: 0,
                 dashActive: 0,
                 invuln: 0,
                 overdriveTimer: 0,
-                aimAngle: -Math.PI / 2
+                aimAngle: -Math.PI / 2,
+                walkPhase: 0
             };
 
             document.getElementById('start-screen').style.display = 'none';
@@ -1068,7 +1332,8 @@
 
         function spawnSectorBoss(index) {
             const template = BOSSES[index];
-            document.getElementById('hud-sector').innerText = `SECTOR ${index + 1}/4`;
+            generateMapArena();
+            document.getElementById('hud-sector').innerText = `MAP ${index + 1}/4`;
             document.getElementById('boss-hud').style.display = 'block';
             document.getElementById('boss-name').innerText = template.name;
 
@@ -1076,34 +1341,42 @@
             enemyBullets = [];
             minions = [];
             hazardLanes = [];
+            medkits = [];
+
+            player.x = WORLD.width / 2;
+            player.y = WORLD.height * 0.78;
+
+            // Full heal + shield boost at the start of every new sector!
+            player.hp = player.maxHp;
+            player.shield = Math.min(player.maxShield, player.shield + 40);
 
             activeBoss = {
                 ...template,
                 maxHp: template.hp,
                 hp: template.hp,
-                x: canvas.width / 2,
-                y: canvas.height * 0.24,
-                vx: 2.8,
-                vy: 1.4,
+                x: WORLD.width / 2,
+                y: WORLD.height * 0.25,
+                vx: 2.3,
+                vy: 1.5,
                 timer: 0,
                 stunTimer: 0,
-                phase: 1
+                walkPhase: 0,
+                aimAngle: Math.PI / 2
             };
 
-            // Heal player slightly between bosses
-            if (index > 0) {
-                player.hp = Math.min(player.maxHp, player.hp + 45);
-            }
-
             startDialogue(template.intro);
+        }
+
+        function addFloatingText(x, y, text, color = '#fff') {
+            floatingTexts.push({ x, y, text, color, alpha: 1.0, vy: -1.6 });
         }
 
         function triggerDash(e) {
             if (e) e.preventDefault();
             if (!player || player.dashCd > 0 || isPausedForDialogue) return;
-            player.dashCd = player.id === 'shivnand' ? 50 : 68;
-            player.dashActive = 12;
-            player.invuln = 18;
+            player.dashCd = player.id === 'shivnand' ? 40 : 55;
+            player.dashActive = 14;
+            player.invuln = 24;
             playSfx('shoot');
             spawnParticles(player.x, player.y, player.color, 14);
         }
@@ -1113,40 +1386,42 @@
             if (!player || player.hyper < 100 || isPausedForDialogue) return;
             player.hyper = 0;
             playSfx('hyper');
-            screenShake = 16;
+            screenShake = 15;
+            addFloatingText(player.x, player.y - 40, `⚡ ${player.hyperName.toUpperCase()}!`, '#facc15');
 
             if (player.id === 'shivnand') {
-                // 5s System Stun EMP
                 enemyBullets = [];
-                if (activeBoss) activeBoss.stunTimer = 300; // 5 seconds at 60fps
+                if (activeBoss) activeBoss.stunTimer = 300; // 5s Stun
                 minions.forEach(m => m.hp = 0);
                 spawnParticles(player.x, player.y, '#38bdf8', 55);
             } else if (player.id === 'canming') {
-                // 8s Overdrive Decree
                 player.overdriveTimer = 480;
+                player.hp = Math.min(player.maxHp, player.hp + 80);
                 spawnParticles(player.x, player.y, '#eab308', 45);
             } else if (player.id === 'endra') {
-                // Core Breaker Nova
                 enemyBullets = [];
                 if (activeBoss) {
-                    activeBoss.hp -= 240;
+                    activeBoss.hp -= 280;
+                    addFloatingText(activeBoss.x, activeBoss.y - 30, '-280 CORE BREAKER!', '#f43f5e');
                     spawnParticles(activeBoss.x, activeBoss.y, '#f43f5e', 50);
                 }
-                minions.forEach(m => m.hp -= 200);
+                minions.forEach(m => m.hp -= 250);
                 spawnParticles(player.x, player.y, '#f43f5e', 60);
             } else if (player.id === 'wengle') {
-                // Market Crash Vault Rain
                 enemyBullets = [];
                 player.shield = player.maxShield;
-                if (activeBoss) activeBoss.hp -= 180;
-                for (let i = 0; i < 18; i++) {
+                player.hp = Math.min(player.maxHp, player.hp + 60);
+                if (activeBoss) {
+                    activeBoss.hp -= 220;
+                    addFloatingText(activeBoss.x, activeBoss.y - 30, '-220 MARKET CRASH!', '#eab308');
+                }
+                for (let i = 0; i < 16; i++) {
                     coins.push({
-                        x: Math.random() * (canvas.width - 120) + 60,
-                        y: Math.random() * (canvas.height - 120) + 60,
-                        val: 50
+                        x: player.x + (Math.random() - 0.5) * 400,
+                        y: player.y + (Math.random() - 0.5) * 400,
+                        val: 60
                     });
                 }
-                spawnParticles(canvas.width / 2, canvas.height / 2, '#eab308', 65);
             }
         }
 
@@ -1154,8 +1429,8 @@
             for (let i = 0; i < count; i++) {
                 particles.push({
                     x, y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
+                    vx: (Math.random() - 0.5) * 9,
+                    vy: (Math.random() - 0.5) * 9,
                     size: Math.random() * 5 + 2,
                     color,
                     alpha: 1
@@ -1165,8 +1440,9 @@
 
         function damagePlayer(dmg) {
             if (player.invuln > 0) return;
-            player.invuln = 28;
-            screenShake = 10;
+            if (player.id === 'endra') dmg = Math.round(dmg * 0.75); // Endra armor reduction
+            player.invuln = 35; // Longer invulnerability window so you never get melted instantly
+            screenShake = 8;
             playSfx('hit');
 
             if (player.shield > 0) {
@@ -1175,7 +1451,8 @@
                 dmg -= absorbed;
             }
             player.hp -= dmg;
-            spawnParticles(player.x, player.y, '#f43f5e', 16);
+            addFloatingText(player.x, player.y - 25, `-${dmg}`, '#f43f5e');
+            spawnParticles(player.x, player.y, '#f43f5e', 12);
 
             if (player.hp <= 0) {
                 player.hp = 0;
@@ -1199,35 +1476,122 @@
             } else {
                 title.style.color = 'var(--accent)';
                 title.innerText = '💀 SYSTEM TERMINATED';
-                desc.innerText = `You fell in Sector ${sectorIndex + 1} against ${activeBoss ? activeBoss.shortName : 'the corruption'}. You keep all coins collected so far!`;
+                desc.innerText = `You fell in Map ${sectorIndex + 1} against ${activeBoss ? activeBoss.shortName : 'the corruption'}. You keep all coins collected!`;
             }
             reward.innerText = `+${sessionCoins.toLocaleString()} COINS BANKED`;
         }
 
+        function circleRectCollide(cx, cy, cr, rx, ry, rw, rh) {
+            const closestX = Math.max(rx, Math.min(cx, rx + rw));
+            const closestY = Math.max(ry, Math.min(cy, ry + rh));
+            return Math.hypot(cx - closestX, cy - closestY) < cr;
+        }
+
         // =========================================================================
-        // 5. MAIN GAMEPLAY & BOSS AI LOOP
+        // 6. MAIN GAME LOOP & THEMED MAP RENDERER
         // =========================================================================
+        function drawThemedWorldMap() {
+            const theme = activeBoss ? activeBoss.mapTheme : 'court';
+
+            // Base Floor Colors per Sector
+            if (theme === 'court') {
+                ctx.fillStyle = '#0c1424';
+                ctx.fillRect(0, 0, WORLD.width, WORLD.height);
+                // Basketball Court Markings
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(80, 80, WORLD.width - 160, WORLD.height - 160);
+                ctx.beginPath();
+                ctx.arc(WORLD.width / 2, WORLD.height / 2, 170, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(80, WORLD.height / 2);
+                ctx.lineTo(WORLD.width - 80, WORLD.height / 2);
+                ctx.stroke();
+            } else if (theme === 'matrix') {
+                ctx.fillStyle = '#090614';
+                ctx.fillRect(0, 0, WORLD.width, WORLD.height);
+                ctx.strokeStyle = 'rgba(168, 85, 247, 0.16)';
+                ctx.lineWidth = 2;
+                for (let x = 0; x < WORLD.width; x += 90) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD.height); ctx.stroke();
+                }
+                for (let y = 0; y < WORLD.height; y += 90) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD.width, y); ctx.stroke();
+                }
+            } else if (theme === 'highway') {
+                ctx.fillStyle = '#18181b';
+                ctx.fillRect(0, 0, WORLD.width, WORLD.height);
+                // Asphalt Highway Lanes
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([28, 22]);
+                [300, 600, 900].forEach(y => {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD.width, y); ctx.stroke();
+                });
+                ctx.setLineDash([]);
+            } else {
+                // M Demon Crimson Citadel
+                ctx.fillStyle = '#16050b';
+                ctx.fillRect(0, 0, WORLD.width, WORLD.height);
+                ctx.strokeStyle = 'rgba(244, 63, 94, 0.25)';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(WORLD.width / 2, WORLD.height / 2, 340, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // World Border
+            ctx.strokeStyle = activeBoss ? activeBoss.color : '#38bdf8';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(0, 0, WORLD.width, WORLD.height);
+
+            // Green Healing Pads
+            healPads.forEach(pad => {
+                ctx.save();
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(pad.x, pad.y, pad.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = '#34d399';
+                ctx.font = '800 13px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('➕ HEAL PAD', pad.x, pad.y + 4);
+                ctx.restore();
+            });
+
+            // 2.5D Cover Pillars (Blocks Bullets!)
+            pillars.forEach(p => {
+                ctx.save();
+                // Pillar shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                ctx.fillRect(p.x + 8, p.y + 12, p.w, p.h);
+                // Pillar 3D base
+                ctx.fillStyle = '#1e293b';
+                ctx.strokeStyle = activeBoss ? activeBoss.color : '#38bdf8';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.roundRect(p.x, p.y, p.w, p.h, 10);
+                ctx.fill();
+                ctx.stroke();
+                // Pillar roof highlight
+                ctx.fillStyle = '#334155';
+                ctx.beginPath();
+                ctx.roundRect(p.x + 6, p.y + 6, p.w - 12, p.h - 20, 6);
+                ctx.fill();
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '700 10px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('🛡️ COVER', p.x + p.w / 2, p.y + p.h / 2 + 3);
+                ctx.restore();
+            });
+        }
+
         function gameLoop() {
             if (!gameActive) return;
-
-            ctx.save();
-            if (screenShake > 0) {
-                ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
-                screenShake *= 0.88;
-                if (screenShake < 0.5) screenShake = 0;
-            }
-
-            // Draw Cyber Grid Arena
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.07)';
-            ctx.lineWidth = 1;
-            const gridSize = 48;
-            for (let x = 0; x < canvas.width; x += gridSize) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-            }
-            for (let y = 0; y < canvas.height; y += gridSize) {
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-            }
 
             if (!isPausedForDialogue) {
                 updatePlayer();
@@ -1235,8 +1599,27 @@
                 updateEntities();
             }
 
+            // Smooth Camera following Player
+            camera.x = Math.max(0, Math.min(WORLD.width - canvas.width, player.x - canvas.width / 2));
+            camera.y = Math.max(0, Math.min(WORLD.height - canvas.height, player.y - canvas.height / 2));
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+
+            if (screenShake > 0) {
+                ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+                screenShake *= 0.88;
+                if (screenShake < 0.5) screenShake = 0;
+            }
+
+            ctx.translate(-camera.x, -camera.y);
+
+            drawThemedWorldMap();
             drawEntities();
+
             ctx.restore();
+
+            drawMinimap();
             updateHudUI();
 
             requestAnimationFrame(gameLoop);
@@ -1257,56 +1640,92 @@
                 mx /= len; my /= len;
             }
 
-            const spdMult = (player.dashActive > 0 ? 2.8 : 1) * (player.overdriveTimer > 0 ? 1.35 : 1);
-            player.x = Math.max(25, Math.min(canvas.width - 25, player.x + mx * player.speed * spdMult));
-            player.y = Math.max(25, Math.min(canvas.height - 25, player.y + my * player.speed * spdMult));
+            if (mx !== 0 || my !== 0) {
+                player.walkPhase += 0.25;
+            }
+
+            const spdMult = (player.dashActive > 0 ? 2.5 : 1) * (player.overdriveTimer > 0 ? 1.3 : 1);
+            const nextX = Math.max(35, Math.min(WORLD.width - 35, player.x + mx * player.speed * spdMult));
+            const nextY = Math.max(35, Math.min(WORLD.height - 35, player.y + my * player.speed * spdMult));
+
+            // Pillar Collision Check for Player
+            let canMoveX = true, canMoveY = true;
+            pillars.forEach(p => {
+                if (circleRectCollide(nextX, player.y, player.radius, p.x, p.y, p.w, p.h)) canMoveX = false;
+                if (circleRectCollide(player.x, nextY, player.radius, p.x, p.y, p.w, p.h)) canMoveY = false;
+            });
+
+            if (canMoveX) player.x = nextX;
+            if (canMoveY) player.y = nextY;
+
+            // Heal Pads Regeneration
+            healPads.forEach(pad => {
+                if (Math.hypot(player.x - pad.x, player.y - pad.y) < pad.r + player.radius) {
+                    if (player.hp < player.maxHp) {
+                        player.hp = Math.min(player.maxHp, player.hp + 0.35);
+                    }
+                }
+            });
+
+            // Passive subtle HP regeneration
+            if (player.hp < player.maxHp) {
+                player.hp = Math.min(player.maxHp, player.hp + 0.04);
+            }
 
             if (player.dashActive > 0) player.dashActive--;
             if (player.dashCd > 0) player.dashCd--;
             if (player.invuln > 0) player.invuln--;
             if (player.overdriveTimer > 0) player.overdriveTimer--;
 
-            // Aiming & Firing
-            let shouldFire = mouse.down || keys['KeyJ'];
+            // Smart Auto-Aim or Manual Aim
             if (joyAim.active && Math.hypot(joyAim.dx, joyAim.dy) > 0.2) {
                 player.aimAngle = Math.atan2(joyAim.dy, joyAim.dx);
-                shouldFire = true;
-            } else if (!('ontouchstart' in window)) {
-                player.aimAngle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
-                shouldFire = true; // Auto-fire toward cursor for smooth arcade action
+            } else if (mouse.down && mouse.moved) {
+                const worldMouseX = mouse.x + camera.x;
+                const worldMouseY = mouse.y + camera.y;
+                player.aimAngle = Math.atan2(worldMouseY - player.y, worldMouseX - player.x);
+            } else if (activeBoss) {
+                // Auto-lock onto nearest minion or boss!
+                let target = activeBoss;
+                let minDist = Math.hypot(activeBoss.x - player.x, activeBoss.y - player.y);
+                minions.forEach(m => {
+                    const d = Math.hypot(m.x - player.x, m.y - player.y);
+                    if (d < minDist) { minDist = d; target = m; }
+                });
+                player.aimAngle = Math.atan2(target.y - player.y, target.x - player.x);
             }
 
             const now = performance.now();
             const cd = player.overdriveTimer > 0 ? player.fireRate * 0.5 : player.fireRate;
-            if (shouldFire && now - player.lastShot >= cd) {
+            if (now - player.lastShot >= cd) {
                 player.lastShot = now;
                 playSfx('shoot');
                 const a = player.aimAngle;
 
                 if (player.id === 'endra') {
-                    [-0.2, 0, 0.2].forEach(offset => {
+                    [-0.18, 0, 0.18].forEach(offset => {
                         bullets.push({
                             x: player.x, y: player.y,
-                            vx: Math.cos(a + offset) * 11,
-                            vy: Math.sin(a + offset) * 11,
+                            vx: Math.cos(a + offset) * 12,
+                            vy: Math.sin(a + offset) * 12,
                             dmg: player.dmg, color: player.color, homing: false
                         });
                     });
                 } else if (player.id === 'canming') {
-                    [-7, 7].forEach(shift => {
+                    [-8, 8].forEach(shift => {
                         bullets.push({
-                            x: player.x + Math.cos(a + Math.PI/2) * shift,
-                            y: player.y + Math.sin(a + Math.PI/2) * shift,
-                            vx: Math.cos(a) * 13,
-                            vy: Math.sin(a) * 13,
+                            x: player.x + Math.cos(a + Math.PI / 2) * shift,
+                            y: player.y + Math.sin(a + Math.PI / 2) * shift,
+                            vx: Math.cos(a) * 14,
+                            vy: Math.sin(a) * 14,
                             dmg: player.dmg, color: player.color, homing: false
                         });
                     });
                 } else {
                     bullets.push({
                         x: player.x, y: player.y,
-                        vx: Math.cos(a) * 12,
-                        vy: Math.sin(a) * 12,
+                        vx: Math.cos(a) * 13,
+                        vy: Math.sin(a) * 13,
                         dmg: player.dmg,
                         color: player.color,
                         homing: player.id === 'wengle'
@@ -1325,120 +1744,123 @@
             }
 
             b.timer++;
+            b.walkPhase += 0.18;
             b.x += b.vx;
             b.y += b.vy;
 
-            if (b.x < 80 || b.x > canvas.width - 80) b.vx *= -1;
-            if (b.y < 80 || b.y > canvas.height * 0.48) b.vy *= -1;
+            if (b.x < 160 || b.x > WORLD.width - 160) b.vx *= -1;
+            if (b.y < 140 || b.y > WORLD.height * 0.55) b.vy *= -1;
 
             const angleToPlayer = Math.atan2(player.y - b.y, player.x - b.x);
-            const enraged = b.hp < b.maxHp * 0.5;
+            b.aimAngle = angleToPlayer;
+            const enraged = b.hp < b.maxHp * 0.45;
 
-            // 1. KAI JIE AI (Sniper Lock-On & Ricochet Shots)
+            // 1. KAI JIE (Sniper Laser + Spread)
             if (b.id === 'kaijie') {
-                if (b.timer % (enraged ? 55 : 80) === 0) {
-                    // Spawn Sniper Warning Laser
+                if (b.timer % 110 === 0) {
                     hazardLanes.push({
                         type: 'sniper',
                         x1: b.x, y1: b.y,
                         angle: angleToPlayer,
-                        timer: 38,
+                        timer: 50,
                         color: '#38bdf8'
                     });
                 }
-                if (b.timer % 45 === 0) {
-                    for (let i = -1; i <= 1; i++) {
+                if (b.timer % 70 === 0) {
+                    [-0.22, 0, 0.22].forEach(offset => {
                         enemyBullets.push({
                             x: b.x, y: b.y,
-                            vx: Math.cos(angleToPlayer + i * 0.22) * 6.5,
-                            vy: Math.sin(angleToPlayer + i * 0.22) * 6.5,
-                            r: 7, color: '#38bdf8', dmg: 14, bounce: enraged ? 1 : 0
+                            vx: Math.cos(angleToPlayer + offset) * 5.2,
+                            vy: Math.sin(angleToPlayer + offset) * 5.2,
+                            r: 8, color: '#38bdf8', dmg: 10
                         });
-                    }
-                }
-            }
-
-            // 2. RITVIK AI (Glitch Clones & Vortex Rings)
-            else if (b.id === 'ritvik') {
-                if (b.timer % 140 === 0 && minions.length < 3) {
-                    minions.push({
-                        x: b.x + (Math.random() - 0.5) * 180,
-                        y: b.y + 60,
-                        hp: 45,
-                        r: 18,
-                        name: 'RITVIK CLONE',
-                        color: '#a855f7'
                     });
                 }
-                if (b.timer % (enraged ? 38 : 55) === 0) {
-                    const count = enraged ? 10 : 7;
+            }
+
+            // 2. RITVIK (Glitch Clones + Pulse Orbs)
+            else if (b.id === 'ritvik') {
+                if (b.timer % 180 === 0 && minions.length < 2) {
+                    minions.push({
+                        x: b.x + (Math.random() - 0.5) * 200,
+                        y: b.y + 70,
+                        hp: 40,
+                        radius: 18,
+                        shortName: 'CLONE',
+                        color: '#a855f7',
+                        suitColor: '#4c1d95',
+                        hat: 'hood',
+                        walkPhase: 0,
+                        aimAngle: angleToPlayer
+                    });
+                }
+                if (b.timer % 75 === 0) {
+                    const count = 6;
                     for (let i = 0; i < count; i++) {
-                        const ang = (Math.PI * 2 / count) * i + b.timer * 0.04;
+                        const ang = (Math.PI * 2 / count) * i + b.timer * 0.03;
                         enemyBullets.push({
                             x: b.x, y: b.y,
-                            vx: Math.cos(ang) * 5.2,
-                            vy: Math.sin(ang) * 5.2,
-                            r: 8, color: '#c084fc', dmg: 15, bounce: 0
+                            vx: Math.cos(ang) * 4.5,
+                            vy: Math.sin(ang) * 4.5,
+                            r: 8, color: '#c084fc', dmg: 11
                         });
                     }
                 }
             }
 
-            // 3. DARRYL AI (Double-Decker Bus Convoy Lanes & Tiger Leap)
+            // 3. DARRYL (Double-Decker Bus Lanes + Chakra Rings)
             else if (b.id === 'darryl') {
-                if (b.timer % (enraged ? 75 : 105) === 0) {
-                    const laneY = Math.max(100, Math.min(canvas.height - 90, player.y + (Math.random() - 0.5) * 120));
+                if (b.timer % 130 === 0) {
                     hazardLanes.push({
                         type: 'bus',
-                        y: laneY,
-                        height: 68,
-                        timer: 50,
-                        busX: -180,
+                        y: player.y,
+                        height: 80,
+                        timer: 65,
+                        busX: -220,
                         activeBus: false
                     });
                 }
-                if (b.timer % 50 === 0) {
-                    // Chakra Ring burst
-                    for (let i = -2; i <= 2; i++) {
+                if (b.timer % 75 === 0) {
+                    [-0.3, -0.1, 0.1, 0.3].forEach(offset => {
                         enemyBullets.push({
                             x: b.x, y: b.y,
-                            vx: Math.cos(angleToPlayer + i * 0.18) * 6.8,
-                            vy: Math.sin(angleToPlayer + i * 0.18) * 6.8,
-                            r: 9, color: '#f97316', dmg: 16, bounce: 0
-                        });
-                    }
-                }
-            }
-
-            // 4. M DEMON AI (Hellfire Spiral, Bus/Sniper Hybrid & Meteor Slams)
-            else if (b.id === 'mdemon') {
-                if (b.timer % 16 === 0) {
-                    const spiral = b.timer * 0.19;
-                    [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5].forEach(offset => {
-                        enemyBullets.push({
-                            x: b.x, y: b.y,
-                            vx: Math.cos(spiral + offset) * 5.8,
-                            vy: Math.sin(spiral + offset) * 5.8,
-                            r: 8, color: '#f43f5e', dmg: 16, bounce: 0
+                            vx: Math.cos(angleToPlayer + offset) * 5.4,
+                            vy: Math.sin(angleToPlayer + offset) * 5.4,
+                            r: 9, color: '#f97316', dmg: 12
                         });
                     });
                 }
-                if (b.timer % 95 === 0) {
+            }
+
+            // 4. M DEMON (Citadel Boss)
+            else if (b.id === 'mdemon') {
+                if (b.timer % 32 === 0) {
+                    const spiral = b.timer * 0.17;
+                    [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5].forEach(offset => {
+                        enemyBullets.push({
+                            x: b.x, y: b.y,
+                            vx: Math.cos(spiral + offset) * 4.8,
+                            vy: Math.sin(spiral + offset) * 4.8,
+                            r: 9, color: '#f43f5e', dmg: 12
+                        });
+                    });
+                }
+                if (b.timer % 130 === 0) {
                     hazardLanes.push({
                         type: 'sniper',
                         x1: b.x, y1: b.y,
                         angle: angleToPlayer,
-                        timer: 34,
+                        timer: 45,
                         color: '#f43f5e'
                     });
                 }
-                if (enraged && b.timer % 120 === 0) {
+                if (enraged && b.timer % 160 === 0) {
                     hazardLanes.push({
                         type: 'bus',
                         y: player.y,
-                        height: 70,
-                        timer: 45,
-                        busX: -180,
+                        height: 80,
+                        timer: 60,
+                        busX: -220,
                         activeBus: false
                     });
                 }
@@ -1451,34 +1873,54 @@
                 const p = bullets[i];
                 if (p.homing && activeBoss) {
                     const targetAng = Math.atan2(activeBoss.y - p.y, activeBoss.x - p.x);
-                    p.vx = p.vx * 0.92 + Math.cos(targetAng) * 1.1;
-                    p.vy = p.vy * 0.92 + Math.sin(targetAng) * 1.1;
+                    p.vx = p.vx * 0.92 + Math.cos(targetAng) * 1.2;
+                    p.vy = p.vy * 0.92 + Math.sin(targetAng) * 1.2;
                 }
                 p.x += p.vx;
                 p.y += p.vy;
 
+                // Bullets blocked by pillars
+                let hitPillar = false;
+                for (const pil of pillars) {
+                    if (p.x > pil.x && p.x < pil.x + pil.w && p.y > pil.y && p.y < pil.y + pil.h) {
+                        hitPillar = true;
+                        break;
+                    }
+                }
+                if (hitPillar) {
+                    spawnParticles(p.x, p.y, p.color, 3);
+                    bullets.splice(i, 1);
+                    continue;
+                }
+
                 let hit = false;
-                // Hit Minions
                 for (let j = minions.length - 1; j >= 0; j--) {
                     const m = minions[j];
-                    if (Math.hypot(p.x - m.x, p.y - m.y) < m.r + 8) {
+                    if (Math.hypot(p.x - m.x, p.y - m.y) < m.radius + 8) {
                         m.hp -= p.dmg;
                         hit = true;
+                        addFloatingText(m.x, m.y - 20, `-${p.dmg}`, '#fde047');
                         if (m.hp <= 0) {
                             spawnParticles(m.x, m.y, m.color, 12);
-                            coins.push({ x: m.x, y: m.y, val: 40 });
+                            coins.push({ x: m.x, y: m.y, val: 50 });
+                            medkits.push({ x: m.x + 15, y: m.y, heal: 45 });
                             minions.splice(j, 1);
                         }
                         break;
                     }
                 }
 
-                // Hit Boss
-                if (!hit && activeBoss && Math.hypot(p.x - activeBoss.x, p.y - activeBoss.y) < activeBoss.radius + 8) {
+                if (!hit && activeBoss && Math.hypot(p.x - activeBoss.x, p.y - activeBoss.y) < activeBoss.radius + 10) {
                     activeBoss.hp -= p.dmg;
                     hit = true;
-                    const chargeGain = player.id === 'shivnand' ? 2.6 : 2.0;
-                    player.hyper = Math.min(100, player.hyper + chargeGain);
+                    if (Math.random() < 0.35) {
+                        addFloatingText(activeBoss.x + (Math.random() - 0.5) * 30, activeBoss.y - 30, `-${p.dmg}`, player.color);
+                    }
+                    // Occasional Medkit drop mid-fight
+                    if (Math.random() < 0.03) {
+                        medkits.push({ x: activeBoss.x + (Math.random() - 0.5) * 160, y: activeBoss.y + 80, heal: 50 });
+                    }
+                    player.hyper = Math.min(100, player.hyper + (player.id === 'shivnand' ? 2.8 : 2.2));
                     spawnParticles(p.x, p.y, player.color, 3);
 
                     if (activeBoss.hp <= 0) {
@@ -1487,33 +1929,35 @@
                     }
                 }
 
-                if (hit || p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+                if (hit || p.x < 0 || p.x > WORLD.width || p.y < 0 || p.y > WORLD.height) {
                     bullets.splice(i, 1);
                 }
             }
 
-            // Minions chasing player
+            // Minions
             minions.forEach(m => {
                 const ang = Math.atan2(player.y - m.y, player.x - m.x);
-                m.x += Math.cos(ang) * 2.3;
-                m.y += Math.sin(ang) * 2.3;
-                if (Math.hypot(player.x - m.x, player.y - m.y) < player.radius + m.r) {
-                    damagePlayer(12);
+                m.aimAngle = ang;
+                m.walkPhase += 0.2;
+                m.x += Math.cos(ang) * 2.1;
+                m.y += Math.sin(ang) * 2.1;
+                if (Math.hypot(player.x - m.x, player.y - m.y) < player.radius + m.radius) {
+                    damagePlayer(10);
                 }
             });
 
-            // Hazard Lanes (Kai Jie Sniper Beams & Darryl Double-Decker Buses)
+            // Hazard Lanes
             for (let i = hazardLanes.length - 1; i >= 0; i--) {
                 const h = hazardLanes[i];
                 if (h.type === 'sniper') {
                     h.timer--;
                     if (h.timer === 0) {
-                        for (let s = 0; s < 5; s++) {
+                        for (let s = 0; s < 4; s++) {
                             enemyBullets.push({
                                 x: h.x1, y: h.y1,
-                                vx: Math.cos(h.angle) * (13 + s * 1.5),
-                                vy: Math.sin(h.angle) * (13 + s * 1.5),
-                                r: 9, color: h.color, dmg: 22, bounce: 0
+                                vx: Math.cos(h.angle) * (9.5 + s * 1.1),
+                                vy: Math.sin(h.angle) * (9.5 + s * 1.1),
+                                r: 9, color: h.color, dmg: 16
                             });
                         }
                         hazardLanes.splice(i, 1);
@@ -1523,38 +1967,46 @@
                         h.timer--;
                         if (h.timer === 0) h.activeBus = true;
                     } else if (h.activeBus) {
-                        h.busX += 22;
+                        h.busX += 19;
                         if (
-                            player.x > h.busX && player.x < h.busX + 160 &&
+                            player.x > h.busX && player.x < h.busX + 180 &&
                             Math.abs(player.y - h.y) < h.height / 2 + player.radius
                         ) {
-                            damagePlayer(26);
+                            damagePlayer(20);
                         }
-                        if (h.busX > canvas.width + 200) {
+                        if (h.busX > WORLD.width + 240) {
                             hazardLanes.splice(i, 1);
                         }
                     }
                 }
             }
 
-            // Enemy Bullets
+            // Enemy Bullets (Blocked by Cover Pillars!)
             for (let i = enemyBullets.length - 1; i >= 0; i--) {
                 const b = enemyBullets[i];
                 b.x += b.vx;
                 b.y += b.vy;
 
-                if (b.bounce > 0) {
-                    if (b.x < 10 || b.x > canvas.width - 10) { b.vx *= -1; b.bounce--; }
-                    if (b.y < 10 || b.y > canvas.height - 10) { b.vy *= -1; b.bounce--; }
+                let blockedByCover = false;
+                for (const pil of pillars) {
+                    if (b.x > pil.x && b.x < pil.x + pil.w && b.y > pil.y && b.y < pil.y + pil.h) {
+                        blockedByCover = true;
+                        break;
+                    }
+                }
+                if (blockedByCover) {
+                    spawnParticles(b.x, b.y, b.color, 4);
+                    enemyBullets.splice(i, 1);
+                    continue;
                 }
 
-                if (Math.hypot(b.x - player.x, b.y - player.y) < b.r + player.radius - 4) {
+                if (Math.hypot(b.x - player.x, b.y - player.y) < b.r + player.radius - 5) {
                     damagePlayer(b.dmg);
                     enemyBullets.splice(i, 1);
                     continue;
                 }
 
-                if (b.x < -40 || b.x > canvas.width + 40 || b.y < -40 || b.y > canvas.height + 40) {
+                if (b.x < -40 || b.x > WORLD.width + 40 || b.y < -40 || b.y > WORLD.height + 40) {
                     enemyBullets.splice(i, 1);
                 }
             }
@@ -1563,20 +2015,44 @@
             for (let i = coins.length - 1; i >= 0; i--) {
                 const c = coins[i];
                 const dist = Math.hypot(player.x - c.x, player.y - c.y);
-                const magnetRange = player.overdriveTimer > 0 ? 350 : 120;
-                if (dist < magnetRange) {
-                    c.x += (player.x - c.x) * 0.14;
-                    c.y += (player.y - c.y) * 0.14;
+                if (dist < 180) {
+                    c.x += (player.x - c.x) * 0.15;
+                    c.y += (player.y - c.y) * 0.15;
                 }
-                if (dist < player.radius + 14) {
+                if (dist < player.radius + 16) {
                     playSfx('coin');
-                    addWalletCoins(c.val);
+                    const gained = addWalletCoins(c.val);
+                    addFloatingText(c.x, c.y, `+${gained} 🪙`, '#eab308');
                     if (player.id === 'wengle') {
-                        player.hp = Math.min(player.maxHp, player.hp + 4);
-                        player.shield = Math.min(player.maxShield, player.shield + 5);
+                        player.hp = Math.min(player.maxHp, player.hp + 8);
+                        player.shield = Math.min(player.maxShield, player.shield + 8);
                     }
                     coins.splice(i, 1);
                 }
+            }
+
+            // Medkits
+            for (let i = medkits.length - 1; i >= 0; i--) {
+                const m = medkits[i];
+                const dist = Math.hypot(player.x - m.x, player.y - m.y);
+                if (dist < 140) {
+                    m.x += (player.x - m.x) * 0.12;
+                    m.y += (player.y - m.y) * 0.12;
+                }
+                if (dist < player.radius + 16) {
+                    playSfx('coin');
+                    player.hp = Math.min(player.maxHp, player.hp + m.heal);
+                    addFloatingText(player.x, player.y - 25, `+${m.heal} HP 💚`, '#10b981');
+                    medkits.splice(i, 1);
+                }
+            }
+
+            // Floating Damage Numbers
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const ft = floatingTexts[i];
+                ft.y += ft.vy;
+                ft.alpha -= 0.025;
+                if (ft.alpha <= 0) floatingTexts.splice(i, 1);
             }
 
             // Particles
@@ -1591,15 +2067,14 @@
 
         function handleBossDefeated() {
             playSfx('hyper');
-            screenShake = 22;
+            screenShake = 20;
             spawnParticles(activeBoss.x, activeBoss.y, activeBoss.color, 75);
             addWalletCoins(activeBoss.reward);
 
-            // Drop bonus coins
             for (let i = 0; i < 12; i++) {
                 coins.push({
-                    x: activeBoss.x + (Math.random() - 0.5) * 140,
-                    y: activeBoss.y + (Math.random() - 0.5) * 140,
+                    x: activeBoss.x + (Math.random() - 0.5) * 180,
+                    y: activeBoss.y + (Math.random() - 0.5) * 180,
                     val: 100
                 });
             }
@@ -1613,40 +2088,45 @@
             }
         }
 
-        // =========================================================================
-        // 6. RENDERING & VISUAL EFFECTS
-        // =========================================================================
         function drawEntities() {
-            // Draw Hazard Lanes
+            // Hazard Lanes
             hazardLanes.forEach(h => {
                 if (h.type === 'sniper') {
                     ctx.save();
                     ctx.strokeStyle = h.color;
-                    ctx.lineWidth = h.timer < 10 ? 4 : 2;
-                    ctx.setLineDash([8, 6]);
+                    ctx.lineWidth = h.timer < 12 ? 4 : 2;
+                    ctx.setLineDash([10, 8]);
                     ctx.beginPath();
                     ctx.moveTo(h.x1, h.y1);
-                    ctx.lineTo(h.x1 + Math.cos(h.angle) * 1600, h.y1 + Math.sin(h.angle) * 1600);
+                    ctx.lineTo(h.x1 + Math.cos(h.angle) * 2000, h.y1 + Math.sin(h.angle) * 2000);
                     ctx.stroke();
                     ctx.restore();
                 } else if (h.type === 'bus') {
                     ctx.save();
-                    ctx.fillStyle = 'rgba(249, 115, 22, 0.16)';
-                    ctx.fillRect(0, h.y - h.height / 2, canvas.width, h.height);
+                    ctx.fillStyle = 'rgba(249, 115, 22, 0.2)';
+                    ctx.fillRect(0, h.y - h.height / 2, WORLD.width, h.height);
                     ctx.strokeStyle = '#f97316';
-                    ctx.strokeRect(0, h.y - h.height / 2, canvas.width, h.height);
-                    ctx.fillStyle = '#fdba74';
-                    ctx.font = '700 12px "JetBrains Mono", monospace';
-                    ctx.fillText('⚠️ DOUBLE-DECKER BUS CONVOY LANE ⚠️', 24, h.y + 4);
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(0, h.y - h.height / 2, WORLD.width, h.height);
 
                     if (h.activeBus) {
+                        // Detailed 2.5D Double-Decker Bus
                         ctx.fillStyle = '#ea580c';
-                        ctx.fillRect(h.busX, h.y - 28, 155, 56);
                         ctx.strokeStyle = '#fde047';
                         ctx.lineWidth = 3;
-                        ctx.strokeRect(h.busX, h.y - 28, 155, 56);
-                        ctx.fillStyle = '#fff';
-                        ctx.fillText('🚌 DARRYL EXPRESS', h.busX + 12, h.y + 5);
+                        ctx.beginPath();
+                        ctx.roundRect(h.busX, h.y - 34, 180, 68, 10);
+                        ctx.fill();
+                        ctx.stroke();
+                        // Bus Windows
+                        ctx.fillStyle = '#38bdf8';
+                        for (let w = 16; w < 150; w += 32) {
+                            ctx.fillRect(h.busX + w, h.y - 26, 22, 16);
+                            ctx.fillRect(h.busX + w, h.y + 8, 22, 16);
+                        }
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '800 12px "JetBrains Mono", monospace';
+                        ctx.fillText('🚌 DARRYL DOUBLE-DECKER', h.busX + 10, h.y + 3);
                     }
                     ctx.restore();
                 }
@@ -1657,103 +2137,68 @@
                 ctx.save();
                 ctx.fillStyle = '#eab308';
                 ctx.beginPath();
-                ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+                ctx.arc(c.x, c.y, 9, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.strokeStyle = '#fef08a';
+                ctx.lineWidth = 2;
                 ctx.stroke();
                 ctx.restore();
             });
 
-            // Minions
-            minions.forEach(m => {
+            // Medkits
+            medkits.forEach(m => {
                 ctx.save();
-                ctx.fillStyle = m.color;
+                ctx.fillStyle = '#10b981';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+                ctx.roundRect(m.x - 11, m.y - 11, 22, 22, 5);
                 ctx.fill();
-                ctx.fillStyle = '#fff';
-                ctx.font = '700 10px "JetBrains Mono", monospace';
+                ctx.stroke();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '800 13px "JetBrains Mono", monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(m.name, m.x, m.y - m.r - 6);
+                ctx.fillText('+', m.x, m.y + 5);
                 ctx.restore();
             });
 
-            // Boss
-            if (activeBoss) {
-                const b = activeBoss;
-                ctx.save();
-                ctx.shadowColor = b.color;
-                ctx.shadowBlur = 22;
-                ctx.fillStyle = b.stunTimer > 0 ? '#38bdf8' : b.color;
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-                ctx.fill();
+            // Minions (2.5D Clones)
+            minions.forEach(m => drawCharacterSprite(ctx, m, false));
 
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = '#fff';
-                ctx.stroke();
+            // Boss (2.5D Boss Sprite)
+            if (activeBoss) drawCharacterSprite(ctx, activeBoss, true);
 
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#fff';
-                ctx.font = '800 12px "Space Grotesk", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(b.stunTimer > 0 ? '⚡ STUNNED ⚡' : b.shortName, b.x, b.y + 4);
-                ctx.restore();
-            }
-
-            // Player
+            // Player (2.5D Hero Sprite)
             if (player) {
                 ctx.save();
-                if (player.invuln % 4 > 2) ctx.globalAlpha = 0.5;
-                ctx.shadowColor = player.color;
-                ctx.shadowBlur = 16;
-                ctx.fillStyle = player.color;
-                ctx.beginPath();
-                ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Shield ring
-                if (player.shield > 0) {
-                    ctx.strokeStyle = '#eab308';
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.arc(player.x, player.y, player.radius + 6, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-
-                // Aim pointer
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(player.x, player.y);
-                ctx.lineTo(
-                    player.x + Math.cos(player.aimAngle) * (player.radius + 10),
-                    player.y + Math.sin(player.aimAngle) * (player.radius + 10)
-                );
-                ctx.stroke();
-
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#fff';
-                ctx.font = '700 11px "JetBrains Mono", monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText(player.name, player.x, player.y - player.radius - 8);
+                if (player.invuln % 4 > 2) ctx.globalAlpha = 0.55;
+                drawCharacterSprite(ctx, player, false);
                 ctx.restore();
             }
 
             // Player Bullets
             bullets.forEach(p => {
+                ctx.save();
                 ctx.fillStyle = p.color;
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = 10;
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.restore();
             });
 
             // Enemy Bullets
             enemyBullets.forEach(b => {
+                ctx.save();
                 ctx.fillStyle = b.color;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
                 ctx.beginPath();
                 ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.stroke();
+                ctx.restore();
             });
 
             // Particles
@@ -1764,6 +2209,66 @@
                 ctx.fillRect(pt.x, pt.y, pt.size, pt.size);
                 ctx.restore();
             });
+
+            // Floating Damage Numbers
+            floatingTexts.forEach(ft => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, ft.alpha);
+                ctx.fillStyle = ft.color;
+                ctx.font = '800 14px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+            });
+        }
+
+        // Top-Right Live Radar Minimap
+        function drawMinimap() {
+            const mw = 135, mh = 90;
+            const mx = canvas.width - mw - 16;
+            const my = 60;
+            ctx.save();
+            ctx.fillStyle = 'rgba(10, 14, 23, 0.85)';
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(mx, my, mw, mh, 8);
+            ctx.fill();
+            ctx.stroke();
+
+            const scaleX = mw / WORLD.width;
+            const scaleY = mh / WORLD.height;
+
+            // Pillars on Minimap
+            ctx.fillStyle = '#475569';
+            pillars.forEach(p => {
+                ctx.fillRect(mx + p.x * scaleX, my + p.y * scaleY, p.w * scaleX, p.h * scaleY);
+            });
+
+            // Heal Pads on Minimap
+            ctx.fillStyle = '#10b981';
+            healPads.forEach(pad => {
+                ctx.beginPath();
+                ctx.arc(mx + pad.x * scaleX, my + pad.y * scaleY, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Boss Dot
+            if (activeBoss) {
+                ctx.fillStyle = '#f43f5e';
+                ctx.beginPath();
+                ctx.arc(mx + activeBoss.x * scaleX, my + activeBoss.y * scaleY, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Player Dot
+            if (player) {
+                ctx.fillStyle = '#38bdf8';
+                ctx.beginPath();
+                ctx.arc(mx + player.x * scaleX, my + player.y * scaleY, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
         }
 
         function updateHudUI() {
@@ -1782,7 +2287,6 @@
             }
         }
 
-        // Initialize Menu
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('menu-wallet').innerText = getWallet().toLocaleString();
             renderHeroSelection();
