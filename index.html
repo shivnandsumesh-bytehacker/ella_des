@@ -22,6 +22,8 @@
             --card: #12151e; 
             --card-border: #222634;
             --card-hover: #181c28;
+            --header-bg: rgba(18, 21, 30, 0.88);
+            --grid-dot: #1e2330;
             --text-main: #f8fafc;
             --text-muted: #8b95a5;
         }
@@ -35,7 +37,7 @@
 
         body { 
             background-color: var(--bg); 
-            background-image: radial-gradient(#1e2330 1px, transparent 1px);
+            background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
             background-size: 24px 24px;
             color: var(--text-main); 
             font-family: 'Inter', system-ui, -apple-system, sans-serif; 
@@ -47,6 +49,23 @@
             min-height: 100vh; 
             min-height: 100dvh;
             overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Animated Background Canvas for Themes */
+        #theme-bg-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.45;
+        }
+
+        header, #unlocked-perks-bar, .controls-bar, .grid, footer {
+            position: relative;
+            z-index: 1;
         }
 
         /* Top Navigation Bar */
@@ -56,14 +75,16 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            background: rgba(18, 21, 30, 0.9); 
+            background: var(--header-bg); 
             backdrop-filter: blur(12px);
             padding: 14px 22px; 
             border-radius: 12px; 
             border: 1px solid var(--card-border); 
+            box-shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.5);
             margin-bottom: 16px; 
             gap: 14px;
             flex-wrap: wrap;
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
         .brand {
@@ -75,7 +96,7 @@
         .brand-logo {
             width: 32px;
             height: 32px;
-            background: var(--text-main);
+            background: var(--primary);
             color: var(--bg);
             border-radius: 6px;
             display: flex;
@@ -84,6 +105,8 @@
             font-family: 'JetBrains Mono', monospace;
             font-weight: 800;
             font-size: 1.1rem;
+            box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 50%, transparent);
+            transition: background 0.3s ease;
         }
         .brand:active { transform: translateY(1px); }
 
@@ -108,8 +131,8 @@
             font-size: 0.9rem; 
             font-weight: 700; 
             color: var(--gold);
-            background: #161922;
-            border: 1px solid #2e3446;
+            background: var(--card);
+            border: 1px solid var(--card-border);
             padding: 7px 14px;
             border-radius: 8px;
             display: flex;
@@ -131,7 +154,7 @@
         .nav-btn { 
             font-family: 'Inter', sans-serif;
             color: var(--text-main); 
-            background: #1a1e2b;
+            background: var(--card);
             border: 1px solid var(--card-border);
             text-decoration: none; 
             font-weight: 600; 
@@ -146,19 +169,19 @@
             position: relative;
         }
         .nav-btn:hover {
-            background: #232838;
-            border-color: #384152;
+            background: var(--card-hover);
+            border-color: var(--primary);
         }
         .nav-btn:active { transform: translateY(1px); }
 
         .nav-btn.primary-btn {
-            background: var(--text-main);
+            background: var(--primary);
             color: var(--bg);
-            border-color: var(--text-main);
+            border-color: var(--primary);
             font-weight: 700;
         }
         .nav-btn.primary-btn:hover {
-            background: #e2e8f0;
+            filter: brightness(1.12);
         }
 
         .notif-dot {
@@ -182,9 +205,9 @@
         }
         .perk-pill {
             font-family: 'JetBrains Mono', monospace;
-            background: #141722;
-            border: 1px solid #2a3042;
-            color: #cbd5e1;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            color: var(--primary);
             font-size: 0.72rem;
             font-weight: 700;
             padding: 5px 10px;
@@ -219,7 +242,7 @@
             font-family: 'Inter', sans-serif;
             font-size: 0.9rem;
             outline: none;
-            transition: border-color 0.15s;
+            transition: border-color 0.15s, background 0.3s;
             -webkit-user-select: text;
             user-select: text;
         }
@@ -251,13 +274,13 @@
 
         .filter-btn:hover {
             color: var(--text-main);
-            border-color: #33394d;
+            border-color: var(--primary);
         }
 
         .filter-btn.active {
-            background: var(--text-main);
+            background: var(--primary);
             color: var(--bg);
-            border-color: var(--text-main);
+            border-color: var(--primary);
             font-weight: 700;
         }
 
@@ -278,7 +301,7 @@
             padding: 16px; 
             text-decoration: none; 
             color: var(--text-main); 
-            transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease; 
+            transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease; 
             display: flex; 
             flex-direction: column; 
             align-items: flex-start; 
@@ -289,8 +312,9 @@
 
         .card:hover { 
             transform: translateY(-3px); 
-            border-color: #475569; 
+            border-color: var(--primary); 
             background: var(--card-hover);
+            box-shadow: 0 6px 20px -6px color-mix(in srgb, var(--primary) 35%, transparent);
         }
 
         .card-top {
@@ -303,10 +327,10 @@
 
         .icon { 
             font-size: 1.5rem; 
-            width: 40px;
-            height: 40px;
-            background: #1a1f2e;
-            border: 1px solid #282e40;
+            width: 40px; 
+            height: 40px; 
+            background: var(--card-hover);
+            border: 1px solid var(--card-border);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -340,8 +364,8 @@
         }
 
         .badge-new { background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge-3d { background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
-        .badge-hot { background: rgba(244, 63, 94, 0.12); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+        .badge-3d { background: rgba(56, 189, 248, 0.12); color: var(--primary); border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent); }
+        .badge-hot { background: rgba(244, 63, 94, 0.12); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
 
         /* Modals */
         .modal {
@@ -357,8 +381,8 @@
             padding: 16px;
         }
         .modal-card {
-            background: #12151e;
-            border: 1px solid #2e3446;
+            background: var(--card);
+            border: 1px solid var(--card-border);
             border-radius: 14px;
             padding: 24px;
             max-width: 540px;
@@ -385,7 +409,7 @@
         }
 
         .modal-close {
-            background: #1b202e;
+            background: var(--card-hover);
             border: 1px solid var(--card-border);
             border-radius: 6px;
             color: var(--text-muted);
@@ -397,7 +421,7 @@
             align-items: center;
             justify-content: center;
         }
-        .modal-close:hover { color: #fff; border-color: #475569; }
+        .modal-close:hover { color: #fff; border-color: var(--primary); }
 
         /* Creator Code Input */
         .code-input-row {
@@ -407,7 +431,7 @@
         }
         .code-input {
             flex: 1;
-            background: #090b10;
+            background: var(--bg);
             border: 1px solid var(--card-border);
             border-radius: 8px;
             padding: 11px 14px;
@@ -423,7 +447,7 @@
         .code-input:focus { border-color: var(--primary); }
 
         .code-submit-btn {
-            background: var(--text-main);
+            background: var(--primary);
             color: var(--bg);
             font-weight: 700;
             font-size: 0.9rem;
@@ -432,7 +456,7 @@
             padding: 0 18px;
             cursor: pointer;
         }
-        .code-submit-btn:hover { background: #e2e8f0; }
+        .code-submit-btn:hover { filter: brightness(1.1); }
 
         #code-feedback {
             font-size: 0.84rem;
@@ -442,7 +466,7 @@
         }
 
         .codex-box {
-            background: #0c0e14;
+            background: var(--bg);
             border: 1px solid var(--card-border);
             border-radius: 8px;
             padding: 12px;
@@ -466,7 +490,7 @@
         }
         .hint-tag {
             font-family: 'JetBrains Mono', monospace;
-            background: #1b202e;
+            background: var(--card-hover);
             color: var(--primary);
             font-weight: 700;
             padding: 2px 6px;
@@ -476,7 +500,7 @@
 
         /* Patch Notes Timeline */
         .log-entry {
-            border-left: 2px solid #2e3446;
+            border-left: 2px solid var(--card-border);
             padding-left: 14px;
             margin-bottom: 18px;
         }
@@ -507,7 +531,7 @@
             display: inline-block;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.68rem;
-            background: #1b202e;
+            background: var(--card-hover);
             color: var(--emerald);
             padding: 1px 6px;
             border-radius: 4px;
@@ -527,7 +551,7 @@
         }
         .form-control {
             width: 100%;
-            background: #090b10;
+            background: var(--bg);
             border: 1px solid var(--card-border);
             border-radius: 8px;
             padding: 10px 12px;
@@ -577,6 +601,7 @@
 </head>
 <body>
 
+    <canvas id="theme-bg-canvas"></canvas>
     <canvas id="confetti-canvas"></canvas>
 
     <header>
@@ -934,8 +959,9 @@
                     <label>Details</label>
                     <textarea name="message" class="form-control" placeholder="Tell us what to add, fix, or change..." required></textarea>
                 </div>
+                <input type="hidden" name="_captcha" value="false">
                 <button type="submit" class="nav-btn primary-btn" id="feedback-submit-btn" style="width:100%; justify-content:center; padding:11px;">
-                    Send to Developer
+                    Send to Developer 🚀
                 </button>
                 <div id="feedback-status" style="font-size:0.82rem; margin-top:10px; text-align:center;"></div>
             </form>
@@ -980,13 +1006,12 @@
 
     <script>
         // =========================================================================
-        // ⚙️ 1. PUT YOUR EMAIL HERE (With quotes) FOR THE FEEDBACK FORM:
+        // ⚙️ 1. DEVELOPER EMAIL FOR IN-BROWSER AJAX FEEDBACK (Works on School iPads)
         // =========================================================================
         const DEVELOPER_EMAIL = "shivnand.sumesh@gmail.com";
 
         // =========================================================================
-        // ⚙️ 2. OPTIONAL: PUT YOUR GITHUB REPO (e.g. "shivnand/cyber-arcade")
-        // If set, Patch Notes will automatically pull your live GitHub commits!
+        // ⚙️ 2. GITHUB REPO FOR AUTO COMMITS
         // =========================================================================
         const GITHUB_REPO = "shivnandsumesh-bytehacker/ella_des"; 
 
@@ -997,7 +1022,7 @@
             {
                 version: "v2.4 — Roster Expansion, Raid Bosses & Hub Redesign",
                 items: [
-                    "<strong>Cyber Arcade Hub:</strong> Redesigned launcher UI, added auto-scanning Feedback Form for all 25 games, and live Patch Notes.",
+                    "<strong>Cyber Arcade Hub:</strong> Redesigned launcher UI, added auto-scanning Feedback Form for all 25 games, live theme canvas engine, and live Patch Notes.",
                     "<strong>Basketball Legends:</strong> Added <strong>WengLe</strong> (Ghost Floater & Bank Economy), <strong>Darryl</strong> (Chakra Shot & Tiger Leap), and <strong>Achutha</strong> (Tornado Spin & Mirage Drive). Added <strong>Free Practice Mode</strong> and nerfed Shivnand's Hyper stun to 5s.",
                     "<strong>Space Invaders:</strong> Added <strong>2-Player Local Co-Op</strong>, iPad landscape controls, and 3 tiered bosses: <strong>Shivnand</strong> (10k Coins), <strong>Can Ming</strong> (25k Coins), and <strong>Yong Hao</strong> (1,000,000 Coins) with unique stackable power drops.",
                     "<strong>Volleyball Legends:</strong> Added <strong>Hyper Smash</strong> meter, hit-stop animations, Local 2P mode, and smarter AI positioning.",
@@ -1029,14 +1054,12 @@
 
         // Render Patch Notes + Auto-Detect Last Modified Date + Optional GitHub Live Commits
         async function initPatchNotes() {
-            // 1. Show exact file modification timestamp automatically
             const modDate = new Date(document.lastModified);
             const formattedDate = isNaN(modDate) ? "RECENTLY UPDATED" : modDate.toLocaleDateString(undefined, {
                 month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
             });
             document.getElementById('last-modified-label').innerText = `Last Build: ${formattedDate}`;
 
-            // 2. Light up red notification dot if site was updated since player last opened Patch Notes
             const versionHash = `${document.lastModified}_${PATCH_NOTES[0]?.version || ''}`;
             const lastSeen = localStorage.getItem('arcade_seen_patch');
             const dot = document.getElementById('patch-notif-dot');
@@ -1044,7 +1067,6 @@
                 dot.style.display = (lastSeen === versionHash) ? 'none' : 'inline-block';
             }
 
-            // 3. Render PATCH_NOTES array
             const container = document.getElementById('patch-notes-container');
             container.innerHTML = PATCH_NOTES.map((log, idx) => `
                 <div class="log-entry">
@@ -1056,7 +1078,6 @@
                 </div>
             `).join('');
 
-            // 4. If GITHUB_REPO is configured, fetch live commit messages automatically
             if (GITHUB_REPO && GITHUB_REPO.includes('/')) {
                 try {
                     const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits?per_page=5`);
@@ -1070,9 +1091,7 @@
                         }).join('');
                         document.getElementById('github-live-commits').style.display = 'block';
                     }
-                } catch (e) {
-                    // Silently ignore if offline or repo is private
-                }
+                } catch (e) {}
             }
         }
 
@@ -1340,6 +1359,7 @@
         }
         function closeFeedbackModal() { document.getElementById('feedback-modal').style.display = 'none'; }
 
+        // FIXED: Pure In-Browser AJAX Form Submission (No mailto: restriction on school iPads!)
         async function submitFeedbackForm(e) {
             e.preventDefault();
             const form = e.target;
@@ -1347,43 +1367,51 @@
             const btn = document.getElementById('feedback-submit-btn');
             const data = new FormData(form);
 
-            if (DEVELOPER_EMAIL === "shivnand.sumesh@gmail.com") {
-                const subject = encodeURIComponent(`[Cyber Arcade] ${data.get('category')} (${data.get('game')}) - from ${data.get('name')}`);
-                const body = encodeURIComponent(data.get('message'));
-                window.location.href = `mailto:?subject=${subject}&body=${body}`;
-                status.style.color = "var(--emerald)";
-                status.innerText = "Opened your mail app! (Put your email in DEVELOPER_EMAIL in code for 1-click send)";
-                return;
-            }
-
             btn.disabled = true;
-            btn.innerText = "Sending...";
+            btn.innerText = "Transmitting... ⚡";
+            status.innerText = "";
+
+            const payload = {
+                player_name: data.get('name'),
+                game: data.get('game'),
+                category: data.get('category'),
+                suggestion: data.get('message'),
+                _subject: `[Cyber Arcade] ${data.get('category')} (${data.get('game')}) - from ${data.get('name')}`,
+                _captcha: "false"
+            };
 
             try {
                 const res = await fetch(`https://formsubmit.co/ajax/${DEVELOPER_EMAIL}`, {
                     method: "POST",
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({
-                        player_name: data.get('name'),
-                        game: data.get('game'),
-                        category: data.get('category'),
-                        suggestion: data.get('message')
-                    })
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Accept': 'application/json' 
+                    },
+                    body: JSON.stringify(payload)
                 });
-                if (res.ok) {
+                const result = await res.json();
+
+                if (res.ok && (result.success === "true" || result.success === true)) {
                     status.style.color = "var(--emerald)";
-                    status.innerText = "✅ Sent directly to the developer's inbox! Thank you!";
+                    status.innerText = "✅ Sent directly to Shivnand's inbox! Thank you!";
                     form.reset();
+                    launchConfetti(50);
                     playSoundFx('success');
                 } else {
-                    throw new Error("Submission failed");
+                    throw new Error(result.message || "Submission failed");
                 }
             } catch (err) {
-                status.style.color = "var(--accent)";
-                status.innerText = "Could not send automatically. Check DEVELOPER_EMAIL in code.";
+                // Save locally & offer 1-tap copy if school firewall blocks external APIs
+                const savedFeedback = JSON.parse(localStorage.getItem('arcade_offline_feedback') || '[]');
+                savedFeedback.push({ ...payload, date: new Date().toISOString() });
+                localStorage.setItem('arcade_offline_feedback', JSON.stringify(savedFeedback));
+
+                status.style.color = "var(--gold)";
+                status.innerHTML = `⚠️ Note: If this is the first time using FormSubmit, check <b>${DEVELOPER_EMAIL}</b> to click the 1-time activation link! Your feedback was also saved locally.`;
+                playSoundFx('error');
             } finally {
                 btn.disabled = false;
-                btn.innerText = "Send to Developer";
+                btn.innerText = "Send to Developer 🚀";
             }
         }
 
@@ -1512,27 +1540,176 @@
             filterGames();
         }
 
+        // =========================================================================
+        // 🎨 4. COMPLETE THEME ENGINE + ANIMATED BACKGROUND CANVAS
+        // Supports all Shop Theme IDs & updates every CSS variable + live canvas
+        // =========================================================================
+        const THEME_PALETTES = {
+            neon: {
+                primary: '#38bdf8', accent: '#f43f5e', bg: '#090a0f',
+                card: '#12151e', border: '#222634', hover: '#181c28',
+                header: 'rgba(18, 21, 30, 0.88)', dot: '#1e2330', fx: 'neon'
+            },
+            cyber: { // Matrix Rain / Cyber Green
+                primary: '#10b981', accent: '#f59e0b', bg: '#050b07',
+                card: '#0b160f', border: '#143321', hover: '#112217',
+                header: 'rgba(11, 22, 15, 0.88)', dot: '#122b1d', fx: 'matrix'
+            },
+            sunset: { // Volcanic Magma / Sunset
+                primary: '#f97316', accent: '#facc15', bg: '#110706',
+                card: '#1d0d0b', border: '#3b1914', hover: '#281310',
+                header: 'rgba(29, 13, 11, 0.88)', dot: '#2e1410', fx: 'magma'
+            },
+            purple: { // Deep Space / Nebula Purple
+                primary: '#c084fc', accent: '#38bdf8', bg: '#080511',
+                card: '#130d24', border: '#2a1d4e', hover: '#1b1333',
+                header: 'rgba(19, 13, 36, 0.88)', dot: '#21173b', fx: 'space'
+            },
+            glitch: { // Cyber Glitch
+                primary: '#ff0055', accent: '#00f0ff', bg: '#08060c',
+                card: '#14101d', border: '#381b30', hover: '#1f172b',
+                header: 'rgba(20, 16, 29, 0.88)', dot: '#2c162b', fx: 'glitch'
+            }
+        };
+
+        // Map any possible theme name saved by shop.html to our 5 core palettes
+        const THEME_ALIASES = {
+            'default': 'neon', 'neon': 'neon', 'cyber_neon': 'neon', 'cyber-neon': 'neon',
+            'cyber': 'cyber', 'matrix': 'cyber', 'matrix_rain': 'cyber', 'matrix-rain': 'cyber',
+            'sunset': 'sunset', 'magma': 'sunset', 'volcanic': 'sunset', 'volcanic_magma': 'sunset', 'volcanic-magma': 'sunset', 'lava': 'sunset', 'gold': 'sunset',
+            'purple': 'purple', 'space': 'purple', 'deep_space': 'purple', 'deep-space': 'purple', 'galaxy': 'purple', 'void': 'purple',
+            'glitch': 'glitch', 'cyber_glitch': 'glitch', 'cyber-glitch': 'glitch', ' crimson': 'glitch'
+        };
+
+        let bgAnimId = null;
+        let currentFxMode = null;
+
         function applyGlobalTheme() { 
-            const savedTheme = localStorage.getItem('arcade_theme') || 'neon'; 
-            const themes = { 
-                neon: { primary: '#38bdf8', accent: '#f43f5e', bg: '#090a0f', card: '#12151e' }, 
-                cyber: { primary: '#10b981', accent: '#f59e0b', bg: '#060d09', card: '#0d1912' }, 
-                sunset: { primary: '#facc15', accent: '#fb7185', bg: '#12080e', card: '#1f1019' }, 
-                purple: { primary: '#c084fc', accent: '#38bdf8', bg: '#0b0714', card: '#150f24' } 
-            }; 
-            const active = themes[savedTheme] || themes.neon; 
-            document.documentElement.style.setProperty('--primary', active.primary); 
-            document.documentElement.style.setProperty('--accent', active.accent); 
-            document.documentElement.style.setProperty('--bg', active.bg); 
-            document.documentElement.style.setProperty('--card', active.card); 
+            const rawTheme = (
+                localStorage.getItem('arcade_theme') || 
+                localStorage.getItem('selected_theme') || 
+                localStorage.getItem('active_theme') || 
+                'neon'
+            ).toLowerCase().trim();
+
+            const mappedKey = THEME_ALIASES[rawTheme] || 'neon';
+            const active = THEME_PALETTES[mappedKey] || THEME_PALETTES.neon;
+
+            const root = document.documentElement;
+            root.style.setProperty('--primary', active.primary); 
+            root.style.setProperty('--accent', active.accent); 
+            root.style.setProperty('--bg', active.bg); 
+            root.style.setProperty('--card', active.card); 
+            root.style.setProperty('--card-border', active.border);
+            root.style.setProperty('--card-hover', active.hover);
+            root.style.setProperty('--header-bg', active.header);
+            root.style.setProperty('--grid-dot', active.dot);
+
+            startThemeCanvas(active.fx, active.primary, active.accent);
         }
 
+        // Animated Background Loop for Themes
+        const bgCanvas = document.getElementById('theme-bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let bgEntities = [];
+
+        function resizeBgCanvas() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeBgCanvas);
+        resizeBgCanvas();
+
+        function startThemeCanvas(fxMode, primaryColor, accentColor) {
+            if (currentFxMode === fxMode && bgAnimId) return;
+            currentFxMode = fxMode;
+            if (bgAnimId) cancelAnimationFrame(bgAnimId);
+            bgEntities = [];
+
+            const w = bgCanvas.width;
+            const h = bgCanvas.height;
+
+            if (fxMode === 'matrix') {
+                const cols = Math.floor(w / 22);
+                for (let i = 0; i < cols; i++) {
+                    bgEntities.push({ x: i * 22, y: Math.random() * h, speed: Math.random() * 2.5 + 1.5, char: String.fromCharCode(0x30A0 + Math.random() * 96) });
+                }
+            } else {
+                const count = fxMode === 'space' ? 70 : 35;
+                for (let i = 0; i < count; i++) {
+                    bgEntities.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * (fxMode === 'glitch' ? 3 : 0.6),
+                        vy: fxMode === 'magma' ? -(Math.random() * 1.5 + 0.4) : (Math.random() - 0.5) * 0.6,
+                        size: Math.random() * 3 + 1.2,
+                        alpha: Math.random() * 0.7 + 0.2,
+                        color: Math.random() > 0.3 ? primaryColor : accentColor
+                    });
+                }
+            }
+
+            function renderBg() {
+                bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+                if (fxMode === 'matrix') {
+                    bgCtx.fillStyle = primaryColor;
+                    bgCtx.font = '14px "JetBrains Mono", monospace';
+                    bgEntities.forEach(col => {
+                        bgCtx.globalAlpha = 0.35;
+                        bgCtx.fillText(col.char, col.x, col.y);
+                        col.y += col.speed;
+                        if (Math.random() < 0.05) col.char = String.fromCharCode(0x30A0 + Math.random() * 96);
+                        if (col.y > bgCanvas.height) col.y = -20;
+                    });
+                } else {
+                    bgEntities.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        if (p.x < 0) p.x = bgCanvas.width;
+                        if (p.x > bgCanvas.width) p.x = 0;
+                        if (p.y < 0) p.y = bgCanvas.height;
+                        if (p.y > bgCanvas.height) p.y = 0;
+
+                        bgCtx.save();
+                        bgCtx.globalAlpha = p.alpha;
+                        bgCtx.fillStyle = p.color;
+                        if (fxMode === 'glitch' && Math.random() < 0.04) {
+                            bgCtx.fillRect(p.x, p.y, p.size * 8, 2);
+                        } else {
+                            bgCtx.beginPath();
+                            bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                            bgCtx.fill();
+                        }
+                        bgCtx.restore();
+                    });
+                }
+                bgAnimId = requestAnimationFrame(renderBg);
+            }
+            renderBg();
+        }
+
+        // Initial Boot
         document.addEventListener("DOMContentLoaded", () => { 
             applyGlobalTheme(); 
             updateWallet(); 
             updatePerksBar();
             populateFeedbackDropdown();
             initPatchNotes();
+        });
+
+        // Re-sync Theme & Coins when navigating back from shop.html (Fixes iPad Safari Cache)
+        window.addEventListener("pageshow", () => {
+            applyGlobalTheme();
+            updateWallet();
+            updatePerksBar();
+        });
+
+        // Re-sync if another tab updates localStorage
+        window.addEventListener("storage", () => {
+            applyGlobalTheme();
+            updateWallet();
+            updatePerksBar();
         });
     </script>
 </body>
