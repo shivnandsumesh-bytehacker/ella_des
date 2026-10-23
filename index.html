@@ -3,22 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Chronicles: The Github Protocol</title>
+    <!-- Prevent iPad Safari from caching old versions after you update -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Cyber Arcade Hub</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #38bdf8;
-            --accent: #f43f5e;
+        :root { 
+            --primary: #38bdf8; 
+            --accent: #f43f5e; 
             --gold: #eab308;
             --emerald: #10b981;
             --purple: #a855f7;
-            --bg: #07080d;
-            --card: #12151e;
-            --card-border: #252a3a;
+            --bg: #090a0f; 
+            --card: #12151e; 
+            --card-border: #222634;
+            --card-hover: #181c28;
+            --header-bg: rgba(18, 21, 30, 0.88);
+            --grid-dot: #1e2330;
             --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --text-muted: #8b95a5;
         }
 
         * {
@@ -26,2270 +33,1685 @@
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
-            margin: 0;
-            padding: 0;
         }
 
-        body {
-            background: var(--bg);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-            height: 100dvh;
-            touch-action: none;
+        body { 
+            background-color: var(--bg); 
+            background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-main); 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            margin: 0; 
+            padding: 20px 16px 40px 16px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            min-height: 100dvh;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        #game-canvas {
+        /* Animated Background Canvas for Themes */
+        #theme-bg-canvas {
             position: fixed;
             inset: 0;
             width: 100vw;
             height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.45;
+        }
+
+        header, #unlocked-perks-bar, .controls-bar, .grid, footer {
+            position: relative;
             z-index: 1;
         }
 
-        /* Top HUD */
-        #hud {
-            position: fixed;
-            top: 12px;
-            left: 16px;
-            right: 16px;
-            z-index: 10;
-            display: none;
-            justify-content: space-between;
-            align-items: flex-start;
-            pointer-events: none;
-            gap: 12px;
+        /* Top Navigation Bar */
+        header { 
+            width: 100%; 
+            max-width: 1160px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: var(--header-bg); 
+            backdrop-filter: blur(12px);
+            padding: 14px 22px; 
+            border-radius: 12px; 
+            border: 1px solid var(--card-border); 
+            box-shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.5);
+            margin-bottom: 16px; 
+            gap: 14px;
+            flex-wrap: wrap;
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
-        .hud-left, .hud-right {
+        .brand {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-            pointer-events: auto;
-        }
-
-        .hud-panel {
-            background: rgba(14, 17, 26, 0.9);
-            backdrop-filter: blur(8px);
-            border: 1px solid var(--card-border);
-            border-radius: 10px;
-            padding: 10px 14px;
-            min-width: 240px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-
-        .hero-tag {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 800;
-            font-size: 0.95rem;
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
-        }
-
-        .bar-wrap {
-            width: 100%;
-            height: 11px;
-            background: #090b10;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #222838;
-            margin-bottom: 5px;
-        }
-
-        .hp-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981, #34d399);
-            width: 100%;
-            transition: width 0.12s ease;
-        }
-
-        .shield-fill {
-            height: 5px;
-            background: var(--gold);
-            width: 0%;
-            transition: width 0.12s ease;
-            margin-bottom: 4px;
-            border-radius: 4px;
-        }
-
-        .hyper-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--purple));
-            width: 0%;
-            transition: width 0.12s ease;
-        }
-
-        .bar-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
-            color: var(--text-muted);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* Boss HUD Bar */
-        #boss-hud {
-            position: fixed;
-            top: 14px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            width: min(480px, 48vw);
-            background: rgba(18, 12, 20, 0.92);
-            border: 1px solid rgba(244, 63, 94, 0.55);
-            border-radius: 10px;
-            padding: 10px 16px;
-            display: none;
-            text-align: center;
-            pointer-events: none;
-            box-shadow: 0 0 25px rgba(244, 63, 94, 0.25);
-        }
-
-        #boss-name {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 800;
-            font-size: 0.95rem;
-            color: #fda4af;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-        }
-
-        .boss-bar-wrap {
-            width: 100%;
-            height: 14px;
-            background: #09060a;
-            border: 1px solid #4c1d24;
-            border-radius: 7px;
-            overflow: hidden;
-        }
-
-        #boss-hp-fill {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, #e11d48, #fb7185);
-            transition: width 0.1s linear;
-        }
-
-        .btn-hub {
-            font-family: 'JetBrains Mono', monospace;
-            background: rgba(18, 21, 30, 0.92);
-            color: var(--text-main);
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-decoration: none;
+            gap: 10px;
             cursor: pointer;
-            display: inline-flex;
+        }
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: var(--bg);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 1.1rem;
+            box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 50%, transparent);
+            transition: background 0.3s ease;
+        }
+        .brand:active { transform: translateY(1px); }
+
+        h1 { 
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--text-main); 
+            margin: 0; 
+            font-size: 1.35rem;
+            letter-spacing: -0.5px;
+            font-weight: 800;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stats-badge { 
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem; 
+            font-weight: 700; 
+            color: var(--gold);
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            padding: 7px 14px;
+            border-radius: 8px;
+            display: flex;
             align-items: center;
             gap: 6px;
         }
-        .btn-hub:hover { border-color: var(--primary); }
 
-        /* Character Select & Briefing Overlay */
-        #start-screen {
-            position: fixed;
-            inset: 0;
-            z-index: 50;
-            background: radial-gradient(circle at top, rgba(24, 30, 48, 0.96), rgba(7, 8, 13, 0.99));
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 16px;
-            overflow-y: auto;
-        }
-
-        .start-header {
-            width: 100%;
-            max-width: 1040px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .title-block h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: clamp(1.35rem, 2.8vw, 2rem);
+        .mult-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
             font-weight: 800;
-            background: linear-gradient(90deg, #fff, var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #000;
+            background: var(--gold);
+            padding: 5px 9px;
+            border-radius: 6px;
+            display: none;
         }
 
-        .title-block p {
-            font-size: 0.84rem;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        .hero-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
-            gap: 14px;
-            width: 100%;
-            max-width: 1040px;
-            margin: 12px 0;
-        }
-
-        .hero-card {
+        .nav-btn { 
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main); 
             background: var(--card);
-            border: 2px solid var(--card-border);
-            border-radius: 12px;
-            padding: 15px;
+            border: 1px solid var(--card-border);
+            text-decoration: none; 
+            font-weight: 600; 
+            font-size: 0.85rem;
+            padding: 8px 14px;
+            border-radius: 8px;
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
             cursor: pointer;
-            transition: all 0.18s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            position: relative;
         }
-
-        .hero-card:hover {
-            transform: translateY(-3px);
-            border-color: #475569;
-        }
-
-        .hero-card.selected {
+        .nav-btn:hover {
+            background: var(--card-hover);
             border-color: var(--primary);
-            background: rgba(56, 189, 248, 0.09);
-            box-shadow: 0 0 24px rgba(56, 189, 248, 0.25);
+        }
+        .nav-btn:active { transform: translateY(1px); }
+
+        .nav-btn.primary-btn {
+            background: var(--primary);
+            color: var(--bg);
+            border-color: var(--primary);
+            font-weight: 700;
+        }
+        .nav-btn.primary-btn:hover {
+            filter: brightness(1.12);
         }
 
-        .hero-card-top {
+        .notif-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        /* Unlocked Perks Bar */
+        #unlocked-perks-bar {
+            width: 100%;
+            max-width: 1160px;
+            display: none;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .perk-pill {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            color: var(--primary);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        /* Search & Category Bar */
+        .controls-bar {
+            width: 100%;
+            max-width: 1160px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
             gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 240px;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.15s, background 0.3s;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            max-width: 100%;
+            padding: 2px;
+        }
+
+        .filter-btn {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .filter-btn:hover {
+            color: var(--text-main);
+            border-color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: var(--bg);
+            border-color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Handcrafted Indie Game Grid */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+            gap: 14px; 
+            width: 100%; 
+            max-width: 1160px; 
+            margin-bottom: 36px;
+        }
+
+        .card { 
+            background: var(--card); 
+            border: 1px solid var(--card-border); 
+            border-radius: 10px; 
+            padding: 16px; 
+            text-decoration: none; 
+            color: var(--text-main); 
+            transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start; 
+            justify-content: space-between; 
+            position: relative;
+            min-height: 138px;
+        }
+
+        .card:hover { 
+            transform: translateY(-3px); 
+            border-color: var(--primary); 
+            background: var(--card-hover);
+            box-shadow: 0 6px 20px -6px color-mix(in srgb, var(--primary) 35%, transparent);
+        }
+
+        .card-top {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .icon { 
+            font-size: 1.5rem; 
+            width: 40px; 
+            height: 40px; 
+            background: var(--card-hover);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card h3 { 
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0 0 4px 0; 
+            color: var(--text-main); 
+            font-size: 1.05rem; 
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+
+        .card p { 
+            font-size: 0.8rem; 
+            color: var(--text-muted); 
+            margin: 0; 
+            line-height: 1.4;
+        }
+
+        /* Subtle Tag Badges */
+        .badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-new { background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-3d { background: rgba(56, 189, 248, 0.12); color: var(--primary); border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent); }
+        .badge-hot { background: rgba(244, 63, 94, 0.12); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 6, 10, 0.82);
+            backdrop-filter: blur(6px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+        .modal-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 24px;
+            max-width: 540px;
+            width: 100%;
+            text-align: left;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            position: relative;
+            max-height: 88vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .modal-title {
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0;
+            font-size: 1.3rem;
+            color: var(--text-main);
+        }
+
+        .modal-close {
+            background: var(--card-hover);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            width: 30px;
+            height: 30px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover { color: #fff; border-color: var(--primary); }
+
+        /* Creator Code Input */
+        .code-input-row {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0 10px 0;
+        }
+        .code-input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 11px 14px;
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            outline: none;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        .code-input:focus { border-color: var(--primary); }
+
+        .code-submit-btn {
+            background: var(--primary);
+            color: var(--bg);
+            font-weight: 700;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            padding: 0 18px;
+            cursor: pointer;
+        }
+        .code-submit-btn:hover { filter: brightness(1.1); }
+
+        #code-feedback {
+            font-size: 0.84rem;
+            font-weight: 600;
+            min-height: 22px;
             margin-bottom: 10px;
         }
 
-        .hero-preview-canvas {
-            width: 58px;
-            height: 58px;
-            border-radius: 10px;
-            background: #090b10;
-            border: 1px solid rgba(255,255,255,0.12);
-        }
-
-        .hero-name {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.15rem;
-            font-weight: 800;
-        }
-
-        .hero-role {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
-            color: var(--primary);
-            text-transform: uppercase;
-        }
-
-        .trait-list {
-            font-size: 0.77rem;
-            color: #cbd5e1;
-            line-height: 1.45;
-            margin: 6px 0 10px 0;
-        }
-
-        .trait-list div { margin-bottom: 5px; }
-        .trait-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
-            padding: 2px 5px;
-            border-radius: 4px;
-            background: #1e2436;
-            color: var(--gold);
-            font-weight: 700;
-            margin-right: 4px;
-        }
-
-        .boss-preview-bar {
-            width: 100%;
-            max-width: 1040px;
-            background: rgba(15, 18, 28, 0.92);
+        .codex-box {
+            background: var(--bg);
             border: 1px solid var(--card-border);
-            border-radius: 10px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            font-size: 0.8rem;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
         }
-
-        .boss-chain {
+        .codex-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .hint-item {
+            font-size: 0.78rem;
+            color: #cbd5e1;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-wrap: wrap;
+        }
+        .hint-tag {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.73rem;
-        }
-
-        .boss-pill {
-            padding: 4px 9px;
-            border-radius: 6px;
-            background: #1a1523;
-            border: 1px solid #3b2338;
-            color: #fda4af;
-            font-weight: 700;
-        }
-
-        .boss-pill.final {
-            background: rgba(244, 63, 94, 0.2);
-            border-color: var(--accent);
-            color: #fff;
-            box-shadow: 0 0 12px rgba(244, 63, 94, 0.35);
-        }
-
-        .launch-btn {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.05rem;
-            font-weight: 800;
-            background: var(--primary);
-            color: #05070b;
-            border: none;
-            border-radius: 10px;
-            padding: 13px 28px;
-            cursor: pointer;
-            box-shadow: 0 0 24px rgba(56, 189, 248, 0.4);
-            transition: transform 0.12s, filter 0.12s;
-        }
-        .launch-btn:hover { filter: brightness(1.12); transform: scale(1.02); }
-
-        /* Pre-Game Boot Tip Banner */
-        .boot-tip-banner {
-            width: 100%;
-            max-width: 1040px;
-            background: rgba(16, 185, 129, 0.09);
-            border: 1px solid rgba(16, 185, 129, 0.35);
-            border-radius: 10px;
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            font-size: 0.8rem;
-            color: #d1fae5;
-        }
-
-        .boot-tip-badge {
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--emerald);
-            color: #04130d;
-            font-weight: 800;
-            font-size: 0.7rem;
-            padding: 3px 8px;
-            border-radius: 5px;
-            text-transform: uppercase;
-            margin-right: 8px;
-        }
-
-        /* Cutscene Dialogue Modal */
-        #dialogue-box {
-            position: fixed;
-            bottom: 28px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: min(680px, 92vw);
-            background: rgba(12, 15, 24, 0.96);
-            border: 2px solid var(--primary);
-            border-radius: 14px;
-            padding: 18px 22px;
-            z-index: 40;
-            display: none;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.75);
-            cursor: pointer;
-        }
-
-        #dialogue-speaker {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 800;
-            font-size: 1.05rem;
+            background: var(--card-hover);
             color: var(--primary);
-            margin-bottom: 6px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+        }
+
+        /* Patch Notes Timeline */
+        .log-entry {
+            border-left: 2px solid var(--card-border);
+            padding-left: 14px;
+            margin-bottom: 18px;
+        }
+        .log-date {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--primary);
+            margin-bottom: 4px;
             text-transform: uppercase;
         }
-
-        #dialogue-text {
-            font-size: 0.92rem;
-            line-height: 1.5;
+        .log-heading {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin: 0 0 6px 0;
             color: var(--text-main);
-            min-height: 40px;
         }
+        .log-list {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .log-list li { margin-bottom: 5px; }
+        .log-list strong { color: #e2e8f0; }
 
-        .dialogue-next {
-            margin-top: 10px;
-            text-align: right;
+        .commit-pill {
+            display: inline-block;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--gold);
+            font-size: 0.68rem;
+            background: var(--card-hover);
+            color: var(--emerald);
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-right: 6px;
         }
 
-        /* Mobile / iPad Touch Controls */
-        #touch-controls {
-            position: fixed;
-            inset: 0;
-            z-index: 20;
-            pointer-events: none;
-            display: none;
+        /* Feedback Form */
+        .form-group {
+            margin-bottom: 14px;
         }
-
-        .joy-zone {
-            position: absolute;
-            bottom: 26px;
-            width: 130px;
-            height: 130px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.06);
-            border: 2px solid rgba(255, 255, 255, 0.18);
-            pointer-events: auto;
-            touch-action: none;
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 6px;
         }
-
-        #joy-left { left: 26px; }
-        #joy-right { right: 26px; }
-
-        .joy-stick {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 52px;
-            height: 52px;
-            margin-left: -26px;
-            margin-top: -26px;
-            border-radius: 50%;
-            background: rgba(56, 189, 248, 0.6);
-            border: 2px solid #fff;
-            pointer-events: none;
-        }
-
-        .action-btns {
-            position: absolute;
-            bottom: 175px;
-            right: 28px;
-            display: flex;
-            gap: 12px;
-            pointer-events: auto;
-        }
-
-        .touch-skill-btn {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 800;
-            font-size: 0.72rem;
-            color: #fff;
-            border: 2px solid rgba(255,255,255,0.45);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-        }
-
-        #btn-dash { background: rgba(56, 189, 248, 0.45); }
-        #btn-hyper { background: rgba(168, 85, 247, 0.55); border-color: var(--gold); }
-
-        /* Victory / Game Over Modal */
-        #end-modal {
-            position: fixed;
-            inset: 0;
-            z-index: 60;
-            background: rgba(6, 8, 14, 0.88);
-            backdrop-filter: blur(8px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-
-        .end-card {
-            background: var(--card);
-            border: 2px solid var(--card-border);
-            border-radius: 16px;
-            padding: 28px;
-            max-width: 460px;
+        .form-control {
             width: 100%;
-            text-align: center;
-        }
-
-        .end-card h2 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-        }
-
-        .reward-box {
-            font-family: 'JetBrains Mono', monospace;
-            background: #090b10;
+            background: var(--bg);
             border: 1px solid var(--card-border);
-            border-radius: 10px;
-            padding: 14px;
-            margin: 16px 0;
-            color: var(--gold);
-            font-size: 1.1rem;
-            font-weight: 800;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            outline: none;
+            -webkit-user-select: text;
+            user-select: text;
         }
+        .form-control:focus { border-color: var(--primary); }
+        textarea.form-control { resize: vertical; min-height: 90px; }
+
+        #confetti-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 2000;
+        }
+
+        /* Footer */
+        footer {
+            width: 100%;
+            max-width: 1160px;
+            margin-top: auto;
+            border-top: 1px solid var(--card-border);
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .credits-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .credit-item strong { color: var(--text-main); }
     </style>
 </head>
 <body>
 
-    <canvas id="game-canvas"></canvas>
+    <canvas id="theme-bg-canvas"></canvas>
+    <canvas id="confetti-canvas"></canvas>
 
-    <!-- Top Gameplay HUD -->
-    <div id="hud">
-        <div class="hud-left">
-            <div class="hud-panel">
-                <div class="hero-tag">
-                    <span id="hud-hero-name">SHIVNAND</span>
-                    <span id="hud-sector" style="font-family:'JetBrains Mono',monospace; font-size:0.74rem; color:var(--primary);">MAP 1/4</span>
-                </div>
-                <div class="shield-fill" id="hud-shield-bar"></div>
-                <div class="bar-wrap">
-                    <div class="hp-fill" id="hud-hp-bar"></div>
-                </div>
-                <div class="bar-label">
-                    <span id="hud-hp-text">HP: 260/260</span>
-                    <span id="hud-dash-text">DASH: READY [SPACE]</span>
-                </div>
-                <div class="bar-wrap" style="margin-top:6px; height:8px;">
-                    <div class="hyper-fill" id="hud-hyper-bar"></div>
-                </div>
-                <div class="bar-label">
-                    <span id="hud-hyper-name">HYPER: 5S EMP STUN</span>
-                    <span id="hud-hyper-pct">0% [PRESS E]</span>
-                </div>
-            </div>
+    <header>
+        <div class="brand" onclick="handleLogoClick()">
+            <div class="brand-logo">CA</div>
+            <h1>CYBER ARCADE</h1>
         </div>
+        <div class="header-actions">
+            <div class="stats-badge">🪙 <span id="coin-count">0</span></div>
+            <div class="mult-badge" id="mult-badge">2.5X</div>
+            <button class="nav-btn" onclick="openChangelogModal()">
+                <span class="notif-dot" id="patch-notif-dot"></span> Patch Notes
+            </button>
+            <button class="nav-btn" onclick="openFeedbackModal()">Send Feedback</button>
+            <button class="nav-btn" onclick="openCodeModal()">Redeem Code</button>
+            <a href="shop.html" class="nav-btn primary-btn">Shop</a>
+        </div>
+    </header>
 
-        <div class="hud-right">
-            <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
-                <div class="btn-hub" style="color:var(--gold);">🪙 <span id="hud-coins">0</span></div>
-                <a href="index.html" class="btn-hub">⬅ Hub</a>
-            </div>
+    <div id="unlocked-perks-bar"></div>
+
+    <div class="controls-bar">
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Search 25 games..." oninput="filterGames()">
+        </div>
+        <div class="filter-tags">
+            <button class="filter-btn active" onclick="setCategory('ALL', this)">All</button>
+            <button class="filter-btn" onclick="setCategory('3D', this)">3D & Sim</button>
+            <button class="filter-btn" onclick="setCategory('ACTION', this)">Action & Sports</button>
+            <button class="filter-btn" onclick="setCategory('PUZZLE', this)">Arcade & Puzzle</button>
         </div>
     </div>
 
-    <!-- Boss Health Bar -->
-    <div id="boss-hud">
-        <div id="boss-name">KAI JIE — THE 65% CYBER SNIPER</div>
-        <div class="boss-bar-wrap">
-            <div id="boss-hp-fill"></div>
-        </div>
-    </div>
-
-    <!-- Pre-Game Hero Selection & Briefing Screen -->
-    <div id="start-screen">
-        <div class="start-header">
-            <div class="title-block">
-                <h1>⚡ CYBER CHRONICLES: THE ELLA_DES PROTOCOL</h1>
-                <p>2.5D Tactical Action RPG • Use Cover Pillars, Heal Pads & Hyper Skills to defeat the 4 Bosses!</p>
+    <div class="grid" id="games-grid">
+        <a href="lore.html" class="card" data-cat="ACTION" data-title="Cyber Chronicles Lore RPG Boss Raid M Demon Kai Jie Ritvik Darryl">
+            <div class="card-top">
+                <span class="icon">⚔️</span>
+                <span class="badge badge-hot">STORY RAID</span>
             </div>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <div class="btn-hub" style="color:var(--gold);">🪙 Wallet: <span id="menu-wallet">0</span></div>
-                <a href="index.html" class="btn-hub">⬅ Back to Arcade Hub</a>
-            </div>
-        </div>
-
-        <div class="hero-grid" id="hero-select-grid"></div>
-
-        <div class="boss-preview-bar">
             <div>
-                <strong style="color:var(--text-main);">4 MAPS & CORRUPTED BOSS CAMPAIGN:</strong>
-                <div class="boss-chain" style="margin-top:4px;">
-                    <span class="boss-pill">🏀 MAP 1: KAI JIE (5K 🪙)</span> ➔
-                    <span class="boss-pill">🔮 MAP 2: RITVIK (12.5K 🪙)</span> ➔
-                    <span class="boss-pill">🚌 MAP 3: DARRYL (25K 🪙)</span> ➔
-                    <span class="boss-pill final">😈 FINAL CITADEL: M DEMON (250K 🪙)</span>
+                <h3>Cyber Chronicles</h3>
+                <p>4 Heroes vs Kai Jie, Ritvik, Darryl & M Demon</p>
+            </div>
+        </a>
+
+        <a href="bus.html" class="card" data-cat="3D" data-title="Darry's Bus Terminal 3D Sunshine Simulator">
+            <div class="card-top">
+                <span class="icon">🚌</span>
+                <span class="badge badge-hot">MULTIPLAYER</span>
+            </div>
+            <div>
+                <h3>Darry’s Bus Terminal</h3>
+                <p>Routes, Double Deckers & Convoy</p>
+            </div>
+        </a>
+
+        <a href="basketball.html" class="card" data-cat="ACTION" data-title="Basketball Legends Rivals">
+            <div class="card-top">
+                <span class="icon">🏀</span>
+                <span class="badge badge-new">UPDATED</span>
+            </div>
+            <div>
+                <h3>Basketball Legends</h3>
+                <p>WengLe, Darryl, Achutha & 2P</p>
+            </div>
+        </a>
+
+        <a href="space.html" class="card" data-cat="ACTION" data-title="Space Invaders">
+            <div class="card-top">
+                <span class="icon">👾</span>
+                <span class="badge badge-new">BOSSES</span>
+            </div>
+            <div>
+                <h3>Space Invaders</h3>
+                <p>2P Co-Op & 1M Coin Boss Raids</p>
+            </div>
+        </a>
+
+        <a href="volleyball.html" class="card" data-cat="ACTION" data-title="Volleyball Legends">
+            <div class="card-top">
+                <span class="icon">🏐</span>
+                <span class="badge badge-new">UPDATED</span>
+            </div>
+            <div>
+                <h3>Volleyball Legends</h3>
+                <p>Hyper Smashes & Local 2P</p>
+            </div>
+        </a>
+
+        <a href="car.html" class="card" data-cat="3D" data-title="Car Racer Drift Master 3D">
+            <div class="card-top">
+                <span class="icon">🏎️</span>
+                <span class="badge badge-3d">3D</span>
+            </div>
+            <div>
+                <h3>Drift Master 3D</h3>
+                <p>Touge pass physics & nitro</p>
+            </div>
+        </a>
+
+        <a href="tetris.html" class="card" data-cat="PUZZLE" data-title="Cyber Tetris">
+            <div class="card-top">
+                <span class="icon">🟦</span>
+                <span class="badge badge-3d">DAS/ARR</span>
+            </div>
+            <div>
+                <h3>Cyber Tetris</h3>
+                <p>Fast stacker & chiptune beats</p>
+            </div>
+        </a>
+
+        <a href="minecraft.html" class="card" data-cat="3D" data-title="Minecraft 3D">
+            <div class="card-top">
+                <span class="icon">⛏️</span>
+                <span class="badge badge-hot">SANDBOX</span>
+            </div>
+            <div>
+                <h3>Minecraft 3D</h3>
+                <p>Voxel world & creative build</p>
+            </div>
+        </a>
+
+        <a href="plane.html" class="card" data-cat="3D" data-title="3D Flight Sim">
+            <div class="card-top">
+                <span class="icon">✈️</span>
+                <span class="badge badge-3d">3D</span>
+            </div>
+            <div>
+                <h3>3D Flight Sim</h3>
+                <p>Collect passengers & fly rings</p>
+            </div>
+        </a>
+
+        <a href="train.html" class="card" data-cat="3D" data-title="3D Train Express Pro Cab">
+            <div class="card-top">
+                <span class="icon">🚂</span>
+                <span class="badge badge-3d">3D CAB</span>
+            </div>
+            <div>
+                <h3>3D Train Express</h3>
+                <p>Cab controls, wipers & viaduct</p>
+            </div>
+        </a>
+
+        <a href="snowrider.html" class="card" data-cat="3D" data-title="3D Snow Rider">
+            <div class="card-top">
+                <span class="icon">🛷</span>
+                <span class="badge badge-3d">3D</span>
+            </div>
+            <div>
+                <h3>3D Snow Rider</h3>
+                <p>High-speed downhill dodging</p>
+            </div>
+        </a>
+
+        <a href="forest99.html" class="card" data-cat="3D" data-title="99 Nights Forest 3D">
+            <div class="card-top">
+                <span class="icon">🌲</span>
+                <span class="badge badge-3d">3D</span>
+            </div>
+            <div>
+                <h3>99 Nights Forest</h3>
+                <p>Chop, hunt, rescue & survive</p>
+            </div>
+        </a>
+
+        <a href="badminton.html" class="card" data-cat="ACTION" data-title="Super Badminton 3D">
+            <div class="card-top">
+                <span class="icon">🏸</span>
+                <span class="badge badge-3d">3D</span>
+            </div>
+            <div>
+                <h3>Badminton Legends</h3>
+                <p>3D Clears, Smashes & Drops</p>
+            </div>
+        </a>
+
+        <a href="clicker.html" class="card" data-cat="ACTION" data-title="Neon Clicker">
+            <div class="card-top">
+                <span class="icon">🪙</span>
+            </div>
+            <div>
+                <h3>Neon Clicker</h3>
+                <p>Tap & earn multiplier coins</p>
+            </div>
+        </a>
+
+        <a href="pong.html" class="card" data-cat="ACTION" data-title="Cyber Pong AI">
+            <div class="card-top">
+                <span class="icon">🏓</span>
+            </div>
+            <div>
+                <h3>Cyber Pong AI</h3>
+                <p>Classic paddle reflex duel</p>
+            </div>
+        </a>
+
+        <a href="snake.html" class="card" data-cat="ACTION" data-title="Cyber Snake">
+            <div class="card-top">
+                <span class="icon">🐍</span>
+            </div>
+            <div>
+                <h3>Cyber Snake</h3>
+                <p>Grid survival & high scores</p>
+            </div>
+        </a>
+
+        <a href="2048.html" class="card" data-cat="PUZZLE" data-title="2048">
+            <div class="card-top">
+                <span class="icon">🔢</span>
+            </div>
+            <div>
+                <h3>2048</h3>
+                <p>Slide & merge number tiles</p>
+            </div>
+        </a>
+
+        <a href="doodle.html" class="card" data-cat="ACTION" data-title="Doodle Jump">
+            <div class="card-top">
+                <span class="icon">🚀</span>
+            </div>
+            <div>
+                <h3>Doodle Jump</h3>
+                <p>Vertical platform climber</p>
+            </div>
+        </a>
+
+        <a href="bird.html" class="card" data-cat="ACTION" data-title="Cyber Bird">
+            <div class="card-top">
+                <span class="icon">🐦</span>
+            </div>
+            <div>
+                <h3>Cyber Bird</h3>
+                <p>Precision gap flying</p>
+            </div>
+        </a>
+
+        <a href="maze.html" class="card" data-cat="PUZZLE" data-title="Cyber Maze Neon Escape">
+            <div class="card-top">
+                <span class="icon">🌀</span>
+                <span class="badge badge-new">RADAR</span>
+            </div>
+            <div>
+                <h3>Cyber Maze</h3>
+                <p>BFS radar, chips & lantern</p>
+            </div>
+        </a>
+
+        <a href="colorcatch.html" class="card" data-cat="PUZZLE" data-title="Color Catch">
+            <div class="card-top">
+                <span class="icon">🎨</span>
+            </div>
+            <div>
+                <h3>Color Catch</h3>
+                <p>Fast color-matching reflexes</p>
+            </div>
+        </a>
+
+        <a href="memory.html" class="card" data-cat="PUZZLE" data-title="Memory Match">
+            <div class="card-top">
+                <span class="icon">🧠</span>
+            </div>
+            <div>
+                <h3>Memory Match</h3>
+                <p>Card pair concentration</p>
+            </div>
+        </a>
+
+        <a href="simon.html" class="card" data-cat="PUZZLE" data-title="Simon Says">
+            <div class="card-top">
+                <span class="icon">💡</span>
+            </div>
+            <div>
+                <h3>Simon Says</h3>
+                <p>Audio-visual pattern memory</p>
+            </div>
+        </a>
+
+        <a href="tictactoe.html" class="card" data-cat="PUZZLE" data-title="Tic Tac Toe">
+            <div class="card-top">
+                <span class="icon">❌</span>
+            </div>
+            <div>
+                <h3>Tic Tac Toe</h3>
+                <p>Quick 3-in-a-row tactics</p>
+            </div>
+        </a>
+
+        <a href="tower.html" class="card" data-cat="PUZZLE" data-title="Tower Stacker">
+            <div class="card-top">
+                <span class="icon">🏗️</span>
+            </div>
+            <div>
+                <h3>Tower Stacker</h3>
+                <p>Precision timing block drops</p>
+            </div>
+        </a>
+
+        <a href="mathdash.html" class="card" data-cat="PUZZLE" data-title="Math Dash">
+            <div class="card-top">
+                <span class="icon">🧮</span>
+            </div>
+            <div>
+                <h3>Math Dash</h3>
+                <p>Timed mental calculation</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Patch Notes (Auto-Updating) Modal -->
+    <div id="changelog-modal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title">Patch Notes & Live Updates</h2>
+                    <div id="last-modified-label" style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--emerald); margin-top:3px;"></div>
+                </div>
+                <button class="modal-close" onclick="closeChangelogModal()">✕</button>
+            </div>
+
+            <!-- Live GitHub Commits Feed (Populates automatically if GITHUB_REPO is set) -->
+            <div id="github-live-commits" style="display:none; margin-bottom: 18px;">
+                <div class="log-entry" style="border-left-color: var(--emerald);">
+                    <div class="log-date" style="color: var(--emerald);">⚡ LIVE REPOSITORY UPDATES</div>
+                    <h3 class="log-heading">Latest Developer Commits</h3>
+                    <ul class="log-list" id="github-commits-list"></ul>
                 </div>
             </div>
-            <button class="launch-btn" onclick="startGame()">DEPLOY INTO WORLD 🚀</button>
-        </div>
 
-        <!-- Tiny Tips & Feedback Form Banner Beneath Startup -->
-        <div class="boot-tip-banner">
-            <div>
-                <span class="boot-tip-badge">💡 DEV TIP</span>
-                <span id="rotating-tip-text">
-                    <strong>Want YOUR character or custom powers added next?</strong> Use the <strong>Send Feedback</strong> button on the Arcade Hub main menu—new heroes & bosses are built directly from student form submissions!
-                </span>
+            <!-- Dynamic Patch Notes Container (Rendered from PATCH_NOTES array) -->
+            <div id="patch-notes-container"></div>
+        </div>
+    </div>
+
+    <!-- Feedback & Game Suggestion Modal (All 25+ Games Auto-Loaded) -->
+    <div id="feedback-modal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">Send Feedback / Game Idea</h2>
+                <button class="modal-close" onclick="closeFeedbackModal()">✕</button>
             </div>
-            <a href="index.html" style="color:var(--emerald); font-family:'JetBrains Mono',monospace; font-size:0.75rem; font-weight:700; text-decoration:underline;">Open Hub Form ➔</a>
+            <p style="color:var(--text-muted); font-size:0.82rem; margin:0 0 16px 0;">
+                Pick any game from the arcade, report a bug, suggest a buff/nerf, or pitch a brand new game idea.
+            </p>
+            <form id="feedback-form" onsubmit="submitFeedbackForm(event)">
+                <div class="form-group">
+                    <label>Your Name / Nickname</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. John, Darryl..." required>
+                </div>
+                <div class="form-group">
+                    <label>Select Game or Topic (All Arcade Games Included)</label>
+                    <select name="game" id="feedback-game-select" class="form-control" required>
+                        <!-- Auto-populated from all game cards on page load -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Feedback Type</label>
+                    <select name="category" class="form-control">
+                        <option value="Feature / Improvement">🚀 Feature / Game Improvement</option>
+                        <option value="Character Buff / Nerf">⚖️ Character Balance (Buff / Nerf)</option>
+                        <option value="New Game Idea">💡 Brand New Game Idea</option>
+                        <option value="Bug Report">🐛 Bug / Glitch Report</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Details</label>
+                    <textarea name="message" class="form-control" placeholder="Tell us what to add, fix, or change..." required></textarea>
+                </div>
+                <input type="hidden" name="_captcha" value="false">
+                <button type="submit" class="nav-btn primary-btn" id="feedback-submit-btn" style="width:100%; justify-content:center; padding:11px;">
+                    Send to Developer 🚀
+                </button>
+                <div id="feedback-status" style="font-size:0.82rem; margin-top:10px; text-align:center;"></div>
+            </form>
         </div>
     </div>
 
-    <!-- Boss Cutscene Dialogue Box -->
-    <div id="dialogue-box" onclick="advanceDialogue()">
-        <div id="dialogue-speaker">KAI JIE</div>
-        <div id="dialogue-text">...</div>
-        <div class="dialogue-next">TAP OR PRESS [SPACE] TO START BATTLE ▶</div>
-    </div>
+    <!-- Creator Code Vault Modal -->
+    <div id="code-modal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">Redeem Creator Code</h2>
+                <button class="modal-close" onclick="closeCodeModal()">✕</button>
+            </div>
+            <p style="color:var(--text-muted); font-size:0.82rem; margin:0;">Enter codes to unlock coin drops, multipliers, and secret characters.</p>
+            
+            <div class="code-input-row">
+                <input type="text" id="creator-code-input" class="code-input" placeholder="ENTER CODE..." maxlength="20" onkeydown="if(event.key==='Enter') submitCreatorCode()">
+                <button class="code-submit-btn" onclick="submitCreatorCode()">Redeem</button>
+            </div>
+            <div id="code-feedback"></div>
 
-    <!-- Mobile / iPad Dual Joystick Controls -->
-    <div id="touch-controls">
-        <div class="joy-zone" id="joy-left">
-            <div class="joy-stick" id="stick-left"></div>
-            <div style="position:absolute; bottom:-20px; width:100%; text-align:center; font-size:0.65rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">MOVE</div>
-        </div>
-        <div class="joy-zone" id="joy-right">
-            <div class="joy-stick" id="stick-right"></div>
-            <div style="position:absolute; bottom:-20px; width:100%; text-align:center; font-size:0.65rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">AIM & FIRE</div>
-        </div>
-        <div class="action-btns">
-            <button class="touch-skill-btn" id="btn-dash" ontouchstart="triggerDash(event)">DASH</button>
-            <button class="touch-skill-btn" id="btn-hyper" ontouchstart="triggerHyper(event)">HYPER</button>
-        </div>
-    </div>
-
-    <!-- Victory / Defeat Modal -->
-    <div id="end-modal">
-        <div class="end-card">
-            <h2 id="end-title">MISSION COMPLETE</h2>
-            <p id="end-desc" style="color:var(--text-muted); font-size:0.9rem; line-height:1.4;"></p>
-            <div class="reward-box" id="end-reward">+0 COINS EARNED</div>
-            <div style="display:flex; gap:10px; justify-content:center;">
-                <button class="launch-btn" style="padding:10px 20px; font-size:0.95rem;" onclick="location.reload()">Play Again</button>
-                <a href="index.html" class="btn-hub" style="padding:10px 18px;">Return to Hub</a>
+            <div class="codex-box">
+                <div class="codex-title">Active Hints</div>
+                <div class="hint-item"><span class="hint-tag">DEV</span> Lead developer's name</div>
+                <div class="hint-item"><span class="hint-tag">IDEA</span> Ideaist's name for a permanent coin boost</div>
+                <div class="hint-item"><span class="hint-tag">HOOPS</span> The 65% sniper with the white AirPod</div>
+                <div class="hint-item"><span class="hint-tag">SNIPER</span> The heavy artillery 3PT shooter</div>
+                <div class="hint-item"><span class="hint-tag">LUCK</span> Try entering <strong>JACKPOT</strong></div>
             </div>
         </div>
     </div>
+
+    <footer>
+        <div class="credits-container">
+            <div class="credit-item">Lead Dev: <strong>Shivnand</strong></div>
+            <div class="credit-item">Ideaist: <strong>Can Ming</strong></div>
+        </div>
+        <div>Cyber Arcade • Local Save Enabled</div>
+    </footer>
+
+    <script src="canming-ai.js"></script>
 
     <script>
         // =========================================================================
-        // 1. HERO ROSTER (Buffed HP, Auto-Regen & Custom 2.5D Rig Colors)
+        // ⚙️ 1. DEVELOPER EMAIL FOR IN-BROWSER AJAX FEEDBACK (Works on School iPads)
         // =========================================================================
-        const HEROES = {
-            shivnand: {
-                id: 'shivnand',
-                name: 'Shivnand',
-                role: 'Lead Architect • Control',
-                color: '#38bdf8',
-                suitColor: '#0284c7',
-                skin: '#fcd34d',
-                hair: '#0f172a',
-                visor: '#7dd3fc',
-                hat: 'headphones',
-                weaponType: 'blaster',
-                hp: 260,
-                speed: 5.0,
-                fireRate: 115,
-                dmg: 18,
-                passiveName: 'Root Access',
-                passiveDesc: 'Fastest Dash & Hyper charge + HP regeneration.',
-                weaponDesc: 'Syntax Pulse Rifle (Rapid auto-tracking bolts)',
-                hyperName: '5s System Stun',
-                hyperDesc: 'EMP freezes all bosses for 5 seconds & clears enemy fire.'
-            },
-            canming: {
-                id: 'canming',
-                name: 'Can Ming',
-                role: 'Grand Ideaist • 2.5x Coin Carry',
-                color: '#eab308',
-                suitColor: '#ca8a04',
-                skin: '#fde68a',
-                hair: '#1e1b4b',
-                visor: '#fef08a',
-                hat: 'crown',
-                weaponType: 'dual',
-                hp: 250,
-                speed: 5.6,
-                fireRate: 105,
-                dmg: 15,
-                passiveName: 'Royal 2.5x Stash',
-                passiveDesc: 'All enemies and bosses drop 2.5x extra Arcade Coins!',
-                weaponDesc: 'Twin Golden Pistols (High speed dual lasers)',
-                hyperName: 'Overdrive Decree',
-                hyperDesc: '8s of 2x Fire Rate, speed surge & heals +80 HP!'
-            },
-            endra: {
-                id: 'endra',
-                name: 'Endra',
-                role: 'The Vanguard • Juggernaut Tank',
-                color: '#f43f5e',
-                suitColor: '#be123c',
-                skin: '#f59e0b',
-                hair: '#18181b',
-                visor: '#fda4af',
-                hat: 'helmet',
-                weaponType: 'shotgun',
-                hp: 360,
-                speed: 4.6,
-                fireRate: 220,
-                dmg: 15, // x3 spread = 45 dmg per shot!
-                passiveName: 'Titan Armor',
-                passiveDesc: '360 Max HP + heavy armor plating reduces all damage.',
-                weaponDesc: 'Plasma Scattergun (3-way heavy kinetic spread)',
-                hyperName: 'Core Breaker',
-                hyperDesc: 'Unleashes a massive shockwave nova dealing 280 boss damage.'
-            },
-            wengle: {
-                id: 'wengle',
-                name: 'WengLe',
-                role: 'Bank Economist • Homing & Shields',
-                color: '#10b981',
-                suitColor: '#047857',
-                skin: '#fde68a',
-                hair: '#064e3b',
-                visor: '#6ee7b7',
-                hat: 'shades',
-                weaponType: 'orb',
-                hp: 280,
-                speed: 5.0,
-                fireRate: 145,
-                dmg: 22,
-                passiveName: 'Compound Interest',
-                passiveDesc: 'Starts with an 80-HP Gold Shield! Coins heal HP & Shield.',
-                weaponDesc: 'Ghost Floater Launcher (Homing spectral curves)',
-                hyperName: 'Market Crash',
-                hyperDesc: 'Drops giant gold vaults on the boss + refills full Shield.'
-            }
-        };
+        const DEVELOPER_EMAIL = "shivnand.sumesh@gmail.com";
 
         // =========================================================================
-        // 2. THE 4 MAPS & BOSSES (Balanced HP & Slower, Dodgeable Attacks)
+        // ⚙️ 2. GITHUB REPO FOR AUTO COMMITS
         // =========================================================================
-        const BOSSES = [
+        const GITHUB_REPO = "shivnandsumesh-bytehacker/ella_des"; 
+
+        // =========================================================================
+        // 📜 3. EASY PATCH NOTES LIST (Add new items to the top anytime)
+        // =========================================================================
+        const PATCH_NOTES = [
             {
-                id: 'kaijie',
-                name: 'KAI JIE — THE 65% CYBER SNIPER',
-                shortName: 'KAI JIE',
-                mapTitle: 'SECTOR 1: ZERO-G NEON HOOPS COURT',
-                mapTheme: 'court',
-                color: '#38bdf8',
-                suitColor: '#0369a1',
-                hat: 'airpod',
-                weaponType: 'sniper',
-                hp: 750,
-                radius: 30,
-                reward: 5000,
-                intro: [
-                    { speaker: 'KAI JIE [CORRUPTED]', text: 'Welcome to my Neon Hoops Court! White AirPod locked in—let’s see if you can hide behind those court pillars!' },
-                    { speaker: 'TACTICAL AI', text: 'TIP: Stand behind the glowing Cover Pillars to block shots, or step on the Green Heal Pads to restore HP!' }
-                ]
-            },
-            {
-                id: 'ritvik',
-                name: 'RITVIK — THE GLITCH PHANTOM',
-                shortName: 'RITVIK',
-                mapTitle: 'SECTOR 2: CORRUPTED MOTHERBOARD MATRIX',
-                mapTheme: 'matrix',
-                color: '#a855f7',
-                suitColor: '#6b21a8',
-                hat: 'hood',
-                weaponType: 'staff',
-                hp: 1050,
-                radius: 32,
-                reward: 12500,
-                intro: [
-                    { speaker: 'RITVIK [CORRUPTED]', text: 'You survived Kai Jie, impressive... But inside my Motherboard Matrix, my Glitch Clones will surround you!' },
-                    { speaker: 'TACTICAL AI', text: 'TIP: Defeat Ritvik’s Hologram Clones quickly—they drop bonus Health Kits and Gold Coins!' }
-                ]
-            },
-            {
-                id: 'darryl',
-                name: 'DARRYL — THE CONVOY COMMANDER',
-                shortName: 'DARRYL',
-                mapTitle: 'SECTOR 3: SUNSHINE BUS TERMINAL HIGHWAY',
-                mapTheme: 'highway',
-                color: '#f97316',
-                suitColor: '#c2410c',
-                hat: 'cap',
-                weaponType: 'cannon',
-                hp: 1350,
-                radius: 35,
-                reward: 25000,
-                intro: [
-                    { speaker: 'DARRYL [CORRUPTED]', text: 'Attention passengers! The Double-Decker Convoy is departing right through you! Watch the highway lanes!' },
-                    { speaker: 'TACTICAL AI', text: 'TIP: When a highway lane flashes orange, step out of that lane before the Double-Decker Bus drives through!' }
-                ]
-            },
-            {
-                id: 'mdemon',
-                name: 'M DEMON — THE APEX OVERLORD',
-                shortName: 'M DEMON',
-                mapTitle: 'SECTOR 4: THE ELLA_DES CORE CITADEL',
-                mapTheme: 'citadel',
-                color: '#f43f5e',
-                suitColor: '#881337',
-                hat: 'horns',
-                weaponType: 'trident',
-                hp: 1900,
-                radius: 42,
-                reward: 250000,
-                intro: [
-                    { speaker: 'M DEMON [APEX OVERLORD]', text: 'FOOLS! You freed Kai Jie, Ritvik, and Darryl, but my Crimson Citadel will be your tomb!' },
-                    { speaker: 'M DEMON [APEX OVERLORD]', text: 'Witness the true power of the Ella_Des Core!' }
+                version: "v2.5 — Cyber Chronicles Story Campaign & 2.5D Arena Overhaul",
+                items: [
+                    "<strong>Cyber Chronicles (Lore Game):</strong> Released <strong>lore.html</strong> featuring 4 playable heroes (Shivnand, Can Ming, Endra, WengLe) with custom 2.5D sprite rigs and 4 map bosses (Kai Jie, Ritvik, Darryl, M Demon) with cover pillars and heal pads.",
+                    "<strong>Cyber Arcade Hub:</strong> Updated theme synchronization and school iPad AJAX feedback pipeline.",
+                    "<strong>Basketball Legends & Space Invaders:</strong> Maintained economy balance and coin multipliers."
                 ]
             }
         ];
 
-        const BOOT_TIPS = [
-            "<strong>Want YOUR character or custom powers added next?</strong> Use the <strong>Send Feedback</strong> button on the Arcade Hub main menu—new heroes & bosses are built directly from student form submissions!",
-            "<strong>TACTICAL COVER:</strong> Every arena has solid <strong>Cover Pillars</strong> (block boss bullets!) and <strong>Green Heal Pads</strong> that regenerate your HP!",
-            "<strong>AUTO-AIM ASSIST:</strong> Your hero automatically locks onto the nearest boss or clone if you don't manually aim with the mouse/stick!"
-        ];
+        // Automatically populate the Feedback Form with ALL games from the grid
+        function populateFeedbackDropdown() {
+            const select = document.getElementById('feedback-game-select');
+            if (!select) return;
 
-        // =========================================================================
-        // 3. 2.5D CHARACTER & BOSS SPRITE RENDERER
-        // =========================================================================
-        function drawCharacterSprite(ctx, entity, isBoss = false) {
-            const x = entity.x;
-            const y = entity.y;
-            const r = entity.radius || 22;
-            const walkBob = Math.sin(entity.walkPhase || 0) * 4;
-            const aim = entity.aimAngle || 0;
-            const facingLeft = Math.cos(aim) < 0;
+            select.innerHTML = `
+                <option value="New Game Idea">🌟 Suggest a Brand New Game</option>
+                <option value="Cyber Arcade Hub">⚡ Cyber Arcade Hub (General)</option>
+            `;
 
-            ctx.save();
-            ctx.translate(x, y);
+            const cards = document.querySelectorAll('#games-grid .card h3');
+            const gameNames = Array.from(cards).map(el => el.innerText.trim()).sort();
 
-            // 1. Ground Drop Shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.48)';
-            ctx.beginPath();
-            ctx.ellipse(0, r * 0.85, r * 0.95, r * 0.42, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 2. Boss Aura / Wings for M Demon
-            if (isBoss) {
-                ctx.strokeStyle = entity.color;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.ellipse(0, r * 0.75, r * 1.25 + Math.sin(Date.now() * 0.008) * 5, r * 0.55, 0, 0, Math.PI * 2);
-                ctx.stroke();
-
-                if (entity.hat === 'horns') {
-                    // M Demon Animated Bat Wings
-                    const wingFlap = Math.sin(Date.now() * 0.01) * 10;
-                    ctx.fillStyle = '#4c0519';
-                    ctx.strokeStyle = '#f43f5e';
-                    ctx.lineWidth = 2;
-                    [-1, 1].forEach(dir => {
-                        ctx.beginPath();
-                        ctx.moveTo(0, -5);
-                        ctx.quadraticCurveTo(dir * (r + 28), -28 + wingFlap, dir * (r + 36), 6 + wingFlap);
-                        ctx.quadraticCurveTo(dir * (r + 16), 14, 0, 8);
-                        ctx.fill();
-                        ctx.stroke();
-                    });
-                }
-            }
-
-            // 3. Animated 2.5D Boots / Feet
-            ctx.fillStyle = '#0f172a';
-            ctx.strokeStyle = entity.color;
-            ctx.lineWidth = 1.5;
-            const leftFootY = r * 0.55 + walkBob;
-            const rightFootY = r * 0.55 - walkBob;
-            ctx.beginPath();
-            ctx.roundRect(-r * 0.5, leftFootY, r * 0.38, r * 0.32, 4);
-            ctx.roundRect(r * 0.12, rightFootY, r * 0.38, r * 0.32, 4);
-            ctx.fill();
-            ctx.stroke();
-
-            // 4. Armored Torso / Jacket
-            const bodyGrad = ctx.createLinearGradient(0, -r * 0.5, 0, r * 0.6);
-            bodyGrad.addColorStop(0, entity.color);
-            bodyGrad.addColorStop(1, entity.suitColor || '#1e293b');
-            ctx.fillStyle = bodyGrad;
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.roundRect(-r * 0.68, -r * 0.25 + Math.abs(walkBob) * 0.3, r * 1.36, r * 0.9, 9);
-            ctx.fill();
-            ctx.stroke();
-
-            // Chest Emblem
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(0, r * 0.18, r * 0.18, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 5. Head & Face
-            const headY = -r * 0.55 + Math.abs(walkBob) * 0.25;
-            ctx.fillStyle = isBoss && entity.hat === 'horns' ? '#be123c' : (entity.skin || '#fde68a');
-            ctx.strokeStyle = '#0f172a';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(0, headY, r * 0.56, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-
-            // 6. Cyber Visor / Eyes
-            const eyeOffsetX = facingLeft ? -r * 0.14 : r * 0.14;
-            ctx.fillStyle = entity.visor || '#38bdf8';
-            ctx.beginPath();
-            ctx.roundRect(eyeOffsetX - r * 0.32, headY - r * 0.12, r * 0.64, r * 0.22, 4);
-            ctx.fill();
-
-            // 7. Custom Character Hats & Accessories
-            if (entity.hat === 'crown') {
-                // Can Ming Golden Crown
-                ctx.fillStyle = '#facc15';
-                ctx.strokeStyle = '#ca8a04';
-                ctx.beginPath();
-                ctx.moveTo(-r * 0.45, headY - r * 0.42);
-                ctx.lineTo(-r * 0.3, headY - r * 0.85);
-                ctx.lineTo(0, headY - r * 0.58);
-                ctx.lineTo(r * 0.3, headY - r * 0.85);
-                ctx.lineTo(r * 0.45, headY - r * 0.42);
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-            } else if (entity.hat === 'airpod') {
-                // Kai Jie Signature White AirPod + Spiky Hair
-                ctx.fillStyle = '#0f172a';
-                ctx.beginPath();
-                ctx.arc(0, headY - r * 0.18, r * 0.56, Math.PI, 0);
-                ctx.fill();
-                // Glowing White AirPod on ear
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = '#ffffff';
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.roundRect(r * 0.45, headY - 2, 6, 13, 3);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            } else if (entity.hat === 'horns') {
-                // M Demon Curved Horns
-                ctx.fillStyle = '#fef08a';
-                [-1, 1].forEach(dir => {
-                    ctx.beginPath();
-                    ctx.moveTo(dir * r * 0.35, headY - r * 0.4);
-                    ctx.quadraticCurveTo(dir * r * 0.9, headY - r * 1.0, dir * r * 0.55, headY - r * 1.15);
-                    ctx.quadraticCurveTo(dir * r * 0.5, headY - r * 0.7, dir * r * 0.15, headY - r * 0.5);
-                    ctx.fill();
-                });
-            } else if (entity.hat === 'cap') {
-                // Darryl Bus Commander Cap
-                ctx.fillStyle = '#ea580c';
-                ctx.beginPath();
-                ctx.arc(0, headY - r * 0.2, r * 0.58, Math.PI, 0);
-                ctx.fill();
-                ctx.fillStyle = '#0f172a';
-                ctx.fillRect(facingLeft ? -r * 0.7 : 0, headY - r * 0.25, r * 0.7, 5);
-            } else if (entity.hat === 'hood') {
-                // Ritvik Glitch Hood
-                ctx.strokeStyle = '#c084fc';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(0, headY, r * 0.62, Math.PI * 0.85, Math.PI * 0.15);
-                ctx.stroke();
-            } else if (entity.hat === 'headphones') {
-                // Shivnand Dev Headphones
-                ctx.strokeStyle = '#38bdf8';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.arc(0, headY, r * 0.6, Math.PI, 0);
-                ctx.stroke();
-            }
-
-            // 8. Rotating 2D Weapon in Hands
-            ctx.save();
-            ctx.rotate(aim);
-            ctx.fillStyle = '#1e293b';
-            ctx.strokeStyle = entity.color;
-            ctx.lineWidth = 2;
-
-            if (entity.weaponType === 'sniper') {
-                // Long Sniper Barrel
-                ctx.fillRect(r * 0.3, -4, r * 1.35, 8);
-                ctx.strokeRect(r * 0.3, -4, r * 1.35, 8);
-            } else if (entity.weaponType === 'shotgun' || entity.weaponType === 'cannon') {
-                // Heavy Wide Barrel
-                ctx.fillRect(r * 0.25, -7, r * 1.0, 14);
-                ctx.strokeRect(r * 0.25, -7, r * 1.0, 14);
-            } else {
-                // Standard Cyber Blaster
-                ctx.fillRect(r * 0.3, -5, r * 0.9, 10);
-                ctx.strokeRect(r * 0.3, -5, r * 0.9, 10);
-            }
-            ctx.restore();
-
-            // 9. Shield Bubble & Nameplate
-            if (entity.shield && entity.shield > 0) {
-                ctx.strokeStyle = 'rgba(234, 179, 8, 0.85)';
-                ctx.lineWidth = 3;
-                ctx.setLineDash([6, 4]);
-                ctx.beginPath();
-                ctx.arc(0, -4, r * 1.35, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '800 11px "JetBrains Mono", monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(
-                entity.stunTimer > 0 ? '⚡ STUNNED ⚡' : (entity.shortName || entity.name),
-                0,
-                -r * 1.38
-            );
-
-            ctx.restore();
+            gameNames.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.innerText = `🎮 ${name}`;
+                select.appendChild(opt);
+            });
         }
 
-        // Render Hero Previews on Character Select Cards
-        let selectedHeroKey = 'shivnand';
-        function renderHeroSelection() {
-            const grid = document.getElementById('hero-select-grid');
-            grid.innerHTML = Object.values(HEROES).map(h => `
-                <div class="hero-card ${h.id === selectedHeroKey ? 'selected' : ''}" onclick="selectHero('${h.id}')">
-                    <div>
-                        <div class="hero-card-top">
-                            <canvas id="preview-${h.id}" width="58" height="58" class="hero-preview-canvas"></canvas>
-                            <div>
-                                <div class="hero-name">${h.name}</div>
-                                <div class="hero-role" style="color:${h.color};">${h.role}</div>
-                            </div>
-                        </div>
-                        <div class="trait-list">
-                            <div><span class="trait-label">PASSIVE</span> <strong>${h.passiveName}:</strong> ${h.passiveDesc}</div>
-                            <div><span class="trait-label">WEAPON</span> ${h.weaponDesc}</div>
-                            <div><span class="trait-label" style="color:#c084fc;">HYPER</span> <strong>${h.hyperName}:</strong> ${h.hyperDesc}</div>
-                        </div>
-                    </div>
-                    <div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--text-muted); border-top:1px solid var(--card-border); padding-top:8px; display:flex; justify-content:space-between;">
-                        <span>❤️ HP: ${h.hp}</span>
-                        <span>⚡ SPD: ${h.speed}</span>
-                    </div>
+        // Render Patch Notes + Auto-Detect Last Modified Date + Optional GitHub Live Commits
+        async function initPatchNotes() {
+            const modDate = new Date(document.lastModified);
+            const formattedDate = isNaN(modDate) ? "RECENTLY UPDATED" : modDate.toLocaleDateString(undefined, {
+                month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+            document.getElementById('last-modified-label').innerText = `Last Build: ${formattedDate}`;
+
+            const versionHash = `${document.lastModified}_${PATCH_NOTES[0]?.version || ''}`;
+            const lastSeen = localStorage.getItem('arcade_seen_patch');
+            const dot = document.getElementById('patch-notif-dot');
+            if (dot) {
+                dot.style.display = (lastSeen === versionHash) ? 'none' : 'inline-block';
+            }
+
+            const container = document.getElementById('patch-notes-container');
+            container.innerHTML = PATCH_NOTES.map((log, idx) => `
+                <div class="log-entry">
+                    <div class="log-date">${idx === 0 ? `LATEST BUILD • ${formattedDate}` : log.date || 'ARCHIVE'}</div>
+                    <h3 class="log-heading">${log.version}</h3>
+                    <ul class="log-list">
+                        ${log.items.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
                 </div>
             `).join('');
 
-            // Draw live 2.5D character sprite previews on the selection cards
-            Object.values(HEROES).forEach(h => {
-                const c = document.getElementById(`preview-${h.id}`);
-                if (c) {
-                    const pCtx = c.getContext('2d');
-                    drawCharacterSprite(pCtx, { ...h, x: 29, y: 36, radius: 16, aimAngle: -0.2 }, false);
-                }
-            });
-        }
-
-        function selectHero(id) {
-            selectedHeroKey = id;
-            renderHeroSelection();
-            playSfx('blip');
-        }
-
-        let tipIdx = 0;
-        setInterval(() => {
-            const el = document.getElementById('rotating-tip-text');
-            if (el && document.getElementById('start-screen').style.display !== 'none') {
-                tipIdx = (tipIdx + 1) % BOOT_TIPS.length;
-                el.innerHTML = BOOT_TIPS[tipIdx];
+            if (GITHUB_REPO && GITHUB_REPO.includes('/')) {
+                try {
+                    const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits?per_page=5`);
+                    if (res.ok) {
+                        const commits = await res.json();
+                        const listEl = document.getElementById('github-commits-list');
+                        listEl.innerHTML = commits.map(c => {
+                            const d = new Date(c.commit.author.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                            const msg = c.commit.message.split('\n')[0];
+                            return `<li><span class="commit-pill">${d}</span> ${msg}</li>`;
+                        }).join('');
+                        document.getElementById('github-live-commits').style.display = 'block';
+                    }
+                } catch (e) {}
             }
-        }, 5500);
+        }
 
-        // =========================================================================
-        // 4. WEB AUDIO SYNTH SOUND ENGINE
-        // =========================================================================
         let audioCtx = null;
-        function playSfx(type) {
+        function getAudioContext() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        function playSoundFx(type) {
             try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const t = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                if (type === 'shoot') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(520, t);
-                    osc.frequency.exponentialRampToValueAtTime(140, t + 0.07);
-                    gain.gain.setValueAtTime(0.1, t);
-                    gain.gain.linearRampToValueAtTime(0.01, t + 0.07);
-                    osc.start(t); osc.stop(t + 0.07);
-                } else if (type === 'hit') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(160, t);
-                    osc.frequency.linearRampToValueAtTime(65, t + 0.1);
-                    gain.gain.setValueAtTime(0.16, t);
-                    gain.gain.linearRampToValueAtTime(0.01, t + 0.1);
-                    osc.start(t); osc.stop(t + 0.1);
-                } else if (type === 'coin') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(880, t);
-                    osc.frequency.setValueAtTime(1318.5, t + 0.05);
-                    gain.gain.setValueAtTime(0.14, t);
-                    gain.gain.linearRampToValueAtTime(0.01, t + 0.15);
-                    osc.start(t); osc.stop(t + 0.15);
-                } else if (type === 'hyper') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(260, t);
-                    osc.frequency.exponentialRampToValueAtTime(980, t + 0.4);
-                    gain.gain.setValueAtTime(0.24, t);
-                    gain.gain.linearRampToValueAtTime(0.01, t + 0.4);
-                    osc.start(t); osc.stop(t + 0.4);
-                } else if (type === 'blip') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(640, t);
-                    gain.gain.setValueAtTime(0.09, t);
-                    gain.gain.linearRampToValueAtTime(0.01, t + 0.05);
-                    osc.start(t); osc.stop(t + 0.05);
-                }
-            } catch (e) {}
-        }
-
-        // =========================================================================
-        // 5. WORLD MAP, OBSTACLES, CAMERA & GAME ENGINE
-        // =========================================================================
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
-
-        const WORLD = { width: 1800, height: 1200 };
-        const camera = { x: 0, y: 0 };
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        function getWallet() { return parseInt(localStorage.getItem('arcade_coins')) || 0; }
-        function addWalletCoins(amount) {
-            const hubMult = parseFloat(localStorage.getItem('arcade_multiplier')) || 1.0;
-            const heroMult = (player && player.id === 'canming') ? 2.5 : 1.0;
-            const finalAdded = Math.round(amount * hubMult * heroMult);
-            const updated = getWallet() + finalAdded;
-            localStorage.setItem('arcade_coins', updated);
-            sessionCoins += finalAdded;
-            document.getElementById('hud-coins').innerText = updated.toLocaleString();
-            return finalAdded;
-        }
-
-        let gameActive = false;
-        let isPausedForDialogue = false;
-        let sessionCoins = 0;
-        let sectorIndex = 0;
-        let screenShake = 0;
-
-        let player = null;
-        let activeBoss = null;
-        let pillars = [];
-        let healPads = [];
-        let bullets = [];
-        let enemyBullets = [];
-        let minions = [];
-        let coins = [];
-        let medkits = [];
-        let particles = [];
-        let floatingTexts = [];
-        let hazardLanes = [];
-
-        // Build Map Obstacles & Heal Pads per Sector
-        function generateMapArena() {
-            pillars = [
-                { x: 520, y: 380, w: 95, h: 95 },
-                { x: 1185, y: 380, w: 95, h: 95 },
-                { x: 520, y: 740, w: 95, h: 95 },
-                { x: 1185, y: 740, w: 95, h: 95 }
-            ];
-            healPads = [
-                { x: 260, y: 600, r: 52 },
-                { x: 1540, y: 600, r: 52 }
-            ];
-        }
-
-        // Input state
-        const keys = {};
-        const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, down: false, moved: false };
-        const joyMove = { active: false, dx: 0, dy: 0 };
-        const joyAim = { active: false, dx: 0, dy: 0 };
-
-        window.addEventListener('keydown', e => {
-            keys[e.code] = true;
-            if (e.code === 'Space') {
-                if (isPausedForDialogue) advanceDialogue();
-                else if (gameActive) triggerDash();
-            }
-            if (e.code === 'KeyE' || e.code === 'ShiftLeft') {
-                if (gameActive && !isPausedForDialogue) triggerHyper();
-            }
-        });
-        window.addEventListener('keyup', e => keys[e.code] = false);
-        window.addEventListener('mousemove', e => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-            mouse.moved = true;
-        });
-        window.addEventListener('mousedown', () => mouse.down = true);
-        window.addEventListener('mouseup', () => mouse.down = false);
-
-        function setupJoystick(zoneId, stickId, stateObj) {
-            const zone = document.getElementById(zoneId);
-            const stick = document.getElementById(stickId);
-            const maxDist = 42;
-
-            function handleTouch(e) {
-                e.preventDefault();
-                const touch = e.targetTouches[0];
-                if (!touch) return;
-                const rect = zone.getBoundingClientRect();
-                const cx = rect.left + rect.width / 2;
-                const cy = rect.top + rect.height / 2;
-                let dx = touch.clientX - cx;
-                let dy = touch.clientY - cy;
-                const dist = Math.hypot(dx, dy);
-                if (dist > maxDist) {
-                    dx = (dx / dist) * maxDist;
-                    dy = (dy / dist) * maxDist;
-                }
-                stick.style.transform = `translate(${dx}px, ${dy}px)`;
-                stateObj.active = true;
-                stateObj.dx = dx / maxDist;
-                stateObj.dy = dy / maxDist;
-            }
-
-            function resetTouch(e) {
-                e.preventDefault();
-                stick.style.transform = `translate(0px, 0px)`;
-                stateObj.active = false;
-                stateObj.dx = 0;
-                stateObj.dy = 0;
-            }
-
-            zone.addEventListener('touchstart', handleTouch, { passive: false });
-            zone.addEventListener('touchmove', handleTouch, { passive: false });
-            zone.addEventListener('touchend', resetTouch, { passive: false });
-            zone.addEventListener('touchcancel', resetTouch, { passive: false });
-        }
-
-        setupJoystick('joy-left', 'stick-left', joyMove);
-        setupJoystick('joy-right', 'stick-right', joyAim);
-
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            document.getElementById('touch-controls').style.display = 'block';
-        }
-
-        let dialogueQueue = [];
-        function startDialogue(lines) {
-            isPausedForDialogue = true;
-            dialogueQueue = [...lines];
-            document.getElementById('dialogue-box').style.display = 'block';
-            advanceDialogue();
-        }
-
-        function advanceDialogue() {
-            playSfx('blip');
-            if (dialogueQueue.length === 0) {
-                document.getElementById('dialogue-box').style.display = 'none';
-                isPausedForDialogue = false;
-                return;
-            }
-            const next = dialogueQueue.shift();
-            document.getElementById('dialogue-speaker').innerText = next.speaker;
-            document.getElementById('dialogue-text').innerText = next.text;
-        }
-
-        function startGame() {
-            const h = HEROES[selectedHeroKey];
-            player = {
-                ...h,
-                x: WORLD.width / 2,
-                y: WORLD.height * 0.75,
-                radius: 24,
-                maxHp: h.hp,
-                hp: h.hp,
-                shield: h.id === 'wengle' ? 80 : 30,
-                maxShield: 100,
-                hyper: 50,
-                lastShot: 0,
-                dashCd: 0,
-                dashActive: 0,
-                invuln: 0,
-                overdriveTimer: 0,
-                aimAngle: -Math.PI / 2,
-                walkPhase: 0
-            };
-
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('hud').style.display = 'flex';
-            document.getElementById('hud-hero-name').innerText = h.name.toUpperCase();
-            document.getElementById('hud-hyper-name').innerText = `HYPER: ${h.hyperName.toUpperCase()}`;
-            document.getElementById('hud-coins').innerText = getWallet().toLocaleString();
-
-            sectorIndex = 0;
-            sessionCoins = 0;
-            gameActive = true;
-            spawnSectorBoss(0);
-            requestAnimationFrame(gameLoop);
-        }
-
-        function spawnSectorBoss(index) {
-            const template = BOSSES[index];
-            generateMapArena();
-            document.getElementById('hud-sector').innerText = `MAP ${index + 1}/4`;
-            document.getElementById('boss-hud').style.display = 'block';
-            document.getElementById('boss-name').innerText = template.name;
-
-            bullets = [];
-            enemyBullets = [];
-            minions = [];
-            hazardLanes = [];
-            medkits = [];
-
-            player.x = WORLD.width / 2;
-            player.y = WORLD.height * 0.78;
-
-            // Full heal + shield boost at the start of every new sector!
-            player.hp = player.maxHp;
-            player.shield = Math.min(player.maxShield, player.shield + 40);
-
-            activeBoss = {
-                ...template,
-                maxHp: template.hp,
-                hp: template.hp,
-                x: WORLD.width / 2,
-                y: WORLD.height * 0.25,
-                vx: 2.3,
-                vy: 1.5,
-                timer: 0,
-                stunTimer: 0,
-                walkPhase: 0,
-                aimAngle: Math.PI / 2
-            };
-
-            startDialogue(template.intro);
-        }
-
-        function addFloatingText(x, y, text, color = '#fff') {
-            floatingTexts.push({ x, y, text, color, alpha: 1.0, vy: -1.6 });
-        }
-
-        function triggerDash(e) {
-            if (e) e.preventDefault();
-            if (!player || player.dashCd > 0 || isPausedForDialogue) return;
-            player.dashCd = player.id === 'shivnand' ? 40 : 55;
-            player.dashActive = 14;
-            player.invuln = 24;
-            playSfx('shoot');
-            spawnParticles(player.x, player.y, player.color, 14);
-        }
-
-        function triggerHyper(e) {
-            if (e) e.preventDefault();
-            if (!player || player.hyper < 100 || isPausedForDialogue) return;
-            player.hyper = 0;
-            playSfx('hyper');
-            screenShake = 15;
-            addFloatingText(player.x, player.y - 40, `⚡ ${player.hyperName.toUpperCase()}!`, '#facc15');
-
-            if (player.id === 'shivnand') {
-                enemyBullets = [];
-                if (activeBoss) activeBoss.stunTimer = 300; // 5s Stun
-                minions.forEach(m => m.hp = 0);
-                spawnParticles(player.x, player.y, '#38bdf8', 55);
-            } else if (player.id === 'canming') {
-                player.overdriveTimer = 480;
-                player.hp = Math.min(player.maxHp, player.hp + 80);
-                spawnParticles(player.x, player.y, '#eab308', 45);
-            } else if (player.id === 'endra') {
-                enemyBullets = [];
-                if (activeBoss) {
-                    activeBoss.hp -= 280;
-                    addFloatingText(activeBoss.x, activeBoss.y - 30, '-280 CORE BREAKER!', '#f43f5e');
-                    spawnParticles(activeBoss.x, activeBoss.y, '#f43f5e', 50);
-                }
-                minions.forEach(m => m.hp -= 250);
-                spawnParticles(player.x, player.y, '#f43f5e', 60);
-            } else if (player.id === 'wengle') {
-                enemyBullets = [];
-                player.shield = player.maxShield;
-                player.hp = Math.min(player.maxHp, player.hp + 60);
-                if (activeBoss) {
-                    activeBoss.hp -= 220;
-                    addFloatingText(activeBoss.x, activeBoss.y - 30, '-220 MARKET CRASH!', '#eab308');
-                }
-                for (let i = 0; i < 16; i++) {
-                    coins.push({
-                        x: player.x + (Math.random() - 0.5) * 400,
-                        y: player.y + (Math.random() - 0.5) * 400,
-                        val: 60
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const t = ctx.currentTime;
+                if (type === 'success') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, t + idx * 0.08);
+                        gain.gain.setValueAtTime(0.25, t + idx * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.08 + 0.35);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(t + idx * 0.08);
+                        osc.stop(t + idx * 0.08 + 0.35);
                     });
+                } else if (type === 'error') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(140, t);
+                    osc.frequency.setValueAtTime(95, t + 0.08);
+                    gain.gain.setValueAtTime(0.25, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.25);
+                } else if (type === 'jackpot') {
+                    for (let i = 0; i < 8; i++) {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(587.33 + i * 85, t + i * 0.06);
+                        gain.gain.setValueAtTime(0.22, t + i * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(t + i * 0.06);
+                        osc.stop(t + i * 0.06 + 0.25);
+                    }
                 }
-            }
+            } catch(e){}
         }
 
-        function spawnParticles(x, y, color, count = 12) {
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const cCtx = confettiCanvas.getContext('2d');
+        let confettiParticles = [];
+        let confettiAnimId = null;
+
+        function resizeConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeConfetti);
+        resizeConfetti();
+
+        function launchConfetti(count = 85) {
+            getAudioContext();
+            const colors = ['#38bdf8', '#eab308', '#f43f5e', '#10b981', '#a855f7', '#ffffff'];
             for (let i = 0; i < count; i++) {
-                particles.push({
-                    x, y,
-                    vx: (Math.random() - 0.5) * 9,
-                    vy: (Math.random() - 0.5) * 9,
-                    size: Math.random() * 5 + 2,
-                    color,
+                confettiParticles.push({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                    vx: (Math.random() - 0.5) * 18,
+                    vy: (Math.random() - 0.8) * 18,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rot: Math.random() * Math.PI * 2,
+                    vRot: (Math.random() - 0.5) * 0.3,
                     alpha: 1
                 });
             }
+            if (!confettiAnimId) loopConfetti();
         }
 
-        function damagePlayer(dmg) {
-            if (player.invuln > 0) return;
-            if (player.id === 'endra') dmg = Math.round(dmg * 0.75); // Endra armor reduction
-            player.invuln = 35; // Longer invulnerability window so you never get melted instantly
-            screenShake = 8;
-            playSfx('hit');
+        function loopConfetti() {
+            cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            for (let i = confettiParticles.length - 1; i >= 0; i--) {
+                const p = confettiParticles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.45;
+                p.vx *= 0.98;
+                p.rot += p.vRot;
+                p.alpha -= 0.012;
 
-            if (player.shield > 0) {
-                const absorbed = Math.min(player.shield, dmg);
-                player.shield -= absorbed;
-                dmg -= absorbed;
+                cCtx.save();
+                cCtx.globalAlpha = Math.max(0, p.alpha);
+                cCtx.translate(p.x, p.y);
+                cCtx.rotate(p.rot);
+                cCtx.fillStyle = p.color;
+                cCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                cCtx.restore();
+
+                if (p.alpha <= 0 || p.y > window.innerHeight + 50) {
+                    confettiParticles.splice(i, 1);
+                }
             }
-            player.hp -= dmg;
-            addFloatingText(player.x, player.y - 25, `-${dmg}`, '#f43f5e');
-            spawnParticles(player.x, player.y, '#f43f5e', 12);
-
-            if (player.hp <= 0) {
-                player.hp = 0;
-                endRun(false);
-            }
-        }
-
-        function endRun(victory) {
-            gameActive = false;
-            const modal = document.getElementById('end-modal');
-            const title = document.getElementById('end-title');
-            const desc = document.getElementById('end-desc');
-            const reward = document.getElementById('end-reward');
-
-            modal.style.display = 'flex';
-            if (victory) {
-                localStorage.setItem('mdemon_slayer_unlocked', 'true');
-                title.style.color = 'var(--emerald)';
-                title.innerText = '🏆 ELLA_DES CORE PURIFIED!';
-                desc.innerText = `You defeated Kai Jie, Ritvik, Darryl, and overthrew M Demon! All Arcade Coins have been deposited into your Hub Wallet.`;
+            if (confettiParticles.length > 0) {
+                confettiAnimId = requestAnimationFrame(loopConfetti);
             } else {
-                title.style.color = 'var(--accent)';
-                title.innerText = '💀 SYSTEM TERMINATED';
-                desc.innerText = `You fell in Map ${sectorIndex + 1} against ${activeBoss ? activeBoss.shortName : 'the corruption'}. You keep all coins collected!`;
+                confettiAnimId = null;
+                cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
             }
-            reward.innerText = `+${sessionCoins.toLocaleString()} COINS BANKED`;
         }
 
-        function circleRectCollide(cx, cy, cr, rx, ry, rw, rh) {
-            const closestX = Math.max(rx, Math.min(cx, rx + rw));
-            const closestY = Math.max(ry, Math.min(cy, ry + rh));
-            return Math.hypot(cx - closestX, cy - closestY) < cr;
+        function getWalletCoins() {
+            return parseInt(localStorage.getItem('arcade_coins')) || 0;
         }
 
-        // =========================================================================
-        // 6. MAIN GAME LOOP & THEMED MAP RENDERER
-        // =========================================================================
-        function drawThemedWorldMap() {
-            const theme = activeBoss ? activeBoss.mapTheme : 'court';
+        function setWalletCoins(val) {
+            localStorage.setItem('arcade_coins', Math.max(0, val));
+            updateWallet();
+        }
 
-            // Base Floor Colors per Sector
-            if (theme === 'court') {
-                ctx.fillStyle = '#0c1424';
-                ctx.fillRect(0, 0, WORLD.width, WORLD.height);
-                // Basketball Court Markings
-                ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
-                ctx.lineWidth = 4;
-                ctx.strokeRect(80, 80, WORLD.width - 160, WORLD.height - 160);
-                ctx.beginPath();
-                ctx.arc(WORLD.width / 2, WORLD.height / 2, 170, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(80, WORLD.height / 2);
-                ctx.lineTo(WORLD.width - 80, WORLD.height / 2);
-                ctx.stroke();
-            } else if (theme === 'matrix') {
-                ctx.fillStyle = '#090614';
-                ctx.fillRect(0, 0, WORLD.width, WORLD.height);
-                ctx.strokeStyle = 'rgba(168, 85, 247, 0.16)';
-                ctx.lineWidth = 2;
-                for (let x = 0; x < WORLD.width; x += 90) {
-                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD.height); ctx.stroke();
-                }
-                for (let y = 0; y < WORLD.height; y += 90) {
-                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD.width, y); ctx.stroke();
-                }
-            } else if (theme === 'highway') {
-                ctx.fillStyle = '#18181b';
-                ctx.fillRect(0, 0, WORLD.width, WORLD.height);
-                // Asphalt Highway Lanes
-                ctx.strokeStyle = '#facc15';
-                ctx.lineWidth = 4;
-                ctx.setLineDash([28, 22]);
-                [300, 600, 900].forEach(y => {
-                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD.width, y); ctx.stroke();
+        function getMultiplier() {
+            return parseFloat(localStorage.getItem('arcade_multiplier')) || 1.0;
+        }
+
+        function setMultiplier(mult) {
+            localStorage.setItem('arcade_multiplier', mult);
+            updateWallet();
+        }
+
+        function getRedeemedCodes() {
+            try {
+                return JSON.parse(localStorage.getItem('arcade_redeemed_codes')) || [];
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function markCodeRedeemed(code) {
+            const list = getRedeemedCodes();
+            if (!list.includes(code)) {
+                list.push(code);
+                localStorage.setItem('arcade_redeemed_codes', JSON.stringify(list));
+            }
+            updatePerksBar();
+        }
+
+        const CREATOR_CODES = {
+            'SHIVNAND': {
+                name: 'Main Developer Vault',
+                rewardCoins: 10000,
+                multiplier: 2.0,
+                unlocks: ['hoops_unlocked_kaijie', 'kaijie_challenge_unlocked'],
+                badge: 'Lead Dev Clearance',
+                desc: 'Granted +10,000 Coins, 2.0x Boost & Kai Jie Unlocked!'
+            },
+            'CANMING': {
+                name: 'Ideaist Royal Stash',
+                rewardCoins: 6000,
+                multiplier: 2.5,
+                unlocks: ['canming_mode_active'],
+                badge: 'Ideaist VIP',
+                desc: 'Granted +6,000 Coins & Permanent 2.5x Multiplier!'
+            },
+            'KAIJIE': {
+                name: 'The Sniper King',
+                rewardCoins: 2500,
+                unlocks: ['hoops_unlocked_kaijie', 'kaijie_challenge_unlocked'],
+                badge: 'Kai Jie Pass',
+                desc: 'Unlocked Kai Jie in Hoops Legends + 2,500 Coins!'
+            },
+            'KAIJIEGOAT': {
+                name: 'Kai Jie Overdrive',
+                rewardCoins: 4000,
+                unlocks: ['hoops_unlocked_kaijie', 'kaijie_challenge_unlocked'],
+                badge: 'Zone Overdrive',
+                desc: 'Unlocked Kai Jie in Hoops Legends + 4,000 Coins!'
+            },
+            'SHARRAN': {
+                name: 'Titan Artillery 3PT',
+                rewardCoins: 2500,
+                unlocks: ['hoops_unlocked_sharran'],
+                badge: 'Sharran Artillery',
+                desc: 'Unlocked Sharran in Basketball + 2,500 Coins!'
+            },
+            'SHARRAN3PT': {
+                name: 'Sniper Artillery Tank',
+                rewardCoins: 3500,
+                unlocks: ['hoops_unlocked_sharran'],
+                badge: 'Sharran Unlocked',
+                desc: 'Unlocked Sharran in Basketball + 3,500 Coins!'
+            },
+            'JACKPOT': {
+                name: 'Arcade Mega Jackpot',
+                rewardCoins: 25000,
+                sound: 'jackpot',
+                badge: 'Jackpot Winner',
+                desc: 'JACKPOT HIT! Added +25,000 Gold Coins!'
+            },
+            '2XBOOST': {
+                name: 'Coin Surge',
+                multiplier: 2.0,
+                rewardCoins: 1500,
+                badge: '2.0x Coin Boost',
+                desc: 'Activated Permanent 2.0x Multiplier across all games!'
+            },
+            'PHONK': {
+                name: 'Drift Phonk Tape',
+                rewardCoins: 3000,
+                multiplier: 1.5,
+                badge: 'Phonk Booster',
+                desc: 'Granted +3,000 Coins & Bass Booster unlocked!'
+            },
+            'GODMODE': {
+                name: 'Cyber God Mode',
+                rewardCoins: 50000,
+                multiplier: 5.0,
+                unlocks: ['hoops_unlocked_kaijie', 'hoops_unlocked_sharran', 'godmode_active'],
+                badge: '5X GOD MODE',
+                desc: 'GOD MODE ACTIVATED! +50,000 Coins, 5.0x Boost & All Secret Characters!'
+            },
+            'DRIFTKING': {
+                name: 'Touge Master',
+                rewardCoins: 3500,
+                badge: 'Drift King',
+                desc: '+3,500 Coins & Touge Nitro Boost unlocked!'
+            },
+            'TETRISGOD': {
+                name: 'DAS/ARR Master',
+                rewardCoins: 2500,
+                badge: 'Tetris Legend',
+                desc: '+2,500 Coins & Instant Speed Pass!'
+            }
+        };
+
+        // Modals Controls
+        function openCodeModal() {
+            getAudioContext();
+            document.getElementById('code-modal').style.display = 'flex';
+            document.getElementById('creator-code-input').value = '';
+            document.getElementById('code-feedback').innerHTML = '';
+            setTimeout(() => document.getElementById('creator-code-input').focus(), 150);
+        }
+        function closeCodeModal() { document.getElementById('code-modal').style.display = 'none'; }
+
+        function openChangelogModal() {
+            document.getElementById('changelog-modal').style.display = 'flex';
+            const versionHash = `${document.lastModified}_${PATCH_NOTES[0]?.version || ''}`;
+            localStorage.setItem('arcade_seen_patch', versionHash);
+            const dot = document.getElementById('patch-notif-dot');
+            if (dot) dot.style.display = 'none';
+        }
+        function closeChangelogModal() { document.getElementById('changelog-modal').style.display = 'none'; }
+
+        function openFeedbackModal() {
+            document.getElementById('feedback-modal').style.display = 'flex';
+            document.getElementById('feedback-status').innerText = '';
+        }
+        function closeFeedbackModal() { document.getElementById('feedback-modal').style.display = 'none'; }
+
+        // In-Browser AJAX Form Submission (No mailto: restriction on school iPads)
+        async function submitFeedbackForm(e) {
+            e.preventDefault();
+            const form = e.target;
+            const status = document.getElementById('feedback-status');
+            const btn = document.getElementById('feedback-submit-btn');
+            const data = new FormData(form);
+
+            btn.disabled = true;
+            btn.innerText = "Transmitting... ⚡";
+            status.innerText = "";
+
+            const payload = {
+                player_name: data.get('name'),
+                game: data.get('game'),
+                category: data.get('category'),
+                suggestion: data.get('message'),
+                _subject: `[Cyber Arcade] ${data.get('category')} (${data.get('game')}) - from ${data.get('name')}`,
+                _captcha: "false"
+            };
+
+            try {
+                const res = await fetch(`https://formsubmit.co/ajax/${DEVELOPER_EMAIL}`, {
+                    method: "POST",
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Accept': 'application/json' 
+                    },
+                    body: JSON.stringify(payload)
                 });
-                ctx.setLineDash([]);
-            } else {
-                // M Demon Crimson Citadel
-                ctx.fillStyle = '#16050b';
-                ctx.fillRect(0, 0, WORLD.width, WORLD.height);
-                ctx.strokeStyle = 'rgba(244, 63, 94, 0.25)';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.arc(WORLD.width / 2, WORLD.height / 2, 340, 0, Math.PI * 2);
-                ctx.stroke();
-            }
+                const result = await res.json();
 
-            // World Border
-            ctx.strokeStyle = activeBoss ? activeBoss.color : '#38bdf8';
-            ctx.lineWidth = 6;
-            ctx.strokeRect(0, 0, WORLD.width, WORLD.height);
-
-            // Green Healing Pads
-            healPads.forEach(pad => {
-                ctx.save();
-                ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
-                ctx.strokeStyle = '#10b981';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.arc(pad.x, pad.y, pad.r, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-                ctx.fillStyle = '#34d399';
-                ctx.font = '800 13px "JetBrains Mono", monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText('➕ HEAL PAD', pad.x, pad.y + 4);
-                ctx.restore();
-            });
-
-            // 2.5D Cover Pillars (Blocks Bullets!)
-            pillars.forEach(p => {
-                ctx.save();
-                // Pillar shadow
-                ctx.fillStyle = 'rgba(0,0,0,0.55)';
-                ctx.fillRect(p.x + 8, p.y + 12, p.w, p.h);
-                // Pillar 3D base
-                ctx.fillStyle = '#1e293b';
-                ctx.strokeStyle = activeBoss ? activeBoss.color : '#38bdf8';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.roundRect(p.x, p.y, p.w, p.h, 10);
-                ctx.fill();
-                ctx.stroke();
-                // Pillar roof highlight
-                ctx.fillStyle = '#334155';
-                ctx.beginPath();
-                ctx.roundRect(p.x + 6, p.y + 6, p.w - 12, p.h - 20, 6);
-                ctx.fill();
-                ctx.fillStyle = '#94a3b8';
-                ctx.font = '700 10px "JetBrains Mono", monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText('🛡️ COVER', p.x + p.w / 2, p.y + p.h / 2 + 3);
-                ctx.restore();
-            });
-        }
-
-        function gameLoop() {
-            if (!gameActive) return;
-
-            if (!isPausedForDialogue) {
-                updatePlayer();
-                updateBoss();
-                updateEntities();
-            }
-
-            // Smooth Camera following Player
-            camera.x = Math.max(0, Math.min(WORLD.width - canvas.width, player.x - canvas.width / 2));
-            camera.y = Math.max(0, Math.min(WORLD.height - canvas.height, player.y - canvas.height / 2));
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.save();
-
-            if (screenShake > 0) {
-                ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
-                screenShake *= 0.88;
-                if (screenShake < 0.5) screenShake = 0;
-            }
-
-            ctx.translate(-camera.x, -camera.y);
-
-            drawThemedWorldMap();
-            drawEntities();
-
-            ctx.restore();
-
-            drawMinimap();
-            updateHudUI();
-
-            requestAnimationFrame(gameLoop);
-        }
-
-        function updatePlayer() {
-            let mx = 0, my = 0;
-            if (keys['KeyW'] || keys['ArrowUp']) my -= 1;
-            if (keys['KeyS'] || keys['ArrowDown']) my += 1;
-            if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
-            if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
-
-            if (joyMove.active) {
-                mx = joyMove.dx;
-                my = joyMove.dy;
-            } else if (mx !== 0 || my !== 0) {
-                const len = Math.hypot(mx, my);
-                mx /= len; my /= len;
-            }
-
-            if (mx !== 0 || my !== 0) {
-                player.walkPhase += 0.25;
-            }
-
-            const spdMult = (player.dashActive > 0 ? 2.5 : 1) * (player.overdriveTimer > 0 ? 1.3 : 1);
-            const nextX = Math.max(35, Math.min(WORLD.width - 35, player.x + mx * player.speed * spdMult));
-            const nextY = Math.max(35, Math.min(WORLD.height - 35, player.y + my * player.speed * spdMult));
-
-            // Pillar Collision Check for Player
-            let canMoveX = true, canMoveY = true;
-            pillars.forEach(p => {
-                if (circleRectCollide(nextX, player.y, player.radius, p.x, p.y, p.w, p.h)) canMoveX = false;
-                if (circleRectCollide(player.x, nextY, player.radius, p.x, p.y, p.w, p.h)) canMoveY = false;
-            });
-
-            if (canMoveX) player.x = nextX;
-            if (canMoveY) player.y = nextY;
-
-            // Heal Pads Regeneration
-            healPads.forEach(pad => {
-                if (Math.hypot(player.x - pad.x, player.y - pad.y) < pad.r + player.radius) {
-                    if (player.hp < player.maxHp) {
-                        player.hp = Math.min(player.maxHp, player.hp + 0.35);
-                    }
-                }
-            });
-
-            // Passive subtle HP regeneration
-            if (player.hp < player.maxHp) {
-                player.hp = Math.min(player.maxHp, player.hp + 0.04);
-            }
-
-            if (player.dashActive > 0) player.dashActive--;
-            if (player.dashCd > 0) player.dashCd--;
-            if (player.invuln > 0) player.invuln--;
-            if (player.overdriveTimer > 0) player.overdriveTimer--;
-
-            // Smart Auto-Aim or Manual Aim
-            if (joyAim.active && Math.hypot(joyAim.dx, joyAim.dy) > 0.2) {
-                player.aimAngle = Math.atan2(joyAim.dy, joyAim.dx);
-            } else if (mouse.down && mouse.moved) {
-                const worldMouseX = mouse.x + camera.x;
-                const worldMouseY = mouse.y + camera.y;
-                player.aimAngle = Math.atan2(worldMouseY - player.y, worldMouseX - player.x);
-            } else if (activeBoss) {
-                // Auto-lock onto nearest minion or boss!
-                let target = activeBoss;
-                let minDist = Math.hypot(activeBoss.x - player.x, activeBoss.y - player.y);
-                minions.forEach(m => {
-                    const d = Math.hypot(m.x - player.x, m.y - player.y);
-                    if (d < minDist) { minDist = d; target = m; }
-                });
-                player.aimAngle = Math.atan2(target.y - player.y, target.x - player.x);
-            }
-
-            const now = performance.now();
-            const cd = player.overdriveTimer > 0 ? player.fireRate * 0.5 : player.fireRate;
-            if (now - player.lastShot >= cd) {
-                player.lastShot = now;
-                playSfx('shoot');
-                const a = player.aimAngle;
-
-                if (player.id === 'endra') {
-                    [-0.18, 0, 0.18].forEach(offset => {
-                        bullets.push({
-                            x: player.x, y: player.y,
-                            vx: Math.cos(a + offset) * 12,
-                            vy: Math.sin(a + offset) * 12,
-                            dmg: player.dmg, color: player.color, homing: false
-                        });
-                    });
-                } else if (player.id === 'canming') {
-                    [-8, 8].forEach(shift => {
-                        bullets.push({
-                            x: player.x + Math.cos(a + Math.PI / 2) * shift,
-                            y: player.y + Math.sin(a + Math.PI / 2) * shift,
-                            vx: Math.cos(a) * 14,
-                            vy: Math.sin(a) * 14,
-                            dmg: player.dmg, color: player.color, homing: false
-                        });
-                    });
+                if (res.ok && (result.success === "true" || result.success === true)) {
+                    status.style.color = "var(--emerald)";
+                    status.innerText = "✅ Sent directly to Shivnand's inbox! Thank you!";
+                    form.reset();
+                    launchConfetti(50);
+                    playSoundFx('success');
                 } else {
-                    bullets.push({
-                        x: player.x, y: player.y,
-                        vx: Math.cos(a) * 13,
-                        vy: Math.sin(a) * 13,
-                        dmg: player.dmg,
-                        color: player.color,
-                        homing: player.id === 'wengle'
-                    });
+                    throw new Error(result.message || "Submission failed");
                 }
+            } catch (err) {
+                const savedFeedback = JSON.parse(localStorage.getItem('arcade_offline_feedback') || '[]');
+                savedFeedback.push({ ...payload, date: new Date().toISOString() });
+                localStorage.setItem('arcade_offline_feedback', JSON.stringify(savedFeedback));
+
+                status.style.color = "var(--gold)";
+                status.innerHTML = `⚠️ Note: If this is the first time using FormSubmit, check <b>${DEVELOPER_EMAIL}</b> to click the 1-time activation link! Your feedback was also saved locally.`;
+                playSoundFx('error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Send to Developer 🚀";
             }
         }
 
-        function updateBoss() {
-            if (!activeBoss) return;
-            const b = activeBoss;
+        function submitCreatorCode() {
+            const input = document.getElementById('creator-code-input');
+            const feedback = document.getElementById('code-feedback');
+            const raw = (input.value || '').trim().toUpperCase();
 
-            if (b.stunTimer > 0) {
-                b.stunTimer--;
+            if (!raw) {
+                feedback.style.color = 'var(--accent)';
+                feedback.innerText = 'Please enter a code.';
+                playSoundFx('error');
                 return;
             }
 
-            b.timer++;
-            b.walkPhase += 0.18;
-            b.x += b.vx;
-            b.y += b.vy;
-
-            if (b.x < 160 || b.x > WORLD.width - 160) b.vx *= -1;
-            if (b.y < 140 || b.y > WORLD.height * 0.55) b.vy *= -1;
-
-            const angleToPlayer = Math.atan2(player.y - b.y, player.x - b.x);
-            b.aimAngle = angleToPlayer;
-            const enraged = b.hp < b.maxHp * 0.45;
-
-            // 1. KAI JIE (Sniper Laser + Spread)
-            if (b.id === 'kaijie') {
-                if (b.timer % 110 === 0) {
-                    hazardLanes.push({
-                        type: 'sniper',
-                        x1: b.x, y1: b.y,
-                        angle: angleToPlayer,
-                        timer: 50,
-                        color: '#38bdf8'
-                    });
-                }
-                if (b.timer % 70 === 0) {
-                    [-0.22, 0, 0.22].forEach(offset => {
-                        enemyBullets.push({
-                            x: b.x, y: b.y,
-                            vx: Math.cos(angleToPlayer + offset) * 5.2,
-                            vy: Math.sin(angleToPlayer + offset) * 5.2,
-                            r: 8, color: '#38bdf8', dmg: 10
-                        });
-                    });
-                }
+            const redeemed = getRedeemedCodes();
+            if (redeemed.includes(raw)) {
+                feedback.style.color = 'var(--gold)';
+                feedback.innerText = 'You have already redeemed this code.';
+                playSoundFx('error');
+                return;
             }
 
-            // 2. RITVIK (Glitch Clones + Pulse Orbs)
-            else if (b.id === 'ritvik') {
-                if (b.timer % 180 === 0 && minions.length < 2) {
-                    minions.push({
-                        x: b.x + (Math.random() - 0.5) * 200,
-                        y: b.y + 70,
-                        hp: 40,
-                        radius: 18,
-                        shortName: 'CLONE',
-                        color: '#a855f7',
-                        suitColor: '#4c1d95',
-                        hat: 'hood',
-                        walkPhase: 0,
-                        aimAngle: angleToPlayer
-                    });
+            const promo = CREATOR_CODES[raw];
+            if (promo) {
+                if (promo.rewardCoins) {
+                    setWalletCoins(getWalletCoins() + promo.rewardCoins);
                 }
-                if (b.timer % 75 === 0) {
-                    const count = 6;
-                    for (let i = 0; i < count; i++) {
-                        const ang = (Math.PI * 2 / count) * i + b.timer * 0.03;
-                        enemyBullets.push({
-                            x: b.x, y: b.y,
-                            vx: Math.cos(ang) * 4.5,
-                            vy: Math.sin(ang) * 4.5,
-                            r: 8, color: '#c084fc', dmg: 11
-                        });
-                    }
+                if (promo.multiplier && promo.multiplier > getMultiplier()) {
+                    setMultiplier(promo.multiplier);
                 }
-            }
-
-            // 3. DARRYL (Double-Decker Bus Lanes + Chakra Rings)
-            else if (b.id === 'darryl') {
-                if (b.timer % 130 === 0) {
-                    hazardLanes.push({
-                        type: 'bus',
-                        y: player.y,
-                        height: 80,
-                        timer: 65,
-                        busX: -220,
-                        activeBus: false
-                    });
-                }
-                if (b.timer % 75 === 0) {
-                    [-0.3, -0.1, 0.1, 0.3].forEach(offset => {
-                        enemyBullets.push({
-                            x: b.x, y: b.y,
-                            vx: Math.cos(angleToPlayer + offset) * 5.4,
-                            vy: Math.sin(angleToPlayer + offset) * 5.4,
-                            r: 9, color: '#f97316', dmg: 12
-                        });
-                    });
-                }
-            }
-
-            // 4. M DEMON (Citadel Boss)
-            else if (b.id === 'mdemon') {
-                if (b.timer % 32 === 0) {
-                    const spiral = b.timer * 0.17;
-                    [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5].forEach(offset => {
-                        enemyBullets.push({
-                            x: b.x, y: b.y,
-                            vx: Math.cos(spiral + offset) * 4.8,
-                            vy: Math.sin(spiral + offset) * 4.8,
-                            r: 9, color: '#f43f5e', dmg: 12
-                        });
-                    });
-                }
-                if (b.timer % 130 === 0) {
-                    hazardLanes.push({
-                        type: 'sniper',
-                        x1: b.x, y1: b.y,
-                        angle: angleToPlayer,
-                        timer: 45,
-                        color: '#f43f5e'
-                    });
-                }
-                if (enraged && b.timer % 160 === 0) {
-                    hazardLanes.push({
-                        type: 'bus',
-                        y: player.y,
-                        height: 80,
-                        timer: 60,
-                        busX: -220,
-                        activeBus: false
-                    });
-                }
-            }
-        }
-
-        function updateEntities() {
-            // Player Bullets
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                const p = bullets[i];
-                if (p.homing && activeBoss) {
-                    const targetAng = Math.atan2(activeBoss.y - p.y, activeBoss.x - p.x);
-                    p.vx = p.vx * 0.92 + Math.cos(targetAng) * 1.2;
-                    p.vy = p.vy * 0.92 + Math.sin(targetAng) * 1.2;
-                }
-                p.x += p.vx;
-                p.y += p.vy;
-
-                // Bullets blocked by pillars
-                let hitPillar = false;
-                for (const pil of pillars) {
-                    if (p.x > pil.x && p.x < pil.x + pil.w && p.y > pil.y && p.y < pil.y + pil.h) {
-                        hitPillar = true;
-                        break;
-                    }
-                }
-                if (hitPillar) {
-                    spawnParticles(p.x, p.y, p.color, 3);
-                    bullets.splice(i, 1);
-                    continue;
+                if (promo.unlocks) {
+                    promo.unlocks.forEach(key => localStorage.setItem(key, 'true'));
                 }
 
-                let hit = false;
-                for (let j = minions.length - 1; j >= 0; j--) {
-                    const m = minions[j];
-                    if (Math.hypot(p.x - m.x, p.y - m.y) < m.radius + 8) {
-                        m.hp -= p.dmg;
-                        hit = true;
-                        addFloatingText(m.x, m.y - 20, `-${p.dmg}`, '#fde047');
-                        if (m.hp <= 0) {
-                            spawnParticles(m.x, m.y, m.color, 12);
-                            coins.push({ x: m.x, y: m.y, val: 50 });
-                            medkits.push({ x: m.x + 15, y: m.y, heal: 45 });
-                            minions.splice(j, 1);
-                        }
-                        break;
-                    }
-                }
+                markCodeRedeemed(raw);
+                launchConfetti(promo.rewardCoins > 15000 ? 140 : 80);
+                playSoundFx(promo.sound || 'success');
 
-                if (!hit && activeBoss && Math.hypot(p.x - activeBoss.x, p.y - activeBoss.y) < activeBoss.radius + 10) {
-                    activeBoss.hp -= p.dmg;
-                    hit = true;
-                    if (Math.random() < 0.35) {
-                        addFloatingText(activeBoss.x + (Math.random() - 0.5) * 30, activeBoss.y - 30, `-${p.dmg}`, player.color);
-                    }
-                    // Occasional Medkit drop mid-fight
-                    if (Math.random() < 0.03) {
-                        medkits.push({ x: activeBoss.x + (Math.random() - 0.5) * 160, y: activeBoss.y + 80, heal: 50 });
-                    }
-                    player.hyper = Math.min(100, player.hyper + (player.id === 'shivnand' ? 2.8 : 2.2));
-                    spawnParticles(p.x, p.y, player.color, 3);
-
-                    if (activeBoss.hp <= 0) {
-                        handleBossDefeated();
-                        return;
-                    }
-                }
-
-                if (hit || p.x < 0 || p.x > WORLD.width || p.y < 0 || p.y > WORLD.height) {
-                    bullets.splice(i, 1);
-                }
-            }
-
-            // Minions
-            minions.forEach(m => {
-                const ang = Math.atan2(player.y - m.y, player.x - m.x);
-                m.aimAngle = ang;
-                m.walkPhase += 0.2;
-                m.x += Math.cos(ang) * 2.1;
-                m.y += Math.sin(ang) * 2.1;
-                if (Math.hypot(player.x - m.x, player.y - m.y) < player.radius + m.radius) {
-                    damagePlayer(10);
-                }
-            });
-
-            // Hazard Lanes
-            for (let i = hazardLanes.length - 1; i >= 0; i--) {
-                const h = hazardLanes[i];
-                if (h.type === 'sniper') {
-                    h.timer--;
-                    if (h.timer === 0) {
-                        for (let s = 0; s < 4; s++) {
-                            enemyBullets.push({
-                                x: h.x1, y: h.y1,
-                                vx: Math.cos(h.angle) * (9.5 + s * 1.1),
-                                vy: Math.sin(h.angle) * (9.5 + s * 1.1),
-                                r: 9, color: h.color, dmg: 16
-                            });
-                        }
-                        hazardLanes.splice(i, 1);
-                    }
-                } else if (h.type === 'bus') {
-                    if (h.timer > 0) {
-                        h.timer--;
-                        if (h.timer === 0) h.activeBus = true;
-                    } else if (h.activeBus) {
-                        h.busX += 19;
-                        if (
-                            player.x > h.busX && player.x < h.busX + 180 &&
-                            Math.abs(player.y - h.y) < h.height / 2 + player.radius
-                        ) {
-                            damagePlayer(20);
-                        }
-                        if (h.busX > WORLD.width + 240) {
-                            hazardLanes.splice(i, 1);
-                        }
-                    }
-                }
-            }
-
-            // Enemy Bullets (Blocked by Cover Pillars!)
-            for (let i = enemyBullets.length - 1; i >= 0; i--) {
-                const b = enemyBullets[i];
-                b.x += b.vx;
-                b.y += b.vy;
-
-                let blockedByCover = false;
-                for (const pil of pillars) {
-                    if (b.x > pil.x && b.x < pil.x + pil.w && b.y > pil.y && b.y < pil.y + pil.h) {
-                        blockedByCover = true;
-                        break;
-                    }
-                }
-                if (blockedByCover) {
-                    spawnParticles(b.x, b.y, b.color, 4);
-                    enemyBullets.splice(i, 1);
-                    continue;
-                }
-
-                if (Math.hypot(b.x - player.x, b.y - player.y) < b.r + player.radius - 5) {
-                    damagePlayer(b.dmg);
-                    enemyBullets.splice(i, 1);
-                    continue;
-                }
-
-                if (b.x < -40 || b.x > WORLD.width + 40 || b.y < -40 || b.y > WORLD.height + 40) {
-                    enemyBullets.splice(i, 1);
-                }
-            }
-
-            // Coins
-            for (let i = coins.length - 1; i >= 0; i--) {
-                const c = coins[i];
-                const dist = Math.hypot(player.x - c.x, player.y - c.y);
-                if (dist < 180) {
-                    c.x += (player.x - c.x) * 0.15;
-                    c.y += (player.y - c.y) * 0.15;
-                }
-                if (dist < player.radius + 16) {
-                    playSfx('coin');
-                    const gained = addWalletCoins(c.val);
-                    addFloatingText(c.x, c.y, `+${gained} 🪙`, '#eab308');
-                    if (player.id === 'wengle') {
-                        player.hp = Math.min(player.maxHp, player.hp + 8);
-                        player.shield = Math.min(player.maxShield, player.shield + 8);
-                    }
-                    coins.splice(i, 1);
-                }
-            }
-
-            // Medkits
-            for (let i = medkits.length - 1; i >= 0; i--) {
-                const m = medkits[i];
-                const dist = Math.hypot(player.x - m.x, player.y - m.y);
-                if (dist < 140) {
-                    m.x += (player.x - m.x) * 0.12;
-                    m.y += (player.y - m.y) * 0.12;
-                }
-                if (dist < player.radius + 16) {
-                    playSfx('coin');
-                    player.hp = Math.min(player.maxHp, player.hp + m.heal);
-                    addFloatingText(player.x, player.y - 25, `+${m.heal} HP 💚`, '#10b981');
-                    medkits.splice(i, 1);
-                }
-            }
-
-            // Floating Damage Numbers
-            for (let i = floatingTexts.length - 1; i >= 0; i--) {
-                const ft = floatingTexts[i];
-                ft.y += ft.vy;
-                ft.alpha -= 0.025;
-                if (ft.alpha <= 0) floatingTexts.splice(i, 1);
-            }
-
-            // Particles
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const pt = particles[i];
-                pt.x += pt.vx;
-                pt.y += pt.vy;
-                pt.alpha -= 0.03;
-                if (pt.alpha <= 0) particles.splice(i, 1);
-            }
-        }
-
-        function handleBossDefeated() {
-            playSfx('hyper');
-            screenShake = 20;
-            spawnParticles(activeBoss.x, activeBoss.y, activeBoss.color, 75);
-            addWalletCoins(activeBoss.reward);
-
-            for (let i = 0; i < 12; i++) {
-                coins.push({
-                    x: activeBoss.x + (Math.random() - 0.5) * 180,
-                    y: activeBoss.y + (Math.random() - 0.5) * 180,
-                    val: 100
-                });
-            }
-
-            sectorIndex++;
-            if (sectorIndex >= BOSSES.length) {
-                activeBoss = null;
-                setTimeout(() => endRun(true), 600);
+                feedback.style.color = 'var(--emerald)';
+                feedback.innerHTML = `<strong>${promo.name}:</strong> ${promo.desc}`;
+                input.value = '';
+                updateWallet();
+                updatePerksBar();
             } else {
-                spawnSectorBoss(sectorIndex);
+                feedback.style.color = 'var(--accent)';
+                feedback.innerText = 'Invalid code. Check the hints below.';
+                playSoundFx('error');
             }
         }
 
-        function drawEntities() {
-            // Hazard Lanes
-            hazardLanes.forEach(h => {
-                if (h.type === 'sniper') {
-                    ctx.save();
-                    ctx.strokeStyle = h.color;
-                    ctx.lineWidth = h.timer < 12 ? 4 : 2;
-                    ctx.setLineDash([10, 8]);
-                    ctx.beginPath();
-                    ctx.moveTo(h.x1, h.y1);
-                    ctx.lineTo(h.x1 + Math.cos(h.angle) * 2000, h.y1 + Math.sin(h.angle) * 2000);
-                    ctx.stroke();
-                    ctx.restore();
-                } else if (h.type === 'bus') {
-                    ctx.save();
-                    ctx.fillStyle = 'rgba(249, 115, 22, 0.2)';
-                    ctx.fillRect(0, h.y - h.height / 2, WORLD.width, h.height);
-                    ctx.strokeStyle = '#f97316';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(0, h.y - h.height / 2, WORLD.width, h.height);
+        let logoTaps = 0;
+        let lastLogoTapTime = 0;
+        function handleLogoClick() {
+            const now = Date.now();
+            logoTaps = (now - lastLogoTapTime < 600) ? logoTaps + 1 : 1;
+            lastLogoTapTime = now;
 
-                    if (h.activeBus) {
-                        // Detailed 2.5D Double-Decker Bus
-                        ctx.fillStyle = '#ea580c';
-                        ctx.strokeStyle = '#fde047';
-                        ctx.lineWidth = 3;
-                        ctx.beginPath();
-                        ctx.roundRect(h.busX, h.y - 34, 180, 68, 10);
-                        ctx.fill();
-                        ctx.stroke();
-                        // Bus Windows
-                        ctx.fillStyle = '#38bdf8';
-                        for (let w = 16; w < 150; w += 32) {
-                            ctx.fillRect(h.busX + w, h.y - 26, 22, 16);
-                            ctx.fillRect(h.busX + w, h.y + 8, 22, 16);
-                        }
-                        ctx.fillStyle = '#ffffff';
-                        ctx.font = '800 12px "JetBrains Mono", monospace';
-                        ctx.fillText('🚌 DARRYL DOUBLE-DECKER', h.busX + 10, h.y + 3);
-                    }
-                    ctx.restore();
+            if (logoTaps >= 5) {
+                logoTaps = 0;
+                setWalletCoins(getWalletCoins() + 500);
+                launchConfetti(45);
+                playSoundFx('success');
+                alert("Secret 5-Tap Easter Egg Found: +500 Coins!");
+            }
+        }
+
+        function updatePerksBar() {
+            const bar = document.getElementById('unlocked-perks-bar');
+            bar.innerHTML = '';
+            const list = getRedeemedCodes();
+            
+            let badges = [];
+            list.forEach(c => {
+                if (CREATOR_CODES[c] && CREATOR_CODES[c].badge) {
+                    badges.push(CREATOR_CODES[c].badge);
                 }
             });
 
-            // Coins
-            coins.forEach(c => {
-                ctx.save();
-                ctx.fillStyle = '#eab308';
-                ctx.beginPath();
-                ctx.arc(c.x, c.y, 9, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#fef08a';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.restore();
-            });
-
-            // Medkits
-            medkits.forEach(m => {
-                ctx.save();
-                ctx.fillStyle = '#10b981';
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.roundRect(m.x - 11, m.y - 11, 22, 22, 5);
-                ctx.fill();
-                ctx.stroke();
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '800 13px "JetBrains Mono", monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText('+', m.x, m.y + 5);
-                ctx.restore();
-            });
-
-            // Minions (2.5D Clones)
-            minions.forEach(m => drawCharacterSprite(ctx, m, false));
-
-            // Boss (2.5D Boss Sprite)
-            if (activeBoss) drawCharacterSprite(ctx, activeBoss, true);
-
-            // Player (2.5D Hero Sprite)
-            if (player) {
-                ctx.save();
-                if (player.invuln % 4 > 2) ctx.globalAlpha = 0.55;
-                drawCharacterSprite(ctx, player, false);
-                ctx.restore();
-            }
-
-            // Player Bullets
-            bullets.forEach(p => {
-                ctx.save();
-                ctx.fillStyle = p.color;
-                ctx.shadowColor = p.color;
-                ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            });
-
-            // Enemy Bullets
-            enemyBullets.forEach(b => {
-                ctx.save();
-                ctx.fillStyle = b.color;
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-                ctx.restore();
-            });
-
-            // Particles
-            particles.forEach(pt => {
-                ctx.save();
-                ctx.globalAlpha = Math.max(0, pt.alpha);
-                ctx.fillStyle = pt.color;
-                ctx.fillRect(pt.x, pt.y, pt.size, pt.size);
-                ctx.restore();
-            });
-
-            // Floating Damage Numbers
-            floatingTexts.forEach(ft => {
-                ctx.save();
-                ctx.globalAlpha = Math.max(0, ft.alpha);
-                ctx.fillStyle = ft.color;
-                ctx.font = '800 14px "JetBrains Mono", monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText(ft.text, ft.x, ft.y);
-                ctx.restore();
-            });
-        }
-
-        // Top-Right Live Radar Minimap
-        function drawMinimap() {
-            const mw = 135, mh = 90;
-            const mx = canvas.width - mw - 16;
-            const my = 60;
-            ctx.save();
-            ctx.fillStyle = 'rgba(10, 14, 23, 0.85)';
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.roundRect(mx, my, mw, mh, 8);
-            ctx.fill();
-            ctx.stroke();
-
-            const scaleX = mw / WORLD.width;
-            const scaleY = mh / WORLD.height;
-
-            // Pillars on Minimap
-            ctx.fillStyle = '#475569';
-            pillars.forEach(p => {
-                ctx.fillRect(mx + p.x * scaleX, my + p.y * scaleY, p.w * scaleX, p.h * scaleY);
-            });
-
-            // Heal Pads on Minimap
-            ctx.fillStyle = '#10b981';
-            healPads.forEach(pad => {
-                ctx.beginPath();
-                ctx.arc(mx + pad.x * scaleX, my + pad.y * scaleY, 3, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            // Boss Dot
-            if (activeBoss) {
-                ctx.fillStyle = '#f43f5e';
-                ctx.beginPath();
-                ctx.arc(mx + activeBoss.x * scaleX, my + activeBoss.y * scaleY, 4.5, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            // Player Dot
-            if (player) {
-                ctx.fillStyle = '#38bdf8';
-                ctx.beginPath();
-                ctx.arc(mx + player.x * scaleX, my + player.y * scaleY, 4, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.restore();
-        }
-
-        function updateHudUI() {
-            if (!player) return;
-            document.getElementById('hud-hp-bar').style.width = `${(player.hp / player.maxHp) * 100}%`;
-            document.getElementById('hud-shield-bar').style.width = `${(player.shield / player.maxShield) * 100}%`;
-            document.getElementById('hud-hp-text').innerText = `HP: ${Math.ceil(player.hp)}/${player.maxHp}${player.shield > 0 ? ` (+${Math.ceil(player.shield)}🛡️)` : ''}`;
-            document.getElementById('hud-dash-text').innerText = player.dashCd === 0 ? 'DASH: READY [SPACE]' : `DASH: ${Math.ceil(player.dashCd / 15)}s`;
-
-            document.getElementById('hud-hyper-bar').style.width = `${player.hyper}%`;
-            document.getElementById('hud-hyper-pct').innerText = player.hyper >= 100 ? '🔥 READY [PRESS E]' : `${Math.floor(player.hyper)}%`;
-
-            if (activeBoss) {
-                const pct = Math.max(0, (activeBoss.hp / activeBoss.maxHp) * 100);
-                document.getElementById('boss-hp-fill').style.width = `${pct}%`;
+            if (badges.length > 0) {
+                bar.style.display = 'flex';
+                badges.forEach(b => {
+                    const el = document.createElement('div');
+                    el.className = 'perk-pill';
+                    el.innerText = b;
+                    bar.appendChild(el);
+                });
+            } else {
+                bar.style.display = 'none';
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('menu-wallet').innerText = getWallet().toLocaleString();
-            renderHeroSelection();
+        function updateWallet() { 
+            const coins = getWalletCoins();
+            document.getElementById('coin-count').innerText = coins.toLocaleString(); 
+            
+            const mult = getMultiplier();
+            const badge = document.getElementById('mult-badge');
+            if (mult > 1.0) {
+                badge.style.display = 'inline-block';
+                badge.innerText = `${mult}X`;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        let currentFilter = 'ALL';
+        function filterGames() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.card');
+
+            cards.forEach(card => {
+                const title = (card.getAttribute('data-title') || '').toLowerCase();
+                const cat = card.getAttribute('data-cat');
+                const matchesQuery = title.includes(query);
+                const matchesCat = (currentFilter === 'ALL' || cat === currentFilter);
+
+                card.style.display = (matchesQuery && matchesCat) ? 'flex' : 'none';
+            });
+        }
+
+        function setCategory(cat, btn) {
+            currentFilter = cat;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            filterGames();
+        }
+
+        // =========================================================================
+        // 🎨 COMPLETE THEME ENGINE + ANIMATED BACKGROUND CANVAS
+        // =========================================================================
+        const THEME_PALETTES = {
+            neon: {
+                primary: '#38bdf8', accent: '#f43f5e', bg: '#090a0f',
+                card: '#12151e', border: '#222634', hover: '#181c28',
+                header: 'rgba(18, 21, 30, 0.88)', dot: '#1e2330', fx: 'neon'
+            },
+            cyber: { 
+                primary: '#10b981', accent: '#f59e0b', bg: '#050b07',
+                card: '#0b160f', border: '#143321', hover: '#112217',
+                header: 'rgba(11, 22, 15, 0.88)', dot: '#122b1d', fx: 'matrix'
+            },
+            sunset: { 
+                primary: '#f97316', accent: '#facc15', bg: '#110706',
+                card: '#1d0d0b', border: '#3b1914', hover: '#281310',
+                header: 'rgba(29, 13, 11, 0.88)', dot: '#2e1410', fx: 'magma'
+            },
+            purple: { 
+                primary: '#c084fc', accent: '#38bdf8', bg: '#080511',
+                card: '#130d24', border: '#2a1d4e', hover: '#1b1333',
+                header: 'rgba(19, 13, 36, 0.88)', dot: '#21173b', fx: 'space'
+            },
+            glitch: { 
+                primary: '#ff0055', accent: '#00f0ff', bg: '#08060c',
+                card: '#14101d', border: '#381b30', hover: '#1f172b',
+                header: 'rgba(20, 16, 29, 0.88)', dot: '#2c162b', fx: 'glitch'
+            }
+        };
+
+        const THEME_ALIASES = {
+            'default': 'neon', 'neon': 'neon', 'cyber_neon': 'neon', 'cyber-neon': 'neon',
+            'cyber': 'cyber', 'matrix': 'cyber', 'matrix_rain': 'cyber', 'matrix-rain': 'cyber',
+            'sunset': 'sunset', 'magma': 'sunset', 'volcanic': 'sunset', 'volcanic_magma': 'sunset', 'volcanic-magma': 'sunset', 'lava': 'sunset', 'gold': 'sunset',
+            'purple': 'purple', 'space': 'purple', 'deep_space': 'purple', 'deep-space': 'purple', 'galaxy': 'purple', 'void': 'purple',
+            'glitch': 'glitch', 'cyber_glitch': 'glitch', 'cyber-glitch': 'glitch'
+        };
+
+        let bgAnimId = null;
+        let currentFxMode = null;
+
+        function applyGlobalTheme() { 
+            const rawTheme = (
+                localStorage.getItem('arcade_theme') || 
+                localStorage.getItem('selected_theme') || 
+                localStorage.getItem('active_theme') || 
+                'neon'
+            ).toLowerCase().trim();
+
+            const mappedKey = THEME_ALIASES[rawTheme] || 'neon';
+            const active = THEME_PALETTES[mappedKey] || THEME_PALETTES.neon;
+
+            const root = document.documentElement;
+            root.style.setProperty('--primary', active.primary); 
+            root.style.setProperty('--accent', active.accent); 
+            root.style.setProperty('--bg', active.bg); 
+            root.style.setProperty('--card', active.card); 
+            root.style.setProperty('--card-border', active.border);
+            root.style.setProperty('--card-hover', active.hover);
+            root.style.setProperty('--header-bg', active.header);
+            root.style.setProperty('--grid-dot', active.dot);
+
+            startThemeCanvas(active.fx, active.primary, active.accent);
+        }
+
+        const bgCanvas = document.getElementById('theme-bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let bgEntities = [];
+
+        function resizeBgCanvas() {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeBgCanvas);
+        resizeBgCanvas();
+
+        function startThemeCanvas(fxMode, primaryColor, accentColor) {
+            if (currentFxMode === fxMode && bgAnimId) return;
+            currentFxMode = fxMode;
+            if (bgAnimId) cancelAnimationFrame(bgAnimId);
+            bgEntities = [];
+
+            const w = bgCanvas.width;
+            const h = bgCanvas.height;
+
+            if (fxMode === 'matrix') {
+                const cols = Math.floor(w / 22);
+                for (let i = 0; i < cols; i++) {
+                    bgEntities.push({ x: i * 22, y: Math.random() * h, speed: Math.random() * 2.5 + 1.5, char: String.fromCharCode(0x30A0 + Math.random() * 96) });
+                }
+            } else {
+                const count = fxMode === 'space' ? 70 : 35;
+                for (let i = 0; i < count; i++) {
+                    bgEntities.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * (fxMode === 'glitch' ? 3 : 0.6),
+                        vy: fxMode === 'magma' ? -(Math.random() * 1.5 + 0.4) : (Math.random() - 0.5) * 0.6,
+                        size: Math.random() * 3 + 1.2,
+                        alpha: Math.random() * 0.7 + 0.2,
+                        color: Math.random() > 0.3 ? primaryColor : accentColor
+                    });
+                }
+            }
+
+            function renderBg() {
+                bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+                if (fxMode === 'matrix') {
+                    bgCtx.fillStyle = primaryColor;
+                    bgCtx.font = '14px "JetBrains Mono", monospace';
+                    bgEntities.forEach(col => {
+                        bgCtx.globalAlpha = 0.35;
+                        bgCtx.fillText(col.char, col.x, col.y);
+                        col.y += col.speed;
+                        if (Math.random() < 0.05) col.char = String.fromCharCode(0x30A0 + Math.random() * 96);
+                        if (col.y > bgCanvas.height) col.y = -20;
+                    });
+                } else {
+                    bgEntities.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        if (p.x < 0) p.x = bgCanvas.width;
+                        if (p.x > bgCanvas.width) p.x = 0;
+                        if (p.y < 0) p.y = bgCanvas.height;
+                        if (p.y > bgCanvas.height) p.y = 0;
+
+                        bgCtx.save();
+                        bgCtx.globalAlpha = p.alpha;
+                        bgCtx.fillStyle = p.color;
+                        if (fxMode === 'glitch' && Math.random() < 0.04) {
+                            bgCtx.fillRect(p.x, p.y, p.size * 8, 2);
+                        } else {
+                            bgCtx.beginPath();
+                            bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                            bgCtx.fill();
+                        }
+                        bgCtx.restore();
+                    });
+                }
+                bgAnimId = requestAnimationFrame(renderBg);
+            }
+            renderBg();
+        }
+
+        document.addEventListener("DOMContentLoaded", () => { 
+            applyGlobalTheme(); 
+            updateWallet(); 
+            updatePerksBar();
+            populateFeedbackDropdown();
+            initPatchNotes();
+        });
+
+        window.addEventListener("pageshow", () => {
+            applyGlobalTheme();
+            updateWallet();
+            updatePerksBar();
+        });
+
+        window.addEventListener("storage", () => {
+            applyGlobalTheme();
+            updateWallet();
+            updatePerksBar();
         });
     </script>
 </body>
