@@ -15,11 +15,11 @@
             --hud-amber: #f59e0b;
             --hud-red: #f43f5e;
             --hud-green: #10b981;
-            --bg-dark: #05070a;
-            --panel-bg: rgba(9, 13, 20, 0.9);
-            --border-line: rgba(56, 189, 248, 0.28);
-            --text-light: #f1f5f9;
-            --text-dim: #64748b;
+            --bg-dark: #060911;
+            --panel-bg: rgba(8, 12, 20, 0.86);
+            --border-line: rgba(56, 189, 248, 0.3);
+            --text-light: #f8fafc;
+            --text-dim: #94a3b8;
         }
 
         * {
@@ -50,27 +50,56 @@
             z-index: 1;
         }
 
-        /* Tactical CRT & NVG Vignette Overlay */
+        /* 3D Floating World Labels Layer (Shows what every object in 3D space is!) */
+        #world-labels {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+        .world-tag {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.66rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(6, 10, 18, 0.85);
+            border: 1px solid var(--hud-cyan);
+            color: var(--text-light);
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+        .world-tag::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px 5px 0;
+            border-style: solid;
+            border-color: var(--hud-cyan) transparent;
+        }
+
+        /* Subtle Tactical Lens & Damage Flash */
         #tactical-lens {
             position: fixed;
             inset: 0;
             pointer-events: none;
             z-index: 4;
-            background:
-                radial-gradient(circle at center, transparent 55%, rgba(2, 4, 8, 0.85) 100%),
-                repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0px, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px);
-            transition: box-shadow 0.25s ease;
+            background: radial-gradient(circle at center, transparent 65%, rgba(2, 5, 10, 0.65) 100%);
+            transition: box-shadow 0.2s ease;
         }
         body.nvg-active #tactical-lens {
-            background:
-                radial-gradient(circle at center, rgba(16, 185, 129, 0.12) 40%, rgba(2, 20, 10, 0.92) 100%),
-                repeating-linear-gradient(0deg, rgba(16, 185, 129, 0.08) 0px, rgba(16, 185, 129, 0.08) 1px, transparent 1px, transparent 3px);
+            background: radial-gradient(circle at center, rgba(16, 185, 129, 0.14) 45%, rgba(2, 22, 12, 0.82) 100%);
         }
         body.damage-flash #tactical-lens {
-            box-shadow: inset 0 0 90px rgba(244, 63, 94, 0.75);
+            box-shadow: inset 0 0 85px rgba(244, 63, 94, 0.75);
         }
 
-        /* Dynamic Crosshair & Hitmarker */
+        /* Crosshair & Hitmarker */
         #crosshair-wrap {
             position: fixed;
             top: 50%;
@@ -80,498 +109,88 @@
             pointer-events: none;
             display: none;
         }
-        .ch-line {
-            position: absolute;
-            background: rgba(241, 245, 249, 0.85);
-            transition: transform 0.08s ease;
-        }
-        .ch-top { width: 2px; height: 8px; left: -1px; top: -14px; }
-        .ch-bot { width: 2px; height: 8px; left: -1px; top: 6px; }
-        .ch-left { width: 8px; height: 2px; top: -1px; left: -14px; }
-        .ch-right { width: 8px; height: 2px; top: -1px; left: 6px; }
+        .ch-line { position: absolute; background: rgba(255, 255, 255, 0.9); transition: transform 0.08s; }
+        .ch-top { width: 2px; height: 7px; left: -1px; top: -12px; }
+        .ch-bot { width: 2px; height: 7px; left: -1px; top: 5px; }
+        .ch-left { width: 7px; height: 2px; top: -1px; left: -12px; }
+        .ch-right { width: 7px; height: 2px; top: -1px; left: 5px; }
         .ch-dot { width: 2px; height: 2px; background: var(--hud-cyan); left: -1px; top: -1px; position: absolute; }
 
         #hitmarker {
             position: fixed;
             top: 50%;
             left: 50%;
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             transform: translate(-50%, -50%) rotate(45deg);
             z-index: 11;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.08s;
         }
-        #hitmarker::before, #hitmarker::after {
-            content: '';
-            position: absolute;
-            background: var(--hud-red);
-        }
-        #hitmarker::before { width: 100%; height: 2px; top: 10px; left: 0; }
-        #hitmarker::after { width: 2px; height: 100%; left: 10px; top: 0; }
+        #hitmarker::before, #hitmarker::after { content: ''; position: absolute; background: var(--hud-red); }
+        #hitmarker::before { width: 100%; height: 2px; top: 9px; left: 0; }
+        #hitmarker::after { width: 2px; height: 100%; left: 9px; top: 0; }
 
-        /* In-Engine Cutscene Bars & Radio Oscilloscope */
-        .letterbox {
-            position: fixed;
-            left: 0;
-            width: 100vw;
-            height: 0;
-            background: #020305;
-            z-index: 28;
-            transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-            pointer-events: none;
-        }
-        #lb-top { top: 0; border-bottom: 1px solid rgba(56, 189, 248, 0.3); }
-        #lb-bot { bottom: 0; border-top: 1px solid rgba(56, 189, 248, 0.3); }
-        body.cutscene-mode #lb-top, body.cutscene-mode #lb-bot { height: 64px; }
-
-        #comms-overlay {
-            position: fixed;
-            bottom: 84px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: min(720px, 92vw);
-            background: rgba(6, 10, 16, 0.94);
-            border: 1px solid var(--hud-cyan);
-            border-left: 4px solid var(--hud-cyan);
-            padding: 16px 20px;
-            z-index: 30;
-            display: none;
-            align-items: center;
-            gap: 18px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
-            cursor: pointer;
-        }
-        #oscilloscope-canvas {
-            width: 96px;
-            height: 54px;
-            background: #03060a;
-            border: 1px solid rgba(56, 189, 248, 0.35);
-            flex-shrink: 0;
-        }
-        .comms-meta {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            color: var(--hud-cyan);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-        #comms-text {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.88rem;
-            color: var(--text-light);
-            line-height: 1.5;
-            min-height: 38px;
-        }
-        .comms-skip-hint {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
-            color: var(--hud-amber);
-            margin-top: 6px;
-            text-align: right;
-        }
-
-        /* Diegetic Tactical HUD */
-        #tactical-hud {
-            position: fixed;
-            inset: 14px;
-            z-index: 12;
-            pointer-events: none;
-            display: none;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .hud-top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .telemetry-box {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-line);
-            padding: 10px 14px;
-            backdrop-filter: blur(8px);
-            pointer-events: auto;
-        }
-
-        .sector-tag {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
-            color: var(--hud-cyan);
-            letter-spacing: 1.2px;
-        }
-        .objective-title {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 700;
-            margin-top: 2px;
-        }
-        .sub-directive {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
-            color: var(--hud-amber);
-            margin-top: 4px;
-        }
-
-        /* Boss Telemetry Bar */
-        #boss-telemetry {
-            width: min(460px, 44vw);
-            background: rgba(16, 8, 14, 0.92);
-            border: 1px solid rgba(244, 63, 94, 0.5);
-            padding: 10px 16px;
-            display: none;
-        }
-        .boss-header-row {
-            display: flex;
-            justify-content: space-between;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: #fda4af;
-            margin-bottom: 6px;
-        }
-        .boss-hp-bar {
-            width: 100%;
-            height: 8px;
-            background: #090407;
-            border: 1px solid rgba(244, 63, 94, 0.4);
-            overflow: hidden;
-        }
-        #boss-hp-fill {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, #e11d48, #fb7185);
-            transition: width 0.12s;
-        }
-        #boss-status-line {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
-            color: var(--hud-amber);
-            margin-top: 6px;
-        }
-
-        /* Bottom HUD: BFS Radar, Acoustic dB Meter, Armor & Ammo */
-        .hud-bottom-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            gap: 12px;
-        }
-
-        .wrist-watch-panel {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            background: var(--panel-bg);
-            border: 1px solid var(--border-line);
-            padding: 10px 14px;
-        }
-
-        #bfs-radar-canvas {
-            width: 104px;
-            height: 104px;
-            background: #03080c;
-            border: 1px solid rgba(16, 185, 129, 0.45);
-            border-radius: 50%;
-        }
-
-        .db-meter-col {
-            min-width: 170px;
-        }
-        .db-readout {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.15rem;
-            font-weight: 800;
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-        }
-        .db-bar-bg {
-            width: 100%;
-            height: 8px;
-            background: #060911;
-            border: 1px solid #1e293b;
-            margin: 6px 0;
-            position: relative;
-        }
-        #db-bar-fill {
-            height: 100%;
-            width: 15%;
-            background: var(--hud-green);
-            transition: width 0.08s, background 0.15s;
-        }
-        .db-threshold-mark {
-            position: absolute;
-            left: 55%;
-            top: -3px;
-            bottom: -3px;
-            width: 2px;
-            background: var(--hud-red);
-        }
-
-        .vitals-panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-line);
-            padding: 12px 16px;
-            min-width: 250px;
-        }
-        .armor-plates-row {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 6px;
-        }
-        .armor-seg {
-            flex: 1;
-            height: 7px;
-            background: #1e293b;
-            border: 1px solid rgba(56, 189, 248, 0.4);
-        }
-        .armor-seg.filled { background: var(--hud-cyan); box-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
-
-        .hp-track {
-            width: 100%;
-            height: 10px;
-            background: #070a10;
-            border: 1px solid #263042;
-            margin-bottom: 8px;
-        }
-        #hp-fill {
-            height: 100%;
-            width: 100%;
-            background: var(--hud-green);
-            transition: width 0.15s;
-        }
-
-        .ammo-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            font-family: 'JetBrains Mono', monospace;
-        }
-        #ammo-counter {
-            font-size: 1.35rem;
-            font-weight: 800;
-            color: var(--text-light);
-        }
-        .gadget-pills {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
-        }
-        .g-pill {
-            padding: 3px 7px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: #cbd5e1;
-        }
-        .g-pill.ready { border-color: var(--hud-cyan); color: var(--hud-cyan); }
-
-        /* Center Contextual Interaction Prompt */
-        #interact-prompt {
-            position: fixed;
-            top: 62%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(6, 10, 18, 0.92);
-            border: 1px solid var(--hud-amber);
-            color: var(--hud-amber);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-            font-weight: 700;
-            padding: 7px 14px;
-            z-index: 15;
-            display: none;
-            pointer-events: auto;
-            cursor: pointer;
-        }
-
-        /* Achievement Unlock Toast Ribbon */
-        #ach-toast {
-            position: fixed;
-            top: 76px;
-            right: -400px;
-            width: 340px;
-            background: rgba(8, 13, 22, 0.96);
-            border: 1px solid var(--hud-amber);
-            border-left: 4px solid var(--hud-amber);
-            padding: 12px 16px;
-            z-index: 60;
-            transition: right 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.75);
-        }
-        #ach-toast.show { right: 18px; }
-        .ach-toast-head {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
-            color: var(--hud-amber);
-            letter-spacing: 1px;
-        }
-        .ach-toast-title {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 800;
-            margin: 2px 0;
-        }
-        .ach-toast-reward {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--hud-green);
-        }
-
-        /* Pre-Deployment Tactical Briefing Terminal */
+        /* =====================================================================
+           SLEEK, UNCLUTTERED MAIN MENU (Fixes IMG_2181.jpg Clutter)
+           ===================================================================== */
         #briefing-screen {
             position: fixed;
             inset: 0;
             z-index: 40;
-            background:
-                radial-gradient(circle at 50% 10%, rgba(14, 30, 52, 0.94), rgba(4, 6, 10, 0.99));
+            background: linear-gradient(90deg, rgba(5, 8, 15, 0.96) 0%, rgba(5, 8, 15, 0.78) 52%, rgba(5, 8, 15, 0.94) 100%);
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: space-between;
-            padding: 18px;
-            overflow-y: auto;
+            padding: 18px 24px;
+            pointer-events: auto;
         }
 
-        .terminal-shell {
-            width: 100%;
-            max-width: 1120px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .term-header {
+        .menu-top-nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-line);
             padding-bottom: 12px;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
         }
-        .term-title {
+        .brand-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--hud-cyan);
+            letter-spacing: 1.5px;
+        }
+        .brand-title {
             font-family: 'Space Grotesk', sans-serif;
-            font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+            font-size: clamp(1.3rem, 2.4vw, 1.8rem);
             font-weight: 800;
             letter-spacing: -0.5px;
         }
-        .term-sub {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.74rem;
-            color: var(--hud-cyan);
-        }
 
-        .operative-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 12px;
-        }
-        .op-card {
-            background: rgba(12, 17, 26, 0.9);
-            border: 1px solid #1e293b;
-            padding: 14px;
-            cursor: pointer;
-            transition: border-color 0.15s, background 0.15s;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .op-card:hover { border-color: #475569; }
-        .op-card.selected {
-            border-color: var(--hud-cyan);
-            background: rgba(56, 189, 248, 0.08);
-            box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.12);
-        }
-        .op-callsign {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.08rem;
-            font-weight: 800;
-        }
-        .op-realname {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            color: var(--hud-cyan);
-            margin-bottom: 8px;
-        }
-        .op-stats {
-            font-size: 0.78rem;
-            color: #cbd5e1;
-            line-height: 1.45;
-        }
-        .op-stats div { margin-bottom: 5px; }
-        .stat-tag {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
-            background: #162032;
-            color: var(--hud-amber);
-            padding: 1px 5px;
-            margin-right: 5px;
-        }
-
-        /* Co-Op & Achievements Split Panel */
-        .mid-panels {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 12px;
-        }
-        @media (max-width: 820px) {
-            .mid-panels { grid-template-columns: 1fr; }
-        }
-        .term-box {
-            background: rgba(11, 15, 24, 0.9);
-            border: 1px solid #1e293b;
-            padding: 14px;
-        }
-        .box-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
-            color: var(--hud-cyan);
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .coop-controls {
+        .menu-nav-actions {
             display: flex;
             gap: 8px;
+            align-items: center;
             flex-wrap: wrap;
-            margin-top: 8px;
         }
-        .tactical-input {
-            background: #06090f;
-            border: 1px solid #2e3b52;
-            color: var(--text-light);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.82rem;
-            padding: 8px 10px;
-            width: 130px;
-            text-transform: uppercase;
-            outline: none;
-            user-select: text;
-            -webkit-user-select: text;
-        }
+
         .tactical-btn {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.76rem;
+            font-size: 0.74rem;
             font-weight: 700;
-            background: #162032;
+            background: rgba(16, 24, 38, 0.9);
             color: var(--text-light);
             border: 1px solid var(--border-line);
-            padding: 8px 14px;
+            padding: 9px 14px;
+            border-radius: 6px;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            transition: all 0.15s;
         }
         .tactical-btn:hover { border-color: var(--hud-cyan); color: var(--hud-cyan); }
         .tactical-btn.primary {
@@ -581,43 +200,282 @@
             font-weight: 800;
         }
         .tactical-btn.amber {
-            background: rgba(245, 158, 11, 0.15);
+            background: rgba(245, 158, 11, 0.14);
             color: var(--hud-amber);
             border-color: var(--hud-amber);
         }
 
-        .ach-scroll {
+        /* Center Showcase Layout: Left = Operative Tabs, Center = 3D Model Preview, Right = Focused Loadout Card */
+        .menu-center-stage {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
-            gap: 6px;
-            max-height: 128px;
-            overflow-y: auto;
-            padding-right: 4px;
+            grid-template-columns: 240px 1fr 310px;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+            max-width: 1180px;
+            width: 100%;
+            margin: 0 auto;
         }
-        .ach-chip {
-            background: #080b12;
-            border: 1px solid #1b2434;
-            padding: 6px 8px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
-        }
-        .ach-chip.unlocked {
-            border-color: var(--hud-green);
-            background: rgba(16, 185, 129, 0.08);
+        @media (max-width: 860px) {
+            .menu-center-stage { grid-template-columns: 1fr 1fr; }
+            .preview-spacer { display: none; }
         }
 
-        .deploy-bar {
+        .op-tab-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .op-tab-btn {
+            background: rgba(12, 18, 30, 0.85);
+            border: 1px solid #1e293b;
+            border-left: 4px solid #334155;
+            padding: 12px 14px;
+            text-align: left;
+            color: var(--text-light);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .op-tab-btn.active {
+            border-color: var(--hud-cyan);
+            border-left-color: var(--hud-cyan);
+            background: rgba(56, 189, 248, 0.12);
+        }
+        .op-tab-callsign {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+        .op-tab-role {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.66rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .preview-spacer {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 16px;
+            pointer-events: none;
+        }
+        .preview-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--hud-cyan);
+            background: rgba(6, 10, 18, 0.85);
+            border: 1px solid var(--border-line);
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        .op-detail-panel {
+            background: rgba(10, 15, 25, 0.92);
+            border: 1px solid var(--border-line);
+            border-radius: 8px;
+            padding: 18px;
+        }
+        .detail-row {
+            margin-bottom: 12px;
+        }
+        .detail-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.64rem;
+            color: var(--hud-amber);
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+        .detail-val {
+            font-size: 0.84rem;
+            color: #e2e8f0;
+            line-height: 1.4;
+        }
+        .stat-bars {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #1e293b;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            display: flex;
+            justify-content: space-between;
+            color: var(--hud-cyan);
+        }
+
+        .menu-bottom-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(12, 18, 28, 0.95);
-            border: 1px solid var(--border-line);
-            padding: 12px 16px;
+            border-top: 1px solid var(--border-line);
+            padding-top: 12px;
             flex-wrap: wrap;
             gap: 12px;
         }
 
-        /* Mobile / iPad Touch Controls */
+        /* Pop-Up Drawer Modals for Co-Op & Achievements */
+        .drawer-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 55;
+            background: rgba(3, 6, 12, 0.88);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .drawer-card {
+            background: #0b111e;
+            border: 1px solid var(--hud-cyan);
+            border-radius: 10px;
+            padding: 22px;
+            max-width: 580px;
+            width: 100%;
+            max-height: 82vh;
+            overflow-y: auto;
+        }
+        .drawer-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+        }
+        .ach-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 8px;
+        }
+        .ach-item {
+            background: #070b12;
+            border: 1px solid #1e293b;
+            border-radius: 6px;
+            padding: 9px 11px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+        }
+        .ach-item.done { border-color: var(--hud-green); background: rgba(16, 185, 129, 0.08); }
+
+        /* =====================================================================
+           COMPACT, NON-OVERLAPPING IN-GAME HUD (Fixes IMG_2182.jpg)
+           ===================================================================== */
+        #tactical-hud {
+            position: fixed;
+            inset: 10px 14px;
+            z-index: 12;
+            pointer-events: none;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .hud-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .compact-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-line);
+            border-radius: 6px;
+            padding: 7px 11px;
+            backdrop-filter: blur(6px);
+            pointer-events: auto;
+        }
+
+        .c-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.62rem;
+            color: var(--hud-cyan);
+        }
+        .c-obj {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
+        .c-sub {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--hud-amber);
+        }
+
+        #boss-telemetry {
+            width: min(370px, 40vw);
+            background: rgba(16, 8, 14, 0.9);
+            border: 1px solid rgba(244, 63, 94, 0.55);
+            border-radius: 6px;
+            padding: 7px 12px;
+        }
+        .boss-top-line {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #fda4af;
+            margin-bottom: 4px;
+        }
+        .boss-hp-track {
+            width: 100%;
+            height: 7px;
+            background: #090407;
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            overflow: hidden;
+        }
+        #boss-hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #e11d48, #fb7185); }
+        #boss-status-line {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--hud-amber);
+            margin-top: 4px;
+        }
+
+        /* Bottom HUD centered so left/right corners stay 100% free for iPad thumbsticks! */
+        .hud-bottom-center {
+            align-self: center;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-line);
+            border-radius: 8px;
+            padding: 7px 14px;
+            pointer-events: auto;
+        }
+
+        #bfs-radar-canvas {
+            width: 72px;
+            height: 72px;
+            background: #03080c;
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            border-radius: 50%;
+        }
+
+        .center-vitals {
+            min-width: 210px;
+        }
+        .armor-row { display: flex; gap: 4px; margin-bottom: 4px; }
+        .armor-seg { flex: 1; height: 5px; background: #1e293b; border: 1px solid rgba(56,189,248,0.4); }
+        .armor-seg.filled { background: var(--hud-cyan); }
+
+        .hp-bar-wrap { width: 100%; height: 8px; background: #070a10; border: 1px solid #263042; margin-bottom: 5px; }
+        #hp-fill { height: 100%; width: 100%; background: var(--hud-green); }
+
+        .db-ammo-split {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+        }
+
+        /* Mobile / iPad Ergonomic Controls (Never overlaps HUD!) */
         #mobile-controls {
             position: fixed;
             inset: 0;
@@ -627,79 +485,120 @@
         }
         .touch-pad {
             position: absolute;
-            bottom: 110px;
-            width: 124px;
-            height: 124px;
+            bottom: 22px;
+            width: 118px;
+            height: 118px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(56, 189, 248, 0.35);
+            border: 2px solid rgba(56, 189, 248, 0.38);
             pointer-events: auto;
             touch-action: none;
         }
-        #pad-move { left: 24px; }
-        #pad-look { right: 24px; }
+        #pad-move { left: 20px; }
+        #pad-look { right: 20px; }
         .pad-nub {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 44px;
-            height: 44px;
-            margin: -22px 0 0 -22px;
+            width: 42px;
+            height: 42px;
+            margin: -21px 0 0 -21px;
             border-radius: 50%;
-            background: rgba(56, 189, 248, 0.55);
-            border: 1px solid #fff;
+            background: rgba(56, 189, 248, 0.65);
+            border: 2px solid #fff;
             pointer-events: none;
         }
         .touch-action-cluster {
             position: absolute;
-            bottom: 248px;
-            right: 22px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            max-width: 240px;
-            justify-content: flex-end;
+            bottom: 154px;
+            right: 18px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
             pointer-events: auto;
         }
         .m-btn {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 800;
-            background: rgba(12, 19, 31, 0.85);
+            background: rgba(10, 16, 28, 0.88);
             color: #fff;
             border: 1px solid var(--hud-cyan);
-            padding: 10px 12px;
+            border-radius: 5px;
+            padding: 9px 10px;
             cursor: pointer;
         }
-        .m-btn.fire-btn { background: rgba(244, 63, 94, 0.45); border-color: var(--hud-red); padding: 14px 18px; }
+        .m-btn.fire-btn { background: rgba(244, 63, 94, 0.55); border-color: var(--hud-red); }
 
-        /* End Mission Debrief Modal */
-        #debrief-modal {
+        /* Center Contextual Prompt */
+        #interact-prompt {
             position: fixed;
-            inset: 0;
-            z-index: 55;
-            background: rgba(3, 5, 9, 0.92);
-            backdrop-filter: blur(8px);
+            top: 58%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(6, 10, 18, 0.94);
+            border: 2px solid var(--hud-amber);
+            color: var(--hud-amber);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 800;
+            padding: 8px 16px;
+            border-radius: 6px;
+            z-index: 18;
+            display: none;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+        /* Cutscene Overlay */
+        #comms-overlay {
+            position: fixed;
+            bottom: 110px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(680px, 92vw);
+            background: rgba(6, 10, 18, 0.95);
+            border: 1px solid var(--hud-cyan);
+            border-left: 4px solid var(--hud-cyan);
+            border-radius: 6px;
+            padding: 14px 18px;
+            z-index: 30;
             display: none;
             align-items: center;
-            justify-content: center;
-            padding: 16px;
+            gap: 16px;
+            cursor: pointer;
         }
-        .debrief-card {
-            background: #0b101b;
-            border: 1px solid var(--hud-cyan);
-            padding: 26px;
-            max-width: 480px;
-            width: 100%;
+        #oscilloscope-canvas {
+            width: 84px;
+            height: 48px;
+            background: #03060a;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            flex-shrink: 0;
         }
+
+        /* Achievement Toast */
+        #ach-toast {
+            position: fixed;
+            top: 70px;
+            right: -380px;
+            width: 310px;
+            background: rgba(8, 13, 22, 0.96);
+            border: 1px solid var(--hud-amber);
+            border-left: 4px solid var(--hud-amber);
+            padding: 10px 14px;
+            z-index: 60;
+            transition: right 0.35s ease;
+        }
+        #ach-toast.show { right: 16px; }
     </style>
 </head>
 <body>
 
     <div id="webgl-container"></div>
+    <div id="world-labels"></div>
     <div id="tactical-lens"></div>
 
-    <!-- Dynamic Crosshair & Hitmarker -->
+    <!-- Crosshair & Hitmarker -->
     <div id="crosshair-wrap">
         <div class="ch-line ch-top" id="ch-t"></div>
         <div class="ch-line ch-bot" id="ch-b"></div>
@@ -709,115 +608,159 @@
     </div>
     <div id="hitmarker"></div>
 
-    <!-- In-Engine Cutscene Bars & Radio Oscilloscope -->
-    <div id="lb-top" class="letterbox"></div>
-    <div id="lb-bot" class="letterbox"></div>
-
+    <!-- Cutscene Radio Comms -->
     <div id="comms-overlay" onclick="advanceCutscene()">
-        <canvas id="oscilloscope-canvas" width="96" height="54"></canvas>
+        <canvas id="oscilloscope-canvas" width="84" height="48"></canvas>
         <div style="flex:1;">
-            <div class="comms-meta" id="comms-speaker">ENCRYPTED CHANNEL // ARCHITECT-01</div>
-            <div id="comms-text">Calibrating optical sensors...</div>
-            <div class="comms-skip-hint">[SPACE / TAP] CONTINUE TRANSMISSION // [ESC] SKIP SCENE</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--hud-cyan);" id="comms-speaker">ENCRYPTED CHANNEL // ARCHITECT-01</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:0.84rem; margin:4px 0;" id="comms-text">Calibrating optical sensors...</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:var(--hud-amber); text-align:right;">TAP OR PRESS [SPACE] TO CONTINUE</div>
         </div>
     </div>
 
-    <!-- Achievement Toast Notification -->
+    <!-- Achievement Toast -->
     <div id="ach-toast">
-        <div class="ach-toast-head">COMMENDATION UNLOCKED</div>
-        <div class="ach-toast-title" id="ach-toast-name">GHOST OPERATIVE</div>
-        <div class="ach-toast-reward" id="ach-toast-coins">+2,500 ARCADE COINS BANKED</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:var(--hud-amber);">COMMENDATION UNLOCKED</div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:0.9rem; font-weight:800;" id="ach-toast-name">GHOST OPERATIVE</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--hud-green);" id="ach-toast-coins">+2,500 COINS</div>
     </div>
 
-    <!-- Center Interaction Prompt -->
+    <!-- Center Contextual Action Button -->
     <div id="interact-prompt" onclick="triggerContextAction()">[PRESS F / TAP] INTERACT</div>
 
-    <!-- Diegetic Tactical HUD -->
+    <!-- =====================================================================
+         UNCLUTTERED MAIN MENU WITH LIVE 3D CHARACTER SHOWCASE
+         ===================================================================== -->
+    <div id="briefing-screen">
+        <div class="menu-top-nav">
+            <div>
+                <div class="brand-tag">CLASSIFIED EXPEDITION // QUARANTINE ZONE</div>
+                <div class="brand-title">BLACKOUT: ECHO PROTOCOL</div>
+            </div>
+            <div class="menu-nav-actions">
+                <button class="tactical-btn" onclick="openDrawer('coop-drawer')">📡 SQUAD CO-OP LINK</button>
+                <button class="tactical-btn" onclick="openDrawer('ach-drawer')">🎖️ COMMENDATIONS (<span id="ach-count-label">0/12</span>)</button>
+                <div class="tactical-btn amber">🪙 <span id="menu-coins">0</span></div>
+                <a href="index.html" class="tactical-btn">⬅ HUB</a>
+            </div>
+        </div>
+
+        <div class="menu-center-stage">
+            <!-- Left: Clean Operative Tabs (No Real Names!) -->
+            <div class="op-tab-list" id="op-tab-list"></div>
+
+            <!-- Center: Open Window for Live Rotating 3D Operative Model -->
+            <div class="preview-spacer">
+                <div class="preview-badge" id="preview-model-label">3D OPERATIVE RIG // ARCHITECT-01</div>
+            </div>
+
+            <!-- Right: Focused Loadout & Specs for Selected Operative -->
+            <div class="op-detail-panel" id="op-detail-panel"></div>
+        </div>
+
+        <div class="menu-bottom-bar">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--text-dim);">
+                <strong style="color:var(--hud-green);">[FIELD INTEL]:</strong> Want a custom Operative or Monster added? Submit your idea on the Hub's <a href="index.html" style="color:var(--hud-cyan);">Send Feedback</a> form!
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="tactical-btn amber" onclick="launchGame(true)">1. TRAINING DEPOT (TUTORIAL)</button>
+                <button class="tactical-btn primary" onclick="launchGame(false)">2. DEPLOY TO SECTOR 1 ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Co-Op Multiplayer Modal Drawer -->
+    <div id="coop-drawer" class="drawer-modal">
+        <div class="drawer-card">
+            <div class="drawer-head">
+                <strong style="font-family:'Space Grotesk',sans-serif; font-size:1.1rem;">📡 PEERJS SQUAD CO-OP LINK</strong>
+                <button class="tactical-btn" onclick="closeDrawer('coop-drawer')">✕</button>
+            </div>
+            <p style="font-size:0.82rem; color:var(--text-dim); line-height:1.5; margin-bottom:14px;">
+                Host a 4-digit frequency code so friends on school iPads can join your 3D sector in real time, or deploy solo alongside an autonomous Recon Wingman Drone.
+            </p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="tactical-btn primary" onclick="hostCoopSession()">HOST SQUAD CODE</button>
+                <input type="text" id="join-code-input" placeholder="CODE (e.g. X9K2)" maxlength="6" style="background:#06090f; border:1px solid #334155; color:#fff; font-family:'JetBrains Mono',monospace; padding:8px 12px; width:150px; text-transform:uppercase;">
+                <button class="tactical-btn" onclick="joinCoopSession()">JOIN SQUAD</button>
+            </div>
+            <div id="room-code-display" style="font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--hud-amber); margin-top:12px;"></div>
+        </div>
+    </div>
+
+    <!-- 12 Commendations / Achievements Modal Drawer -->
+    <div id="ach-drawer" class="drawer-modal">
+        <div class="drawer-card">
+            <div class="drawer-head">
+                <strong style="font-family:'Space Grotesk',sans-serif; font-size:1.1rem;">🎖️ SERVICE COMMENDATIONS (EARN COINS)</strong>
+                <button class="tactical-btn" onclick="closeDrawer('ach-drawer')">✕</button>
+            </div>
+            <div class="ach-list-grid" id="ach-grid"></div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         COMPACT IN-GAME HUD (Leaves Left/Right Corners Open for iPad Joysticks)
+         ===================================================================== -->
     <div id="tactical-hud">
-        <div class="hud-top-bar">
-            <div class="telemetry-box">
-                <div class="sector-tag" id="hud-sector-id">SECTOR 00 // TRAINING DEPOT</div>
-                <div class="objective-title" id="hud-obj-main">COMPLETE ACOUSTIC CALIBRATION</div>
-                <div class="sub-directive" id="hud-obj-sub">Keep noise below 55 dB around blind Lurkers</div>
-                <div style="margin-top:8px; display:flex; gap:8px;">
-                    <button class="tactical-btn amber" id="skip-tut-btn" onclick="skipToLiveSector()" style="display:none; padding:4px 8px; font-size:0.65rem;">SKIP TUTORIAL ➔</button>
-                    <button class="tactical-btn" onclick="toggleNvg()" style="padding:4px 8px; font-size:0.65rem;">NVG [N]</button>
+        <div class="hud-top-row">
+            <div class="compact-box">
+                <div class="c-tag" id="hud-sector-id">SECTOR 00 // TRAINING DEPOT</div>
+                <div class="c-obj" id="hud-obj-main">COMPLETE ACOUSTIC CALIBRATION</div>
+                <div class="c-sub" id="hud-obj-sub">Follow the 3D labels to test Pylons [F], Workbench [F] & Decoys [G]</div>
+                <div style="margin-top:6px; display:flex; gap:6px;">
+                    <button class="tactical-btn amber" id="skip-tut-btn" onclick="skipToLiveSector()" style="display:none; padding:4px 8px; font-size:0.62rem;">SKIP TO SECTOR 1 ➔</button>
+                    <button class="tactical-btn" onclick="toggleNvg()" style="padding:4px 8px; font-size:0.62rem;">NVG [N]</button>
                 </div>
             </div>
 
             <div id="boss-telemetry">
-                <div class="boss-header-row">
+                <div class="boss-top-line">
                     <span id="hud-boss-name">WRAITH-65</span>
                     <span id="hud-boss-pct">100%</span>
                 </div>
-                <div class="boss-hp-bar">
+                <div class="boss-hp-track">
                     <div id="boss-hp-fill"></div>
                 </div>
-                <div id="boss-status-line">ACOUSTIC SHIELD ACTIVE // USE DECOY [G] OR OBJECTIVE [F]</div>
+                <div id="boss-status-line">SHIELD ACTIVE // ACTIVATE GREEN PYLON [F] OR TOSS DECOY [G]</div>
             </div>
 
-            <div class="telemetry-box" style="text-align:right;">
-                <div class="sector-tag">ARCADE WALLET</div>
-                <div style="font-family:'JetBrains Mono',monospace; font-size:1rem; font-weight:800; color:var(--hud-amber); margin:2px 0;">
-                    <span id="hud-wallet-coins">0</span> COINS
-                </div>
-                <div style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--hud-green);" id="hud-coop-status">
-                    WINGMAN DRONE: ACTIVE
-                </div>
-                <a href="index.html" class="tactical-btn" style="margin-top:6px; padding:4px 8px; font-size:0.65rem;">ABORT TO HUB</a>
+            <div class="compact-box" style="text-align:right;">
+                <div class="c-tag">WALLET: <span id="hud-wallet-coins" style="color:var(--hud-amber);">0</span></div>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:var(--hud-green); margin:2px 0;" id="hud-coop-status">WINGMAN DRONE: ONLINE</div>
+                <a href="index.html" class="tactical-btn" style="padding:3px 7px; font-size:0.6rem; margin-top:3px;">⬅ HUB</a>
             </div>
         </div>
 
-        <div class="hud-bottom-bar">
-            <!-- Left: Wrist BFS Radar & Acoustic Decibel Meter -->
-            <div class="wrist-watch-panel">
-                <canvas id="bfs-radar-canvas" width="104" height="104"></canvas>
-                <div class="db-meter-col">
-                    <div class="sector-tag">ACOUSTIC SIGNATURE</div>
-                    <div class="db-readout">
-                        <span id="db-val-text">18 dB</span>
-                        <span id="stance-label" style="font-size:0.68rem; color:var(--hud-cyan);">STANDING</span>
-                    </div>
-                    <div class="db-bar-bg">
-                        <div id="db-bar-fill"></div>
-                        <div class="db-threshold-mark" title="55 dB Detection Limit"></div>
-                    </div>
-                    <div style="font-family:'JetBrains Mono',monospace; font-size:0.64rem; color:var(--text-dim);">
-                        LIMIT: 55 dB • CROUCH [C] • DECOY [G]
-                    </div>
+        <!-- Centered Bottom Telemetry Bar (Zero overlap with left/right iPad thumbpads!) -->
+        <div class="hud-bottom-center">
+            <canvas id="bfs-radar-canvas" width="72" height="72"></canvas>
+            <div class="center-vitals">
+                <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:var(--hud-cyan); margin-bottom:3px;">
+                    <span id="stance-label">STANDING</span>
+                    <span id="scraps-text" style="color:var(--hud-amber);">SCRAP: 60</span>
                 </div>
-            </div>
-
-            <!-- Right: Armor Plates, Health, Weapon Telemetry -->
-            <div class="vitals-panel">
-                <div class="sector-tag" style="display:flex; justify-content:space-between;">
-                    <span>BALLISTIC ARMOR PLATES</span>
-                    <span id="scraps-text" style="color:var(--hud-amber);">SCRAP: 50</span>
-                </div>
-                <div class="armor-plates-row">
+                <div class="armor-row">
                     <div class="armor-seg filled" id="plate-1"></div>
                     <div class="armor-seg filled" id="plate-2"></div>
                     <div class="armor-seg filled" id="plate-3"></div>
                 </div>
-                <div class="hp-track">
+                <div class="hp-bar-wrap">
                     <div id="hp-fill"></div>
                 </div>
-                <div class="ammo-row">
-                    <div>
-                        <div class="sector-tag" id="weapon-name-label">SUPPRESSED CARBINE MK.I</div>
-                        <div class="gadget-pills">
-                            <span class="g-pill ready" id="pill-ads">ADS [RMB/V]</span>
-                            <span class="g-pill ready" id="pill-decoy">DECOY [G]: 2</span>
-                            <span class="g-pill ready" id="pill-emp">GADGET [Q]</span>
-                        </div>
-                    </div>
-                    <div id="ammo-counter">30<span style="font-size:0.8rem; color:var(--text-dim);">/∞</span></div>
+                <div class="db-ammo-split">
+                    <span id="db-val-text" style="color:var(--hud-green); font-weight:800;">16 dB (QUIET)</span>
+                    <span id="ammo-counter" style="font-weight:800;">30/∞</span>
+                </div>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.58rem; color:var(--text-dim); margin-top:2px; display:flex; justify-content:space-between;">
+                    <span id="pill-decoy">DECOY [G]: 3</span>
+                    <span id="pill-emp">GADGET [Q]: READY</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Mobile / iPad Dual Thumbpads -->
+    <!-- Mobile / iPad Ergonomic Controls -->
     <div id="mobile-controls">
         <div class="touch-pad" id="pad-move"><div class="pad-nub" id="nub-move"></div></div>
         <div class="touch-pad" id="pad-look"><div class="pad-nub" id="nub-look"></div></div>
@@ -831,79 +774,17 @@
         </div>
     </div>
 
-    <!-- Pre-Game Tactical Briefing & Loadout Screen -->
-    <div id="briefing-screen">
-        <div class="terminal-shell">
-            <div class="term-header">
-                <div>
-                    <div class="term-sub">CLASSIFIED EXPEDITION // ELLA_DES QUARANTINE ZONE</div>
-                    <div class="term-title">BLACKOUT: ECHO PROTOCOL</div>
-                </div>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <div class="tactical-btn amber">WALLET: <span id="menu-coins">0</span> COINS</div>
-                    <a href="index.html" class="tactical-btn">⬅ RETURN TO HUB</a>
-                </div>
-            </div>
-
-            <div class="operative-grid" id="operative-select-grid"></div>
-
-            <div class="mid-panels">
-                <!-- Co-Op Frequency Sync -->
-                <div class="term-box">
-                    <div class="box-label">
-                        <span>MULTIPLAYER SQUAD LINK (PEERJS WEBRTC)</span>
-                        <span id="net-status" style="color:var(--hud-green);">READY</span>
-                    </div>
-                    <p style="font-size:0.76rem; color:#94a3b8; line-height:1.4;">
-                        Host a 4-digit frequency code so friends on school iPads can join your 3D sector, or deploy solo with an AI Wingman Drone.
-                    </p>
-                    <div class="coop-controls">
-                        <button class="tactical-btn" onclick="hostCoopSession()">HOST SQUAD CODE</button>
-                        <input type="text" id="join-code-input" class="tactical-input" placeholder="CODE (e.g. X9K2)" maxlength="6">
-                        <button class="tactical-btn" onclick="joinCoopSession()">JOIN SQUAD</button>
-                    </div>
-                    <div id="room-code-display" style="font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--hud-amber); margin-top:8px;"></div>
-                </div>
-
-                <!-- 12 Achievements & Coin Bounties -->
-                <div class="term-box">
-                    <div class="box-label">
-                        <span>SERVICE COMMENDATIONS (EARN ARCADE COINS)</span>
-                        <span id="ach-count-label">0 / 12 UNLOCKED</span>
-                    </div>
-                    <div class="ach-scroll" id="ach-grid"></div>
-                </div>
-            </div>
-
-            <div class="deploy-bar">
-                <div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:#cbd5e1;">
-                    <strong>CONTROLS:</strong> [WASD] Move • [MOUSE / TOUCH] Look & Aim • [CLICK] Fire • [RMB / V] ADS Zoom • [C] Crouch (Silent) • [G] Sonic Decoy • [F] Objectives & Train Workbench
-                </div>
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button class="tactical-btn amber" onclick="launchGame(true)">1. RUN TUTORIAL (ZERO DECIBEL)</button>
-                    <button class="tactical-btn primary" onclick="launchGame(false)">2. SKIP TO LIVE SECTOR 1 ➔</button>
-                </div>
-            </div>
-
-            <!-- Student Feedback Tip Banner -->
-            <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.35); padding:9px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; font-family:'JetBrains Mono',monospace; font-size:0.72rem;">
-                <span><strong style="color:var(--hud-green);">[FIELD INTEL]:</strong> Want your own custom Operative or Monster added to Blackout: Echo Protocol? Submit your build on the Hub's <strong>Send Feedback</strong> form!</span>
-                <a href="index.html" style="color:var(--hud-green); text-decoration:underline;">OPEN HUB FORM ➔</a>
-            </div>
-        </div>
-    </div>
-
     <!-- End Mission Debrief Modal -->
-    <div id="debrief-modal">
-        <div class="debrief-card">
-            <div class="term-sub" id="debrief-sub">OPERATION DEBRIEF</div>
-            <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; margin:4px 0 10px 0;" id="debrief-title">EXTRACTION SUCCESSFUL</h2>
-            <p id="debrief-desc" style="font-size:0.85rem; color:#94a3b8; line-height:1.5; margin-bottom:16px;"></p>
+    <div id="debrief-modal" class="drawer-modal">
+        <div class="drawer-card" style="text-align:center;">
+            <div class="brand-tag" id="debrief-sub">OPERATION DEBRIEF</div>
+            <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; margin:6px 0 10px 0;" id="debrief-title">EXTRACTION COMPLETE</h2>
+            <p id="debrief-desc" style="font-size:0.84rem; color:var(--text-dim); line-height:1.5; margin-bottom:16px;"></p>
             <div style="background:#060911; border:1px solid var(--border-line); padding:14px; font-family:'JetBrains Mono',monospace; margin-bottom:18px;">
-                <div style="font-size:0.7rem; color:var(--text-dim);">TOTAL BOUNTY TRANSFERRED TO HUB WALLET</div>
+                <div style="font-size:0.68rem; color:var(--text-dim);">TOTAL BOUNTY TRANSFERRED TO HUB WALLET</div>
                 <div style="font-size:1.3rem; font-weight:800; color:var(--hud-amber); margin-top:4px;" id="debrief-coins">+0 COINS</div>
             </div>
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <div style="display:flex; gap:10px; justify-content:center;">
                 <button class="tactical-btn" onclick="location.reload()">REDEPLOY</button>
                 <a href="index.html" class="tactical-btn primary">RETURN TO ARCADE HUB</a>
             </div>
@@ -912,63 +793,71 @@
 
     <script>
         // =========================================================================
-        // 1. OPERATIVE CLASSES, ACHIEVEMENTS & SECTOR DEFINITIONS
+        // 1. PURE CLASSIFIED CALLSIGNS (Zero Real Names Shown!)
         // =========================================================================
         const OPERATIVES = {
             architect: {
                 id: 'architect',
                 callsign: 'ARCHITECT-01',
-                realname: 'Shivnand // Electronic Warfare',
+                specialty: 'Electronic Warfare // Infiltrator',
                 weapon: 'Suppressed Burst Carbine',
-                fireRate: 140,
-                dmg: 26,
+                fireRate: 135,
+                dmg: 28,
                 magSize: 30,
                 noiseMod: 0.75,
-                speed: 0.16,
+                speed: 0.17,
                 color: 0x38bdf8,
-                passive: 'Dead Zone: 25% quieter footsteps & clear hazard HUD.',
+                armorColor: 0x1e293b,
+                visorColor: 0x38bdf8,
+                passive: 'Dead Zone: 25% quieter footsteps & clear hazard telemetry.',
                 gadgetName: 'Acoustic EMP (6s Silence & Boss Stun)'
             },
             sovereign: {
                 id: 'sovereign',
                 callsign: 'SOVEREIGN',
-                realname: 'Can Ming // Recon & Bounty',
+                specialty: 'High-Value Recon // Bounty Specialist',
                 weapon: 'Twin High-RPM PDWs',
                 fireRate: 95,
-                dmg: 20,
+                dmg: 22,
                 magSize: 40,
-                noiseMod: 0.9,
-                speed: 0.18,
+                noiseMod: 0.85,
+                speed: 0.19,
                 color: 0xf59e0b,
-                passive: 'Bounty Scavenger: 2.5x Coin & Scrap drops on all hits!',
-                gadgetName: 'Sonar Pulse (Reveals True Boss Weakpoint)'
+                armorColor: 0x27272a,
+                visorColor: 0xfacc15,
+                passive: 'Bounty Scavenger: 2.5x Coin & Scrap yield from all targets.',
+                gadgetName: 'Sonar Pulse (Exposes Boss Weakpoint & Stuns)'
             },
             vanguard: {
                 id: 'vanguard',
                 callsign: 'VANGUARD-7',
-                realname: 'Endra // Heavy Pointman',
+                specialty: 'Heavy Pointman // Ballistic Breacher',
                 weapon: 'Tactical Flechette Shotgun',
-                fireRate: 340,
-                dmg: 62,
+                fireRate: 310,
+                dmg: 65,
                 magSize: 12,
-                noiseMod: 1.0,
-                speed: 0.15,
+                noiseMod: 0.95,
+                speed: 0.16,
                 color: 0xf43f5e,
-                passive: 'Ballistic Plating: Rapid Armor regeneration & high stagger.',
+                armorColor: 0x3f1d28,
+                visorColor: 0xf43f5e,
+                passive: 'Ballistic Plating: Rapid Armor regeneration & heavy stagger.',
                 gadgetName: 'Kinetic Thumper (Draws All Monsters Away)'
             },
             broker: {
                 id: 'broker',
                 callsign: 'BROKER',
-                realname: 'WengLe // Silent Trapper',
+                specialty: 'Ghost Assassin // Acoustic Trapper',
                 weapon: 'Magnetic Rail-Crossbow',
-                fireRate: 240,
-                dmg: 48,
+                fireRate: 220,
+                dmg: 52,
                 magSize: 15,
                 noiseMod: 0.5,
-                speed: 0.17,
+                speed: 0.18,
                 color: 0x10b981,
-                passive: 'Zero-Footprint: Crouching generates 0 dB & heals Armor.',
+                armorColor: 0x062e22,
+                visorColor: 0x34d399,
+                passive: 'Zero-Footprint: Crouching generates 0 dB & restores Armor.',
                 gadgetName: 'Tesla Snare (Shocks & Exposes Boss Core)'
             }
         };
@@ -983,8 +872,8 @@
             { id: 'eidolon_clear', name: 'Mirror Shattered', desc: 'Defeat Sector 2 Boss: EIDOLON', reward: 20000 },
             { id: 'ironbound_clear', name: 'Line Derailed', desc: 'Short-circuit & defeat Sector 3: IRONBOUND', reward: 35000 },
             { id: 'malakor_clear', name: 'The 100th Dawn', desc: 'Incinerate MALAKOR & board the Express Train', reward: 250000 },
-            { id: 'power_engineer', name: 'Grid Restored', desc: 'Activate 3 Field Generators or Track Switches', reward: 7500 },
-            { id: 'squad_link', name: 'Echo Squad', desc: 'Host a Co-Op Room or fight alongside Wingman Drone', reward: 5000 },
+            { id: 'power_engineer', name: 'Grid Restored', desc: 'Activate 3 Field Pylons or Track Switches', reward: 7500 },
+            { id: 'squad_link', name: 'Echo Squad', desc: 'Deploy with Wingman Drone or Co-Op Squad', reward: 5000 },
             { id: 'master_protocol', name: 'Apex Veteran', desc: 'Unlock 6 Commendations in Blackout Protocol', reward: 25000 }
         ];
 
@@ -993,63 +882,63 @@
                 id: 'tutorial',
                 code: 'SECTOR 00 // SUBTERRANEAN DEPOT',
                 title: 'OPERATION: ZERO DECIBEL (TUTORIAL)',
-                directive: 'Crouch [C] past the blind Lurker, upgrade at Workbench [F], or Toss Decoy [G]',
-                fogColor: 0x060b12,
-                floorColor: 0x111722,
+                directive: 'Follow the 3D labels: Activate Pylon [F], Upgrade at Workbench [F], & Destroy Drone!',
+                fogColor: 0x0b1528,
+                floorColor: 0x162238,
                 bossName: 'CALIBRATION DRONE MK-IV',
                 bossHp: 220,
                 bossColor: 0x38bdf8,
                 reward: 2500,
                 cutscene: [
-                    { speaker: 'COMMAND // ARCHITECT-01', text: 'Visor online. Welcome to Operation: Zero Decibel. Every action you take generates sound waves on your wrist meter.' },
-                    { speaker: 'COMMAND // ARCHITECT-01', text: 'Stay below 55 dB to remain invisible to blind Lurkers. Press [C] to crouch, [G] to toss a Sonic Decoy, or hit [SKIP TUTORIAL] anytime.' }
+                    { speaker: 'COMMAND // OVERWATCH', text: 'Visor telemetry online. Every object in your 3D view is tagged with a tactical waypoint so you can identify Pylons, Workbenches, Lurkers, and Bosses immediately.' },
+                    { speaker: 'COMMAND // OVERWATCH', text: 'Keep your acoustic meter under 55 dB. Press [G] to toss a Sonic Decoy, or walk to a Green Pylon and press [F] to shatter enemy shields.' }
                 ]
             },
             {
                 id: 'sector1',
                 code: 'SECTOR 01 // OVERGROWN WATCHTOWER PINES',
-                title: 'ELIMINATE WRAITH-65 (CORRUPTED KAI JIE)',
-                directive: 'Stay under 55 dB! Throw Decoy [G] or activate Generator [F] to expose his coolant core!',
-                fogColor: 0x040d0a,
-                floorColor: 0x0b1912,
+                title: 'ELIMINATE WRAITH-65 (CYBER MARKSMAN)',
+                directive: 'Use Pine Trees for cover! Toss Decoy [G] or overload Green Pylons [F] to drop his shield!',
+                fogColor: 0x081c15,
+                floorColor: 0x0f291e,
                 bossName: 'WRAITH-65 // THE CYBER MARKSMAN',
                 bossHp: 650,
                 bossColor: 0x38bdf8,
                 reward: 10000,
                 cutscene: [
-                    { speaker: 'SOVEREIGN // RADIO COMMS', text: 'Train Express halted at Sector 1 perimeter. High-frequency white transceiver detected in the pine canopy—it’s Wraith-65.' },
-                    { speaker: 'WRAITH-65 [INTERCEPTED]', text: 'Acoustic lock calibrated at 65 decibels. Make a single loud footstep in my forest and my railgun zeroes your visor.' }
+                    { speaker: 'SOVEREIGN // SQUAD COMMS', text: 'Express Train halted at Sector 1 perimeter. Optical transceiver detected in the pine watchtowers ahead—it’s Wraith-65.' },
+                    { speaker: 'WRAITH-65 [INTERCEPTED]', text: 'Acoustic lock calibrated at 55 decibels. Step on a single dry branch without cover and my railgun zeroes your visor.' }
                 ]
             },
             {
                 id: 'sector2',
                 code: 'SECTOR 02 // FLOODED SERVER BUNKER',
-                title: 'PURGE EIDOLON (CORRUPTED RITVIK)',
-                directive: 'Watch your BFS Radar for real water ripples! Activate EMP Terminal [F] to clear illusions!',
-                fogColor: 0x090514,
-                floorColor: 0x0f0a20,
+                title: 'PURGE EIDOLON (THE FLOOD PHANTOM)',
+                directive: 'Overload EMP Pylons [F] or use Gadget [Q] to expose Eidolon’s core in the flooded vault!',
+                fogColor: 0x130b29,
+                floorColor: 0x1b1138,
                 bossName: 'EIDOLON // THE FLOOD PHANTOM',
                 bossHp: 850,
                 bossColor: 0xa855f7,
                 reward: 20000,
                 cutscene: [
-                    { speaker: 'ARCHITECT-01 // RADIO COMMS', text: 'We are knee-deep in cooling water. Walking fast spikes your noise to 65 dB—use crouch or short bursts.' },
-                    { speaker: 'EIDOLON [INTERCEPTED]', text: 'Three reflections in the dark water... Pull the trigger on the wrong shadow and your own radar will blind you.' }
+                    { speaker: 'ARCHITECT-01 // SQUAD COMMS', text: 'We are inside the flooded server vault. Moving fast splashes water—use Crouch [C] or overload the EMP Pylons.' },
+                    { speaker: 'EIDOLON [INTERCEPTED]', text: 'Shadows ripple across the cooling water... Can your radar distinguish the real phantom from the echo?' }
                 ]
             },
             {
                 id: 'sector3',
                 code: 'SECTOR 03 // FOGGY VIADUCT HIGHWAY',
-                title: 'DERAIL IRONBOUND (CORRUPTED DARRYL)',
-                directive: 'Frontal armor is bulletproof! Flip High-Voltage Rail Switches [F] or toss Decoy [G] to stun him!',
-                fogColor: 0x120905,
-                floorColor: 0x1c120d,
-                bossName: 'IRONBOUND // ARMORED CONVOY JUGGERNAUT',
+                title: 'DERAIL IRONBOUND (ARMORED CONVOY)',
+                directive: 'Frontal bus grille is armored! Overload High-Voltage Pylons [F] or toss Decoy [G] to stun him!',
+                fogColor: 0x24130b,
+                floorColor: 0x2e1a10,
+                bossName: 'IRONBOUND // CONVOY JUGGERNAUT',
                 bossHp: 1050,
                 bossColor: 0xf97316,
                 reward: 35000,
                 cutscene: [
-                    { speaker: 'VANGUARD-7 // RADIO COMMS', text: 'Look at the high-beams cutting through the viaduct fog... Darryl’s rig is fused with an entire double-decker chassis.' },
+                    { speaker: 'VANGUARD-7 // SQUAD COMMS', text: 'Twin high-beams cutting through the viaduct fog... Ironbound is fused with an entire double-decker transit chassis.' },
                     { speaker: 'IRONBOUND [PA SYSTEM]', text: 'NEXT STOP: TERMINAL OBLIVION! CLEAR THE EXPRESS LANE OR BE CRUSHED UNDER 40 TONS OF STEEL!' }
                 ]
             },
@@ -1057,22 +946,22 @@
                 id: 'sector4',
                 code: 'SECTOR 04 // SUB-CORE REACTOR',
                 title: 'INCINERATE MALAKOR, THE 100TH NIGHT',
-                directive: 'Ignite UV Reactor Pillars [F] to burn Malakor’s obsidian armor, then board the Express Train!',
-                fogColor: 0x140408,
-                floorColor: 0x1f080e,
+                directive: 'Trigger UV Reactor Pylons [F] to burn Malakor’s obsidian armor, then board the Express Train!',
+                fogColor: 0x260912,
+                floorColor: 0x330d18,
                 bossName: 'MALAKOR // THE 100TH NIGHT OVERLORD',
                 bossHp: 1400,
                 bossColor: 0xf43f5e,
                 reward: 250000,
                 cutscene: [
-                    { speaker: 'BROKER // RADIO COMMS', text: 'All facility lights just shattered. The obsidian signature ahead is off the decibel chart—Malakor is in the reactor core.' },
+                    { speaker: 'BROKER // SQUAD COMMS', text: 'Reactor containment breached. The obsidian signature ahead is off the decibel chart—Malakor is in the core.' },
                     { speaker: 'MALAKOR [RESONANCE]', text: 'NINETY-NINE NIGHTS YOU HID IN THE LIGHT. ON THE HUNDREDTH NIGHT, I HEAR EVERY HEARTBEAT.' }
                 ]
             }
         ];
 
         // =========================================================================
-        // 2. WALLET & ACHIEVEMENT PERSISTENCE ENGINE
+        // 2. WALLET, ACHIEVEMENTS & CLEAN MENU UI
         // =========================================================================
         let selectedOpKey = 'architect';
         let sessionCoinsEarned = 0;
@@ -1106,49 +995,65 @@
             const payout = addCoins(ach.reward);
             playSynthSfx('achievement');
 
-            // Show toast ribbon
             const toast = document.getElementById('ach-toast');
             document.getElementById('ach-toast-name').innerText = ach.name.toUpperCase();
             document.getElementById('ach-toast-coins').innerText = `+${payout.toLocaleString()} COINS BANKED`;
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3600);
+            setTimeout(() => toast.classList.remove('show'), 3500);
 
             renderBriefingUI();
-
             if (unlocked.length >= 6 && !unlocked.includes('master_protocol')) {
                 setTimeout(() => unlockAchievement('master_protocol'), 1200);
             }
         }
 
+        function openDrawer(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeDrawer(id) { document.getElementById(id).style.display = 'none'; }
+
         function renderBriefingUI() {
             document.getElementById('menu-coins').innerText = getWalletCoins().toLocaleString();
-            const opGrid = document.getElementById('operative-select-grid');
-            opGrid.innerHTML = Object.values(OPERATIVES).map(op => `
-                <div class="op-card ${op.id === selectedOpKey ? 'selected' : ''}" onclick="selectOperative('${op.id}')">
-                    <div>
-                        <div class="op-callsign">${op.callsign}</div>
-                        <div class="op-realname">${op.realname}</div>
-                        <div class="op-stats">
-                            <div><span class="stat-tag">PRIMARY</span> ${op.weapon}</div>
-                            <div><span class="stat-tag">TRAIT</span> ${op.passive}</div>
-                            <div><span class="stat-tag">GADGET [Q]</span> ${op.gadgetName}</div>
-                        </div>
-                    </div>
-                    <div style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--hud-cyan); border-top:1px solid #1e293b; padding-top:6px; margin-top:6px; display:flex; justify-content:space-between;">
-                        <span>DMG: ${op.dmg}</span>
-                        <span>NOISE: ${Math.round(op.noiseMod * 100)}%</span>
-                    </div>
-                </div>
+
+            // Left Operative Tabs (Pure Callsigns)
+            document.getElementById('op-tab-list').innerHTML = Object.values(OPERATIVES).map(op => `
+                <button class="op-tab-btn ${op.id === selectedOpKey ? 'active' : ''}" onclick="selectOperative('${op.id}')">
+                    <div class="op-tab-callsign">${op.callsign}</div>
+                    <div class="op-tab-role">${op.specialty}</div>
+                </button>
             `).join('');
 
+            // Right Focused Loadout Panel
+            const activeOp = OPERATIVES[selectedOpKey];
+            document.getElementById('preview-model-label').innerText = `3D ARTICULATED RIG // ${activeOp.callsign}`;
+            document.getElementById('op-detail-panel').innerHTML = `
+                <div style="font-family:'Space Grotesk',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:2px;">${activeOp.callsign}</div>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--hud-cyan); margin-bottom:14px;">${activeOp.specialty}</div>
+                <div class="detail-row">
+                    <div class="detail-label">PRIMARY WEAPON</div>
+                    <div class="detail-val">${activeOp.weapon}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">ACOUSTIC PASSIVE</div>
+                    <div class="detail-val">${activeOp.passive}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">TACTICAL GADGET [Q]</div>
+                    <div class="detail-val">${activeOp.gadgetName}</div>
+                </div>
+                <div class="stat-bars">
+                    <span>BASE DMG: ${activeOp.dmg}</span>
+                    <span>NOISE PROFILE: ${Math.round(activeOp.noiseMod * 100)}%</span>
+                </div>
+            `;
+
+            // Commendations Drawer
             const unlocked = getUnlockedAchievements();
-            document.getElementById('ach-count-label').innerText = `${unlocked.length} / ${ACHIEVEMENTS.length} UNLOCKED`;
+            document.getElementById('ach-count-label').innerText = `${unlocked.length}/12`;
             document.getElementById('ach-grid').innerHTML = ACHIEVEMENTS.map(a => {
                 const done = unlocked.includes(a.id);
                 return `
-                    <div class="ach-chip ${done ? 'unlocked' : ''}">
-                        <div style="font-weight:800; color:${done ? 'var(--hud-green)' : '#e2e8f0'};">${done ? '[✓] ' : ''}${a.name}</div>
-                        <div style="color:#64748b; font-size:0.6rem; margin:2px 0;">${a.desc}</div>
+                    <div class="ach-item ${done ? 'done' : ''}">
+                        <div style="font-weight:800; color:${done ? 'var(--hud-green)' : '#f8fafc'};">${done ? '✓ ' : ''}${a.name}</div>
+                        <div style="color:var(--text-dim); font-size:0.64rem; margin:3px 0;">${a.desc}</div>
                         <div style="color:var(--hud-amber);">+${a.reward.toLocaleString()} COINS</div>
                     </div>
                 `;
@@ -1158,11 +1063,12 @@
         function selectOperative(id) {
             selectedOpKey = id;
             renderBriefingUI();
+            updateMenuShowcaseModel();
             playSynthSfx('click');
         }
 
         // =========================================================================
-        // 3. WEB AUDIO PROCEDURAL SOUND & RADIO SYNTHESIZER
+        // 3. PROCEDURAL SOUND SYNTHESIZER
         // =========================================================================
         let audioCtx = null;
         function playSynthSfx(type) {
@@ -1177,8 +1083,8 @@
 
                 if (type === 'shoot_supp') {
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(240, t);
-                    osc.frequency.exponentialRampToValueAtTime(55, t + 0.065);
+                    osc.frequency.setValueAtTime(250, t);
+                    osc.frequency.exponentialRampToValueAtTime(58, t + 0.065);
                     gain.gain.setValueAtTime(0.18, t);
                     gain.gain.linearRampToValueAtTime(0.01, t + 0.065);
                     osc.start(t); osc.stop(t + 0.065);
@@ -1223,7 +1129,7 @@
         }
 
         // =========================================================================
-        // 4. PEERJS MULTIPLAYER CO-OP ENGINE
+        // 4. PEERJS MULTIPLAYER CO-OP LINK
         // =========================================================================
         let peer = null;
         let netConn = null;
@@ -1232,23 +1138,20 @@
         function hostCoopSession() {
             const code = Math.random().toString(36).substring(2, 6).toUpperCase();
             const fullId = `blackout-echo-${code}`;
-            document.getElementById('net-status').innerText = 'INITIALIZING...';
+            document.getElementById('room-code-display').innerText = 'INITIALIZING FREQUENCY...';
             try {
                 peer = new Peer(fullId);
                 peer.on('open', () => {
-                    document.getElementById('net-status').innerText = 'HOSTING LIVE';
-                    document.getElementById('room-code-display').innerText = `SQUAD FREQUENCY CODE: [ ${code} ] — Share with teammates!`;
+                    document.getElementById('room-code-display').innerText = `SQUAD CODE: [ ${code} ] — Share with teammates!`;
                     unlockAchievement('squad_link');
                 });
                 peer.on('connection', conn => {
                     netConn = conn;
                     setupNetHandlers();
                     document.getElementById('room-code-display').innerText = `SQUAD CONNECTED // CO-OP LINK ACTIVE!`;
-                    document.getElementById('hud-coop-status').innerText = 'CO-OP OPERATIVE: LINKED';
+                    document.getElementById('hud-coop-status').innerText = 'CO-OP SQUAD: LINKED';
                 });
-            } catch (e) {
-                document.getElementById('net-status').innerText = 'LOCAL AI MODE';
-            }
+            } catch (e) {}
         }
 
         function joinCoopSession() {
@@ -1260,7 +1163,7 @@
                     netConn = peer.connect(`blackout-echo-${raw}`);
                     setupNetHandlers();
                     document.getElementById('room-code-display').innerText = `LINKED TO SQUAD [ ${raw} ]!`;
-                    document.getElementById('hud-coop-status').innerText = 'CO-OP OPERATIVE: LINKED';
+                    document.getElementById('hud-coop-status').innerText = 'CO-OP SQUAD: LINKED';
                     unlockAchievement('squad_link');
                 });
             } catch (e) {}
@@ -1279,17 +1182,19 @@
         }
 
         // =========================================================================
-        // 5. THREE.JS 3D WORLD, WEAPON VIEWMODEL, MONSTERS & BOSSES
+        // 5. HIGH-VISIBILITY 3D CHARACTER, MONSTER & PROP BUILDERS (Fixes IMG_2182.jpg)
         // =========================================================================
         let scene, camera, renderer;
+        let menuShowcaseGroup = null;
         let weaponGroup, muzzleLight, flashlight;
         let wingmanMesh, partnerMesh;
-        let envObjects = [];     // 3D Trees, Pillars, Rusted Cars
-        let interactables = [];  // Generators, Workbenches, Track Switches, Express Train
-        let lurkers = [];        // Blind 3D Decibel Crawlers
-        let decoys = [];         // Thrown Acoustic Flare Decoys
-        let projectiles = [];    // Boss & Player 3D tracers
+        let envObjects = [];
+        let interactables = [];
+        let lurkers = [];
+        let decoys = [];
+        let projectiles = [];
         let bossEntity = null;
+        let trackedLabels = []; // 3D -> 2D Screen-Space Waypoint Labels!
 
         let gameRunning = false;
         let inCutscene = false;
@@ -1297,6 +1202,330 @@
         let extractionPhase = false;
         let extractionTimer = 60;
 
+        // Build Detailed Articulated 3D Operative Model (Used in Menu Showcase & Co-Op Partner!)
+        function build3DOperativeModel(op) {
+            const group = new THREE.Group();
+            const armorMat = new THREE.MeshStandardMaterial({ color: op.armorColor, roughness: 0.4, metalness: 0.6 });
+            const trimMat = new THREE.MeshBasicMaterial({ color: op.color });
+            const visorMat = new THREE.MeshBasicMaterial({ color: op.visorColor });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.7 });
+
+            // Boots & Articulated Legs
+            [-0.22, 0.22].forEach(lx => {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.85, 0.3), darkMat);
+                leg.position.set(lx, 0.42, 0);
+                group.add(leg);
+                const kneePad = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.18, 0.34), trimMat);
+                kneePad.position.set(lx, 0.45, 0.02);
+                group.add(kneePad);
+            });
+
+            // Tactical Chest Rig & Pouch Vest
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.82, 1.05, 0.48), armorMat);
+            torso.position.y = 1.35;
+            group.add(torso);
+
+            const chestCore = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, 0.52), trimMat);
+            chestCore.position.y = 1.45;
+            group.add(chestCore);
+
+            // Shoulders & Arms holding Rifle
+            [-0.54, 0.54].forEach(ax => {
+                const shoulder = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.32, 0.36), trimMat);
+                shoulder.position.set(ax, 1.72, 0);
+                group.add(shoulder);
+                const arm = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.75, 0.24), armorMat);
+                arm.position.set(ax, 1.32, 0.15);
+                arm.rotation.x = -0.5;
+                group.add(arm);
+            });
+
+            // Ballistic Helmet & Quad NVG / Visor
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.52, 0.54), armorMat);
+            head.position.y = 2.18;
+            group.add(head);
+
+            const visor = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.18, 0.58), visorMat);
+            visor.position.set(0, 2.2, 0.02);
+            group.add(visor);
+
+            // 3D Rifle in Hands
+            const gun = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.2, 1.1), darkMat);
+            gun.position.set(0.22, 1.25, 0.55);
+            group.add(gun);
+
+            return group;
+        }
+
+        // Build Recognizable 6-Legged Biomechanical Lurker (Not a box!)
+        function create3DLurkerMesh() {
+            const g = new THREE.Group();
+            const chitinMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.7 });
+            const glowRed = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
+
+            // Segmented Spine Body
+            const abdomen = new THREE.Mesh(new THREE.SphereGeometry(0.55, 12, 12), chitinMat);
+            abdomen.scale.set(1, 0.7, 1.5);
+            abdomen.position.y = 0.65;
+            g.add(abdomen);
+
+            // Glowing Acoustic Radar Dish Head
+            const dish = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.12, 0.4, 12), glowRed);
+            dish.rotation.x = Math.PI / 2;
+            dish.position.set(0, 0.75, 0.85);
+            g.add(dish);
+
+            // 6 Articulated Spider-Claw Legs
+            [-1, 1].forEach(side => {
+                [-0.45, 0, 0.45].forEach(zOff => {
+                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.12, 0.12), chitinMat);
+                    leg.position.set(side * 0.65, 0.45, zOff);
+                    leg.rotation.z = -side * 0.55;
+                    g.add(leg);
+                });
+            });
+
+            return g;
+        }
+
+        // Build Recognizable Rotating Turbine Pylon (Replaces the plain green cube in IMG_2182.jpg!)
+        function create3DPylonMesh() {
+            const g = new THREE.Group();
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
+            const plasmaMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+
+            const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.1, 0.6, 12), baseMat);
+            pedestal.position.y = 0.3;
+            g.add(pedestal);
+
+            const coreColumn = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 2.8, 12), plasmaMat);
+            coreColumn.position.y = 1.7;
+            g.add(coreColumn);
+
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.08, 8, 24), plasmaMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 1.8;
+            ring.name = 'spinner';
+            g.add(ring);
+
+            const beaconLight = new THREE.PointLight(0x10b981, 1.4, 14);
+            beaconLight.position.y = 2.8;
+            g.add(beaconLight);
+
+            return g;
+        }
+
+        // Build Recognizable 3D Pine Tree / Watchtower / Cover Barricade (Replaces grey rectangles in IMG_2182.jpg!)
+        function create3DCoverProp(secId, x, z) {
+            const g = new THREE.Group();
+            if (secId === 'sector1') {
+                // Multi-Tiered 3D Pine Tree with Wooden Trunk
+                const trunk = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.35, 0.5, 2.4, 8),
+                    new THREE.MeshStandardMaterial({ color: 0x451a03 })
+                );
+                trunk.position.y = 1.2;
+                g.add(trunk);
+
+                const leavesMat = new THREE.MeshStandardMaterial({ color: 0x064e3b, roughness: 0.8 });
+                [2.6, 4.2, 5.6].forEach((yPos, idx) => {
+                    const cone = new THREE.Mesh(new THREE.ConeGeometry(2.1 - idx * 0.45, 2.5, 8), leavesMat);
+                    cone.position.y = yPos;
+                    g.add(cone);
+                });
+            } else {
+                // Armored Tactical Barricade with Glowing Cyan Corner Strips
+                const wallMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.7 });
+                const stripeMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+
+                const block = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.2, 1.2), wallMat);
+                block.position.y = 1.6;
+                g.add(block);
+
+                const topCap = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.2, 1.3), stripeMat);
+                topCap.position.y = 3.2;
+                g.add(topCap);
+            }
+            g.position.set(x, 0, z);
+            return g;
+        }
+
+        // =========================================================================
+        // 6. INITIALIZE 3D ENGINE & MENU SHOWCASE
+        // =========================================================================
+        function initThreeEngine() {
+            const container = document.getElementById('webgl-container');
+            container.innerHTML = '';
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x070d19);
+            scene.fog = new THREE.FogExp2(0x070d19, 0.015);
+
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 180);
+            camera.rotation.order = 'YXZ';
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // Brighter Tactical Lighting so every 3D shape is crisp and readable!
+            const hemiLight = new THREE.HemisphereLight(0x88bbff, 0x1e293b, 1.25);
+            scene.add(hemiLight);
+
+            const dirLight = new THREE.DirectionalLight(0xcbd5e1, 1.1);
+            dirLight.position.set(25, 45, 25);
+            scene.add(dirLight);
+
+            flashlight = new THREE.SpotLight(0xf8fafc, 2.6, 65, Math.PI / 4, 0.35, 1.0);
+            flashlight.position.set(0, 0, 0);
+            flashlight.target.position.set(0, 0, -10);
+            camera.add(flashlight);
+            camera.add(flashlight.target);
+
+            scene.add(camera);
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        function updateMenuShowcaseModel() {
+            if (!scene || gameRunning) return;
+            if (menuShowcaseGroup) scene.remove(menuShowcaseGroup);
+
+            const op = OPERATIVES[selectedOpKey];
+            menuShowcaseGroup = build3DOperativeModel(op);
+            menuShowcaseGroup.position.set(0, -1.1, -3.4);
+            scene.add(menuShowcaseGroup);
+            camera.position.set(0, 0.2, 0);
+            camera.rotation.set(0, 0, 0);
+        }
+
+        function build3DWeaponViewmodel() {
+            if (weaponGroup) camera.remove(weaponGroup);
+            weaponGroup = new THREE.Group();
+            const op = OPERATIVES[selectedOpKey];
+
+            const gunMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35, metalness: 0.8 });
+            const accentMat = new THREE.MeshBasicMaterial({ color: op.color });
+            const gloveMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.7 });
+
+            // Receiver & Barrel
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.14, 0.56), gunMat);
+            weaponGroup.add(body);
+
+            const supp = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.38, 12), gunMat);
+            supp.rotation.x = Math.PI / 2;
+            supp.position.set(0, 0.02, -0.42);
+            weaponGroup.add(supp);
+
+            // Reflex Sight + Glowing Cyan Cross
+            const sight = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.07, 0.09), gunMat);
+            sight.position.set(0, 0.1, -0.05);
+            weaponGroup.add(sight);
+
+            const strip = new THREE.Mesh(new THREE.BoxGeometry(0.106, 0.02, 0.4), accentMat);
+            strip.position.set(0, 0.03, -0.08);
+            weaponGroup.add(strip);
+
+            // 3D Gloved Foregrip Hand
+            const hand = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.1, 0.18), gloveMat);
+            hand.position.set(0, -0.06, -0.22);
+            weaponGroup.add(hand);
+
+            muzzleLight = new THREE.PointLight(op.color, 0, 10);
+            muzzleLight.position.set(0, 0.02, -0.65);
+            weaponGroup.add(muzzleLight);
+
+            weaponGroup.position.set(0.24, -0.22, -0.45);
+            camera.add(weaponGroup);
+        }
+
+        function create3DBossMesh(sector) {
+            const group = new THREE.Group();
+            const mainMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3, metalness: 0.7 });
+            const glowMat = new THREE.MeshBasicMaterial({ color: sector.bossColor });
+            const weakMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
+
+            // Legs
+            [-0.55, 0.55].forEach(lx => {
+                const leg = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.6, 0.6), mainMat);
+                leg.position.set(lx, 0.8, 0);
+                group.add(leg);
+            });
+
+            // Armored Torso
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.2, 1.2), mainMat);
+            torso.position.y = 2.6;
+            group.add(torso);
+
+            // Glowing Cyan Weak-Point Core on Chest
+            const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.6, 1), weakMat);
+            core.position.set(0, 2.7, 0.68);
+            core.name = 'weakpoint';
+            group.add(core);
+
+            // Head & Visor
+            const head = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 1.1), mainMat);
+            head.position.y = 4.2;
+            group.add(head);
+
+            const visor = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.3, 1.15), glowMat);
+            visor.position.y = 4.25;
+            group.add(visor);
+
+            // Boss-Specific Silhouettes
+            if (sector.id === 'sector1') {
+                // WRAITH-65: White Ear-Transceiver & Long Sniper Rifle
+                const transceiver = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.65, 10), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                transceiver.position.set(0.7, 4.2, 0);
+                group.add(transceiver);
+                const rifle = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 3.6, 12), glowMat);
+                rifle.rotation.x = Math.PI / 2;
+                rifle.position.set(1.1, 2.8, 1.2);
+                group.add(rifle);
+            } else if (sector.id === 'sector2') {
+                // EIDOLON: 4 Floating Hologram Arms
+                for (let i = 0; i < 4; i++) {
+                    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.9, 0.35), glowMat);
+                    arm.position.set(i < 2 ? -1.7 : 1.7, 2.2 + (i % 2) * 1.3, 0.3);
+                    arm.rotation.z = i < 2 ? 0.35 : -0.35;
+                    group.add(arm);
+                }
+            } else if (sector.id === 'sector3') {
+                // IRONBOUND: Double-Decker Bus Bumper & Twin Headlights
+                const grille = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.0, 1.5), new THREE.MeshStandardMaterial({ color: 0xc2410c }));
+                grille.position.set(0, 2.0, 0.45);
+                group.add(grille);
+            } else if (sector.id === 'sector4') {
+                // MALAKOR: Giant Curved Horns
+                [-0.85, 0.85].forEach(dir => {
+                    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.38, 2.4, 8), glowMat);
+                    horn.position.set(dir, 5.4, 0);
+                    horn.rotation.z = -dir * 0.45;
+                    group.add(horn);
+                });
+                group.scale.set(1.25, 1.25, 1.25);
+            }
+
+            // Shield Sphere
+            const shieldMesh = new THREE.Mesh(
+                new THREE.SphereGeometry(3.1, 16, 16),
+                new THREE.MeshBasicMaterial({ color: sector.bossColor, wireframe: true, transparent: true, opacity: 0.32 })
+            );
+            shieldMesh.position.y = 2.6;
+            shieldMesh.name = 'shieldMesh';
+            group.add(shieldMesh);
+
+            return group;
+        }
+
+        // =========================================================================
+        // 7. 3D WORLD SECTOR BUILDER & FLOATING 3D WAYPOINT LABELS
+        // =========================================================================
         const playerState = {
             x: 0, y: 1.7, z: 26,
             yaw: 0, pitch: 0,
@@ -1313,211 +1542,60 @@
             silentStreak: 0,
             lastShot: 0,
             gadgetCd: 0,
-            lockOnWarning: 0,
             adsHits: 0,
             lurkerKills: 0,
             switchesFlipped: 0
         };
 
-        function initThreeEngine() {
-            const container = document.getElementById('webgl-container');
-            container.innerHTML = '';
-
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x05070a);
-            scene.fog = new THREE.FogExp2(0x05070a, 0.028);
-
-            camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 160);
-            camera.rotation.order = 'YXZ';
-
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
-
-            // Ambient & Directional Moonlight
-            const ambient = new THREE.AmbientLight(0x223044, 0.75);
-            scene.add(ambient);
-
-            const dirLight = new THREE.DirectionalLight(0x6084b0, 0.65);
-            dirLight.position.set(20, 40, 20);
-            scene.add(dirLight);
-
-            // Player Volumetric Flashlight
-            flashlight = new THREE.SpotLight(0xe2f1ff, 2.2, 55, Math.PI / 5, 0.45, 1.2);
-            flashlight.position.set(0, 0, 0);
-            flashlight.target.position.set(0, 0, -10);
-            camera.add(flashlight);
-            camera.add(flashlight.target);
-
-            // 3D Diegetic Weapon Viewmodel attached to Camera
-            build3DWeaponViewmodel();
-            scene.add(camera);
-
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
+        function registerWorldLabel(mesh, text, color, yOffset = 2.6) {
+            const el = document.createElement('div');
+            el.className = 'world-tag';
+            el.style.borderColor = color;
+            el.style.color = color;
+            el.innerText = text;
+            document.getElementById('world-labels').appendChild(el);
+            trackedLabels.push({ mesh, el, yOffset });
         }
 
-        function build3DWeaponViewmodel() {
-            weaponGroup = new THREE.Group();
-            const op = OPERATIVES[selectedOpKey];
+        function updateWorldLabels() {
+            const halfW = window.innerWidth / 2;
+            const halfH = window.innerHeight / 2;
 
-            const gunMat = new THREE.MeshStandardMaterial({ color: 0x161c26, roughness: 0.4, metalness: 0.8 });
-            const accentMat = new THREE.MeshBasicMaterial({ color: op.color });
-
-            // Receiver body
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, 0.55), gunMat);
-            weaponGroup.add(body);
-
-            // Cylindrical Suppressor Barrel
-            const supp = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.38, 12), gunMat);
-            supp.rotation.x = Math.PI / 2;
-            supp.position.set(0, 0.02, -0.42);
-            weaponGroup.add(supp);
-
-            // Holographic Sight Frame & Glowing Reticle
-            const sight = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.07, 0.1), gunMat);
-            sight.position.set(0, 0.1, -0.05);
-            weaponGroup.add(sight);
-
-            const reticle = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.015, 0.01), accentMat);
-            reticle.position.set(0, 0.105, -0.05);
-            weaponGroup.add(reticle);
-
-            // Side Rail Glow Strip
-            const strip = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.018, 0.35), accentMat);
-            strip.position.set(0, 0.03, -0.1);
-            weaponGroup.add(strip);
-
-            muzzleLight = new THREE.PointLight(op.color, 0, 8);
-            muzzleLight.position.set(0, 0.02, -0.65);
-            weaponGroup.add(muzzleLight);
-
-            weaponGroup.position.set(0.24, -0.22, -0.45);
-            camera.add(weaponGroup);
-        }
-
-        // Build 3D Articulated Boss Mesh (Distinct Visual Rig per Boss)
-        function create3DBossMesh(sector) {
-            const group = new THREE.Group();
-            const mainMat = new THREE.MeshStandardMaterial({ color: 0x1a202c, roughness: 0.3, metalness: 0.7 });
-            const glowMat = new THREE.MeshBasicMaterial({ color: sector.bossColor });
-            const weakMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
-
-            // Armored Torso
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.4, 1.2), mainMat);
-            torso.position.y = 2.2;
-            group.add(torso);
-
-            // Glowing Weak-Point Core on Chest/Head
-            const core = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 16), weakMat);
-            core.position.set(0, 2.5, 0.65);
-            core.name = 'weakpoint';
-            group.add(core);
-
-            // Head & Custom Silhouette Features
-            const head = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 1.1), mainMat);
-            head.position.y = 4.0;
-            group.add(head);
-
-            if (sector.id === 'sector1') {
-                // WRAITH-65: Glowing White Ear-Transceiver + Long Sniper Barrel
-                const airpod = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.15, 0.15, 0.6, 10),
-                    new THREE.MeshBasicMaterial({ color: 0xffffff })
-                );
-                airpod.position.set(0.68, 3.9, 0);
-                group.add(airpod);
-
-                const sniper = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3.4, 12), glowMat);
-                sniper.rotation.x = Math.PI / 2;
-                sniper.position.set(0.9, 2.6, 1.2);
-                group.add(sniper);
-            } else if (sector.id === 'sector2') {
-                // EIDOLON: 4 Floating Phantom Arms + Porcelain Mask
-                for (let i = 0; i < 4; i++) {
-                    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.8, 0.35), glowMat);
-                    arm.position.set((i < 2 ? -1.6 : 1.6), 2.0 + (i % 2) * 1.4, 0.4);
-                    arm.rotation.z = (i < 2 ? 0.4 : -0.4);
-                    group.add(arm);
+            trackedLabels.forEach(item => {
+                if (!item.mesh || !item.mesh.parent) {
+                    item.el.style.display = 'none';
+                    return;
                 }
-            } else if (sector.id === 'sector3') {
-                // IRONBOUND: Double-Decker Bus Grille & Twin High-Beam Headlights
-                const grille = new THREE.Mesh(
-                    new THREE.BoxGeometry(2.8, 2.2, 1.6),
-                    new THREE.MeshStandardMaterial({ color: 0x9a3412, metalness: 0.6 })
-                );
-                grille.position.set(0, 1.8, 0.4);
-                group.add(grille);
+                const pos = new THREE.Vector3();
+                item.mesh.getWorldPosition(pos);
+                pos.y += item.yOffset;
 
-                [-0.9, 0.9].forEach(hx => {
-                    const lamp = new THREE.Mesh(
-                        new THREE.CylinderGeometry(0.3, 0.3, 0.2, 12),
-                        new THREE.MeshBasicMaterial({ color: 0xfef08a })
-                    );
-                    lamp.rotation.x = Math.PI / 2;
-                    lamp.position.set(hx, 1.9, 1.25);
-                    group.add(lamp);
-                });
-            } else if (sector.id === 'sector4') {
-                // MALAKOR: Towering Radar-Dish Horns & Molten Fissures
-                [-0.8, 0.8].forEach(dir => {
-                    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.35, 2.2, 8), glowMat);
-                    horn.position.set(dir, 5.2, 0);
-                    horn.rotation.z = -dir * 0.45;
-                    group.add(horn);
-                });
-                group.scale.set(1.35, 1.35, 1.35);
-            }
+                const dist = Math.hypot(pos.x - playerState.x, pos.z - playerState.z);
+                pos.project(camera);
 
-            // Shield Wireframe Sphere (Visible when Boss Shield is active)
-            const shieldGeo = new THREE.SphereGeometry(2.9, 16, 16);
-            const shieldMat = new THREE.MeshBasicMaterial({
-                color: sector.bossColor,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.32
+                if (pos.z > 1 || dist > 55) {
+                    item.el.style.display = 'none';
+                } else {
+                    item.el.style.display = 'block';
+                    const sx = (pos.x * halfW) + halfW;
+                    const sy = -(pos.y * halfH) + halfH;
+                    item.el.style.left = `${sx}px`;
+                    item.el.style.top = `${sy}px`;
+                }
             });
-            const shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
-            shieldMesh.position.y = 2.4;
-            shieldMesh.name = 'shieldMesh';
-            group.add(shieldMesh);
-
-            return group;
         }
 
-        // Build Blind Quadrupedal Decibel Crawler ("Lurker")
-        function spawnLurker(x, z) {
-            const g = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.6 });
-            const earMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
-
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.55, 1.4), mat);
-            body.position.y = 0.6;
-            g.add(body);
-
-            const sensorHead = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.6, 8), earMat);
-            sensorHead.rotation.x = Math.PI / 2;
-            sensorHead.position.set(0, 0.7, 0.8);
-            g.add(sensorHead);
-
-            g.position.set(x, 0, z);
-            scene.add(g);
-            lurkers.push({ mesh: g, hp: 70, alertTarget: null, patrolAngle: Math.random() * Math.PI * 2 });
-        }
-
-        // =========================================================================
-        // 6. LOAD 3D SECTOR ENVIRONMENT, TRAIN BASE & INTERACTABLES
-        // =========================================================================
         function buildSectorWorld(idx) {
             currentSectorIdx = idx;
             const sec = SECTORS[idx];
             extractionPhase = false;
 
-            // Clear old sector meshes
+            if (menuShowcaseGroup) {
+                scene.remove(menuShowcaseGroup);
+                menuShowcaseGroup = null;
+            }
+
+            // Clear old sector objects & labels
             [...envObjects, ...interactables.map(i => i.mesh), ...lurkers.map(l => l.mesh), ...decoys.map(d => d.mesh), ...projectiles.map(p => p.mesh)].forEach(m => {
                 if (m) scene.remove(m);
             });
@@ -1530,11 +1608,12 @@
             lurkers = [];
             decoys = [];
             projectiles = [];
+            trackedLabels = [];
+            document.getElementById('world-labels').innerHTML = '';
 
             scene.background = new THREE.Color(sec.fogColor);
-            scene.fog = new THREE.FogExp2(sec.fogColor, 0.022);
+            scene.fog = new THREE.FogExp2(sec.fogColor, 0.014);
 
-            // Update HUD
             document.getElementById('hud-sector-id').innerText = sec.code;
             document.getElementById('hud-obj-main').innerText = sec.title;
             document.getElementById('hud-obj-sub').innerText = sec.directive;
@@ -1542,134 +1621,120 @@
             document.getElementById('boss-telemetry').style.display = 'block';
             document.getElementById('hud-boss-name').innerText = sec.bossName;
 
-            // Reset Player Position & Top Up Armor/HP
             playerState.x = 0;
-            playerState.z = 30;
+            playerState.z = 28;
             playerState.yaw = 0;
             playerState.pitch = 0;
             playerState.hp = playerState.maxHp;
             playerState.armor = playerState.maxArmor;
             playerState.ammo = playerState.maxAmmo;
-            playerState.decoyCount = Math.max(playerState.decoyCount, 3);
+            playerState.decoyCount = 3;
 
-            // 1. 3D Floor Grid
-            const floorGeo = new THREE.PlaneGeometry(120, 120);
-            const floorMat = new THREE.MeshStandardMaterial({ color: sec.floorColor, roughness: 0.85 });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
+            // 1. Floor & Tactical Grid
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(120, 120),
+                new THREE.MeshStandardMaterial({ color: sec.floorColor, roughness: 0.8 })
+            );
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
             envObjects.push(floor);
 
-            const grid = new THREE.GridHelper(120, 40, sec.bossColor, 0x1e293b);
+            const grid = new THREE.GridHelper(120, 40, sec.bossColor, 0x26354d);
             grid.position.y = 0.02;
             scene.add(grid);
             envObjects.push(grid);
 
-            // 2. The 3D Express Train (Parked behind Player at Z = 38 with Pack-a-Punch Workbench!)
+            // 2. The 3D Express Train behind Spawn (Z = 37)
             const trainGroup = new THREE.Group();
             const trainBody = new THREE.Mesh(
-                new THREE.BoxGeometry(14, 4.2, 5.2),
+                new THREE.BoxGeometry(14, 4.0, 5.0),
                 new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 })
             );
-            trainBody.position.y = 2.1;
+            trainBody.position.y = 2.0;
             trainGroup.add(trainBody);
-
-            const trainStripe = new THREE.Mesh(
-                new THREE.BoxGeometry(14.1, 0.35, 5.3),
-                new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
-            );
-            trainStripe.position.y = 2.2;
-            trainGroup.add(trainStripe);
-
-            trainGroup.position.set(0, 0, 39);
+            trainGroup.position.set(0, 0, 38);
             scene.add(trainGroup);
             envObjects.push(trainGroup);
+            registerWorldLabel(trainGroup, '🚂 3D EXPRESS TRAIN (BASE)', '#38bdf8', 4.6);
 
-            // Pack-a-Punch Weapon Workbench next to Train
+            // Pack-a-Punch Workbench
             const benchMesh = new THREE.Mesh(
-                new THREE.BoxGeometry(2.2, 1.2, 1.2),
+                new THREE.BoxGeometry(2.0, 1.2, 1.2),
                 new THREE.MeshStandardMaterial({ color: 0xf59e0b })
             );
-            benchMesh.position.set(-5.5, 0.6, 34);
+            benchMesh.position.set(-5.5, 0.6, 32);
             scene.add(benchMesh);
             interactables.push({
                 type: 'workbench',
                 mesh: benchMesh,
-                x: -5.5, z: 34,
-                label: '[PRESS F / TAP] PACK-A-PUNCH UPGRADE & REFILL AMMO (30 SCRAP)'
+                x: -5.5, z: 32,
+                label: '[PRESS F / TAP] PACK-A-PUNCH WEAPON UPGRADE (30 SCRAP)'
             });
+            registerWorldLabel(benchMesh, '🛠️ WORKBENCH [PRESS F]', '#f59e0b', 1.6);
 
-            // 3. Sector-Specific Cover Pillars / Pine Watchtowers & Field Generators
-            const pillarMat = new THREE.MeshStandardMaterial({ color: 0x1e2636, roughness: 0.5 });
-            const coverCoords = [
-                [-14, 14], [14, 14], [-18, 0], [18, 0],
-                [-14, -14], [14, -14], [0, 10], [0, -6]
-            ];
-            coverCoords.forEach(([cx, cz]) => {
-                const h = sec.id === 'sector1' ? 9 : 4.5;
-                const w = sec.id === 'sector1' ? 1.8 : 2.6;
-                const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, w), pillarMat);
-                mesh.position.set(cx, h / 2, cz);
-                scene.add(mesh);
-                envObjects.push(mesh);
-            });
-
-            // 3 Interactive Generators / High-Voltage Switches / UV Pylons (Stuns Boss when activated!)
-            [[-16, 6], [16, 6], [0, -16]].forEach(([gx, gz], idxNum) => {
-                const genMesh = new THREE.Mesh(
-                    new THREE.BoxGeometry(1.6, 2.2, 1.6),
-                    new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x052e16 })
-                );
-                genMesh.position.set(gx, 1.1, gz);
-                scene.add(genMesh);
-                interactables.push({
-                    type: 'generator',
-                    mesh: genMesh,
-                    x: gx, z: gz,
-                    cooldown: 0,
-                    label: `[PRESS F / TAP] OVERLOAD SECTOR PYLON #${idxNum + 1} (SHATTERS BOSS SHIELD!)`
-                });
-            });
-
-            // Supply Crate (Free Armor & Decoy Refill)
+            // Supply Crate
             const crateMesh = new THREE.Mesh(
                 new THREE.BoxGeometry(1.5, 1.0, 1.5),
                 new THREE.MeshStandardMaterial({ color: 0x38bdf8 })
             );
-            crateMesh.position.set(5.5, 0.5, 34);
+            crateMesh.position.set(5.5, 0.5, 32);
             scene.add(crateMesh);
             interactables.push({
                 type: 'crate',
                 mesh: crateMesh,
-                x: 5.5, z: 34,
-                label: '[PRESS F / TAP] RESUPPLY ARMOR PLATES, AMMO & SONIC DECOYS'
+                x: 5.5, z: 32,
+                label: '[PRESS F / TAP] REFILL ARMOR PLATES, AMMO & DECOYS'
+            });
+            registerWorldLabel(crateMesh, '📦 SUPPLY CRATE [PRESS F]', '#38bdf8', 1.4);
+
+            // 3. Recognizable 3D Pine Trees / Tactical Barricades
+            [[-13, 13], [13, 13], [-16, 0], [16, 0], [-13, -13], [13, -13], [0, 9]].forEach(([cx, cz]) => {
+                const prop = create3DCoverProp(sec.id, cx, cz);
+                scene.add(prop);
+                envObjects.push(prop);
             });
 
-            // 4. Spawn Blind Decibel Crawlers ("Lurkers")
+            // 4. Recognizable 3D Spinning Turbine Pylons (Stuns Boss!)
+            [[-15, 5], [15, 5], [0, -14]].forEach(([gx, gz], idxNum) => {
+                const pylon = create3DPylonMesh();
+                pylon.position.set(gx, 0, gz);
+                scene.add(pylon);
+                interactables.push({
+                    type: 'generator',
+                    mesh: pylon,
+                    x: gx, z: gz,
+                    cooldown: 0,
+                    label: `[PRESS F / TAP] OVERLOAD PYLON #${idxNum + 1} (SHATTERS BOSS SHIELD!)`
+                });
+                registerWorldLabel(pylon, `⚡ PYLON #${idxNum + 1} [PRESS F: STUN BOSS]`, '#10b981', 3.4);
+            });
+
+            // 5. Recognizable 6-Legged Spider Lurkers
             const lurkerCount = sec.id === 'tutorial' ? 1 : 3;
             for (let i = 0; i < lurkerCount; i++) {
-                spawnLurker((i - 1) * 14, 4 - i * 5);
+                const lMesh = create3DLurkerMesh();
+                lMesh.position.set((i - 1) * 13, 0, 3 - i * 5);
+                scene.add(lMesh);
+                lurkers.push({ mesh: lMesh, hp: 70, patrolAngle: i * 2 });
+                registerWorldLabel(lMesh, '🕷️ BLIND LURKER (HUNTS >55 dB)', '#f43f5e', 1.6);
             }
 
-            // 5. Spawn Wingman Recon Drone & Co-Op Partner Mesh
+            // 6. Wingman Drone & Co-Op Partner
             wingmanMesh = new THREE.Mesh(
                 new THREE.OctahedronGeometry(0.45, 0),
                 new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true })
             );
-            wingmanMesh.position.set(playerState.x - 1.8, 2.4, playerState.z - 1.5);
             scene.add(wingmanMesh);
 
-            partnerMesh = new THREE.Mesh(
-                new THREE.BoxGeometry(0.9, 1.8, 0.9),
-                new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true })
-            );
+            partnerMesh = build3DOperativeModel(OPERATIVES.sovereign);
             partnerMesh.visible = false;
             scene.add(partnerMesh);
 
-            // 6. Spawn Sector Boss
+            // 7. Sector Boss with 3D Floating Tag
             const bMesh = create3DBossMesh(sec);
             bMesh.position.set(0, 0, -22);
             scene.add(bMesh);
+            registerWorldLabel(bMesh, `👹 ${sec.bossName}`, '#f43f5e', 5.4);
 
             bossEntity = {
                 ...sec,
@@ -1677,9 +1742,9 @@
                 maxHp: sec.bossHp,
                 hp: sec.bossHp,
                 x: 0, z: -22,
-                vx: 0.09,
+                vx: 0.085,
                 vz: 0.04,
-                shielded: sec.id !== 'tutorial', // Tutorial drone starts unshielded for easy practice
+                shielded: sec.id !== 'tutorial',
                 stunTimer: 0,
                 attackTimer: 0
             };
@@ -1689,14 +1754,13 @@
 
         function skipToLiveSector() {
             inCutscene = false;
-            document.body.classList.remove('cutscene-mode');
             document.getElementById('comms-overlay').style.display = 'none';
             unlockAchievement('ghost_op');
             buildSectorWorld(1);
         }
 
         // =========================================================================
-        // 7. IN-ENGINE CUTSCENE & RADIO OSCILLOSCOPE
+        // 8. CUTSCENE & CONTROLS
         // =========================================================================
         let cutsceneQueue = [];
         const oscCanvas = document.getElementById('oscilloscope-canvas');
@@ -1705,7 +1769,6 @@
         function startCutscene(lines) {
             inCutscene = true;
             cutsceneQueue = [...lines];
-            document.body.classList.add('cutscene-mode');
             document.getElementById('comms-overlay').style.display = 'flex';
             advanceCutscene();
         }
@@ -1714,7 +1777,6 @@
             playSynthSfx('click');
             if (cutsceneQueue.length === 0) {
                 inCutscene = false;
-                document.body.classList.remove('cutscene-mode');
                 document.getElementById('comms-overlay').style.display = 'none';
                 return;
             }
@@ -1726,22 +1788,19 @@
         function drawOscilloscope() {
             if (!inCutscene) return;
             oscCtx.fillStyle = '#03060a';
-            oscCtx.fillRect(0, 0, 96, 54);
+            oscCtx.fillRect(0, 0, 84, 48);
             oscCtx.strokeStyle = '#38bdf8';
             oscCtx.lineWidth = 1.5;
             oscCtx.beginPath();
             const t = performance.now() * 0.015;
-            for (let x = 0; x < 96; x += 3) {
-                const y = 27 + Math.sin(x * 0.25 + t) * (Math.sin(t * 0.3) * 16);
+            for (let x = 0; x < 84; x += 3) {
+                const y = 24 + Math.sin(x * 0.25 + t) * (Math.sin(t * 0.3) * 14);
                 if (x === 0) oscCtx.moveTo(x, y);
                 else oscCtx.lineTo(x, y);
             }
             oscCtx.stroke();
         }
 
-        // =========================================================================
-        // 8. INPUT, WEAPON FIRE, ACOUSTIC DECOYS & CONTEXT INTERACTABLES
-        // =========================================================================
         const keys = {};
         const touchMove = { active: false, dx: 0, dy: 0 };
         const touchLook = { active: false, dx: 0, dy: 0 };
@@ -1751,10 +1810,6 @@
         window.addEventListener('keydown', e => {
             keys[e.code] = true;
             if (e.code === 'Space' && inCutscene) advanceCutscene();
-            if (e.code === 'Escape' && inCutscene) {
-                cutsceneQueue = [];
-                advanceCutscene();
-            }
             if (!gameRunning || inCutscene) return;
             if (e.code === 'KeyC') toggleCrouch();
             if (e.code === 'KeyV') toggleAds();
@@ -1787,7 +1842,7 @@
             if (document.pointerLockElement === renderer.domElement) {
                 const sens = playerState.ads ? 0.0014 : 0.0024;
                 playerState.yaw -= e.movementX * sens;
-                playerState.pitch = Math.max(-1.1, Math.min(1.1, playerState.pitch - e.movementY * sens));
+                playerState.pitch = Math.max(-1.0, Math.min(1.0, playerState.pitch - e.movementY * sens));
             }
         });
 
@@ -1798,7 +1853,7 @@
 
         function toggleAds() {
             playerState.ads = !playerState.ads;
-            camera.fov = playerState.ads ? 46 : 72;
+            camera.fov = playerState.ads ? 46 : 70;
             camera.updateProjectionMatrix();
         }
 
@@ -1810,7 +1865,7 @@
 
         function reloadWeapon() {
             playerState.ammo = playerState.maxAmmo;
-            playerState.dbLevel = Math.min(100, playerState.dbLevel + 25);
+            playerState.dbLevel = Math.min(100, playerState.dbLevel + 22);
             playSynthSfx('click');
         }
 
@@ -1820,40 +1875,37 @@
             playSynthSfx('radar');
 
             const mesh = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.15, 0.15, 0.5, 10),
+                new THREE.CylinderGeometry(0.2, 0.2, 0.6, 10),
                 new THREE.MeshBasicMaterial({ color: 0xf59e0b })
             );
             const tx = playerState.x - Math.sin(playerState.yaw) * 14;
             const tz = playerState.z - Math.cos(playerState.yaw) * 14;
             mesh.position.set(tx, 0.3, tz);
             scene.add(mesh);
+            registerWorldLabel(mesh, '🔊 SONIC DECOY ACTIVE', '#f59e0b', 1.2);
 
             decoys.push({ mesh, x: tx, z: tz, timer: 320 });
-            playerState.lockOnWarning = 0;
 
-            // Distract Boss & Lurkers!
             if (bossEntity) {
                 bossEntity.shielded = false;
                 bossEntity.stunTimer = 240;
-                document.getElementById('boss-status-line').innerText = 'DECOY BAITED! WEAK-POINT EXPOSED (2.5X CRIT)!';
+                document.getElementById('boss-status-line').innerText = 'DECOY BAITED! WEAK-POINT EXPOSED (2X CRIT)!';
             }
-            lurkers.forEach(l => l.alertTarget = { x: tx, z: tz });
             unlockAchievement('bait_switch');
         }
 
         function useClassGadget() {
             if (playerState.gadgetCd > 0 || inCutscene) return;
-            playerState.gadgetCd = 420;
+            playerState.gadgetCd = 400;
             playSynthSfx('achievement');
 
             playerState.dbLevel = 0;
-            playerState.lockOnWarning = 0;
             playerState.armor = Math.min(playerState.maxArmor, playerState.armor + 75);
 
             if (bossEntity) {
                 bossEntity.shielded = false;
                 bossEntity.stunTimer = 260;
-                document.getElementById('boss-status-line').innerText = 'CLASS GADGET DEPLOYED // BOSS STUNNED & SHIELD DOWN!';
+                document.getElementById('boss-status-line').innerText = 'GADGET DEPLOYED // BOSS STUNNED & SHIELD SHATTERED!';
             }
         }
 
@@ -1867,7 +1919,6 @@
                     playerState.weaponLevel++;
                     playerState.ammo = playerState.maxAmmo;
                     playerState.armor = playerState.maxArmor;
-                    document.getElementById('weapon-name-label').innerText = `${OPERATIVES[selectedOpKey].weapon.toUpperCase()} [PAP MK.${playerState.weaponLevel}]`;
                     unlockAchievement('whisper_craft');
                     playSynthSfx('achievement');
                 }
@@ -1878,14 +1929,14 @@
                 playerState.decoyCount = 3;
                 playSynthSfx('click');
             } else if (item.type === 'generator' && item.cooldown <= 0) {
-                item.cooldown = 400;
+                item.cooldown = 380;
                 playerState.switchesFlipped++;
                 if (playerState.switchesFlipped >= 3) unlockAchievement('power_engineer');
 
                 if (bossEntity) {
                     bossEntity.shielded = false;
                     bossEntity.stunTimer = 280;
-                    bossEntity.hp -= 120;
+                    bossEntity.hp -= 125;
                     document.getElementById('boss-status-line').innerText = 'PYLON OVERLOADED // BOSS ARMOR SHATTERED!';
                     playSynthSfx('achievement');
                     if (bossEntity.hp <= 0) handleSectorBossCleared();
@@ -1903,24 +1954,19 @@
 
             playerState.lastShot = now;
             playerState.ammo--;
-            if (playerState.ammo === 0) setTimeout(reloadWeapon, 550);
+            if (playerState.ammo === 0) setTimeout(reloadWeapon, 500);
 
             playSynthSfx('shoot_supp');
             muzzleLight.intensity = 3.5;
             setTimeout(() => { if (muzzleLight) muzzleLight.intensity = 0; }, 45);
+            weaponGroup.position.z += 0.055;
 
-            // Weapon kickback
-            weaponGroup.position.z += 0.06;
+            playerState.dbLevel = Math.min(100, playerState.dbLevel + Math.round(20 * op.noiseMod));
 
-            // Suppressed shot adds modest decibels
-            const shotNoise = Math.round(22 * op.noiseMod);
-            playerState.dbLevel = Math.min(100, playerState.dbLevel + shotNoise);
-
-            // Raycast from center of camera
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
-            // Check hits on Lurkers
+            // Lurker Hits
             for (let i = lurkers.length - 1; i >= 0; i--) {
                 const l = lurkers[i];
                 const hits = raycaster.intersectObjects(l.mesh.children, true);
@@ -1939,7 +1985,7 @@
                 }
             }
 
-            // Check hits on Boss
+            // Boss Hits
             if (bossEntity && bossEntity.mesh) {
                 const hits = raycaster.intersectObjects(bossEntity.mesh.children, true);
                 if (hits.length > 0 && hits[0].distance < 75) {
@@ -1951,20 +1997,13 @@
                         playerState.adsHits++;
                         if (playerState.adsHits >= 8) unlockAchievement('marksman');
                     }
-
-                    if (bossEntity.stunTimer > 0 || !bossEntity.shielded) {
-                        dmg *= 1.8;
-                    } else {
-                        dmg *= 0.35; // Shielded: encourages using Decoy [G] or Pylons [F]
-                    }
+                    dmg *= (bossEntity.stunTimer > 0 || !bossEntity.shielded) ? 1.85 : 0.4;
 
                     bossEntity.hp -= Math.round(dmg);
                     playerState.scrap += selectedOpKey === 'sovereign' ? 12 : 5;
                     flashHitmarker();
 
-                    if (bossEntity.hp <= 0) {
-                        handleSectorBossCleared();
-                    }
+                    if (bossEntity.hp <= 0) handleSectorBossCleared();
                 }
             }
         }
@@ -1991,23 +2030,20 @@
             if (currentSectorIdx < SECTORS.length - 1) {
                 buildSectorWorld(currentSectorIdx + 1);
             } else {
-                // Sector 4 Malakor defeated -> Trigger 60s Train Extraction!
                 extractionPhase = true;
                 extractionTimer = 60;
                 document.getElementById('boss-telemetry').style.display = 'none';
-                document.getElementById('hud-obj-main').innerText = 'REACTOR MELTDOWN // BOARD THE 3D EXPRESS TRAIN!';
-                document.getElementById('hud-obj-sub').innerText = 'Sprint back to the Express Train at the South Depot and press [F]!';
-
+                document.getElementById('hud-obj-main').innerText = 'REACTOR MELTDOWN // BOARD THE EXPRESS TRAIN!';
                 interactables.push({
                     type: 'train_extract',
-                    x: 0, z: 35,
+                    x: 0, z: 34,
                     label: '[PRESS F / TAP] ENGAGE EXPRESS TRAIN THROTTLE & EXTRACT!'
                 });
             }
         }
 
         // =========================================================================
-        // 9. MAIN 3D SIMULATION, ACOUSTIC DB ENGINE & BFS WRIST RADAR
+        // 9. MAIN ANIMATION LOOP & RADAR
         // =========================================================================
         const radarCanvas = document.getElementById('bfs-radar-canvas');
         const rCtx = radarCanvas.getContext('2d');
@@ -2023,15 +2059,24 @@
                 document.getElementById('mobile-controls').style.display = 'block';
             }
 
-            initThreeEngine();
+            build3DWeaponViewmodel();
             gameRunning = true;
             unlockAchievement('squad_link');
             buildSectorWorld(runTutorial ? 0 : 1);
-            requestAnimationFrame(animateLoop);
         }
 
         function animateLoop() {
-            if (!gameRunning) return;
+            requestAnimationFrame(animateLoop);
+            if (!renderer || !scene || !camera) return;
+
+            // Rotate 3D Character on Main Menu before game starts
+            if (!gameRunning) {
+                if (menuShowcaseGroup) {
+                    menuShowcaseGroup.rotation.y += 0.012;
+                }
+                renderer.render(scene, camera);
+                return;
+            }
 
             if (inCutscene) {
                 drawOscilloscope();
@@ -2042,8 +2087,8 @@
                 updateHudTelemetry();
             }
 
+            updateWorldLabels();
             renderer.render(scene, camera);
-            requestAnimationFrame(animateLoop);
         }
 
         function updatePlayerMovementAndAcoustics() {
@@ -2065,45 +2110,35 @@
 
             const moving = Math.hypot(forward, strafe) > 0.1;
             let spd = op.speed;
-            if (playerState.crouching) spd *= 0.62;
-            if (playerState.ads) spd *= 0.75;
+            if (playerState.crouching) spd *= 0.65;
+            if (playerState.ads) spd *= 0.78;
 
             const sinY = Math.sin(playerState.yaw);
             const cosY = Math.cos(playerState.yaw);
-            const dx = (-sinY * forward + cosY * strafe) * spd;
-            const dz = (-cosY * forward - sinY * strafe) * spd;
+            playerState.x = Math.max(-52, Math.min(52, playerState.x + (-sinY * forward + cosY * strafe) * spd));
+            playerState.z = Math.max(-52, Math.min(35, playerState.z + (-cosY * forward - sinY * strafe) * spd));
 
-            playerState.x = Math.max(-52, Math.min(52, playerState.x + dx));
-            playerState.z = Math.max(-52, Math.min(42, playerState.z + dz));
-
-            // Smooth Camera Height & Viewmodel ADS Lerp
             const targetCamY = playerState.crouching ? 1.05 : 1.72;
             playerState.y += (targetCamY - playerState.y) * 0.18;
             camera.position.set(playerState.x, playerState.y, playerState.z);
             camera.rotation.set(playerState.pitch, playerState.yaw, 0);
 
-            const targetGunX = playerState.ads ? 0.0 : 0.24;
-            const targetGunY = playerState.ads ? -0.135 : -0.22;
-            weaponGroup.position.x += (targetGunX - weaponGroup.position.x) * 0.22;
-            weaponGroup.position.y += (targetGunY - weaponGroup.position.y) * 0.22;
-            weaponGroup.position.z += (-0.45 - weaponGroup.position.z) * 0.2;
-
-            // Acoustic Decibel Calculation
-            let ambientFloorDb = currentSectorIdx === 2 ? 26 : 14; // Sector 2 water is louder
-            if (moving) {
-                if (playerState.crouching) {
-                    ambientFloorDb = selectedOpKey === 'broker' ? 0 : 22;
-                } else {
-                    ambientFloorDb = Math.round((currentSectorIdx === 2 ? 58 : 44) * op.noiseMod);
-                }
+            if (weaponGroup) {
+                weaponGroup.position.x += ((playerState.ads ? 0.0 : 0.24) - weaponGroup.position.x) * 0.22;
+                weaponGroup.position.y += ((playerState.ads ? -0.135 : -0.22) - weaponGroup.position.y) * 0.22;
+                weaponGroup.position.z += (-0.45 - weaponGroup.position.z) * 0.2;
             }
-            playerState.dbLevel += (ambientFloorDb - playerState.dbLevel) * 0.08;
 
-            // Quiet Breathing HP & Armor Regeneration (Keeps difficulty fair & tactical!)
-            if (playerState.dbLevel < 42) {
+            let targetDb = currentSectorIdx === 2 ? 24 : 14;
+            if (moving) {
+                targetDb = playerState.crouching ? (selectedOpKey === 'broker' ? 0 : 20) : Math.round(44 * op.noiseMod);
+            }
+            playerState.dbLevel += (targetDb - playerState.dbLevel) * 0.08;
+
+            if (playerState.dbLevel < 44) {
                 playerState.silentStreak++;
-                if (playerState.hp < playerState.maxHp) playerState.hp = Math.min(playerState.maxHp, playerState.hp + 0.22);
-                if (playerState.armor < playerState.maxArmor) playerState.armor = Math.min(playerState.maxArmor, playerState.armor + 0.15);
+                playerState.hp = Math.min(playerState.maxHp, playerState.hp + 0.25);
+                playerState.armor = Math.min(playerState.maxArmor, playerState.armor + 0.18);
                 if (playerState.silentStreak > 900) unlockAchievement('ghost_op');
             } else {
                 playerState.silentStreak = 0;
@@ -2112,12 +2147,19 @@
             if (isFiring) fireWeapon();
             if (playerState.gadgetCd > 0) playerState.gadgetCd--;
 
-            // Check Nearby Context Interactables (Workbench, Pylons, Supply Crate, Train)
+            // Rotate Turbine Rings on Pylons
+            interactables.forEach(item => {
+                if (item.mesh) {
+                    const ring = item.mesh.getObjectByName('spinner');
+                    if (ring) ring.rotation.z += 0.05;
+                }
+            });
+
             activePromptItem = null;
             const promptEl = document.getElementById('interact-prompt');
             for (const item of interactables) {
                 if (item.cooldown > 0) item.cooldown--;
-                if (Math.hypot(playerState.x - item.x, playerState.z - item.z) < 4.5 && (!item.cooldown || item.cooldown <= 0)) {
+                if (Math.hypot(playerState.x - item.x, playerState.z - item.z) < 4.8 && (!item.cooldown || item.cooldown <= 0)) {
                     activePromptItem = item;
                     break;
                 }
@@ -2129,61 +2171,41 @@
                 promptEl.style.display = 'none';
             }
 
-            // Broadcast Co-Op state if connected
             if (netConn && netConn.open) {
-                netConn.send({
-                    type: 'state',
-                    x: playerState.x,
-                    z: playerState.z,
-                    bossHp: bossEntity ? bossEntity.hp : 0
-                });
+                netConn.send({ type: 'state', x: playerState.x, z: playerState.z, bossHp: bossEntity ? bossEntity.hp : 0 });
             }
             if (remotePartnerState && partnerMesh) {
                 partnerMesh.visible = true;
-                partnerMesh.position.set(remotePartnerState.x, 0.9, remotePartnerState.z);
+                partnerMesh.position.set(remotePartnerState.x, 0, remotePartnerState.z);
             }
         }
 
         function updateAIAndProjectiles() {
-            // Update Wingman Recon Drone
             if (wingmanMesh) {
                 const t = performance.now() * 0.002;
-                wingmanMesh.position.set(
-                    playerState.x + Math.cos(t) * 2.2,
-                    2.3 + Math.sin(t * 2) * 0.2,
-                    playerState.z + Math.sin(t) * 2.2
-                );
+                wingmanMesh.position.set(playerState.x + Math.cos(t) * 2.2, 2.3, playerState.z + Math.sin(t) * 2.2);
                 wingmanMesh.rotation.y += 0.04;
             }
 
-            // Update Thrown Acoustic Decoys
             for (let i = decoys.length - 1; i >= 0; i--) {
                 decoys[i].timer--;
-                decoys[i].mesh.rotation.y += 0.15;
                 if (decoys[i].timer <= 0) {
                     scene.remove(decoys[i].mesh);
                     decoys.splice(i, 1);
                 }
             }
 
-            // Update Blind Decibel Crawlers ("Lurkers")
             lurkers.forEach(l => {
-                let targetX = null, targetZ = null;
-                if (decoys.length > 0) {
-                    targetX = decoys[0].x;
-                    targetZ = decoys[0].z;
-                } else if (playerState.dbLevel > 52) {
-                    targetX = playerState.x;
-                    targetZ = playerState.z;
-                }
+                let tx = null, tz = null;
+                if (decoys.length > 0) { tx = decoys[0].x; tz = decoys[0].z; }
+                else if (playerState.dbLevel > 55) { tx = playerState.x; tz = playerState.z; }
 
-                if (targetX !== null) {
-                    const ang = Math.atan2(targetX - l.mesh.position.x, targetZ - l.mesh.position.z);
+                if (tx !== null) {
+                    const ang = Math.atan2(tx - l.mesh.position.x, tz - l.mesh.position.z);
                     l.mesh.rotation.y = ang;
-                    l.mesh.position.x += Math.sin(ang) * 0.09;
-                    l.mesh.position.z += Math.cos(ang) * 0.09;
+                    l.mesh.position.x += Math.sin(ang) * 0.085;
+                    l.mesh.position.z += Math.cos(ang) * 0.085;
                 } else {
-                    // Blindly patrol in slow circles if player is quiet!
                     l.patrolAngle += 0.015;
                     l.mesh.position.x += Math.sin(l.patrolAngle) * 0.03;
                     l.mesh.position.z += Math.cos(l.patrolAngle) * 0.03;
@@ -2194,7 +2216,6 @@
                 }
             });
 
-            // Update Sector Boss AI
             if (bossEntity && bossEntity.mesh) {
                 const b = bossEntity;
                 const shieldMesh = b.mesh.getObjectByName('shieldMesh');
@@ -2202,48 +2223,34 @@
 
                 if (b.stunTimer > 0) {
                     b.stunTimer--;
-                    b.mesh.rotation.y += 0.12;
+                    b.mesh.rotation.y += 0.1;
                     if (b.stunTimer === 0) {
                         b.shielded = currentSectorIdx !== 0;
-                        document.getElementById('boss-status-line').innerText = 'ACOUSTIC SHIELD RESTORED // TOSS DECOY [G] OR OVERLOAD PYLON [F]';
+                        document.getElementById('boss-status-line').innerText = 'SHIELD ACTIVE // ACTIVATE GREEN PYLON [F] OR TOSS DECOY [G]';
                     }
                 } else {
                     b.x += b.vx;
                     b.z += b.vz;
-                    if (b.x < -22 || b.x > 22) b.vx *= -1;
-                    if (b.z < -32 || b.z > -8) b.vz *= -1;
+                    if (b.x < -20 || b.x > 20) b.vx *= -1;
+                    if (b.z < -30 || b.z > -10) b.vz *= -1;
                     b.mesh.position.set(b.x, 0, b.z);
                     b.mesh.lookAt(playerState.x, 1.5, playerState.z);
 
-                    // Acoustic Lock-On Warning if Player is Loud (>55 dB)
-                    if (playerState.dbLevel > 55 && decoys.length === 0) {
-                        playerState.lockOnWarning = Math.min(100, playerState.lockOnWarning + 1.4);
-                    } else {
-                        playerState.lockOnWarning = Math.max(0, playerState.lockOnWarning - 2.0);
-                    }
-
                     b.attackTimer++;
-                    const fireInterval = playerState.lockOnWarning > 75 ? 55 : 95;
-                    if (b.attackTimer % fireInterval === 0) {
+                    if (b.attackTimer % 90 === 0) {
                         const orbMesh = new THREE.Mesh(
-                            new THREE.SphereGeometry(0.38, 10, 10),
+                            new THREE.SphereGeometry(0.4, 10, 10),
                             new THREE.MeshBasicMaterial({ color: b.bossColor })
                         );
-                        orbMesh.position.set(b.x, 2.2, b.z);
+                        orbMesh.position.set(b.x, 2.4, b.z);
                         scene.add(orbMesh);
 
                         const ang = Math.atan2(playerState.x - b.x, playerState.z - b.z);
-                        projectiles.push({
-                            mesh: orbMesh,
-                            vx: Math.sin(ang) * 0.36,
-                            vz: Math.cos(ang) * 0.36,
-                            dmg: 18
-                        });
+                        projectiles.push({ mesh: orbMesh, vx: Math.sin(ang) * 0.34, vz: Math.cos(ang) * 0.34, dmg: 16 });
                     }
                 }
             }
 
-            // Update Boss Projectiles (Blocked by 3D Cover Pillars!)
             for (let i = projectiles.length - 1; i >= 0; i--) {
                 const p = projectiles[i];
                 p.mesh.position.x += p.vx;
@@ -2261,10 +2268,9 @@
                 }
             }
 
-            // Extraction Countdown
             if (extractionPhase) {
                 extractionTimer -= 1 / 60;
-                document.getElementById('hud-obj-sub').innerText = `MELTDOWN IN ${Math.ceil(extractionTimer)}s // REACH THE SOUTH TRAIN & PRESS [F]!`;
+                document.getElementById('hud-obj-sub').innerText = `MELTDOWN IN ${Math.ceil(extractionTimer)}s // REACH THE EXPRESS TRAIN & PRESS [F]!`;
                 if (extractionTimer <= 0) completeCampaign(true);
             }
         }
@@ -2286,100 +2292,60 @@
             }
         }
 
-        // Wrist-Mounted BFS Shortest-Path Radar
         function drawBfsWristRadar() {
             rCtx.fillStyle = '#03080c';
-            rCtx.fillRect(0, 0, 104, 104);
+            rCtx.fillRect(0, 0, 72, 72);
 
-            // Radar Rings
-            rCtx.strokeStyle = 'rgba(16, 185, 129, 0.25)';
-            rCtx.lineWidth = 1;
-            [22, 44].forEach(r => {
-                rCtx.beginPath();
-                rCtx.arc(52, 52, r, 0, Math.PI * 2);
-                rCtx.stroke();
-            });
+            rCtx.strokeStyle = 'rgba(16, 185, 129, 0.28)';
+            rCtx.beginPath();
+            rCtx.arc(36, 36, 30, 0, Math.PI * 2);
+            rCtx.stroke();
 
-            // Rotating Sweep Line
-            radarSweepAngle += 0.045;
+            radarSweepAngle += 0.05;
             rCtx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
             rCtx.beginPath();
-            rCtx.moveTo(52, 52);
-            rCtx.lineTo(52 + Math.cos(radarSweepAngle) * 48, 52 + Math.sin(radarSweepAngle) * 48);
+            rCtx.moveTo(36, 36);
+            rCtx.lineTo(36 + Math.cos(radarSweepAngle) * 32, 36 + Math.sin(radarSweepAngle) * 32);
             rCtx.stroke();
 
-            const scale = 0.85;
+            const scale = 0.6;
+            const tx = extractionPhase ? 0 : (bossEntity ? bossEntity.x : 0);
+            const tz = extractionPhase ? 34 : (bossEntity ? bossEntity.z : 0);
+            const rx = 36 + (tx - playerState.x) * scale;
+            const ry = 36 + (tz - playerState.z) * scale;
 
-            // BFS Shortest Path Line to Active Objective or Boss
-            const targetX = extractionPhase ? 0 : (bossEntity ? bossEntity.x : 0);
-            const targetZ = extractionPhase ? 35 : (bossEntity ? bossEntity.z : 0);
-            const rx = 52 + (targetX - playerState.x) * scale;
-            const ry = 52 + (targetZ - playerState.z) * scale;
-
-            rCtx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
-            rCtx.setLineDash([3, 3]);
+            rCtx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
             rCtx.beginPath();
-            rCtx.moveTo(52, 52);
-            rCtx.lineTo(Math.max(8, Math.min(96, rx)), Math.max(8, Math.min(96, ry)));
+            rCtx.moveTo(36, 36);
+            rCtx.lineTo(Math.max(6, Math.min(66, rx)), Math.max(6, Math.min(66, ry)));
             rCtx.stroke();
-            rCtx.setLineDash([]);
 
-            // Pylons / Generators (Green Dots)
-            rCtx.fillStyle = '#10b981';
-            interactables.forEach(item => {
-                const ix = 52 + (item.x - playerState.x) * scale;
-                const iy = 52 + (item.z - playerState.z) * scale;
-                rCtx.fillRect(ix - 2, iy - 2, 4, 4);
-            });
-
-            // Lurkers (Amber Dots)
-            rCtx.fillStyle = '#f59e0b';
-            lurkers.forEach(l => {
-                const lx = 52 + (l.mesh.position.x - playerState.x) * scale;
-                const ly = 52 + (l.mesh.position.z - playerState.z) * scale;
-                rCtx.beginPath();
-                rCtx.arc(lx, ly, 2.5, 0, Math.PI * 2);
-                rCtx.fill();
-            });
-
-            // Boss Ping (Red Pulsing Dot)
             if (bossEntity) {
                 rCtx.fillStyle = '#f43f5e';
                 rCtx.beginPath();
-                rCtx.arc(Math.max(8, Math.min(96, rx)), Math.max(8, Math.min(96, ry)), 4.5, 0, Math.PI * 2);
+                rCtx.arc(Math.max(6, Math.min(66, rx)), Math.max(6, Math.min(66, ry)), 4, 0, Math.PI * 2);
                 rCtx.fill();
             }
 
-            // Player Center Dot
             rCtx.fillStyle = '#38bdf8';
             rCtx.beginPath();
-            rCtx.arc(52, 52, 3.5, 0, Math.PI * 2);
+            rCtx.arc(36, 36, 3, 0, Math.PI * 2);
             rCtx.fill();
         }
 
         function updateHudTelemetry() {
             const db = Math.round(playerState.dbLevel);
             const dbText = document.getElementById('db-val-text');
-            const dbFill = document.getElementById('db-bar-fill');
-            dbText.innerText = `${db} dB`;
-            dbFill.style.width = `${Math.min(100, db)}%`;
-            dbFill.style.background = db > 55 ? 'var(--hud-red)' : (db > 40 ? 'var(--hud-amber)' : 'var(--hud-green)');
+            dbText.innerText = `${db} dB ${db > 55 ? '(LOUD!)' : '(QUIET)'}`;
+            dbText.style.color = db > 55 ? 'var(--hud-red)' : (db > 42 ? 'var(--hud-amber)' : 'var(--hud-green)');
 
-            // Crosshair Bloom
-            const bloom = Math.min(16, Math.round(db / 6));
-            document.getElementById('ch-t').style.transform = `translateY(${-bloom}px)`;
-            document.getElementById('ch-b').style.transform = `translateY(${bloom}px)`;
-            document.getElementById('ch-l').style.transform = `translateX(${-bloom}px)`;
-            document.getElementById('ch-r').style.transform = `translateX(${bloom}px)`;
-
-            // Armor Plates & HP
             document.getElementById('plate-1').classList.toggle('filled', playerState.armor >= 20);
             document.getElementById('plate-2').classList.toggle('filled', playerState.armor >= 75);
             document.getElementById('plate-3').classList.toggle('filled', playerState.armor >= 130);
             document.getElementById('hp-fill').style.width = `${(playerState.hp / playerState.maxHp) * 100}%`;
 
             document.getElementById('scraps-text').innerText = `SCRAP: ${playerState.scrap}`;
-            document.getElementById('ammo-counter').innerHTML = `${playerState.ammo}<span style="font-size:0.8rem; color:var(--text-dim);">/∞</span>`;
+            document.getElementById('ammo-counter').innerText = `${playerState.ammo}/∞`;
             document.getElementById('pill-decoy').innerText = `DECOY [G]: ${playerState.decoyCount}`;
             document.getElementById('pill-emp').innerText = playerState.gadgetCd > 0 ? `GADGET: ${Math.ceil(playerState.gadgetCd / 60)}s` : `GADGET [Q]: READY`;
 
@@ -2399,16 +2365,15 @@
             document.getElementById('debrief-sub').innerText = victory ? 'QUARANTINE BREACH CLEARED' : 'SIGNAL LOST IN QUARANTINE';
             document.getElementById('debrief-title').innerText = victory ? 'EXTRACTION COMPLETE' : 'OPERATIVE DOWN';
             document.getElementById('debrief-desc').innerText = victory
-                ? 'You purged Wraith-65, Eidolon, Ironbound, and Malakor, escaping aboard the Armored Express Train at dawn. All commendation coins have been wired to your Hub Wallet.'
-                : 'Your acoustic signature drew overwhelming fire. Every coin and commendation you unlocked during this deployment remains banked in your Hub Wallet.';
+                ? 'You purged Wraith-65, Eidolon, Ironbound, and Malakor, escaping aboard the Armored Express Train at dawn.'
+                : 'Your acoustic signature drew overwhelming fire. Every coin and commendation unlocked remains banked in your Hub Wallet.';
             document.getElementById('debrief-coins').innerText = `+${sessionCoinsEarned.toLocaleString()} ARCADE COINS`;
         }
 
-        // Touch Thumbpad Listeners for School iPads
         function bindThumbpad(padId, nubId, stateObj) {
             const pad = document.getElementById(padId);
             const nub = document.getElementById(nubId);
-            const maxR = 40;
+            const maxR = 38;
             function onMove(e) {
                 e.preventDefault();
                 const t = e.targetTouches[0];
@@ -2440,7 +2405,12 @@
         mFireBtn.addEventListener('touchstart', e => { e.preventDefault(); isFiring = true; fireWeapon(); });
         mFireBtn.addEventListener('touchend', e => { e.preventDefault(); isFiring = false; });
 
-        document.addEventListener('DOMContentLoaded', renderBriefingUI);
+        document.addEventListener('DOMContentLoaded', () => {
+            initThreeEngine();
+            renderBriefingUI();
+            updateMenuShowcaseModel();
+            requestAnimationFrame(animateLoop);
+        });
     </script>
 </body>
 </html>
