@@ -214,6 +214,10 @@
             border-radius: 6px;
             white-space: nowrap;
         }
+        .perk-pill.commendation {
+            border-color: rgba(16, 185, 129, 0.45);
+            color: var(--emerald);
+        }
 
         /* Search & Category Bar */
         .controls-bar {
@@ -625,7 +629,7 @@
 
     <div class="controls-bar">
         <div class="search-box">
-            <input type="text" id="search-input" placeholder="Search 25 games..." oninput="filterGames()">
+            <input type="text" id="search-input" placeholder="Search 26 games..." oninput="filterGames()">
         </div>
         <div class="filter-tags">
             <button class="filter-btn active" onclick="setCategory('ALL', this)">All</button>
@@ -636,14 +640,14 @@
     </div>
 
     <div class="grid" id="games-grid">
-        <a href="lore.html" class="card" data-cat="ACTION" data-title="Cyber Chronicles Lore RPG Boss Raid M Demon Kai Jie Ritvik Darryl">
+        <a href="lore.html" class="card" data-cat="3D" data-title="Blackout Echo Protocol 3D FPS Co-Op Hush 99 Nights Call of Duty Wraith Eidolon Ironbound Malakor">
             <div class="card-top">
-                <span class="icon">⚔️</span>
-                <span class="badge badge-hot">STORY RAID</span>
+                <span class="icon">🎯</span>
+                <span class="badge badge-hot">3D CO-OP FPS</span>
             </div>
             <div>
-                <h3>Cyber Chronicles</h3>
-                <p>4 Heroes vs Kai Jie, Ritvik, Darryl & M Demon</p>
+                <h3>Blackout: Echo Protocol</h3>
+                <p>3D Acoustic Stealth, 4 Bosses & Co-Op</p>
             </div>
         </a>
 
@@ -936,7 +940,7 @@
         </div>
     </div>
 
-    <!-- Feedback & Game Suggestion Modal (All 25+ Games Auto-Loaded) -->
+    <!-- Feedback & Game Suggestion Modal (All 26 Games Auto-Loaded) -->
     <div id="feedback-modal" class="modal">
         <div class="modal-card">
             <div class="modal-header">
@@ -998,6 +1002,7 @@
                 <div class="codex-title">Active Hints</div>
                 <div class="hint-item"><span class="hint-tag">DEV</span> Lead developer's name</div>
                 <div class="hint-item"><span class="hint-tag">IDEA</span> Ideaist's name for a permanent coin boost</div>
+                <div class="hint-item"><span class="hint-tag">FPS</span> Enter <strong>BLACKOUT</strong> for Spec-Ops supply drop</div>
                 <div class="hint-item"><span class="hint-tag">HOOPS</span> The 65% sniper with the white AirPod</div>
                 <div class="hint-item"><span class="hint-tag">SNIPER</span> The heavy artillery 3PT shooter</div>
                 <div class="hint-item"><span class="hint-tag">LUCK</span> Try entering <strong>JACKPOT</strong></div>
@@ -1031,14 +1036,30 @@
         // =========================================================================
         const PATCH_NOTES = [
             {
-                version: "v2.5 — Cyber Chronicles Story Campaign & 2.5D Arena Overhaul",
+                version: "v2.6 — BLACKOUT: ECHO PROTOCOL (3D Tactical Co-Op FPS)",
                 items: [
-                    "<strong>Cyber Chronicles (Lore Game):</strong> Released <strong>lore.html</strong> featuring 4 playable heroes (Shivnand, Can Ming, Endra, WengLe) with custom 2.5D sprite rigs and 4 map bosses (Kai Jie, Ritvik, Darryl, M Demon) with cover pillars and heal pads.",
-                    "<strong>Cyber Arcade Hub:</strong> Updated theme synchronization and school iPad AJAX feedback pipeline.",
-                    "<strong>Basketball Legends & Space Invaders:</strong> Maintained economy balance and coin multipliers."
+                    "<strong>Blackout: Echo Protocol (lore.html):</strong> Launched full 3D First-Person Tactical Stealth & Raid game combining <em>99 Nights</em>, <em>Call of Duty</em>, <em>Hush</em>, <em>3D Train Express</em>, and <em>BFS Wrist Radar</em>.",
+                    "<strong>4 Operatives & 4 3D Sector Bosses:</strong> Play as <strong>ARCHITECT-01</strong>, <strong>SOVEREIGN</strong>, <strong>VANGUARD-7</strong>, or <strong>BROKER</strong> against <strong>WRAITH-65</strong>, <strong>EIDOLON</strong>, <strong>IRONBOUND</strong>, and <strong>MALAKOR</strong>.",
+                    "<strong>Co-Op & 12 Coin Commendations:</strong> Added PeerJS 4-digit Squad Codes, skippable <em>Operation: Zero Decibel</em> tutorial, Pack-a-Punch Train Workbench, and 12 Achievements synced directly with the Hub Perks Bar."
                 ]
             }
         ];
+
+        // Map Blackout Achievement IDs to Hub Perk Pills
+        const BLACKOUT_ACH_TITLES = {
+            ghost_op: '🎖️ Ghost Operative',
+            whisper_craft: '🎖️ Pack-a-Punched',
+            bait_switch: '🎖️ Acoustic Diversion',
+            lurker_hunter: '🎖️ Blind Spot',
+            marksman: '🎖️ Surgical Precision',
+            wraith_clear: '🎖️ Counter-Sniper',
+            eidolon_clear: '🎖️ Mirror Shattered',
+            ironbound_clear: '🎖️ Line Derailed',
+            malakor_clear: '🏆 The 100th Dawn',
+            power_engineer: '🎖️ Grid Restored',
+            squad_link: '🎖️ Echo Squad',
+            master_protocol: '👑 Apex Veteran'
+        };
 
         // Automatically populate the Feedback Form with ALL games from the grid
         function populateFeedbackDropdown() {
@@ -1272,6 +1293,13 @@
                 badge: 'Ideaist VIP',
                 desc: 'Granted +6,000 Coins & Permanent 2.5x Multiplier!'
             },
+            'BLACKOUT': {
+                name: 'Echo Protocol Spec-Ops Drop',
+                rewardCoins: 15000,
+                unlocks: ['blackout_specops_active'],
+                badge: 'Blackout Spec-Ops',
+                desc: 'Granted +15,000 Coins & Blackout Spec-Ops Commendation!'
+            },
             'KAIJIE': {
                 name: 'The Sniper King',
                 rewardCoins: 2500,
@@ -1495,16 +1523,26 @@
             let badges = [];
             list.forEach(c => {
                 if (CREATOR_CODES[c] && CREATOR_CODES[c].badge) {
-                    badges.push(CREATOR_CODES[c].badge);
+                    badges.push({ text: CREATOR_CODES[c].badge, type: 'code' });
                 }
             });
+
+            // Sync Blackout: Echo Protocol Commendations
+            try {
+                const blackoutUnlocked = JSON.parse(localStorage.getItem('blackout_achievements')) || [];
+                blackoutUnlocked.forEach(id => {
+                    if (BLACKOUT_ACH_TITLES[id]) {
+                        badges.push({ text: BLACKOUT_ACH_TITLES[id], type: 'commendation' });
+                    }
+                });
+            } catch (e) {}
 
             if (badges.length > 0) {
                 bar.style.display = 'flex';
                 badges.forEach(b => {
                     const el = document.createElement('div');
-                    el.className = 'perk-pill';
-                    el.innerText = b;
+                    el.className = b.type === 'commendation' ? 'perk-pill commendation' : 'perk-pill';
+                    el.innerText = b.text;
                     bar.appendChild(el);
                 });
             } else {
