@@ -3,23 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Chronicles: Zelda Edition</title>
+    <title>BLACKOUT: ECHO PROTOCOL</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
-            --primary: #38bdf8;
-            --accent: #f43f5e;
-            --gold: #eab308;
-            --emerald: #10b981;
-            --bg: #05070b;
+            --hud-cyan: #38bdf8;
+            --hud-amber: #f59e0b;
+            --hud-red: #f43f5e;
+            --hud-green: #10b981;
+            --bg-dark: #05070a;
+            --panel-bg: rgba(9, 13, 20, 0.9);
+            --border-line: rgba(56, 189, 248, 0.28);
+            --text-light: #f1f5f9;
+            --text-dim: #64748b;
         }
 
-        * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
         body {
-            background: var(--bg);
-            color: #f8fafc;
+            background: var(--bg-dark);
+            color: var(--text-light);
             font-family: 'Inter', sans-serif;
             overflow: hidden;
             width: 100vw;
@@ -28,645 +42,2405 @@
             touch-action: none;
         }
 
-        #game-canvas {
+        #webgl-container {
             position: fixed;
             inset: 0;
             width: 100vw;
             height: 100vh;
             z-index: 1;
-            image-rendering: pixelated;
         }
 
-        /* Zelda Style HUD Overlay */
-        #hud {
+        /* Tactical CRT & NVG Vignette Overlay */
+        #tactical-lens {
             position: fixed;
-            top: 16px;
-            left: 16px;
-            right: 16px;
+            inset: 0;
+            pointer-events: none;
+            z-index: 4;
+            background:
+                radial-gradient(circle at center, transparent 55%, rgba(2, 4, 8, 0.85) 100%),
+                repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0px, rgba(0, 0, 0, 0.12) 1px, transparent 1px, transparent 3px);
+            transition: box-shadow 0.25s ease;
+        }
+        body.nvg-active #tactical-lens {
+            background:
+                radial-gradient(circle at center, rgba(16, 185, 129, 0.12) 40%, rgba(2, 20, 10, 0.92) 100%),
+                repeating-linear-gradient(0deg, rgba(16, 185, 129, 0.08) 0px, rgba(16, 185, 129, 0.08) 1px, transparent 1px, transparent 3px);
+        }
+        body.damage-flash #tactical-lens {
+            box-shadow: inset 0 0 90px rgba(244, 63, 94, 0.75);
+        }
+
+        /* Dynamic Crosshair & Hitmarker */
+        #crosshair-wrap {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             z-index: 10;
+            pointer-events: none;
             display: none;
-            justify-content: space-between;
-            align-items: center;
+        }
+        .ch-line {
+            position: absolute;
+            background: rgba(241, 245, 249, 0.85);
+            transition: transform 0.08s ease;
+        }
+        .ch-top { width: 2px; height: 8px; left: -1px; top: -14px; }
+        .ch-bot { width: 2px; height: 8px; left: -1px; top: 6px; }
+        .ch-left { width: 8px; height: 2px; top: -1px; left: -14px; }
+        .ch-right { width: 8px; height: 2px; top: -1px; left: 6px; }
+        .ch-dot { width: 2px; height: 2px; background: var(--hud-cyan); left: -1px; top: -1px; position: absolute; }
+
+        #hitmarker {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 22px;
+            height: 22px;
+            transform: translate(-50%, -50%) rotate(45deg);
+            z-index: 11;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.08s;
+        }
+        #hitmarker::before, #hitmarker::after {
+            content: '';
+            position: absolute;
+            background: var(--hud-red);
+        }
+        #hitmarker::before { width: 100%; height: 2px; top: 10px; left: 0; }
+        #hitmarker::after { width: 2px; height: 100%; left: 10px; top: 0; }
+
+        /* In-Engine Cutscene Bars & Radio Oscilloscope */
+        .letterbox {
+            position: fixed;
+            left: 0;
+            width: 100vw;
+            height: 0;
+            background: #020305;
+            z-index: 28;
+            transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
             pointer-events: none;
         }
+        #lb-top { top: 0; border-bottom: 1px solid rgba(56, 189, 248, 0.3); }
+        #lb-bot { bottom: 0; border-top: 1px solid rgba(56, 189, 248, 0.3); }
+        body.cutscene-mode #lb-top, body.cutscene-mode #lb-bot { height: 64px; }
 
-        .hud-box {
-            background: rgba(10, 14, 24, 0.92);
-            border: 2px solid #334155;
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 0.65rem;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-        }
-
-        .heart-container {
-            display: flex;
-            gap: 4px;
-            color: #f43f5e;
-            font-size: 0.9rem;
-        }
-
-        /* Cinematic Zelda Dialogue Box */
-        #dialogue-box {
+        #comms-overlay {
             position: fixed;
-            bottom: 24px;
+            bottom: 84px;
             left: 50%;
             transform: translateX(-50%);
             width: min(720px, 92vw);
-            background: rgba(10, 12, 20, 0.96);
-            border: 3px solid var(--primary);
-            border-radius: 12px;
-            padding: 20px 24px;
-            z-index: 40;
+            background: rgba(6, 10, 16, 0.94);
+            border: 1px solid var(--hud-cyan);
+            border-left: 4px solid var(--hud-cyan);
+            padding: 16px 20px;
+            z-index: 30;
             display: none;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+            cursor: pointer;
+        }
+        #oscilloscope-canvas {
+            width: 96px;
+            height: 54px;
+            background: #03060a;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            flex-shrink: 0;
+        }
+        .comms-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--hud-cyan);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        #comms-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            color: var(--text-light);
+            line-height: 1.5;
+            min-height: 38px;
+        }
+        .comms-skip-hint {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--hud-amber);
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        /* Diegetic Tactical HUD */
+        #tactical-hud {
+            position: fixed;
+            inset: 14px;
+            z-index: 12;
+            pointer-events: none;
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .hud-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .telemetry-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-line);
+            padding: 10px 14px;
+            backdrop-filter: blur(8px);
+            pointer-events: auto;
+        }
+
+        .sector-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--hud-cyan);
+            letter-spacing: 1.2px;
+        }
+        .objective-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+        .sub-directive {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--hud-amber);
+            margin-top: 4px;
+        }
+
+        /* Boss Telemetry Bar */
+        #boss-telemetry {
+            width: min(460px, 44vw);
+            background: rgba(16, 8, 14, 0.92);
+            border: 1px solid rgba(244, 63, 94, 0.5);
+            padding: 10px 16px;
+            display: none;
+        }
+        .boss-header-row {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #fda4af;
+            margin-bottom: 6px;
+        }
+        .boss-hp-bar {
+            width: 100%;
+            height: 8px;
+            background: #090407;
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            overflow: hidden;
+        }
+        #boss-hp-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #e11d48, #fb7185);
+            transition: width 0.12s;
+        }
+        #boss-status-line {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--hud-amber);
+            margin-top: 6px;
+        }
+
+        /* Bottom HUD: BFS Radar, Acoustic dB Meter, Armor & Ammo */
+        .hud-bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .wrist-watch-panel {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-line);
+            padding: 10px 14px;
+        }
+
+        #bfs-radar-canvas {
+            width: 104px;
+            height: 104px;
+            background: #03080c;
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            border-radius: 50%;
+        }
+
+        .db-meter-col {
+            min-width: 170px;
+        }
+        .db-readout {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.15rem;
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .db-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #060911;
+            border: 1px solid #1e293b;
+            margin: 6px 0;
+            position: relative;
+        }
+        #db-bar-fill {
+            height: 100%;
+            width: 15%;
+            background: var(--hud-green);
+            transition: width 0.08s, background 0.15s;
+        }
+        .db-threshold-mark {
+            position: absolute;
+            left: 55%;
+            top: -3px;
+            bottom: -3px;
+            width: 2px;
+            background: var(--hud-red);
+        }
+
+        .vitals-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-line);
+            padding: 12px 16px;
+            min-width: 250px;
+        }
+        .armor-plates-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .armor-seg {
+            flex: 1;
+            height: 7px;
+            background: #1e293b;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+        .armor-seg.filled { background: var(--hud-cyan); box-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
+
+        .hp-track {
+            width: 100%;
+            height: 10px;
+            background: #070a10;
+            border: 1px solid #263042;
+            margin-bottom: 8px;
+        }
+        #hp-fill {
+            height: 100%;
+            width: 100%;
+            background: var(--hud-green);
+            transition: width 0.15s;
+        }
+
+        .ammo-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        #ammo-counter {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-light);
+        }
+        .gadget-pills {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+        }
+        .g-pill {
+            padding: 3px 7px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+        }
+        .g-pill.ready { border-color: var(--hud-cyan); color: var(--hud-cyan); }
+
+        /* Center Contextual Interaction Prompt */
+        #interact-prompt {
+            position: fixed;
+            top: 62%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(6, 10, 18, 0.92);
+            border: 1px solid var(--hud-amber);
+            color: var(--hud-amber);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 7px 14px;
+            z-index: 15;
+            display: none;
+            pointer-events: auto;
             cursor: pointer;
         }
 
-        #dialogue-speaker {
-            font-family: 'Press Start 2P', monospace;
-            font-size: 0.75rem;
-            color: var(--gold);
-            margin-bottom: 8px;
-            text-transform: uppercase;
+        /* Achievement Unlock Toast Ribbon */
+        #ach-toast {
+            position: fixed;
+            top: 76px;
+            right: -400px;
+            width: 340px;
+            background: rgba(8, 13, 22, 0.96);
+            border: 1px solid var(--hud-amber);
+            border-left: 4px solid var(--hud-amber);
+            padding: 12px 16px;
+            z-index: 60;
+            transition: right 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.75);
         }
-
-        #dialogue-text {
+        #ach-toast.show { right: 18px; }
+        .ach-toast-head {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--hud-amber);
+            letter-spacing: 1px;
+        }
+        .ach-toast-title {
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 0.95rem;
-            line-height: 1.6;
-            color: #f1f5f9;
-            min-height: 48px;
+            font-weight: 800;
+            margin: 2px 0;
+        }
+        .ach-toast-reward {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--hud-green);
         }
 
-        .dialogue-prompt {
-            text-align: right;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 0.55rem;
-            color: var(--primary);
-            margin-top: 12px;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-
-        /* Character Select Screen */
-        #start-screen {
+        /* Pre-Deployment Tactical Briefing Terminal */
+        #briefing-screen {
             position: fixed;
             inset: 0;
-            z-index: 50;
-            background: radial-gradient(circle at top, #1a233a, #07090f);
+            z-index: 40;
+            background:
+                radial-gradient(circle at 50% 10%, rgba(14, 30, 52, 0.94), rgba(4, 6, 10, 0.99));
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            justify-content: space-between;
+            padding: 18px;
             overflow-y: auto;
         }
 
-        .title-retro {
-            font-family: 'Press Start 2P', monospace;
-            font-size: clamp(0.9rem, 2.2vw, 1.4rem);
-            color: var(--gold);
-            text-align: center;
-            line-height: 1.5;
-            margin-bottom: 24px;
-            text-shadow: 3px 3px 0px #b45309;
-        }
-
-        .hero-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-            gap: 14px;
+        .terminal-shell {
             width: 100%;
-            max-width: 980px;
-            margin-bottom: 24px;
+            max-width: 1120px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
         }
 
-        .hero-card {
-            background: #121622;
-            border: 3px solid #2a344a;
-            border-radius: 10px;
-            padding: 16px;
+        .term-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-line);
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .term-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .term-sub {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.74rem;
+            color: var(--hud-cyan);
+        }
+
+        .operative-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+        }
+        .op-card {
+            background: rgba(12, 17, 26, 0.9);
+            border: 1px solid #1e293b;
+            padding: 14px;
             cursor: pointer;
-            transition: all 0.15s;
-            text-align: center;
+            transition: border-color 0.15s, background 0.15s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .op-card:hover { border-color: #475569; }
+        .op-card.selected {
+            border-color: var(--hud-cyan);
+            background: rgba(56, 189, 248, 0.08);
+            box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.12);
+        }
+        .op-callsign {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.08rem;
+            font-weight: 800;
+        }
+        .op-realname {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--hud-cyan);
+            margin-bottom: 8px;
+        }
+        .op-stats {
+            font-size: 0.78rem;
+            color: #cbd5e1;
+            line-height: 1.45;
+        }
+        .op-stats div { margin-bottom: 5px; }
+        .stat-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            background: #162032;
+            color: var(--hud-amber);
+            padding: 1px 5px;
+            margin-right: 5px;
         }
 
-        .hero-card:hover { transform: translateY(-3px); border-color: var(--primary); }
-        .hero-card.selected { border-color: var(--gold); background: rgba(234, 179, 8, 0.08); }
-
-        .hero-card h3 {
-            font-family: 'Press Start 2P', monospace;
-            font-size: 0.75rem;
-            margin: 10px 0 6px 0;
-            color: #fff;
+        /* Co-Op & Achievements Split Panel */
+        .mid-panels {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 12px;
+        }
+        @media (max-width: 820px) {
+            .mid-panels { grid-template-columns: 1fr; }
+        }
+        .term-box {
+            background: rgba(11, 15, 24, 0.9);
+            border: 1px solid #1e293b;
+            padding: 14px;
+        }
+        .box-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--hud-cyan);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
         }
 
-        .hero-card p { font-size: 0.78rem; color: #94a3b8; line-height: 1.4; }
-
-        .btn-retro {
-            font-family: 'Press Start 2P', monospace;
-            background: var(--gold);
-            color: #000;
-            border: 3px solid #b45309;
-            border-radius: 8px;
-            padding: 14px 28px;
-            font-size: 0.75rem;
+        .coop-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .tactical-input {
+            background: #06090f;
+            border: 1px solid #2e3b52;
+            color: var(--text-light);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            padding: 8px 10px;
+            width: 130px;
+            text-transform: uppercase;
+            outline: none;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .tactical-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.76rem;
+            font-weight: 700;
+            background: #162032;
+            color: var(--text-light);
+            border: 1px solid var(--border-line);
+            padding: 8px 14px;
             cursor: pointer;
-            box-shadow: 0 4px 0 #92400e;
-            transition: transform 0.1s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        .btn-retro:hover { filter: brightness(1.1); transform: translateY(-2px); }
-        .btn-retro:active { transform: translateY(2px); box-shadow: none; }
+        .tactical-btn:hover { border-color: var(--hud-cyan); color: var(--hud-cyan); }
+        .tactical-btn.primary {
+            background: var(--hud-cyan);
+            color: #03070e;
+            border-color: var(--hud-cyan);
+            font-weight: 800;
+        }
+        .tactical-btn.amber {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--hud-amber);
+            border-color: var(--hud-amber);
+        }
 
-        /* Mobile Controls */
-        #touch-controls {
+        .ach-scroll {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+            gap: 6px;
+            max-height: 128px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .ach-chip {
+            background: #080b12;
+            border: 1px solid #1b2434;
+            padding: 6px 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+        }
+        .ach-chip.unlocked {
+            border-color: var(--hud-green);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .deploy-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(12, 18, 28, 0.95);
+            border: 1px solid var(--border-line);
+            padding: 12px 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* Mobile / iPad Touch Controls */
+        #mobile-controls {
             position: fixed;
             inset: 0;
             z-index: 20;
             pointer-events: none;
             display: none;
         }
-        .dpad-zone {
+        .touch-pad {
             position: absolute;
-            bottom: 30px;
-            left: 30px;
-            width: 140px;
-            height: 140px;
-            pointer-events: auto;
-        }
-        .action-zone {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            display: flex;
-            gap: 12px;
-            pointer-events: auto;
-        }
-        .touch-btn {
-            width: 60px;
-            height: 60px;
+            bottom: 110px;
+            width: 124px;
+            height: 124px;
             border-radius: 50%;
-            background: rgba(56, 189, 248, 0.3);
-            border: 2px solid #fff;
-            color: #fff;
-            font-family: 'Press Start 2P', monospace;
-            font-size: 0.6rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            pointer-events: auto;
+            touch-action: none;
         }
+        #pad-move { left: 24px; }
+        #pad-look { right: 24px; }
+        .pad-nub {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 44px;
+            height: 44px;
+            margin: -22px 0 0 -22px;
+            border-radius: 50%;
+            background: rgba(56, 189, 248, 0.55);
+            border: 1px solid #fff;
+            pointer-events: none;
+        }
+        .touch-action-cluster {
+            position: absolute;
+            bottom: 248px;
+            right: 22px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            max-width: 240px;
+            justify-content: flex-end;
+            pointer-events: auto;
+        }
+        .m-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 800;
+            background: rgba(12, 19, 31, 0.85);
+            color: #fff;
+            border: 1px solid var(--hud-cyan);
+            padding: 10px 12px;
+            cursor: pointer;
+        }
+        .m-btn.fire-btn { background: rgba(244, 63, 94, 0.45); border-color: var(--hud-red); padding: 14px 18px; }
 
-        #end-modal {
+        /* End Mission Debrief Modal */
+        #debrief-modal {
             position: fixed;
             inset: 0;
-            z-index: 60;
-            background: rgba(5, 7, 12, 0.92);
+            z-index: 55;
+            background: rgba(3, 5, 9, 0.92);
+            backdrop-filter: blur(8px);
             display: none;
             align-items: center;
             justify-content: center;
             padding: 16px;
         }
-        .end-card {
-            background: #121622;
-            border: 3px solid var(--gold);
-            border-radius: 12px;
-            padding: 28px;
-            max-width: 440px;
+        .debrief-card {
+            background: #0b101b;
+            border: 1px solid var(--hud-cyan);
+            padding: 26px;
+            max-width: 480px;
             width: 100%;
-            text-align: center;
         }
-        .end-card h2 { font-family: 'Press Start 2P', monospace; font-size: 0.9rem; color: var(--gold); margin-bottom: 12px; }
     </style>
 </head>
 <body>
 
-    <canvas id="game-canvas"></canvas>
+    <div id="webgl-container"></div>
+    <div id="tactical-lens"></div>
 
-    <!-- Zelda Style HUD -->
-    <div id="hud">
-        <div class="hud-box">
-            <div style="color:var(--gold);">HEALTH</div>
-            <div class="heart-container" id="heart-display">❤️❤️❤️❤️</div>
-        </div>
-        <div class="hud-box">
-            <div style="color:var(--primary);" id="boss-hud-title">DUNGEON 1/4</div>
-            <div id="boss-hud-hp" style="color:#f43f5e;">BOSS HP: 100%</div>
-        </div>
-        <div class="hud-box">
-            <div style="color:var(--emerald);">RUPEES (🪙)</div>
-            <div id="hud-coins">0</div>
-        </div>
+    <!-- Dynamic Crosshair & Hitmarker -->
+    <div id="crosshair-wrap">
+        <div class="ch-line ch-top" id="ch-t"></div>
+        <div class="ch-line ch-bot" id="ch-b"></div>
+        <div class="ch-line ch-left" id="ch-l"></div>
+        <div class="ch-line ch-right" id="ch-r"></div>
+        <div class="ch-dot"></div>
     </div>
+    <div id="hitmarker"></div>
 
-    <!-- Cinematic Dialogue Box -->
-    <div id="dialogue-box" onclick="advanceDialogue()">
-        <div id="dialogue-speaker">KAI JIE</div>
-        <div id="dialogue-text">...</div>
-        <div class="dialogue-prompt">PRESS [SPACE] OR TAP TO CONTINUE ▶</div>
-    </div>
+    <!-- In-Engine Cutscene Bars & Radio Oscilloscope -->
+    <div id="lb-top" class="letterbox"></div>
+    <div id="lb-bot" class="letterbox"></div>
 
-    <!-- Start Screen -->
-    <div id="start-screen">
-        <div class="title-retro">⚔️ CYBER CHRONICLES: ADVENTURE EDITION ⚔️</div>
-        <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:20px; text-align:center;">
-            Explore Zelda-style dungeons, dodge unique boss phases, and collect dungeon treasures!
-        </p>
-
-        <div class="hero-grid" id="hero-select-grid"></div>
-
-        <button class="btn-retro" onclick="startGame()">START ADVENTURE 🗡️</button>
-    </div>
-
-    <!-- Mobile Controls -->
-    <div id="touch-controls">
-        <div class="dpad-zone" id="dpad"></div>
-        <div class="action-zone">
-            <button class="touch-btn" ontouchstart="triggerSwordSwing()">SWD</button>
-            <button class="touch-btn" ontouchstart="triggerDash()" style="background:rgba(234,179,8,0.3);">DSH</button>
+    <div id="comms-overlay" onclick="advanceCutscene()">
+        <canvas id="oscilloscope-canvas" width="96" height="54"></canvas>
+        <div style="flex:1;">
+            <div class="comms-meta" id="comms-speaker">ENCRYPTED CHANNEL // ARCHITECT-01</div>
+            <div id="comms-text">Calibrating optical sensors...</div>
+            <div class="comms-skip-hint">[SPACE / TAP] CONTINUE TRANSMISSION // [ESC] SKIP SCENE</div>
         </div>
     </div>
 
-    <!-- End Game Modal -->
-    <div id="end-modal">
-        <div class="end-card">
-            <h2 id="end-title">QUEST COMPLETE</h2>
-            <p id="end-desc" style="color:#94a3b8; font-size:0.85rem; line-height:1.5; margin-bottom:16px;"></p>
-            <div id="end-reward" style="font-family:'Press Start 2P'; font-size:0.7rem; color:var(--gold); margin-bottom:20px;">+0 COINS</div>
-            <button class="btn-retro" onclick="location.reload()">PLAY AGAIN</button>
+    <!-- Achievement Toast Notification -->
+    <div id="ach-toast">
+        <div class="ach-toast-head">COMMENDATION UNLOCKED</div>
+        <div class="ach-toast-title" id="ach-toast-name">GHOST OPERATIVE</div>
+        <div class="ach-toast-reward" id="ach-toast-coins">+2,500 ARCADE COINS BANKED</div>
+    </div>
+
+    <!-- Center Interaction Prompt -->
+    <div id="interact-prompt" onclick="triggerContextAction()">[PRESS F / TAP] INTERACT</div>
+
+    <!-- Diegetic Tactical HUD -->
+    <div id="tactical-hud">
+        <div class="hud-top-bar">
+            <div class="telemetry-box">
+                <div class="sector-tag" id="hud-sector-id">SECTOR 00 // TRAINING DEPOT</div>
+                <div class="objective-title" id="hud-obj-main">COMPLETE ACOUSTIC CALIBRATION</div>
+                <div class="sub-directive" id="hud-obj-sub">Keep noise below 55 dB around blind Lurkers</div>
+                <div style="margin-top:8px; display:flex; gap:8px;">
+                    <button class="tactical-btn amber" id="skip-tut-btn" onclick="skipToLiveSector()" style="display:none; padding:4px 8px; font-size:0.65rem;">SKIP TUTORIAL ➔</button>
+                    <button class="tactical-btn" onclick="toggleNvg()" style="padding:4px 8px; font-size:0.65rem;">NVG [N]</button>
+                </div>
+            </div>
+
+            <div id="boss-telemetry">
+                <div class="boss-header-row">
+                    <span id="hud-boss-name">WRAITH-65</span>
+                    <span id="hud-boss-pct">100%</span>
+                </div>
+                <div class="boss-hp-bar">
+                    <div id="boss-hp-fill"></div>
+                </div>
+                <div id="boss-status-line">ACOUSTIC SHIELD ACTIVE // USE DECOY [G] OR OBJECTIVE [F]</div>
+            </div>
+
+            <div class="telemetry-box" style="text-align:right;">
+                <div class="sector-tag">ARCADE WALLET</div>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:1rem; font-weight:800; color:var(--hud-amber); margin:2px 0;">
+                    <span id="hud-wallet-coins">0</span> COINS
+                </div>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--hud-green);" id="hud-coop-status">
+                    WINGMAN DRONE: ACTIVE
+                </div>
+                <a href="index.html" class="tactical-btn" style="margin-top:6px; padding:4px 8px; font-size:0.65rem;">ABORT TO HUB</a>
+            </div>
+        </div>
+
+        <div class="hud-bottom-bar">
+            <!-- Left: Wrist BFS Radar & Acoustic Decibel Meter -->
+            <div class="wrist-watch-panel">
+                <canvas id="bfs-radar-canvas" width="104" height="104"></canvas>
+                <div class="db-meter-col">
+                    <div class="sector-tag">ACOUSTIC SIGNATURE</div>
+                    <div class="db-readout">
+                        <span id="db-val-text">18 dB</span>
+                        <span id="stance-label" style="font-size:0.68rem; color:var(--hud-cyan);">STANDING</span>
+                    </div>
+                    <div class="db-bar-bg">
+                        <div id="db-bar-fill"></div>
+                        <div class="db-threshold-mark" title="55 dB Detection Limit"></div>
+                    </div>
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:0.64rem; color:var(--text-dim);">
+                        LIMIT: 55 dB • CROUCH [C] • DECOY [G]
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Armor Plates, Health, Weapon Telemetry -->
+            <div class="vitals-panel">
+                <div class="sector-tag" style="display:flex; justify-content:space-between;">
+                    <span>BALLISTIC ARMOR PLATES</span>
+                    <span id="scraps-text" style="color:var(--hud-amber);">SCRAP: 50</span>
+                </div>
+                <div class="armor-plates-row">
+                    <div class="armor-seg filled" id="plate-1"></div>
+                    <div class="armor-seg filled" id="plate-2"></div>
+                    <div class="armor-seg filled" id="plate-3"></div>
+                </div>
+                <div class="hp-track">
+                    <div id="hp-fill"></div>
+                </div>
+                <div class="ammo-row">
+                    <div>
+                        <div class="sector-tag" id="weapon-name-label">SUPPRESSED CARBINE MK.I</div>
+                        <div class="gadget-pills">
+                            <span class="g-pill ready" id="pill-ads">ADS [RMB/V]</span>
+                            <span class="g-pill ready" id="pill-decoy">DECOY [G]: 2</span>
+                            <span class="g-pill ready" id="pill-emp">GADGET [Q]</span>
+                        </div>
+                    </div>
+                    <div id="ammo-counter">30<span style="font-size:0.8rem; color:var(--text-dim);">/∞</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile / iPad Dual Thumbpads -->
+    <div id="mobile-controls">
+        <div class="touch-pad" id="pad-move"><div class="pad-nub" id="nub-move"></div></div>
+        <div class="touch-pad" id="pad-look"><div class="pad-nub" id="nub-look"></div></div>
+        <div class="touch-action-cluster">
+            <button class="m-btn fire-btn" id="m-fire">FIRE</button>
+            <button class="m-btn" onclick="toggleAds()">ADS</button>
+            <button class="m-btn" onclick="toggleCrouch()">CROUCH</button>
+            <button class="m-btn" onclick="throwAcousticDecoy()">DECOY</button>
+            <button class="m-btn" onclick="useClassGadget()">GADGET</button>
+            <button class="m-btn" onclick="reloadWeapon()">RELOAD</button>
+        </div>
+    </div>
+
+    <!-- Pre-Game Tactical Briefing & Loadout Screen -->
+    <div id="briefing-screen">
+        <div class="terminal-shell">
+            <div class="term-header">
+                <div>
+                    <div class="term-sub">CLASSIFIED EXPEDITION // ELLA_DES QUARANTINE ZONE</div>
+                    <div class="term-title">BLACKOUT: ECHO PROTOCOL</div>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <div class="tactical-btn amber">WALLET: <span id="menu-coins">0</span> COINS</div>
+                    <a href="index.html" class="tactical-btn">⬅ RETURN TO HUB</a>
+                </div>
+            </div>
+
+            <div class="operative-grid" id="operative-select-grid"></div>
+
+            <div class="mid-panels">
+                <!-- Co-Op Frequency Sync -->
+                <div class="term-box">
+                    <div class="box-label">
+                        <span>MULTIPLAYER SQUAD LINK (PEERJS WEBRTC)</span>
+                        <span id="net-status" style="color:var(--hud-green);">READY</span>
+                    </div>
+                    <p style="font-size:0.76rem; color:#94a3b8; line-height:1.4;">
+                        Host a 4-digit frequency code so friends on school iPads can join your 3D sector, or deploy solo with an AI Wingman Drone.
+                    </p>
+                    <div class="coop-controls">
+                        <button class="tactical-btn" onclick="hostCoopSession()">HOST SQUAD CODE</button>
+                        <input type="text" id="join-code-input" class="tactical-input" placeholder="CODE (e.g. X9K2)" maxlength="6">
+                        <button class="tactical-btn" onclick="joinCoopSession()">JOIN SQUAD</button>
+                    </div>
+                    <div id="room-code-display" style="font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--hud-amber); margin-top:8px;"></div>
+                </div>
+
+                <!-- 12 Achievements & Coin Bounties -->
+                <div class="term-box">
+                    <div class="box-label">
+                        <span>SERVICE COMMENDATIONS (EARN ARCADE COINS)</span>
+                        <span id="ach-count-label">0 / 12 UNLOCKED</span>
+                    </div>
+                    <div class="ach-scroll" id="ach-grid"></div>
+                </div>
+            </div>
+
+            <div class="deploy-bar">
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:#cbd5e1;">
+                    <strong>CONTROLS:</strong> [WASD] Move • [MOUSE / TOUCH] Look & Aim • [CLICK] Fire • [RMB / V] ADS Zoom • [C] Crouch (Silent) • [G] Sonic Decoy • [F] Objectives & Train Workbench
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="tactical-btn amber" onclick="launchGame(true)">1. RUN TUTORIAL (ZERO DECIBEL)</button>
+                    <button class="tactical-btn primary" onclick="launchGame(false)">2. SKIP TO LIVE SECTOR 1 ➔</button>
+                </div>
+            </div>
+
+            <!-- Student Feedback Tip Banner -->
+            <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.35); padding:9px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; font-family:'JetBrains Mono',monospace; font-size:0.72rem;">
+                <span><strong style="color:var(--hud-green);">[FIELD INTEL]:</strong> Want your own custom Operative or Monster added to Blackout: Echo Protocol? Submit your build on the Hub's <strong>Send Feedback</strong> form!</span>
+                <a href="index.html" style="color:var(--hud-green); text-decoration:underline;">OPEN HUB FORM ➔</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- End Mission Debrief Modal -->
+    <div id="debrief-modal">
+        <div class="debrief-card">
+            <div class="term-sub" id="debrief-sub">OPERATION DEBRIEF</div>
+            <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; margin:4px 0 10px 0;" id="debrief-title">EXTRACTION SUCCESSFUL</h2>
+            <p id="debrief-desc" style="font-size:0.85rem; color:#94a3b8; line-height:1.5; margin-bottom:16px;"></p>
+            <div style="background:#060911; border:1px solid var(--border-line); padding:14px; font-family:'JetBrains Mono',monospace; margin-bottom:18px;">
+                <div style="font-size:0.7rem; color:var(--text-dim);">TOTAL BOUNTY TRANSFERRED TO HUB WALLET</div>
+                <div style="font-size:1.3rem; font-weight:800; color:var(--hud-amber); margin-top:4px;" id="debrief-coins">+0 COINS</div>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button class="tactical-btn" onclick="location.reload()">REDEPLOY</button>
+                <a href="index.html" class="tactical-btn primary">RETURN TO ARCADE HUB</a>
+            </div>
         </div>
     </div>
 
     <script>
-        const HEROES = [
-            { id: 'shivnand', name: 'Shivnand', desc: 'The Master Swordsman with rapid blade combos.', color: '#38bdf8', hearts: 5 },
-            { id: 'canming', name: 'Can Ming', desc: 'Royal 2.5x Coin Finder & fast movement speed.', color: '#eab308', hearts: 4 },
-            { id: 'endra', name: 'Endra', desc: 'Heavy tank with extra hearts & shield defense.', color: '#f43f5e', hearts: 7 },
-            { id: 'wengle', name: 'WengLe', desc: 'Homing magic spells & coin regeneration.', color: '#10b981', hearts: 5 }
+        // =========================================================================
+        // 1. OPERATIVE CLASSES, ACHIEVEMENTS & SECTOR DEFINITIONS
+        // =========================================================================
+        const OPERATIVES = {
+            architect: {
+                id: 'architect',
+                callsign: 'ARCHITECT-01',
+                realname: 'Shivnand // Electronic Warfare',
+                weapon: 'Suppressed Burst Carbine',
+                fireRate: 140,
+                dmg: 26,
+                magSize: 30,
+                noiseMod: 0.75,
+                speed: 0.16,
+                color: 0x38bdf8,
+                passive: 'Dead Zone: 25% quieter footsteps & clear hazard HUD.',
+                gadgetName: 'Acoustic EMP (6s Silence & Boss Stun)'
+            },
+            sovereign: {
+                id: 'sovereign',
+                callsign: 'SOVEREIGN',
+                realname: 'Can Ming // Recon & Bounty',
+                weapon: 'Twin High-RPM PDWs',
+                fireRate: 95,
+                dmg: 20,
+                magSize: 40,
+                noiseMod: 0.9,
+                speed: 0.18,
+                color: 0xf59e0b,
+                passive: 'Bounty Scavenger: 2.5x Coin & Scrap drops on all hits!',
+                gadgetName: 'Sonar Pulse (Reveals True Boss Weakpoint)'
+            },
+            vanguard: {
+                id: 'vanguard',
+                callsign: 'VANGUARD-7',
+                realname: 'Endra // Heavy Pointman',
+                weapon: 'Tactical Flechette Shotgun',
+                fireRate: 340,
+                dmg: 62,
+                magSize: 12,
+                noiseMod: 1.0,
+                speed: 0.15,
+                color: 0xf43f5e,
+                passive: 'Ballistic Plating: Rapid Armor regeneration & high stagger.',
+                gadgetName: 'Kinetic Thumper (Draws All Monsters Away)'
+            },
+            broker: {
+                id: 'broker',
+                callsign: 'BROKER',
+                realname: 'WengLe // Silent Trapper',
+                weapon: 'Magnetic Rail-Crossbow',
+                fireRate: 240,
+                dmg: 48,
+                magSize: 15,
+                noiseMod: 0.5,
+                speed: 0.17,
+                color: 0x10b981,
+                passive: 'Zero-Footprint: Crouching generates 0 dB & heals Armor.',
+                gadgetName: 'Tesla Snare (Shocks & Exposes Boss Core)'
+            }
+        };
+
+        const ACHIEVEMENTS = [
+            { id: 'ghost_op', name: 'Ghost Operative', desc: 'Complete Calibration or stay silent in combat', reward: 2500 },
+            { id: 'whisper_craft', name: 'Pack-a-Punched', desc: 'Upgrade your weapon at the Train Workbench', reward: 3000 },
+            { id: 'bait_switch', name: 'Acoustic Diversion', desc: 'Distract a threat with a Sonic Decoy [G]', reward: 4000 },
+            { id: 'lurker_hunter', name: 'Blind Spot', desc: 'Eliminate 3 blind Decibel Crawlers', reward: 5000 },
+            { id: 'marksman', name: 'Surgical Precision', desc: 'Land 8 Weak-Point hits while Aiming Down Sights', reward: 3500 },
+            { id: 'wraith_clear', name: 'Counter-Sniper', desc: 'Defeat Sector 1 Boss: WRAITH-65', reward: 10000 },
+            { id: 'eidolon_clear', name: 'Mirror Shattered', desc: 'Defeat Sector 2 Boss: EIDOLON', reward: 20000 },
+            { id: 'ironbound_clear', name: 'Line Derailed', desc: 'Short-circuit & defeat Sector 3: IRONBOUND', reward: 35000 },
+            { id: 'malakor_clear', name: 'The 100th Dawn', desc: 'Incinerate MALAKOR & board the Express Train', reward: 250000 },
+            { id: 'power_engineer', name: 'Grid Restored', desc: 'Activate 3 Field Generators or Track Switches', reward: 7500 },
+            { id: 'squad_link', name: 'Echo Squad', desc: 'Host a Co-Op Room or fight alongside Wingman Drone', reward: 5000 },
+            { id: 'master_protocol', name: 'Apex Veteran', desc: 'Unlock 6 Commendations in Blackout Protocol', reward: 25000 }
         ];
 
-        let selectedHero = HEROES[0];
-        function renderHeroes() {
-            document.getElementById('hero-select-grid').innerHTML = HEROES.map(h => `
-                <div class="hero-card ${h.id === selectedHero.id ? 'selected' : ''}" onclick="selectHero('${h.id}')">
-                    <div style="font-size:2rem; margin-bottom:8px;">🛡️</div>
-                    <h3>${h.name}</h3>
-                    <p>${h.desc}</p>
-                    <div style="font-family:'Press Start 2P'; font-size:0.55rem; color:var(--gold); margin-top:10px;">❤️ ${h.hearts} HEARTS</div>
+        const SECTORS = [
+            {
+                id: 'tutorial',
+                code: 'SECTOR 00 // SUBTERRANEAN DEPOT',
+                title: 'OPERATION: ZERO DECIBEL (TUTORIAL)',
+                directive: 'Crouch [C] past the blind Lurker, upgrade at Workbench [F], or Toss Decoy [G]',
+                fogColor: 0x060b12,
+                floorColor: 0x111722,
+                bossName: 'CALIBRATION DRONE MK-IV',
+                bossHp: 220,
+                bossColor: 0x38bdf8,
+                reward: 2500,
+                cutscene: [
+                    { speaker: 'COMMAND // ARCHITECT-01', text: 'Visor online. Welcome to Operation: Zero Decibel. Every action you take generates sound waves on your wrist meter.' },
+                    { speaker: 'COMMAND // ARCHITECT-01', text: 'Stay below 55 dB to remain invisible to blind Lurkers. Press [C] to crouch, [G] to toss a Sonic Decoy, or hit [SKIP TUTORIAL] anytime.' }
+                ]
+            },
+            {
+                id: 'sector1',
+                code: 'SECTOR 01 // OVERGROWN WATCHTOWER PINES',
+                title: 'ELIMINATE WRAITH-65 (CORRUPTED KAI JIE)',
+                directive: 'Stay under 55 dB! Throw Decoy [G] or activate Generator [F] to expose his coolant core!',
+                fogColor: 0x040d0a,
+                floorColor: 0x0b1912,
+                bossName: 'WRAITH-65 // THE CYBER MARKSMAN',
+                bossHp: 650,
+                bossColor: 0x38bdf8,
+                reward: 10000,
+                cutscene: [
+                    { speaker: 'SOVEREIGN // RADIO COMMS', text: 'Train Express halted at Sector 1 perimeter. High-frequency white transceiver detected in the pine canopy—it’s Wraith-65.' },
+                    { speaker: 'WRAITH-65 [INTERCEPTED]', text: 'Acoustic lock calibrated at 65 decibels. Make a single loud footstep in my forest and my railgun zeroes your visor.' }
+                ]
+            },
+            {
+                id: 'sector2',
+                code: 'SECTOR 02 // FLOODED SERVER BUNKER',
+                title: 'PURGE EIDOLON (CORRUPTED RITVIK)',
+                directive: 'Watch your BFS Radar for real water ripples! Activate EMP Terminal [F] to clear illusions!',
+                fogColor: 0x090514,
+                floorColor: 0x0f0a20,
+                bossName: 'EIDOLON // THE FLOOD PHANTOM',
+                bossHp: 850,
+                bossColor: 0xa855f7,
+                reward: 20000,
+                cutscene: [
+                    { speaker: 'ARCHITECT-01 // RADIO COMMS', text: 'We are knee-deep in cooling water. Walking fast spikes your noise to 65 dB—use crouch or short bursts.' },
+                    { speaker: 'EIDOLON [INTERCEPTED]', text: 'Three reflections in the dark water... Pull the trigger on the wrong shadow and your own radar will blind you.' }
+                ]
+            },
+            {
+                id: 'sector3',
+                code: 'SECTOR 03 // FOGGY VIADUCT HIGHWAY',
+                title: 'DERAIL IRONBOUND (CORRUPTED DARRYL)',
+                directive: 'Frontal armor is bulletproof! Flip High-Voltage Rail Switches [F] or toss Decoy [G] to stun him!',
+                fogColor: 0x120905,
+                floorColor: 0x1c120d,
+                bossName: 'IRONBOUND // ARMORED CONVOY JUGGERNAUT',
+                bossHp: 1050,
+                bossColor: 0xf97316,
+                reward: 35000,
+                cutscene: [
+                    { speaker: 'VANGUARD-7 // RADIO COMMS', text: 'Look at the high-beams cutting through the viaduct fog... Darryl’s rig is fused with an entire double-decker chassis.' },
+                    { speaker: 'IRONBOUND [PA SYSTEM]', text: 'NEXT STOP: TERMINAL OBLIVION! CLEAR THE EXPRESS LANE OR BE CRUSHED UNDER 40 TONS OF STEEL!' }
+                ]
+            },
+            {
+                id: 'sector4',
+                code: 'SECTOR 04 // SUB-CORE REACTOR',
+                title: 'INCINERATE MALAKOR, THE 100TH NIGHT',
+                directive: 'Ignite UV Reactor Pillars [F] to burn Malakor’s obsidian armor, then board the Express Train!',
+                fogColor: 0x140408,
+                floorColor: 0x1f080e,
+                bossName: 'MALAKOR // THE 100TH NIGHT OVERLORD',
+                bossHp: 1400,
+                bossColor: 0xf43f5e,
+                reward: 250000,
+                cutscene: [
+                    { speaker: 'BROKER // RADIO COMMS', text: 'All facility lights just shattered. The obsidian signature ahead is off the decibel chart—Malakor is in the reactor core.' },
+                    { speaker: 'MALAKOR [RESONANCE]', text: 'NINETY-NINE NIGHTS YOU HID IN THE LIGHT. ON THE HUNDREDTH NIGHT, I HEAR EVERY HEARTBEAT.' }
+                ]
+            }
+        ];
+
+        // =========================================================================
+        // 2. WALLET & ACHIEVEMENT PERSISTENCE ENGINE
+        // =========================================================================
+        let selectedOpKey = 'architect';
+        let sessionCoinsEarned = 0;
+
+        function getWalletCoins() { return parseInt(localStorage.getItem('arcade_coins')) || 0; }
+        function addCoins(rawAmount) {
+            const hubMult = parseFloat(localStorage.getItem('arcade_multiplier')) || 1.0;
+            const opMult = selectedOpKey === 'sovereign' ? 2.5 : 1.0;
+            const finalCoins = Math.round(rawAmount * hubMult * opMult);
+            const updated = getWalletCoins() + finalCoins;
+            localStorage.setItem('arcade_coins', updated);
+            sessionCoinsEarned += finalCoins;
+            document.getElementById('hud-wallet-coins').innerText = updated.toLocaleString();
+            document.getElementById('menu-coins').innerText = updated.toLocaleString();
+            return finalCoins;
+        }
+
+        function getUnlockedAchievements() {
+            try { return JSON.parse(localStorage.getItem('blackout_achievements')) || []; }
+            catch (e) { return []; }
+        }
+
+        function unlockAchievement(id) {
+            const unlocked = getUnlockedAchievements();
+            if (unlocked.includes(id)) return;
+            const ach = ACHIEVEMENTS.find(a => a.id === id);
+            if (!ach) return;
+
+            unlocked.push(id);
+            localStorage.setItem('blackout_achievements', JSON.stringify(unlocked));
+            const payout = addCoins(ach.reward);
+            playSynthSfx('achievement');
+
+            // Show toast ribbon
+            const toast = document.getElementById('ach-toast');
+            document.getElementById('ach-toast-name').innerText = ach.name.toUpperCase();
+            document.getElementById('ach-toast-coins').innerText = `+${payout.toLocaleString()} COINS BANKED`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3600);
+
+            renderBriefingUI();
+
+            if (unlocked.length >= 6 && !unlocked.includes('master_protocol')) {
+                setTimeout(() => unlockAchievement('master_protocol'), 1200);
+            }
+        }
+
+        function renderBriefingUI() {
+            document.getElementById('menu-coins').innerText = getWalletCoins().toLocaleString();
+            const opGrid = document.getElementById('operative-select-grid');
+            opGrid.innerHTML = Object.values(OPERATIVES).map(op => `
+                <div class="op-card ${op.id === selectedOpKey ? 'selected' : ''}" onclick="selectOperative('${op.id}')">
+                    <div>
+                        <div class="op-callsign">${op.callsign}</div>
+                        <div class="op-realname">${op.realname}</div>
+                        <div class="op-stats">
+                            <div><span class="stat-tag">PRIMARY</span> ${op.weapon}</div>
+                            <div><span class="stat-tag">TRAIT</span> ${op.passive}</div>
+                            <div><span class="stat-tag">GADGET [Q]</span> ${op.gadgetName}</div>
+                        </div>
+                    </div>
+                    <div style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--hud-cyan); border-top:1px solid #1e293b; padding-top:6px; margin-top:6px; display:flex; justify-content:space-between;">
+                        <span>DMG: ${op.dmg}</span>
+                        <span>NOISE: ${Math.round(op.noiseMod * 100)}%</span>
+                    </div>
                 </div>
             `).join('');
+
+            const unlocked = getUnlockedAchievements();
+            document.getElementById('ach-count-label').innerText = `${unlocked.length} / ${ACHIEVEMENTS.length} UNLOCKED`;
+            document.getElementById('ach-grid').innerHTML = ACHIEVEMENTS.map(a => {
+                const done = unlocked.includes(a.id);
+                return `
+                    <div class="ach-chip ${done ? 'unlocked' : ''}">
+                        <div style="font-weight:800; color:${done ? 'var(--hud-green)' : '#e2e8f0'};">${done ? '[✓] ' : ''}${a.name}</div>
+                        <div style="color:#64748b; font-size:0.6rem; margin:2px 0;">${a.desc}</div>
+                        <div style="color:var(--hud-amber);">+${a.reward.toLocaleString()} COINS</div>
+                    </div>
+                `;
+            }).join('');
         }
-        function selectHero(id) {
-            selectedHero = HEROES.find(h => h.id === id);
-            renderHeroes();
+
+        function selectOperative(id) {
+            selectedOpKey = id;
+            renderBriefingUI();
+            playSynthSfx('click');
         }
-        renderHeroes();
 
-        // Canvas & Game State
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
+        // =========================================================================
+        // 3. WEB AUDIO PROCEDURAL SOUND & RADIO SYNTHESIZER
+        // =========================================================================
+        let audioCtx = null;
+        function playSynthSfx(type) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const t = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+                if (type === 'shoot_supp') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(240, t);
+                    osc.frequency.exponentialRampToValueAtTime(55, t + 0.065);
+                    gain.gain.setValueAtTime(0.18, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.065);
+                    osc.start(t); osc.stop(t + 0.065);
+                } else if (type === 'hit') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(980, t);
+                    gain.gain.setValueAtTime(0.12, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.045);
+                    osc.start(t); osc.stop(t + 0.045);
+                } else if (type === 'radar') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1320, t);
+                    gain.gain.setValueAtTime(0.05, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+                    osc.start(t); osc.stop(t + 0.12);
+                } else if (type === 'achievement') {
+                    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.type = 'triangle';
+                        o.frequency.setValueAtTime(freq, t + i * 0.07);
+                        g.gain.setValueAtTime(0.16, t + i * 0.07);
+                        g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.07 + 0.25);
+                        o.connect(g); g.connect(audioCtx.destination);
+                        o.start(t + i * 0.07); o.stop(t + i * 0.07 + 0.25);
+                    });
+                } else if (type === 'alarm') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, t);
+                    osc.frequency.linearRampToValueAtTime(110, t + 0.22);
+                    gain.gain.setValueAtTime(0.15, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.22);
+                    osc.start(t); osc.stop(t + 0.22);
+                } else if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(700, t);
+                    gain.gain.setValueAtTime(0.07, t);
+                    gain.gain.linearRampToValueAtTime(0.01, t + 0.03);
+                    osc.start(t); osc.stop(t + 0.03);
+                }
+            } catch (e) {}
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
 
-        let gameActive = false;
-        let isPausedForDialogue = false;
-        let sessionCoins = 0;
-        let dungeonIndex = 0;
+        // =========================================================================
+        // 4. PEERJS MULTIPLAYER CO-OP ENGINE
+        // =========================================================================
+        let peer = null;
+        let netConn = null;
+        let remotePartnerState = null;
 
-        let player = null;
-        let activeBoss = null;
-        let dungeonRooms = [];
-        let currentRoom = 0;
-        let swords = [];
-        let bossProjectiles = [];
-        let particles = [];
-
-        const DUNGEONS = [
-            {
-                name: "DUNGEON 1: THE HOOPS RUINS",
-                bossName: "KAI JIE — THE SNIPER ARCHER",
-                bossMaxHp: 600,
-                color: "#38bdf8",
-                intro: [
-                    { speaker: "KAI JIE", text: "Halt adventurer! You dare step into the Hoops Ruins? My AirPod bow never misses!" },
-                    { speaker: "TACTICAL GUIDE", text: "ZELDA TIP: Use [SPACE] or SWD to slash his incoming arrows, then strike when he reloads!" }
-                ]
-            },
-            {
-                name: "DUNGEON 2: THE GLITCH CRYPT",
-                bossName: "RITVIK — THE PHANTOM MAGE",
-                bossMaxHp: 850,
-                color: "#a855f7",
-                intro: [
-                    { speaker: "RITVIK", text: "Foolish hero! The crypt walls shift and phase. Can you find the real me amongst my clones?" },
-                    { speaker: "TACTICAL GUIDE", text: "ZELDA TIP: Ritvik leaves a purple glitch trail. Watch closely to spot his real location!" }
-                ]
-            },
-            {
-                name: "DUNGEON 3: THE HIGHWAY CASTLE",
-                bossName: "DARRYL — THE CONVOY KNIGHT",
-                bossMaxHp: 1100,
-                color: "#f97316",
-                intro: [
-                    { speaker: "DARRYL", text: "Stop right there! My Double-Decker Siege Engines will flatten your party into dust!" },
-                    { speaker: "TACTICAL GUIDE", text: "ZELDA TIP: Roll or dodge out of the flashing orange lanes before the convoy charges through!" }
-                ]
-            },
-            {
-                name: "DUNGEON 4: THE ELLA_DES CITADEL",
-                bossName: "M DEMON — THE APEX OVERLORD",
-                bossMaxHp: 1500,
-                color: "#f43f5e",
-                intro: [
-                    { speaker: "M DEMON", text: "At last, the hero arrives at the final throne. Witness absolute destruction!" },
-                    { speaker: "TACTICAL GUIDE", text: "ZELDA TIP: M Demon has 3 unique phases. Keep moving in circles and strike during his cooldowns!" }
-                ]
+        function hostCoopSession() {
+            const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+            const fullId = `blackout-echo-${code}`;
+            document.getElementById('net-status').innerText = 'INITIALIZING...';
+            try {
+                peer = new Peer(fullId);
+                peer.on('open', () => {
+                    document.getElementById('net-status').innerText = 'HOSTING LIVE';
+                    document.getElementById('room-code-display').innerText = `SQUAD FREQUENCY CODE: [ ${code} ] — Share with teammates!`;
+                    unlockAchievement('squad_link');
+                });
+                peer.on('connection', conn => {
+                    netConn = conn;
+                    setupNetHandlers();
+                    document.getElementById('room-code-display').innerText = `SQUAD CONNECTED // CO-OP LINK ACTIVE!`;
+                    document.getElementById('hud-coop-status').innerText = 'CO-OP OPERATIVE: LINKED';
+                });
+            } catch (e) {
+                document.getElementById('net-status').innerText = 'LOCAL AI MODE';
             }
-        ];
+        }
 
-        // Controls
+        function joinCoopSession() {
+            const raw = document.getElementById('join-code-input').value.trim().toUpperCase();
+            if (!raw) return;
+            try {
+                peer = new Peer();
+                peer.on('open', () => {
+                    netConn = peer.connect(`blackout-echo-${raw}`);
+                    setupNetHandlers();
+                    document.getElementById('room-code-display').innerText = `LINKED TO SQUAD [ ${raw} ]!`;
+                    document.getElementById('hud-coop-status').innerText = 'CO-OP OPERATIVE: LINKED';
+                    unlockAchievement('squad_link');
+                });
+            } catch (e) {}
+        }
+
+        function setupNetHandlers() {
+            if (!netConn) return;
+            netConn.on('data', data => {
+                if (data.type === 'state') {
+                    remotePartnerState = data;
+                    if (bossEntity && data.bossHp < bossEntity.hp) {
+                        bossEntity.hp = data.bossHp;
+                    }
+                }
+            });
+        }
+
+        // =========================================================================
+        // 5. THREE.JS 3D WORLD, WEAPON VIEWMODEL, MONSTERS & BOSSES
+        // =========================================================================
+        let scene, camera, renderer;
+        let weaponGroup, muzzleLight, flashlight;
+        let wingmanMesh, partnerMesh;
+        let envObjects = [];     // 3D Trees, Pillars, Rusted Cars
+        let interactables = [];  // Generators, Workbenches, Track Switches, Express Train
+        let lurkers = [];        // Blind 3D Decibel Crawlers
+        let decoys = [];         // Thrown Acoustic Flare Decoys
+        let projectiles = [];    // Boss & Player 3D tracers
+        let bossEntity = null;
+
+        let gameRunning = false;
+        let inCutscene = false;
+        let currentSectorIdx = 0;
+        let extractionPhase = false;
+        let extractionTimer = 60;
+
+        const playerState = {
+            x: 0, y: 1.7, z: 26,
+            yaw: 0, pitch: 0,
+            hp: 150, maxHp: 150,
+            armor: 150, maxArmor: 150,
+            ammo: 30, maxAmmo: 30,
+            scrap: 60,
+            decoyCount: 3,
+            weaponLevel: 1,
+            crouching: false,
+            ads: false,
+            nvg: false,
+            dbLevel: 16,
+            silentStreak: 0,
+            lastShot: 0,
+            gadgetCd: 0,
+            lockOnWarning: 0,
+            adsHits: 0,
+            lurkerKills: 0,
+            switchesFlipped: 0
+        };
+
+        function initThreeEngine() {
+            const container = document.getElementById('webgl-container');
+            container.innerHTML = '';
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x05070a);
+            scene.fog = new THREE.FogExp2(0x05070a, 0.028);
+
+            camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 160);
+            camera.rotation.order = 'YXZ';
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // Ambient & Directional Moonlight
+            const ambient = new THREE.AmbientLight(0x223044, 0.75);
+            scene.add(ambient);
+
+            const dirLight = new THREE.DirectionalLight(0x6084b0, 0.65);
+            dirLight.position.set(20, 40, 20);
+            scene.add(dirLight);
+
+            // Player Volumetric Flashlight
+            flashlight = new THREE.SpotLight(0xe2f1ff, 2.2, 55, Math.PI / 5, 0.45, 1.2);
+            flashlight.position.set(0, 0, 0);
+            flashlight.target.position.set(0, 0, -10);
+            camera.add(flashlight);
+            camera.add(flashlight.target);
+
+            // 3D Diegetic Weapon Viewmodel attached to Camera
+            build3DWeaponViewmodel();
+            scene.add(camera);
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        function build3DWeaponViewmodel() {
+            weaponGroup = new THREE.Group();
+            const op = OPERATIVES[selectedOpKey];
+
+            const gunMat = new THREE.MeshStandardMaterial({ color: 0x161c26, roughness: 0.4, metalness: 0.8 });
+            const accentMat = new THREE.MeshBasicMaterial({ color: op.color });
+
+            // Receiver body
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, 0.55), gunMat);
+            weaponGroup.add(body);
+
+            // Cylindrical Suppressor Barrel
+            const supp = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.38, 12), gunMat);
+            supp.rotation.x = Math.PI / 2;
+            supp.position.set(0, 0.02, -0.42);
+            weaponGroup.add(supp);
+
+            // Holographic Sight Frame & Glowing Reticle
+            const sight = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.07, 0.1), gunMat);
+            sight.position.set(0, 0.1, -0.05);
+            weaponGroup.add(sight);
+
+            const reticle = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.015, 0.01), accentMat);
+            reticle.position.set(0, 0.105, -0.05);
+            weaponGroup.add(reticle);
+
+            // Side Rail Glow Strip
+            const strip = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.018, 0.35), accentMat);
+            strip.position.set(0, 0.03, -0.1);
+            weaponGroup.add(strip);
+
+            muzzleLight = new THREE.PointLight(op.color, 0, 8);
+            muzzleLight.position.set(0, 0.02, -0.65);
+            weaponGroup.add(muzzleLight);
+
+            weaponGroup.position.set(0.24, -0.22, -0.45);
+            camera.add(weaponGroup);
+        }
+
+        // Build 3D Articulated Boss Mesh (Distinct Visual Rig per Boss)
+        function create3DBossMesh(sector) {
+            const group = new THREE.Group();
+            const mainMat = new THREE.MeshStandardMaterial({ color: 0x1a202c, roughness: 0.3, metalness: 0.7 });
+            const glowMat = new THREE.MeshBasicMaterial({ color: sector.bossColor });
+            const weakMat = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
+
+            // Armored Torso
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.4, 1.2), mainMat);
+            torso.position.y = 2.2;
+            group.add(torso);
+
+            // Glowing Weak-Point Core on Chest/Head
+            const core = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 16), weakMat);
+            core.position.set(0, 2.5, 0.65);
+            core.name = 'weakpoint';
+            group.add(core);
+
+            // Head & Custom Silhouette Features
+            const head = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 1.1), mainMat);
+            head.position.y = 4.0;
+            group.add(head);
+
+            if (sector.id === 'sector1') {
+                // WRAITH-65: Glowing White Ear-Transceiver + Long Sniper Barrel
+                const airpod = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.15, 0.15, 0.6, 10),
+                    new THREE.MeshBasicMaterial({ color: 0xffffff })
+                );
+                airpod.position.set(0.68, 3.9, 0);
+                group.add(airpod);
+
+                const sniper = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3.4, 12), glowMat);
+                sniper.rotation.x = Math.PI / 2;
+                sniper.position.set(0.9, 2.6, 1.2);
+                group.add(sniper);
+            } else if (sector.id === 'sector2') {
+                // EIDOLON: 4 Floating Phantom Arms + Porcelain Mask
+                for (let i = 0; i < 4; i++) {
+                    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.8, 0.35), glowMat);
+                    arm.position.set((i < 2 ? -1.6 : 1.6), 2.0 + (i % 2) * 1.4, 0.4);
+                    arm.rotation.z = (i < 2 ? 0.4 : -0.4);
+                    group.add(arm);
+                }
+            } else if (sector.id === 'sector3') {
+                // IRONBOUND: Double-Decker Bus Grille & Twin High-Beam Headlights
+                const grille = new THREE.Mesh(
+                    new THREE.BoxGeometry(2.8, 2.2, 1.6),
+                    new THREE.MeshStandardMaterial({ color: 0x9a3412, metalness: 0.6 })
+                );
+                grille.position.set(0, 1.8, 0.4);
+                group.add(grille);
+
+                [-0.9, 0.9].forEach(hx => {
+                    const lamp = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.3, 0.3, 0.2, 12),
+                        new THREE.MeshBasicMaterial({ color: 0xfef08a })
+                    );
+                    lamp.rotation.x = Math.PI / 2;
+                    lamp.position.set(hx, 1.9, 1.25);
+                    group.add(lamp);
+                });
+            } else if (sector.id === 'sector4') {
+                // MALAKOR: Towering Radar-Dish Horns & Molten Fissures
+                [-0.8, 0.8].forEach(dir => {
+                    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.35, 2.2, 8), glowMat);
+                    horn.position.set(dir, 5.2, 0);
+                    horn.rotation.z = -dir * 0.45;
+                    group.add(horn);
+                });
+                group.scale.set(1.35, 1.35, 1.35);
+            }
+
+            // Shield Wireframe Sphere (Visible when Boss Shield is active)
+            const shieldGeo = new THREE.SphereGeometry(2.9, 16, 16);
+            const shieldMat = new THREE.MeshBasicMaterial({
+                color: sector.bossColor,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.32
+            });
+            const shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
+            shieldMesh.position.y = 2.4;
+            shieldMesh.name = 'shieldMesh';
+            group.add(shieldMesh);
+
+            return group;
+        }
+
+        // Build Blind Quadrupedal Decibel Crawler ("Lurker")
+        function spawnLurker(x, z) {
+            const g = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.6 });
+            const earMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e });
+
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.55, 1.4), mat);
+            body.position.y = 0.6;
+            g.add(body);
+
+            const sensorHead = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.6, 8), earMat);
+            sensorHead.rotation.x = Math.PI / 2;
+            sensorHead.position.set(0, 0.7, 0.8);
+            g.add(sensorHead);
+
+            g.position.set(x, 0, z);
+            scene.add(g);
+            lurkers.push({ mesh: g, hp: 70, alertTarget: null, patrolAngle: Math.random() * Math.PI * 2 });
+        }
+
+        // =========================================================================
+        // 6. LOAD 3D SECTOR ENVIRONMENT, TRAIN BASE & INTERACTABLES
+        // =========================================================================
+        function buildSectorWorld(idx) {
+            currentSectorIdx = idx;
+            const sec = SECTORS[idx];
+            extractionPhase = false;
+
+            // Clear old sector meshes
+            [...envObjects, ...interactables.map(i => i.mesh), ...lurkers.map(l => l.mesh), ...decoys.map(d => d.mesh), ...projectiles.map(p => p.mesh)].forEach(m => {
+                if (m) scene.remove(m);
+            });
+            if (bossEntity && bossEntity.mesh) scene.remove(bossEntity.mesh);
+            if (wingmanMesh) scene.remove(wingmanMesh);
+            if (partnerMesh) scene.remove(partnerMesh);
+
+            envObjects = [];
+            interactables = [];
+            lurkers = [];
+            decoys = [];
+            projectiles = [];
+
+            scene.background = new THREE.Color(sec.fogColor);
+            scene.fog = new THREE.FogExp2(sec.fogColor, 0.022);
+
+            // Update HUD
+            document.getElementById('hud-sector-id').innerText = sec.code;
+            document.getElementById('hud-obj-main').innerText = sec.title;
+            document.getElementById('hud-obj-sub').innerText = sec.directive;
+            document.getElementById('skip-tut-btn').style.display = sec.id === 'tutorial' ? 'inline-flex' : 'none';
+            document.getElementById('boss-telemetry').style.display = 'block';
+            document.getElementById('hud-boss-name').innerText = sec.bossName;
+
+            // Reset Player Position & Top Up Armor/HP
+            playerState.x = 0;
+            playerState.z = 30;
+            playerState.yaw = 0;
+            playerState.pitch = 0;
+            playerState.hp = playerState.maxHp;
+            playerState.armor = playerState.maxArmor;
+            playerState.ammo = playerState.maxAmmo;
+            playerState.decoyCount = Math.max(playerState.decoyCount, 3);
+
+            // 1. 3D Floor Grid
+            const floorGeo = new THREE.PlaneGeometry(120, 120);
+            const floorMat = new THREE.MeshStandardMaterial({ color: sec.floorColor, roughness: 0.85 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            scene.add(floor);
+            envObjects.push(floor);
+
+            const grid = new THREE.GridHelper(120, 40, sec.bossColor, 0x1e293b);
+            grid.position.y = 0.02;
+            scene.add(grid);
+            envObjects.push(grid);
+
+            // 2. The 3D Express Train (Parked behind Player at Z = 38 with Pack-a-Punch Workbench!)
+            const trainGroup = new THREE.Group();
+            const trainBody = new THREE.Mesh(
+                new THREE.BoxGeometry(14, 4.2, 5.2),
+                new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7, roughness: 0.3 })
+            );
+            trainBody.position.y = 2.1;
+            trainGroup.add(trainBody);
+
+            const trainStripe = new THREE.Mesh(
+                new THREE.BoxGeometry(14.1, 0.35, 5.3),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+            );
+            trainStripe.position.y = 2.2;
+            trainGroup.add(trainStripe);
+
+            trainGroup.position.set(0, 0, 39);
+            scene.add(trainGroup);
+            envObjects.push(trainGroup);
+
+            // Pack-a-Punch Weapon Workbench next to Train
+            const benchMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(2.2, 1.2, 1.2),
+                new THREE.MeshStandardMaterial({ color: 0xf59e0b })
+            );
+            benchMesh.position.set(-5.5, 0.6, 34);
+            scene.add(benchMesh);
+            interactables.push({
+                type: 'workbench',
+                mesh: benchMesh,
+                x: -5.5, z: 34,
+                label: '[PRESS F / TAP] PACK-A-PUNCH UPGRADE & REFILL AMMO (30 SCRAP)'
+            });
+
+            // 3. Sector-Specific Cover Pillars / Pine Watchtowers & Field Generators
+            const pillarMat = new THREE.MeshStandardMaterial({ color: 0x1e2636, roughness: 0.5 });
+            const coverCoords = [
+                [-14, 14], [14, 14], [-18, 0], [18, 0],
+                [-14, -14], [14, -14], [0, 10], [0, -6]
+            ];
+            coverCoords.forEach(([cx, cz]) => {
+                const h = sec.id === 'sector1' ? 9 : 4.5;
+                const w = sec.id === 'sector1' ? 1.8 : 2.6;
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, w), pillarMat);
+                mesh.position.set(cx, h / 2, cz);
+                scene.add(mesh);
+                envObjects.push(mesh);
+            });
+
+            // 3 Interactive Generators / High-Voltage Switches / UV Pylons (Stuns Boss when activated!)
+            [[-16, 6], [16, 6], [0, -16]].forEach(([gx, gz], idxNum) => {
+                const genMesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.6, 2.2, 1.6),
+                    new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x052e16 })
+                );
+                genMesh.position.set(gx, 1.1, gz);
+                scene.add(genMesh);
+                interactables.push({
+                    type: 'generator',
+                    mesh: genMesh,
+                    x: gx, z: gz,
+                    cooldown: 0,
+                    label: `[PRESS F / TAP] OVERLOAD SECTOR PYLON #${idxNum + 1} (SHATTERS BOSS SHIELD!)`
+                });
+            });
+
+            // Supply Crate (Free Armor & Decoy Refill)
+            const crateMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(1.5, 1.0, 1.5),
+                new THREE.MeshStandardMaterial({ color: 0x38bdf8 })
+            );
+            crateMesh.position.set(5.5, 0.5, 34);
+            scene.add(crateMesh);
+            interactables.push({
+                type: 'crate',
+                mesh: crateMesh,
+                x: 5.5, z: 34,
+                label: '[PRESS F / TAP] RESUPPLY ARMOR PLATES, AMMO & SONIC DECOYS'
+            });
+
+            // 4. Spawn Blind Decibel Crawlers ("Lurkers")
+            const lurkerCount = sec.id === 'tutorial' ? 1 : 3;
+            for (let i = 0; i < lurkerCount; i++) {
+                spawnLurker((i - 1) * 14, 4 - i * 5);
+            }
+
+            // 5. Spawn Wingman Recon Drone & Co-Op Partner Mesh
+            wingmanMesh = new THREE.Mesh(
+                new THREE.OctahedronGeometry(0.45, 0),
+                new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true })
+            );
+            wingmanMesh.position.set(playerState.x - 1.8, 2.4, playerState.z - 1.5);
+            scene.add(wingmanMesh);
+
+            partnerMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(0.9, 1.8, 0.9),
+                new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true })
+            );
+            partnerMesh.visible = false;
+            scene.add(partnerMesh);
+
+            // 6. Spawn Sector Boss
+            const bMesh = create3DBossMesh(sec);
+            bMesh.position.set(0, 0, -22);
+            scene.add(bMesh);
+
+            bossEntity = {
+                ...sec,
+                mesh: bMesh,
+                maxHp: sec.bossHp,
+                hp: sec.bossHp,
+                x: 0, z: -22,
+                vx: 0.09,
+                vz: 0.04,
+                shielded: sec.id !== 'tutorial', // Tutorial drone starts unshielded for easy practice
+                stunTimer: 0,
+                attackTimer: 0
+            };
+
+            startCutscene(sec.cutscene);
+        }
+
+        function skipToLiveSector() {
+            inCutscene = false;
+            document.body.classList.remove('cutscene-mode');
+            document.getElementById('comms-overlay').style.display = 'none';
+            unlockAchievement('ghost_op');
+            buildSectorWorld(1);
+        }
+
+        // =========================================================================
+        // 7. IN-ENGINE CUTSCENE & RADIO OSCILLOSCOPE
+        // =========================================================================
+        let cutsceneQueue = [];
+        const oscCanvas = document.getElementById('oscilloscope-canvas');
+        const oscCtx = oscCanvas.getContext('2d');
+
+        function startCutscene(lines) {
+            inCutscene = true;
+            cutsceneQueue = [...lines];
+            document.body.classList.add('cutscene-mode');
+            document.getElementById('comms-overlay').style.display = 'flex';
+            advanceCutscene();
+        }
+
+        function advanceCutscene() {
+            playSynthSfx('click');
+            if (cutsceneQueue.length === 0) {
+                inCutscene = false;
+                document.body.classList.remove('cutscene-mode');
+                document.getElementById('comms-overlay').style.display = 'none';
+                return;
+            }
+            const next = cutsceneQueue.shift();
+            document.getElementById('comms-speaker').innerText = next.speaker;
+            document.getElementById('comms-text').innerText = next.text;
+        }
+
+        function drawOscilloscope() {
+            if (!inCutscene) return;
+            oscCtx.fillStyle = '#03060a';
+            oscCtx.fillRect(0, 0, 96, 54);
+            oscCtx.strokeStyle = '#38bdf8';
+            oscCtx.lineWidth = 1.5;
+            oscCtx.beginPath();
+            const t = performance.now() * 0.015;
+            for (let x = 0; x < 96; x += 3) {
+                const y = 27 + Math.sin(x * 0.25 + t) * (Math.sin(t * 0.3) * 16);
+                if (x === 0) oscCtx.moveTo(x, y);
+                else oscCtx.lineTo(x, y);
+            }
+            oscCtx.stroke();
+        }
+
+        // =========================================================================
+        // 8. INPUT, WEAPON FIRE, ACOUSTIC DECOYS & CONTEXT INTERACTABLES
+        // =========================================================================
         const keys = {};
+        const touchMove = { active: false, dx: 0, dy: 0 };
+        const touchLook = { active: false, dx: 0, dy: 0 };
+        let isFiring = false;
+        let activePromptItem = null;
+
         window.addEventListener('keydown', e => {
             keys[e.code] = true;
-            if (e.code === 'Space') {
-                if (isPausedForDialogue) advanceDialogue();
-                else if (gameActive) slashSword();
+            if (e.code === 'Space' && inCutscene) advanceCutscene();
+            if (e.code === 'Escape' && inCutscene) {
+                cutsceneQueue = [];
+                advanceCutscene();
             }
-            if (e.code === 'KeyD' && gameActive) playerDash();
+            if (!gameRunning || inCutscene) return;
+            if (e.code === 'KeyC') toggleCrouch();
+            if (e.code === 'KeyV') toggleAds();
+            if (e.code === 'KeyG') throwAcousticDecoy();
+            if (e.code === 'KeyQ') useClassGadget();
+            if (e.code === 'KeyR') reloadWeapon();
+            if (e.code === 'KeyN') toggleNvg();
+            if (e.code === 'KeyF') triggerContextAction();
         });
         window.addEventListener('keyup', e => keys[e.code] = false);
 
-        let dialogueQueue = [];
-        function startDialogue(lines) {
-            isPausedForDialogue = true;
-            dialogueQueue = [...lines];
-            document.getElementById('dialogue-box').style.display = 'block';
-            advanceDialogue();
-        }
-        function advanceDialogue() {
-            if (dialogueQueue.length === 0) {
-                document.getElementById('dialogue-box').style.display = 'none';
-                isPausedForDialogue = false;
-                return;
+        window.addEventListener('mousedown', e => {
+            if (!gameRunning || inCutscene) return;
+            if (e.target.closest('button, a, #comms-overlay, #interact-prompt')) return;
+            if (e.button === 0) {
+                isFiring = true;
+                fireWeapon();
+                if (document.pointerLockElement !== renderer.domElement && !('ontouchstart' in window)) {
+                    renderer.domElement.requestPointerLock?.();
+                }
+            } else if (e.button === 2) {
+                toggleAds();
             }
-            const next = dialogueQueue.shift();
-            document.getElementById('dialogue-speaker').innerText = next.speaker;
-            document.getElementById('dialogue-text').innerText = next.text;
+        });
+        window.addEventListener('mouseup', e => { if (e.button === 0) isFiring = false; });
+        window.addEventListener('contextmenu', e => e.preventDefault());
+
+        window.addEventListener('mousemove', e => {
+            if (!gameRunning || inCutscene) return;
+            if (document.pointerLockElement === renderer.domElement) {
+                const sens = playerState.ads ? 0.0014 : 0.0024;
+                playerState.yaw -= e.movementX * sens;
+                playerState.pitch = Math.max(-1.1, Math.min(1.1, playerState.pitch - e.movementY * sens));
+            }
+        });
+
+        function toggleCrouch() {
+            playerState.crouching = !playerState.crouching;
+            document.getElementById('stance-label').innerText = playerState.crouching ? 'CROUCHED (SILENT)' : 'STANDING';
         }
 
-        function startGame() {
-            player = {
-                x: canvas.width / 2,
-                y: canvas.height / 2,
-                radius: 20,
-                speed: 4.2,
-                hearts: selectedHero.hearts,
-                maxHearts: selectedHero.hearts,
-                invuln: 0,
-                facing: 'DOWN',
-                color: selectedHero.color
-            };
-
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('hud').style.display = 'flex';
-            document.getElementById('hud-coins').innerText = (parseInt(localStorage.getItem('arcade_coins')) || 0).toLocaleString();
-
-            dungeonIndex = 0;
-            sessionCoins = 0;
-            gameActive = true;
-            loadDungeon(0);
-            requestAnimationFrame(gameLoop);
+        function toggleAds() {
+            playerState.ads = !playerState.ads;
+            camera.fov = playerState.ads ? 46 : 72;
+            camera.updateProjectionMatrix();
         }
 
-        function loadDungeon(idx) {
-            const d = DUNGEONS[idx];
-            document.getElementById('boss-hud-title').innerText = `DUNGEON ${idx+1}/4`;
-            bossProjectiles = [];
-            swords = [];
-
-            activeBoss = {
-                name: d.bossName,
-                hp: d.bossMaxHp,
-                maxHp: d.bossMaxHp,
-                x: canvas.width / 2,
-                y: canvas.height * 0.28,
-                radius: 32,
-                vx: 2.2,
-                vy: 1.2,
-                timer: 0,
-                phase: 1,
-                color: d.color
-            };
-
-            startDialogue(d.intro);
+        function toggleNvg() {
+            playerState.nvg = !playerState.nvg;
+            document.body.classList.toggle('nvg-active', playerState.nvg);
+            playSynthSfx('click');
         }
 
-        function slashSword() {
-            if (swords.length > 0) return; // 1 sword swing at a time
-            const dist = 32;
-            let sx = player.x, sy = player.y;
-            if (player.facing === 'UP') sy -= dist;
-            if (player.facing === 'DOWN') sy += dist;
-            if (player.facing === 'LEFT') sx -= dist;
-            if (player.facing === 'RIGHT') sx += dist;
-
-            swords.push({ x: sx, y: sy, radius: 24, timer: 12 });
+        function reloadWeapon() {
+            playerState.ammo = playerState.maxAmmo;
+            playerState.dbLevel = Math.min(100, playerState.dbLevel + 25);
+            playSynthSfx('click');
         }
 
-        function playerDash() {
-            if (player.invuln > 0) return;
-            player.invuln = 30;
-            if (player.facing === 'UP') player.y -= 90;
-            if (player.facing === 'DOWN') player.y += 90;
-            if (player.facing === 'LEFT') player.x -= 90;
-            if (player.facing === 'RIGHT') player.x += 90;
+        function throwAcousticDecoy() {
+            if (playerState.decoyCount <= 0 || inCutscene) return;
+            playerState.decoyCount--;
+            playSynthSfx('radar');
+
+            const mesh = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.15, 0.15, 0.5, 10),
+                new THREE.MeshBasicMaterial({ color: 0xf59e0b })
+            );
+            const tx = playerState.x - Math.sin(playerState.yaw) * 14;
+            const tz = playerState.z - Math.cos(playerState.yaw) * 14;
+            mesh.position.set(tx, 0.3, tz);
+            scene.add(mesh);
+
+            decoys.push({ mesh, x: tx, z: tz, timer: 320 });
+            playerState.lockOnWarning = 0;
+
+            // Distract Boss & Lurkers!
+            if (bossEntity) {
+                bossEntity.shielded = false;
+                bossEntity.stunTimer = 240;
+                document.getElementById('boss-status-line').innerText = 'DECOY BAITED! WEAK-POINT EXPOSED (2.5X CRIT)!';
+            }
+            lurkers.forEach(l => l.alertTarget = { x: tx, z: tz });
+            unlockAchievement('bait_switch');
         }
 
-        function gameLoop() {
-            if (!gameActive) return;
+        function useClassGadget() {
+            if (playerState.gadgetCd > 0 || inCutscene) return;
+            playerState.gadgetCd = 420;
+            playSynthSfx('achievement');
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            playerState.dbLevel = 0;
+            playerState.lockOnWarning = 0;
+            playerState.armor = Math.min(playerState.maxArmor, playerState.armor + 75);
 
-            if (!isPausedForDialogue) {
-                updatePlayer();
-                updateBoss();
-                updateEntities();
+            if (bossEntity) {
+                bossEntity.shielded = false;
+                bossEntity.stunTimer = 260;
+                document.getElementById('boss-status-line').innerText = 'CLASS GADGET DEPLOYED // BOSS STUNNED & SHIELD DOWN!';
+            }
+        }
+
+        function triggerContextAction() {
+            if (!activePromptItem) return;
+            const item = activePromptItem;
+
+            if (item.type === 'workbench') {
+                if (playerState.scrap >= 30) {
+                    playerState.scrap -= 30;
+                    playerState.weaponLevel++;
+                    playerState.ammo = playerState.maxAmmo;
+                    playerState.armor = playerState.maxArmor;
+                    document.getElementById('weapon-name-label').innerText = `${OPERATIVES[selectedOpKey].weapon.toUpperCase()} [PAP MK.${playerState.weaponLevel}]`;
+                    unlockAchievement('whisper_craft');
+                    playSynthSfx('achievement');
+                }
+            } else if (item.type === 'crate') {
+                playerState.armor = playerState.maxArmor;
+                playerState.hp = playerState.maxHp;
+                playerState.ammo = playerState.maxAmmo;
+                playerState.decoyCount = 3;
+                playSynthSfx('click');
+            } else if (item.type === 'generator' && item.cooldown <= 0) {
+                item.cooldown = 400;
+                playerState.switchesFlipped++;
+                if (playerState.switchesFlipped >= 3) unlockAchievement('power_engineer');
+
+                if (bossEntity) {
+                    bossEntity.shielded = false;
+                    bossEntity.stunTimer = 280;
+                    bossEntity.hp -= 120;
+                    document.getElementById('boss-status-line').innerText = 'PYLON OVERLOADED // BOSS ARMOR SHATTERED!';
+                    playSynthSfx('achievement');
+                    if (bossEntity.hp <= 0) handleSectorBossCleared();
+                }
+            } else if (item.type === 'train_extract') {
+                unlockAchievement('malakor_clear');
+                completeCampaign(true);
+            }
+        }
+
+        function fireWeapon() {
+            const now = performance.now();
+            const op = OPERATIVES[selectedOpKey];
+            if (now - playerState.lastShot < op.fireRate || playerState.ammo <= 0) return;
+
+            playerState.lastShot = now;
+            playerState.ammo--;
+            if (playerState.ammo === 0) setTimeout(reloadWeapon, 550);
+
+            playSynthSfx('shoot_supp');
+            muzzleLight.intensity = 3.5;
+            setTimeout(() => { if (muzzleLight) muzzleLight.intensity = 0; }, 45);
+
+            // Weapon kickback
+            weaponGroup.position.z += 0.06;
+
+            // Suppressed shot adds modest decibels
+            const shotNoise = Math.round(22 * op.noiseMod);
+            playerState.dbLevel = Math.min(100, playerState.dbLevel + shotNoise);
+
+            // Raycast from center of camera
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+
+            // Check hits on Lurkers
+            for (let i = lurkers.length - 1; i >= 0; i--) {
+                const l = lurkers[i];
+                const hits = raycaster.intersectObjects(l.mesh.children, true);
+                if (hits.length > 0 && hits[0].distance < 55) {
+                    l.hp -= op.dmg * (1 + (playerState.weaponLevel - 1) * 0.35);
+                    flashHitmarker();
+                    if (l.hp <= 0) {
+                        scene.remove(l.mesh);
+                        lurkers.splice(i, 1);
+                        playerState.scrap += 25;
+                        addCoins(300);
+                        playerState.lurkerKills++;
+                        if (playerState.lurkerKills >= 3) unlockAchievement('lurker_hunter');
+                    }
+                    return;
+                }
             }
 
-            drawZeldaEnvironment();
-            drawEntities();
+            // Check hits on Boss
+            if (bossEntity && bossEntity.mesh) {
+                const hits = raycaster.intersectObjects(bossEntity.mesh.children, true);
+                if (hits.length > 0 && hits[0].distance < 75) {
+                    const hitWeakpoint = hits[0].object.name === 'weakpoint';
+                    let dmg = op.dmg * (1 + (playerState.weaponLevel - 1) * 0.35);
 
-            requestAnimationFrame(gameLoop);
+                    if (hitWeakpoint || playerState.ads) {
+                        dmg *= 1.65;
+                        playerState.adsHits++;
+                        if (playerState.adsHits >= 8) unlockAchievement('marksman');
+                    }
+
+                    if (bossEntity.stunTimer > 0 || !bossEntity.shielded) {
+                        dmg *= 1.8;
+                    } else {
+                        dmg *= 0.35; // Shielded: encourages using Decoy [G] or Pylons [F]
+                    }
+
+                    bossEntity.hp -= Math.round(dmg);
+                    playerState.scrap += selectedOpKey === 'sovereign' ? 12 : 5;
+                    flashHitmarker();
+
+                    if (bossEntity.hp <= 0) {
+                        handleSectorBossCleared();
+                    }
+                }
+            }
         }
 
-        function updatePlayer() {
-            let mx = 0, my = 0;
-            if (keys['KeyW'] || keys['ArrowUp']) { my -= 1; player.facing = 'UP'; }
-            if (keys['KeyS'] || keys['ArrowDown']) { my += 1; player.facing = 'DOWN'; }
-            if (keys['KeyA'] || keys['ArrowLeft']) { mx -= 1; player.facing = 'LEFT'; }
-            if (keys['KeyD'] || keys['ArrowRight']) { mx += 1; player.facing = 'RIGHT'; }
-
-            if (mx !== 0 && my !== 0) { mx *= 0.707; my *= 0.707; }
-
-            player.x = Math.max(80, Math.min(canvas.width - 80, player.x + mx * player.speed));
-            player.y = Math.max(80, Math.min(canvas.height - 80, player.y + my * player.speed));
-
-            if (player.invuln > 0) player.invuln--;
+        function flashHitmarker() {
+            const hm = document.getElementById('hitmarker');
+            hm.style.opacity = '1';
+            playSynthSfx('hit');
+            setTimeout(() => hm.style.opacity = '0', 90);
         }
 
-        function updateBoss() {
-            if (!activeBoss) return;
-            const b = activeBoss;
-            b.timer++;
-            b.x += b.vx;
-            b.y += b.vy;
+        function handleSectorBossCleared() {
+            if (!bossEntity) return;
+            const secId = SECTORS[currentSectorIdx].id;
+            addCoins(SECTORS[currentSectorIdx].reward);
+            scene.remove(bossEntity.mesh);
+            bossEntity = null;
 
-            if (b.x < 120 || b.x > canvas.width - 120) b.vx *= -1;
-            if (b.y < 100 || b.y > canvas.height * 0.45) b.vy *= -1;
+            if (secId === 'tutorial') unlockAchievement('ghost_op');
+            if (secId === 'sector1') unlockAchievement('wraith_clear');
+            if (secId === 'sector2') unlockAchievement('eidolon_clear');
+            if (secId === 'sector3') unlockAchievement('ironbound_clear');
 
-            // Unique Boss Attacks (Zelda style projectiles)
-            if (b.timer % 65 === 0) {
-                const angle = Math.atan2(player.y - b.y, player.x - b.x);
-                bossProjectiles.push({
-                    x: b.x, y: b.y,
-                    vx: Math.cos(angle) * 5.5,
-                    vy: Math.sin(angle) * 5.5,
-                    radius: 10, color: b.color
+            if (currentSectorIdx < SECTORS.length - 1) {
+                buildSectorWorld(currentSectorIdx + 1);
+            } else {
+                // Sector 4 Malakor defeated -> Trigger 60s Train Extraction!
+                extractionPhase = true;
+                extractionTimer = 60;
+                document.getElementById('boss-telemetry').style.display = 'none';
+                document.getElementById('hud-obj-main').innerText = 'REACTOR MELTDOWN // BOARD THE 3D EXPRESS TRAIN!';
+                document.getElementById('hud-obj-sub').innerText = 'Sprint back to the Express Train at the South Depot and press [F]!';
+
+                interactables.push({
+                    type: 'train_extract',
+                    x: 0, z: 35,
+                    label: '[PRESS F / TAP] ENGAGE EXPRESS TRAIN THROTTLE & EXTRACT!'
                 });
             }
         }
 
-        function updateEntities() {
-            // Swords hitting boss
-            for (let i = swords.length - 1; i >= 0; i--) {
-                const s = swords[i];
-                s.timer--;
-                if (activeBoss && Math.hypot(s.x - activeBoss.x, s.y - activeBoss.y) < s.radius + activeBoss.radius) {
-                    activeBoss.hp -= 35;
-                    swords.splice(i, 1);
-                    if (activeBoss.hp <= 0) {
-                        handleBossVictory();
-                        return;
+        // =========================================================================
+        // 9. MAIN 3D SIMULATION, ACOUSTIC DB ENGINE & BFS WRIST RADAR
+        // =========================================================================
+        const radarCanvas = document.getElementById('bfs-radar-canvas');
+        const rCtx = radarCanvas.getContext('2d');
+        let radarSweepAngle = 0;
+
+        function launchGame(runTutorial) {
+            document.getElementById('briefing-screen').style.display = 'none';
+            document.getElementById('tactical-hud').style.display = 'flex';
+            document.getElementById('crosshair-wrap').style.display = 'block';
+            document.getElementById('hud-wallet-coins').innerText = getWalletCoins().toLocaleString();
+
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                document.getElementById('mobile-controls').style.display = 'block';
+            }
+
+            initThreeEngine();
+            gameRunning = true;
+            unlockAchievement('squad_link');
+            buildSectorWorld(runTutorial ? 0 : 1);
+            requestAnimationFrame(animateLoop);
+        }
+
+        function animateLoop() {
+            if (!gameRunning) return;
+
+            if (inCutscene) {
+                drawOscilloscope();
+            } else {
+                updatePlayerMovementAndAcoustics();
+                updateAIAndProjectiles();
+                drawBfsWristRadar();
+                updateHudTelemetry();
+            }
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animateLoop);
+        }
+
+        function updatePlayerMovementAndAcoustics() {
+            const op = OPERATIVES[selectedOpKey];
+            let forward = 0, strafe = 0;
+            if (keys['KeyW'] || keys['ArrowUp']) forward += 1;
+            if (keys['KeyS'] || keys['ArrowDown']) forward -= 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) strafe -= 1;
+            if (keys['KeyD'] || keys['ArrowRight']) strafe += 1;
+
+            if (touchMove.active) {
+                strafe = touchMove.dx;
+                forward = -touchMove.dy;
+            }
+            if (touchLook.active) {
+                playerState.yaw -= touchLook.dx * 0.04;
+                playerState.pitch = Math.max(-1.0, Math.min(1.0, playerState.pitch - touchLook.dy * 0.03));
+            }
+
+            const moving = Math.hypot(forward, strafe) > 0.1;
+            let spd = op.speed;
+            if (playerState.crouching) spd *= 0.62;
+            if (playerState.ads) spd *= 0.75;
+
+            const sinY = Math.sin(playerState.yaw);
+            const cosY = Math.cos(playerState.yaw);
+            const dx = (-sinY * forward + cosY * strafe) * spd;
+            const dz = (-cosY * forward - sinY * strafe) * spd;
+
+            playerState.x = Math.max(-52, Math.min(52, playerState.x + dx));
+            playerState.z = Math.max(-52, Math.min(42, playerState.z + dz));
+
+            // Smooth Camera Height & Viewmodel ADS Lerp
+            const targetCamY = playerState.crouching ? 1.05 : 1.72;
+            playerState.y += (targetCamY - playerState.y) * 0.18;
+            camera.position.set(playerState.x, playerState.y, playerState.z);
+            camera.rotation.set(playerState.pitch, playerState.yaw, 0);
+
+            const targetGunX = playerState.ads ? 0.0 : 0.24;
+            const targetGunY = playerState.ads ? -0.135 : -0.22;
+            weaponGroup.position.x += (targetGunX - weaponGroup.position.x) * 0.22;
+            weaponGroup.position.y += (targetGunY - weaponGroup.position.y) * 0.22;
+            weaponGroup.position.z += (-0.45 - weaponGroup.position.z) * 0.2;
+
+            // Acoustic Decibel Calculation
+            let ambientFloorDb = currentSectorIdx === 2 ? 26 : 14; // Sector 2 water is louder
+            if (moving) {
+                if (playerState.crouching) {
+                    ambientFloorDb = selectedOpKey === 'broker' ? 0 : 22;
+                } else {
+                    ambientFloorDb = Math.round((currentSectorIdx === 2 ? 58 : 44) * op.noiseMod);
+                }
+            }
+            playerState.dbLevel += (ambientFloorDb - playerState.dbLevel) * 0.08;
+
+            // Quiet Breathing HP & Armor Regeneration (Keeps difficulty fair & tactical!)
+            if (playerState.dbLevel < 42) {
+                playerState.silentStreak++;
+                if (playerState.hp < playerState.maxHp) playerState.hp = Math.min(playerState.maxHp, playerState.hp + 0.22);
+                if (playerState.armor < playerState.maxArmor) playerState.armor = Math.min(playerState.maxArmor, playerState.armor + 0.15);
+                if (playerState.silentStreak > 900) unlockAchievement('ghost_op');
+            } else {
+                playerState.silentStreak = 0;
+            }
+
+            if (isFiring) fireWeapon();
+            if (playerState.gadgetCd > 0) playerState.gadgetCd--;
+
+            // Check Nearby Context Interactables (Workbench, Pylons, Supply Crate, Train)
+            activePromptItem = null;
+            const promptEl = document.getElementById('interact-prompt');
+            for (const item of interactables) {
+                if (item.cooldown > 0) item.cooldown--;
+                if (Math.hypot(playerState.x - item.x, playerState.z - item.z) < 4.5 && (!item.cooldown || item.cooldown <= 0)) {
+                    activePromptItem = item;
+                    break;
+                }
+            }
+            if (activePromptItem) {
+                promptEl.style.display = 'block';
+                promptEl.innerText = activePromptItem.label;
+            } else {
+                promptEl.style.display = 'none';
+            }
+
+            // Broadcast Co-Op state if connected
+            if (netConn && netConn.open) {
+                netConn.send({
+                    type: 'state',
+                    x: playerState.x,
+                    z: playerState.z,
+                    bossHp: bossEntity ? bossEntity.hp : 0
+                });
+            }
+            if (remotePartnerState && partnerMesh) {
+                partnerMesh.visible = true;
+                partnerMesh.position.set(remotePartnerState.x, 0.9, remotePartnerState.z);
+            }
+        }
+
+        function updateAIAndProjectiles() {
+            // Update Wingman Recon Drone
+            if (wingmanMesh) {
+                const t = performance.now() * 0.002;
+                wingmanMesh.position.set(
+                    playerState.x + Math.cos(t) * 2.2,
+                    2.3 + Math.sin(t * 2) * 0.2,
+                    playerState.z + Math.sin(t) * 2.2
+                );
+                wingmanMesh.rotation.y += 0.04;
+            }
+
+            // Update Thrown Acoustic Decoys
+            for (let i = decoys.length - 1; i >= 0; i--) {
+                decoys[i].timer--;
+                decoys[i].mesh.rotation.y += 0.15;
+                if (decoys[i].timer <= 0) {
+                    scene.remove(decoys[i].mesh);
+                    decoys.splice(i, 1);
+                }
+            }
+
+            // Update Blind Decibel Crawlers ("Lurkers")
+            lurkers.forEach(l => {
+                let targetX = null, targetZ = null;
+                if (decoys.length > 0) {
+                    targetX = decoys[0].x;
+                    targetZ = decoys[0].z;
+                } else if (playerState.dbLevel > 52) {
+                    targetX = playerState.x;
+                    targetZ = playerState.z;
+                }
+
+                if (targetX !== null) {
+                    const ang = Math.atan2(targetX - l.mesh.position.x, targetZ - l.mesh.position.z);
+                    l.mesh.rotation.y = ang;
+                    l.mesh.position.x += Math.sin(ang) * 0.09;
+                    l.mesh.position.z += Math.cos(ang) * 0.09;
+                } else {
+                    // Blindly patrol in slow circles if player is quiet!
+                    l.patrolAngle += 0.015;
+                    l.mesh.position.x += Math.sin(l.patrolAngle) * 0.03;
+                    l.mesh.position.z += Math.cos(l.patrolAngle) * 0.03;
+                }
+
+                if (Math.hypot(l.mesh.position.x - playerState.x, l.mesh.position.z - playerState.z) < 1.8) {
+                    applyDamageToPlayer(8);
+                }
+            });
+
+            // Update Sector Boss AI
+            if (bossEntity && bossEntity.mesh) {
+                const b = bossEntity;
+                const shieldMesh = b.mesh.getObjectByName('shieldMesh');
+                if (shieldMesh) shieldMesh.visible = b.shielded;
+
+                if (b.stunTimer > 0) {
+                    b.stunTimer--;
+                    b.mesh.rotation.y += 0.12;
+                    if (b.stunTimer === 0) {
+                        b.shielded = currentSectorIdx !== 0;
+                        document.getElementById('boss-status-line').innerText = 'ACOUSTIC SHIELD RESTORED // TOSS DECOY [G] OR OVERLOAD PYLON [F]';
+                    }
+                } else {
+                    b.x += b.vx;
+                    b.z += b.vz;
+                    if (b.x < -22 || b.x > 22) b.vx *= -1;
+                    if (b.z < -32 || b.z > -8) b.vz *= -1;
+                    b.mesh.position.set(b.x, 0, b.z);
+                    b.mesh.lookAt(playerState.x, 1.5, playerState.z);
+
+                    // Acoustic Lock-On Warning if Player is Loud (>55 dB)
+                    if (playerState.dbLevel > 55 && decoys.length === 0) {
+                        playerState.lockOnWarning = Math.min(100, playerState.lockOnWarning + 1.4);
+                    } else {
+                        playerState.lockOnWarning = Math.max(0, playerState.lockOnWarning - 2.0);
+                    }
+
+                    b.attackTimer++;
+                    const fireInterval = playerState.lockOnWarning > 75 ? 55 : 95;
+                    if (b.attackTimer % fireInterval === 0) {
+                        const orbMesh = new THREE.Mesh(
+                            new THREE.SphereGeometry(0.38, 10, 10),
+                            new THREE.MeshBasicMaterial({ color: b.bossColor })
+                        );
+                        orbMesh.position.set(b.x, 2.2, b.z);
+                        scene.add(orbMesh);
+
+                        const ang = Math.atan2(playerState.x - b.x, playerState.z - b.z);
+                        projectiles.push({
+                            mesh: orbMesh,
+                            vx: Math.sin(ang) * 0.36,
+                            vz: Math.cos(ang) * 0.36,
+                            dmg: 18
+                        });
                     }
                 }
-                if (s.timer <= 0) swords.splice(i, 1);
             }
 
-            // Boss Projectiles hitting player
-            for (let i = bossProjectiles.length - 1; i >= 0; i--) {
-                const bp = bossProjectiles[i];
-                bp.x += bp.vx;
-                bp.y += bp.vy;
+            // Update Boss Projectiles (Blocked by 3D Cover Pillars!)
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const p = projectiles[i];
+                p.mesh.position.x += p.vx;
+                p.mesh.position.z += p.vz;
 
-                if (Math.hypot(bp.x - player.x, bp.y - player.y) < bp.radius + player.radius && player.invuln === 0) {
-                    player.hearts--;
-                    player.invuln = 45;
-                    bossProjectiles.splice(i, 1);
-                    if (player.hearts <= 0) endRun(false);
+                if (Math.hypot(p.mesh.position.x - playerState.x, p.mesh.position.z - playerState.z) < 1.35) {
+                    applyDamageToPlayer(p.dmg);
+                    scene.remove(p.mesh);
+                    projectiles.splice(i, 1);
+                    continue;
+                }
+                if (Math.abs(p.mesh.position.x) > 55 || Math.abs(p.mesh.position.z) > 55) {
+                    scene.remove(p.mesh);
+                    projectiles.splice(i, 1);
                 }
             }
-        }
 
-        function handleBossVictory() {
-            const reward = (dungeonIndex + 1) * 7500;
-            const currentCoins = parseInt(localStorage.getItem('arcade_coins')) || 0;
-            localStorage.setItem('arcade_coins', currentCoins + reward);
-            sessionCoins += reward;
-
-            dungeonIndex++;
-            if (dungeonIndex >= DUNGEONS.length) {
-                endRun(true);
-            } else {
-                loadDungeon(dungeonIndex);
+            // Extraction Countdown
+            if (extractionPhase) {
+                extractionTimer -= 1 / 60;
+                document.getElementById('hud-obj-sub').innerText = `MELTDOWN IN ${Math.ceil(extractionTimer)}s // REACH THE SOUTH TRAIN & PRESS [F]!`;
+                if (extractionTimer <= 0) completeCampaign(true);
             }
         }
 
-        function endRun(victory) {
-            gameActive = false;
-            document.getElementById('end-modal').style.display = 'flex';
-            document.getElementById('end-title').innerText = victory ? 'VICTORY: CORE SAVED!' : 'GAME OVER';
-            document.getElementById('end-desc').innerText = victory ? 'You conquered all 4 Zelda dungeons and defeated M Demon!' : 'You fell in battle, but your rupees remain in your wallet.';
-            document.getElementById('end-reward').innerText = `+${sessionCoins.toLocaleString()} COINS EARNED`;
-        }
+        function applyDamageToPlayer(dmg) {
+            document.body.classList.add('damage-flash');
+            setTimeout(() => document.body.classList.remove('damage-flash'), 180);
+            playSynthSfx('alarm');
 
-        function drawZeldaEnvironment() {
-            // Zelda-style stone dungeon floor
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Stone border walls
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 16;
-            ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
-        }
-
-        function drawEntities() {
-            // Boss
-            if (activeBoss) {
-                ctx.fillStyle = activeBoss.color;
-                ctx.beginPath();
-                ctx.arc(activeBoss.x, activeBoss.y, activeBoss.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-
-                // Update Boss HP bar
-                const pct = Math.max(0, (activeBoss.hp / activeBoss.maxHp) * 100);
-                document.getElementById('boss-hud-hp').innerText = `BOSS HP: ${Math.round(pct)}%`;
+            if (playerState.armor > 0) {
+                const absorbed = Math.min(playerState.armor, dmg);
+                playerState.armor -= absorbed;
+                dmg -= absorbed;
             }
+            playerState.hp -= dmg;
+            if (playerState.hp <= 0) {
+                playerState.hp = 0;
+                completeCampaign(false);
+            }
+        }
 
-            // Player
-            ctx.save();
-            if (player.invuln % 4 > 2) ctx.globalAlpha = 0.5;
-            ctx.fillStyle = player.color;
-            ctx.beginPath();
-            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.restore();
+        // Wrist-Mounted BFS Shortest-Path Radar
+        function drawBfsWristRadar() {
+            rCtx.fillStyle = '#03080c';
+            rCtx.fillRect(0, 0, 104, 104);
 
-            // Swords
-            swords.forEach(s => {
-                ctx.fillStyle = '#facc15';
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-                ctx.fill();
+            // Radar Rings
+            rCtx.strokeStyle = 'rgba(16, 185, 129, 0.25)';
+            rCtx.lineWidth = 1;
+            [22, 44].forEach(r => {
+                rCtx.beginPath();
+                rCtx.arc(52, 52, r, 0, Math.PI * 2);
+                rCtx.stroke();
             });
 
-            // Boss Projectiles
-            bossProjectiles.forEach(bp => {
-                ctx.fillStyle = bp.color;
-                ctx.beginPath();
-                ctx.arc(bp.x, bp.y, bp.radius, 0, Math.PI * 2);
-                ctx.fill();
+            // Rotating Sweep Line
+            radarSweepAngle += 0.045;
+            rCtx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
+            rCtx.beginPath();
+            rCtx.moveTo(52, 52);
+            rCtx.lineTo(52 + Math.cos(radarSweepAngle) * 48, 52 + Math.sin(radarSweepAngle) * 48);
+            rCtx.stroke();
+
+            const scale = 0.85;
+
+            // BFS Shortest Path Line to Active Objective or Boss
+            const targetX = extractionPhase ? 0 : (bossEntity ? bossEntity.x : 0);
+            const targetZ = extractionPhase ? 35 : (bossEntity ? bossEntity.z : 0);
+            const rx = 52 + (targetX - playerState.x) * scale;
+            const ry = 52 + (targetZ - playerState.z) * scale;
+
+            rCtx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+            rCtx.setLineDash([3, 3]);
+            rCtx.beginPath();
+            rCtx.moveTo(52, 52);
+            rCtx.lineTo(Math.max(8, Math.min(96, rx)), Math.max(8, Math.min(96, ry)));
+            rCtx.stroke();
+            rCtx.setLineDash([]);
+
+            // Pylons / Generators (Green Dots)
+            rCtx.fillStyle = '#10b981';
+            interactables.forEach(item => {
+                const ix = 52 + (item.x - playerState.x) * scale;
+                const iy = 52 + (item.z - playerState.z) * scale;
+                rCtx.fillRect(ix - 2, iy - 2, 4, 4);
             });
 
-            // Hearts UI
-            let heartStr = '';
-            for (let i = 0; i < player.maxHearts; i++) {
-                heartStr += i < player.hearts ? '❤️ ' : '🖤 ';
+            // Lurkers (Amber Dots)
+            rCtx.fillStyle = '#f59e0b';
+            lurkers.forEach(l => {
+                const lx = 52 + (l.mesh.position.x - playerState.x) * scale;
+                const ly = 52 + (l.mesh.position.z - playerState.z) * scale;
+                rCtx.beginPath();
+                rCtx.arc(lx, ly, 2.5, 0, Math.PI * 2);
+                rCtx.fill();
+            });
+
+            // Boss Ping (Red Pulsing Dot)
+            if (bossEntity) {
+                rCtx.fillStyle = '#f43f5e';
+                rCtx.beginPath();
+                rCtx.arc(Math.max(8, Math.min(96, rx)), Math.max(8, Math.min(96, ry)), 4.5, 0, Math.PI * 2);
+                rCtx.fill();
             }
-            document.getElementById('heart-display').innerText = heartStr;
+
+            // Player Center Dot
+            rCtx.fillStyle = '#38bdf8';
+            rCtx.beginPath();
+            rCtx.arc(52, 52, 3.5, 0, Math.PI * 2);
+            rCtx.fill();
         }
 
-        function triggerSwordSwing() { slashSword(); }
-        function triggerDash() { playerDash(); }
+        function updateHudTelemetry() {
+            const db = Math.round(playerState.dbLevel);
+            const dbText = document.getElementById('db-val-text');
+            const dbFill = document.getElementById('db-bar-fill');
+            dbText.innerText = `${db} dB`;
+            dbFill.style.width = `${Math.min(100, db)}%`;
+            dbFill.style.background = db > 55 ? 'var(--hud-red)' : (db > 40 ? 'var(--hud-amber)' : 'var(--hud-green)');
 
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            document.getElementById('touch-controls').style.display = 'block';
+            // Crosshair Bloom
+            const bloom = Math.min(16, Math.round(db / 6));
+            document.getElementById('ch-t').style.transform = `translateY(${-bloom}px)`;
+            document.getElementById('ch-b').style.transform = `translateY(${bloom}px)`;
+            document.getElementById('ch-l').style.transform = `translateX(${-bloom}px)`;
+            document.getElementById('ch-r').style.transform = `translateX(${bloom}px)`;
+
+            // Armor Plates & HP
+            document.getElementById('plate-1').classList.toggle('filled', playerState.armor >= 20);
+            document.getElementById('plate-2').classList.toggle('filled', playerState.armor >= 75);
+            document.getElementById('plate-3').classList.toggle('filled', playerState.armor >= 130);
+            document.getElementById('hp-fill').style.width = `${(playerState.hp / playerState.maxHp) * 100}%`;
+
+            document.getElementById('scraps-text').innerText = `SCRAP: ${playerState.scrap}`;
+            document.getElementById('ammo-counter').innerHTML = `${playerState.ammo}<span style="font-size:0.8rem; color:var(--text-dim);">/∞</span>`;
+            document.getElementById('pill-decoy').innerText = `DECOY [G]: ${playerState.decoyCount}`;
+            document.getElementById('pill-emp').innerText = playerState.gadgetCd > 0 ? `GADGET: ${Math.ceil(playerState.gadgetCd / 60)}s` : `GADGET [Q]: READY`;
+
+            if (bossEntity) {
+                const pct = Math.max(0, Math.round((bossEntity.hp / bossEntity.maxHp) * 100));
+                document.getElementById('hud-boss-pct').innerText = `${pct}%`;
+                document.getElementById('boss-hp-fill').style.width = `${pct}%`;
+            }
         }
+
+        function completeCampaign(victory) {
+            gameRunning = false;
+            if (document.pointerLockElement) document.exitPointerLock?.();
+
+            const modal = document.getElementById('debrief-modal');
+            modal.style.display = 'flex';
+            document.getElementById('debrief-sub').innerText = victory ? 'QUARANTINE BREACH CLEARED' : 'SIGNAL LOST IN QUARANTINE';
+            document.getElementById('debrief-title').innerText = victory ? 'EXTRACTION COMPLETE' : 'OPERATIVE DOWN';
+            document.getElementById('debrief-desc').innerText = victory
+                ? 'You purged Wraith-65, Eidolon, Ironbound, and Malakor, escaping aboard the Armored Express Train at dawn. All commendation coins have been wired to your Hub Wallet.'
+                : 'Your acoustic signature drew overwhelming fire. Every coin and commendation you unlocked during this deployment remains banked in your Hub Wallet.';
+            document.getElementById('debrief-coins').innerText = `+${sessionCoinsEarned.toLocaleString()} ARCADE COINS`;
+        }
+
+        // Touch Thumbpad Listeners for School iPads
+        function bindThumbpad(padId, nubId, stateObj) {
+            const pad = document.getElementById(padId);
+            const nub = document.getElementById(nubId);
+            const maxR = 40;
+            function onMove(e) {
+                e.preventDefault();
+                const t = e.targetTouches[0];
+                if (!t) return;
+                const r = pad.getBoundingClientRect();
+                let dx = t.clientX - (r.left + r.width / 2);
+                let dy = t.clientY - (r.top + r.height / 2);
+                const d = Math.hypot(dx, dy);
+                if (d > maxR) { dx = (dx / d) * maxR; dy = (dy / d) * maxR; }
+                nub.style.transform = `translate(${dx}px, ${dy}px)`;
+                stateObj.active = true;
+                stateObj.dx = dx / maxR;
+                stateObj.dy = dy / maxR;
+            }
+            function onEnd(e) {
+                e.preventDefault();
+                nub.style.transform = `translate(0px, 0px)`;
+                stateObj.active = false;
+                stateObj.dx = 0; stateObj.dy = 0;
+            }
+            pad.addEventListener('touchstart', onMove, { passive: false });
+            pad.addEventListener('touchmove', onMove, { passive: false });
+            pad.addEventListener('touchend', onEnd, { passive: false });
+        }
+        bindThumbpad('pad-move', 'nub-move', touchMove);
+        bindThumbpad('pad-look', 'nub-look', touchLook);
+
+        const mFireBtn = document.getElementById('m-fire');
+        mFireBtn.addEventListener('touchstart', e => { e.preventDefault(); isFiring = true; fireWeapon(); });
+        mFireBtn.addEventListener('touchend', e => { e.preventDefault(); isFiring = false; });
+
+        document.addEventListener('DOMContentLoaded', renderBriefingUI);
     </script>
 </body>
 </html>
