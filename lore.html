@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BLACKOUT: ECHO PROTOCOL — 100 Nights Open World</title>
+    <title>BLACKOUT: ECHO PROTOCOL</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         :root {
@@ -15,9 +15,9 @@
             --accent: #ff0055;
             --gold: #facc15;
             --emerald: #10b981;
-            --bg: #030712;
-            --card: #0b1329;
-            --panel-bg: rgba(8, 14, 30, 0.92);
+            --bg: #04070f;
+            --card: #0a1122;
+            --panel-bg: rgba(8, 13, 26, 0.92);
             --border-line: rgba(0, 243, 255, 0.38);
         }
 
@@ -43,14 +43,14 @@
 
         header {
             width: 100%;
-            max-width: 1340px;
+            max-width: 1360px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: var(--card);
             padding: 8px 18px;
-            border-radius: 12px;
-            border: 2px solid var(--primary);
+            border-radius: 10px;
+            border: 1.5px solid var(--primary);
             margin-bottom: 5px;
             box-shadow: 0 0 20px var(--primary-glow);
             flex-wrap: wrap;
@@ -62,7 +62,7 @@
             text-decoration: none;
             font-family: 'JetBrains Mono', monospace;
             font-weight: 800;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             padding: 5px 10px;
             border: 1px solid var(--border-line);
             border-radius: 6px;
@@ -71,21 +71,62 @@
 
         #game-wrapper {
             width: 100%;
-            max-width: 1340px;
-            height: calc(100vh - 86px);
+            max-width: 1360px;
+            height: calc(100vh - 84px);
             min-height: 540px;
-            border: 2.5px solid var(--primary);
-            border-radius: 14px;
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.22);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            box-shadow: 0 0 35px rgba(0, 243, 255, 0.2);
             position: relative;
             overflow: hidden;
-            background: #06101e;
+            background: #050811;
+            cursor: crosshair;
         }
 
         #webgl-canvas {
             width: 100% !important;
             height: 100% !important;
             display: block;
+        }
+
+        /* Damage Blood Vignette */
+        #damage-vignette {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 8;
+            box-shadow: inset 0 0 0px rgba(255, 0, 68, 0);
+            transition: box-shadow 0.15s ease;
+        }
+        #game-wrapper.hurt #damage-vignette {
+            box-shadow: inset 0 0 110px rgba(255, 0, 68, 0.85);
+        }
+
+        /* Center Reticle */
+        #reticle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 28px;
+            height: 28px;
+            transform: translate(-50%, -50%);
+            border: 1.5px solid rgba(0, 243, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 12;
+            display: none;
+            transition: transform 0.08s;
+        }
+        #reticle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
         }
 
         /* Docked Top HUD */
@@ -107,9 +148,9 @@
             border: 1.5px solid var(--border-line);
             border-radius: 10px;
             padding: 10px 14px;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             backdrop-filter: blur(8px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.75);
             pointer-events: auto;
         }
 
@@ -120,7 +161,7 @@
             gap: 8px;
             margin-bottom: 5px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
         }
 
         .hud-bar {
@@ -131,45 +172,45 @@
             overflow: hidden;
             border: 1px solid rgba(255,255,255,0.12);
         }
-        .hud-fill { height: 100%; width: 100%; transition: width 0.15s ease; }
+        .hud-fill { height: 100%; width: 100%; transition: width 0.12s ease; }
 
         .sundial-disc {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             border: 2px solid var(--gold);
-            background: conic-gradient(#facc15 0% 65%, #fb923c 65% 78%, #1e1b4b 78% 100%);
+            background: conic-gradient(#38bdf8 0% 60%, #fb923c 60% 75%, #dc2626 75% 100%);
             position: relative;
             flex-shrink: 0;
         }
         .sundial-hand {
             width: 2px;
-            height: 15px;
+            height: 14px;
             background: #fff;
             position: absolute;
             top: 3px;
-            left: 15px;
+            left: 14px;
             transform-origin: bottom center;
         }
 
-        /* Boss Health Bar */
+        /* Active Boss Health & Shield Bar */
         #boss-hud {
-            background: rgba(20, 8, 18, 0.94);
+            background: rgba(18, 7, 16, 0.95);
             border: 2px solid var(--accent);
             border-radius: 10px;
             padding: 10px 16px;
-            width: min(440px, 42vw);
+            width: min(470px, 44vw);
             text-align: center;
             display: none;
             pointer-events: auto;
-            box-shadow: 0 0 25px rgba(255, 0, 85, 0.35);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.4);
         }
         .boss-hp-track {
             width: 100%;
-            height: 11px;
+            height: 12px;
             background: #090408;
             border: 1px solid #4c1d24;
-            border-radius: 5px;
+            border-radius: 6px;
             overflow: hidden;
             margin: 6px 0;
         }
@@ -185,7 +226,7 @@
             height: 96px !important;
             border-radius: 50%;
             border: 2px solid var(--primary);
-            background: rgba(5, 8, 17, 0.94);
+            background: rgba(4, 8, 16, 0.95);
             margin-top: 6px;
             display: block;
             box-shadow: 0 0 12px rgba(0, 243, 255, 0.3);
@@ -206,22 +247,22 @@
         }
         .slot {
             background: var(--panel-bg);
-            border: 2px solid #334155;
+            border: 1.5px solid #334155;
             border-radius: 8px;
-            padding: 6px 10px;
-            min-width: 64px;
+            padding: 6px 11px;
+            min-width: 72px;
             text-align: center;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             cursor: pointer;
             transition: all 0.15s;
         }
         .slot:hover {
             border-color: var(--primary);
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: 0 0 12px var(--primary);
         }
-        .slot-val { font-weight: 800; color: var(--gold); font-size: 0.9rem; }
+        .slot-val { font-weight: 800; color: var(--gold); font-size: 0.88rem; }
 
         #action-prompt {
             position: absolute;
@@ -234,7 +275,7 @@
             font-weight: 800;
             padding: 8px 22px;
             border-radius: 20px;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             display: none;
             z-index: 18;
             box-shadow: 0 0 20px var(--primary);
@@ -244,16 +285,16 @@
 
         #dialogue-box {
             position: absolute;
-            top: 84px;
+            top: 92px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(11, 19, 41, 0.96);
+            background: rgba(8, 14, 28, 0.96);
             border: 2px solid var(--gold);
             color: #fff;
             padding: 10px 22px;
             border-radius: 10px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.86rem;
+            font-size: 0.84rem;
             max-width: 720px;
             width: 90%;
             display: none;
@@ -265,7 +306,7 @@
         .modal {
             position: absolute;
             inset: 0;
-            background: rgba(3, 7, 18, 0.92);
+            background: rgba(3, 6, 15, 0.92);
             backdrop-filter: blur(6px);
             display: flex;
             flex-direction: column;
@@ -279,26 +320,26 @@
             border: 2px solid var(--primary);
             border-radius: 14px;
             padding: 22px;
-            max-width: 760px;
+            max-width: 780px;
             width: 95%;
             text-align: left;
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.22);
             max-height: 88%;
             overflow-y: auto;
         }
         .btn-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
             gap: 10px;
             margin-top: 14px;
         }
         .btn {
-            background: #132042;
+            background: #111d3b;
             color: #fff;
             border: 1.5px solid var(--border-line);
             padding: 10px 12px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.74rem;
             font-weight: 800;
             border-radius: 8px;
             cursor: pointer;
@@ -313,9 +354,9 @@
         .controls-info {
             margin-top: 4px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.74rem;
             color: #94a3b8;
-            max-width: 1340px;
+            max-width: 1360px;
             text-align: center;
         }
         .controls-info strong { color: var(--primary); }
@@ -328,7 +369,7 @@
             <a href="index.html" class="nav-link">← Hub</a>
             <div>⚡ <strong>BLACKOUT: ECHO PROTOCOL</strong> | Night: <span id="night-count" style="color:var(--accent); font-size:1.15rem; font-weight:800;">1</span> / 100</div>
         </div>
-        <div style="display:flex; align-items:center; gap:14px; font-family:'JetBrains Mono',monospace; font-size:0.85rem; font-weight:700;">
+        <div style="display:flex; align-items:center; gap:14px; font-family:'JetBrains Mono',monospace; font-size:0.84rem; font-weight:700;">
             <span style="color:var(--primary);">🔋 Cores: <span id="cores-header">0/4</span></span>
             <span style="color:var(--emerald);">👷 Engineers: <span id="eng-header">0/4</span></span>
             <span style="color:var(--gold);">🪙 Coins: <span id="coin-count">0</span></span>
@@ -337,37 +378,41 @@
     </header>
 
     <div id="game-wrapper">
-        <!-- Operative Selector & Briefing Modal -->
+        <div id="damage-vignette"></div>
+        <div id="reticle"></div>
+
+        <!-- Start Briefing Modal -->
         <div id="start-modal" class="modal">
             <div class="modal-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                     <div>
-                        <div style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--primary);">1,600m × 1,600m 4-BIOME OPEN WORLD SURVIVAL</div>
+                        <div style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--primary);">TACTICAL 3D BOSS RAID & NIGHT SURVIVAL</div>
                         <h2 style="font-family:'Space Grotesk',sans-serif; color:#fff; margin:2px 0;">BLACKOUT: ECHO PROTOCOL</h2>
                     </div>
                     <button class="btn amber" onclick="startVRTutorial()">🎯 Standalone VR Tutorial</button>
                 </div>
 
-                <div style="background:rgba(0,243,255,0.07); border:1px solid var(--border-line); border-radius:8px; padding:10px 14px; margin:12px 0; font-size:0.8rem; line-height:1.5; color:#cbd5e1;">
-                    <strong style="color:var(--gold);">🎯 HOW TO BEAT THE GAME (YOUR MISSION):</strong><br>
-                    1. <strong>BY DAY:</strong> Follow the <strong>Glowing Cyan Arrow</strong> at your feet into the <strong>4 Biomes</strong> (NW Pines, NE Server Lake, SW Highway, SE Crater). Defeat the <strong>4 Biome Bosses</strong> to unlock their vaults, collect all <strong>4 Train Ignition Cores (0/4)</strong>, and rescue the <strong>4 Engineers</strong>.<br>
-                    2. <strong>BY NIGHT:</strong> Darkness falls and <strong>MALAKOR</strong> hunts outside the Train's <strong>UV Safe Ring</strong>! Feed Bio-Fuel to expand the UV Ring, or use your <strong>Flashlight [L]</strong> to stun Malakor!<br>
-                    3. <strong>FINALE (3 ENDINGS):</strong> Install all 4 Cores & reach <strong>Night 100</strong> (craft Signal Beacons `[B]` to boost Night speed up to `10x`) to power the Train's UV Cannon, slay Malakor, and choose your Ending!
+                <div style="background:rgba(0,243,255,0.07); border:1px solid var(--border-line); border-radius:8px; padding:12px 14px; margin:12px 0; font-size:0.79rem; line-height:1.55; color:#cbd5e1;">
+                    <strong style="color:var(--gold);">⚔️ BOSS SHIELD MECHANICS (NO MORE EASY 3-SECOND KILLS):</strong><br>
+                    • <strong>WRAITH-65 (NW Sector):</strong> Protected by an energy shield! Shoot down his <strong>2 Orbiting Shield Drones</strong> while jumping (`[SPACE]`) over his red laser sweeps to expose his Cyan Chest Turbine!<br>
+                    • <strong>EIDOLON (NE Sector):</strong> Summons <strong>3 Glowing Hologram Clones</strong>! Shoot the real Eidolon (creating expanding floor ripples) or use a <strong>Sonic Decoy `[G]`</strong> to break her veil!<br>
+                    • <strong>IRONBOUND (SW Sector):</strong> Bulletproof frontal armor! Bait his <strong>Red Bulldozer Charge</strong> into the <strong>Blue EMP Pylons</strong> (or press `[E/F]` on an EMP Pylon) to short-circuit his furnace core!<br>
+                    • <strong>MALAKOR (SE Sector & Night Stalker):</strong> Hunts you at Night with lethal 35-DMG claw waves! Stun him with your <strong>UV Flashlight `[L]`</strong>, install all 4 Cores at the <strong>3D Express Train</strong>, and unlock 1 of <strong>3 Endings</strong>!
                 </div>
 
-                <div style="font-family:'JetBrains Mono',monospace; font-size:0.74rem; color:var(--primary); margin-bottom:6px;">SELECT YOUR OPERATIVE CLASS TO DEPLOY:</div>
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.74rem; color:var(--primary); margin-bottom:6px;">SELECT YOUR OPERATIVE RIG TO DEPLOY:</div>
                 <div class="btn-grid">
                     <button class="btn primary" onclick="selectOperative('ARCHITECT-01')">
-                        ⚡ ARCHITECT-01<br><small style="color:#0f172a;">Starts w/ Flashlight & 2x Bio-Fuel</small>
+                        ⚡ ARCHITECT-01<br><small style="color:#0f172a;">Starts w/ UV Light & 2x Bio-Fuel</small>
                     </button>
                     <button class="btn primary" onclick="selectOperative('SOVEREIGN')">
                         👑 SOVEREIGN<br><small style="color:#0f172a;">2.5x Coin & Scrap Harvest</small>
                     </button>
                     <button class="btn primary" onclick="selectOperative('VANGUARD-7')">
-                        🛡️ VANGUARD-7<br><small style="color:#0f172a;">Heavy Shotgun & +50% Armor</small>
+                        🛡️ VANGUARD-7<br><small style="color:#0f172a;">Heavy Armor & High Stagger</small>
                     </button>
                     <button class="btn primary" onclick="selectOperative('BROKER')">
-                        🎯 BROKER<br><small style="color:#0f172a;">Silent Crossbow & +50% Boss Crit</small>
+                        🎯 BROKER<br><small style="color:#0f172a;">+45% Weakpoint Crit Damage</small>
                     </button>
                 </div>
             </div>
@@ -382,7 +427,7 @@
                 </div>
                 <div class="btn-grid">
                     <button class="btn" id="btn-craft-pap" onclick="craftItem('pap')">🔫 Pack-a-Punch Rifle<br><small style="color:var(--gold);">8 Scrap, 4 Fuel (+50% DMG)</small></button>
-                    <button class="btn" id="btn-craft-beacon" onclick="craftItem('beacon')">📡 Signal Beacon (+1x Night)<br><small style="color:var(--gold);">6 Scrap, 4 Fuel (Max 5)</small></button>
+                    <button class="btn" id="btn-craft-beacon" onclick="craftItem('beacon')">📡 Signal Beacon (+2x Night)<br><small style="color:var(--gold);">6 Scrap, 4 Fuel (Max 5)</small></button>
                     <button class="btn" id="btn-craft-turret" onclick="craftItem('turret')">🛡️ Auto-Sentry Turret<br><small style="color:var(--gold);">12 Scrap, 6 Fuel</small></button>
                     <button class="btn" id="btn-craft-light" onclick="craftItem('flashlight')">🔦 UV High-Beam Light<br><small style="color:var(--gold);">5 Scrap (Stuns Malakor!)</small></button>
                     <button class="btn" onclick="craftItem('plates')">🛡️ +2 Armor Plates<br><small style="color:var(--gold);">4 Scrap</small></button>
@@ -422,17 +467,17 @@
                 <div class="bar-row"><span>🛡️ Armor</span><div class="hud-bar"><div id="armor-fill" class="hud-fill" style="background:#00f3ff;"></div></div></div>
                 <div class="bar-row"><span>❤️ Health</span><div class="hud-bar"><div id="hp-fill" class="hud-fill" style="background:#ef4444;"></div></div></div>
                 <div class="bar-row"><span>⚡ Stamina</span><div class="hud-bar"><div id="stam-fill" class="hud-fill" style="background:#facc15;"></div></div></div>
-                <div class="bar-row"><span>🔊 Noise (dB)</span><div class="hud-bar"><div id="db-fill" class="hud-fill" style="background:#10b981; width:15%;"></div></div></div>
+                <div class="bar-row"><span>🔫 Ammo</span><div style="font-family:'JetBrains Mono',monospace; font-weight:800; color:var(--primary);" id="ammo-ui">30 / 30 [R]</div></div>
                 <div style="margin-top:6px; display:flex; align-items:center; gap:10px;">
                     <div class="sundial-disc"><div class="sundial-hand" id="sundial-hand"></div></div>
                     <div>
-                        <div id="cycle-title" style="font-family:'JetBrains Mono',monospace; font-weight:800; color:var(--gold);">☀️ DAY PHASE (SAFE)</div>
-                        <div id="cycle-timer" style="font-family:'JetBrains Mono',monospace; color:#94a3b8; font-size:0.72rem;">Night in: 120s</div>
+                        <div id="cycle-title" style="font-family:'JetBrains Mono',monospace; font-weight:800; color:var(--gold);">☀️ DAY PHASE</div>
+                        <div id="cycle-timer" style="font-family:'JetBrains Mono',monospace; color:#94a3b8; font-size:0.7rem;">Night in: 95s</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Active Boss Health Bar (Shows when near a Biome Boss or Malakor!) -->
+            <!-- Boss Health & Shield Mechanics Bar -->
             <div id="boss-hud">
                 <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:0.75rem; font-weight:800; color:#fda4af;">
                     <span id="boss-name-ui">WRAITH-65</span>
@@ -440,20 +485,20 @@
                 </div>
                 <div class="boss-hp-track"><div id="boss-hp-fill"></div></div>
                 <div id="boss-tip-ui" style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--gold);">
-                    AIM FOR THE GLOWING CORE OR TOSS DECOY [G] TO STUN!
+                    🛡️ SHIELD ACTIVE: DESTROY HIS 2 ORBITING DRONES OR PRESS [E/F] ON EMP PYLON!
                 </div>
             </div>
 
             <!-- Top-Right Objective Compass & Minimap -->
             <div class="hud-panel" style="display:flex; flex-direction:column; align-items:flex-end;">
                 <div style="font-family:'JetBrains Mono',monospace; font-size:0.74rem;">
-                    🔋 UV Reactor: <span id="fuel-text" style="color:#00f3ff; font-weight:800;">100%</span> (Safe Ring: <span id="radius-text">36m</span>)
+                    🔋 UV Shield: <span id="fuel-text" style="color:#00f3ff; font-weight:800;">100%</span> (Radius: <span id="radius-text">38m</span>)
                 </div>
                 <div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--accent); margin-top:2px;">
                     ⏩ Night Multiplier: <span id="mult-text" style="font-weight:800;">1x</span> (Beacons: <span id="beacon-text">0</span>)
                 </div>
-                <div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:#a3e635; margin-top:2px;" id="objective-text">
-                    🎯 Follow Cyan Arrow: WRAITH-65 (NW Pines)
+                <div style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:#a3e635; margin-top:2px;" id="objective-text">
+                    🎯 Follow Cyan Arrow: WRAITH-65 (NW Sector)
                 </div>
                 <canvas id="minimap-canvas" width="96" height="96"></canvas>
             </div>
@@ -464,18 +509,18 @@
 
         <!-- Interactive Bottom Hotbar -->
         <div class="hud-bottom" id="hud-bottom">
+            <div class="slot" onclick="reloadWeapon()"><div class="slot-val" id="val-ammo">30</div>🔫 Reload [R]</div>
             <div class="slot" onclick="feedTrainReactor()"><div class="slot-val" id="val-fuel">4</div>🧪 Bio-Fuel</div>
-            <div class="slot" onclick="toggleCrafting(true)"><div class="slot-val" id="val-scrap">4</div>⚙️ Scrap [B]</div>
+            <div class="slot" onclick="toggleCrafting(true)"><div class="slot-val" id="val-scrap">6</div>⚙️ Armory [B]</div>
             <div class="slot" onclick="useArmorPlate()"><div class="slot-val" id="val-plates">2</div>🛡️ Plate [1]</div>
             <div class="slot" onclick="useMedStim()"><div class="slot-val" id="val-stims">2</div>💉 Stim [2]</div>
             <div class="slot" onclick="throwDecoy()"><div class="slot-val" id="val-decoys">2</div>🔊 Decoy [G]</div>
-            <div class="slot" onclick="depositCoresAtTrain()"><div class="slot-val" id="val-cores">0/4</div>🔋 Cores</div>
             <div class="slot" onclick="toggleFlashlight()"><div class="slot-val" id="val-light">OFF</div>🔦 UV Light [L]</div>
         </div>
     </div>
 
     <div class="controls-info">
-        <strong>WASD / Arrows:</strong> Move & Turn | <strong>Shift:</strong> Sprint | <strong>Space / Click:</strong> Shoot Weapon | <strong>E or F:</strong> Harvest / Vaults / Train | <strong>G:</strong> Sonic Decoy | <strong>B:</strong> Train Armory | <strong>L:</strong> UV Flashlight (Stuns Malakor!)
+        <strong>WASD:</strong> Move | <strong>Mouse / Arrows:</strong> Aim & Turn | <strong>Left-Click:</strong> Shoot (Cooldown) | <strong>Space:</strong> Jump Over Shockwaves | <strong>Shift:</strong> Dodge Dash | <strong>E or F:</strong> EMP Pylons / Vaults / Train | <strong>R:</strong> Reload | <strong>B:</strong> Armory
     </div>
 
     <script>
@@ -506,7 +551,7 @@
             } catch (e) {}
         }
 
-        function playMalakorRoar() {
+        function playBossRoar() {
             try {
                 const ctx = getAudioContext();
                 if (!ctx) return;
@@ -514,39 +559,39 @@
                 const mod = ctx.createOscillator();
                 const modGain = ctx.createGain();
                 const gain = ctx.createGain();
-                mod.frequency.value = 26;
-                modGain.gain.value = 150;
+                mod.frequency.value = 28;
+                modGain.gain.value = 140;
                 mod.connect(osc.frequency);
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(160, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 1.5);
+                osc.frequency.setValueAtTime(150, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(36, ctx.currentTime + 1.4);
                 gain.gain.setValueAtTime(0.28, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.4);
                 osc.connect(gain);
                 gain.connect(ctx.destination);
                 mod.start();
                 osc.start();
-                mod.stop(ctx.currentTime + 1.5);
-                osc.stop(ctx.currentTime + 1.5);
+                mod.stop(ctx.currentTime + 1.4);
+                osc.stop(ctx.currentTime + 1.4);
             } catch (e) {}
         }
 
         // =========================================================================
-        // 2. ACHIEVEMENTS & WALLET PERSISTENCE
+        // 2. ACHIEVEMENTS & WALLET
         // =========================================================================
         const ACHIEVEMENTS = [
             { id: 'ghost_op', name: 'VR Certified', desc: 'Complete the Standalone VR Tutorial', reward: 2500 },
-            { id: 'whisper_craft', name: 'Pack-a-Punched', desc: 'Upgrade your weapon at the Train Armory', reward: 3000 },
-            { id: 'bait_switch', name: 'Acoustic Diversion', desc: 'Stun a Boss with a Sonic Decoy [G]', reward: 4000 },
-            { id: 'lurker_hunter', name: 'Scorpion Slayer', desc: 'Eliminate 4 Decibel Scorpions', reward: 5000 },
+            { id: 'whisper_craft', name: 'Pack-a-Punched', desc: 'Upgrade your rifle at the Train Armory', reward: 3000 },
+            { id: 'bait_switch', name: 'Acoustic Diversion', desc: 'Break a Boss Shield with a Sonic Decoy [G]', reward: 4000 },
+            { id: 'lurker_hunter', name: 'Hound Hunter', desc: 'Eliminate 4 Bone-Hound Crawlers', reward: 5000 },
             { id: 'marksman', name: 'UV Blindside', desc: 'Stun Malakor at night with your UV Light [L]', reward: 5000 },
-            { id: 'wraith_clear', name: 'Strider Down', desc: 'Defeat WRAITH-65 in NW Watchtower Pines', reward: 15000 },
-            { id: 'eidolon_clear', name: 'Kraken Purged', desc: 'Defeat EIDOLON in NE Flooded Server Lake', reward: 25000 },
-            { id: 'ironbound_clear', name: 'Tank Derailed', desc: 'Defeat IRONBOUND on SW Viaduct Highway', reward: 35000 },
+            { id: 'wraith_clear', name: 'Jaeger Down', desc: 'Defeat WRAITH-65 in NW Sector', reward: 15000 },
+            { id: 'eidolon_clear', name: 'Siren Purged', desc: 'Defeat EIDOLON in NE Sector', reward: 25000 },
+            { id: 'ironbound_clear', name: 'Siege Derailed', desc: 'Defeat IRONBOUND in SW Sector', reward: 35000 },
             { id: 'malakor_clear', name: 'The 100th Dawn', desc: 'Complete the 100-Night Campaign', reward: 150000 },
-            { id: 'power_engineer', name: 'Protocol Omega', desc: 'Unlock Secret Ending B (All 4 Cores & Engineers)', reward: 250000 },
-            { id: 'squad_link', name: '101st Overlord', desc: 'Unlock Dark Ending C at the Obsidian Throne', reward: 100000 },
-            { id: 'master_protocol', name: 'Apex Legend', desc: 'Unlock 6 Commendations in Blackout Protocol', reward: 50000 }
+            { id: 'power_engineer', name: 'Protocol Omega', desc: 'Unlock Secret Ending B (All 4 Cores)', reward: 250000 },
+            { id: 'squad_link', name: '101st Overlord', desc: 'Unlock Dark Ending C at the Throne', reward: 100000 },
+            { id: 'master_protocol', name: 'Apex Legend', desc: 'Unlock 6 Commendations', reward: 50000 }
         ];
 
         function getWallet() { return parseInt(localStorage.getItem('arcade_coins')) || 0; }
@@ -600,7 +645,7 @@
         }
 
         // =========================================================================
-        // 3. GAME STATE VARIABLES & DAY/NIGHT PACING
+        // 3. GAME STATE & STRICT COMBAT BALANCING
         // =========================================================================
         let scene, camera, renderer, ambientLight, sunLight, moonLight, hemiLight, trainUvLight, flashlight;
         let playerRig, malakorRig, uvBoundaryRing, objectiveArrowMesh, sentryTurretMesh = null;
@@ -608,80 +653,109 @@
 
         let playerClass = 'ARCHITECT-01';
         let currentNight = 1, nightMultiplier = 1, beaconCount = 0;
-        let hp = 100, maxHp = 100, armor = 100, maxArmor = 100, stamina = 100, noiseDb = 15;
-        let reactorFuel = 100, reactorTier = 1, safeRadius = 36;
+        let hp = 100, maxHp = 100, armor = 100, maxArmor = 100, stamina = 100;
+        let ammo = 30, maxAmmo = 30, isReloading = false, lastFireTime = 0;
+        let reactorFuel = 100, reactorTier = 1, safeRadius = 38;
         let bioFuel = 4, scrap = 6, armorPlates = 2, medStims = 2, sonicDecoys = 2;
         let coresCollected = 0, coresInstalled = 0, rescuedEngineers = 0;
         let weaponUpgraded = false, hasFlashlight = false, isFlashlightOn = false, hasSentry = false;
-        let malakorStunTimer = 0, scorpionKills = 0;
+        let malakorStunTimer = 0, houndKills = 0;
 
-        // Day 110s, Dusk 20s, Night 45s
         let cycleTimer = 0;
-        const DAY_LEN = 110, DUSK_LEN = 20, NIGHT_LEN = 45, TOTAL_CYCLE = DAY_LEN + DUSK_LEN + NIGHT_LEN;
+        const DAY_LEN = 95, DUSK_LEN = 18, NIGHT_LEN = 42, TOTAL_CYCLE = DAY_LEN + DUSK_LEN + NIGHT_LEN;
 
-        const player = { x: 0, y: 0, z: 14, rot: 0, baseSpeed: 0.34, sprintSpeed: 0.54 };
-        const keys = { w: false, s: false, a: false, d: false, shift: false };
+        const player = {
+            x: 0, y: 0, z: 18,
+            vy: 0,
+            rot: 0, pitch: 0,
+            baseSpeed: 0.34,
+            sprintSpeed: 0.52,
+            dashTimer: 0,
+            dashCd: 0
+        };
+        const keys = { w: false, s: false, a: false, d: false, shift: false, left: false, right: false };
         let walkClock = 0, isAttacking = false;
 
         let biomeBosses = [];
         let bunkers = [];
-        let scorpions = [];
+        let boneHounds = [];
+        let empPylons = [];
         let resourceNodes = [];
         let bullets = [];
         let bossProjectiles = [];
+        let shockwaveRings = [];
         let activeDecoys = [];
 
         // =========================================================================
-        // 4. 100% DISTINCT 3D ANATOMICAL MODELS FOR BOSSES & MONSTERS
+        // 4. PROCEDURAL TEXTURES & HIGH-DETAIL MONSTER/BOSS MODELS (ZERO BLACK BOXES!)
         // =========================================================================
+        function createGridTexture(bgHex, lineHex) {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 256;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = bgHex;
+            ctx.fillRect(0, 0, 256, 256);
+            ctx.strokeStyle = lineHex;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(0, 0, 256, 256);
+            ctx.beginPath();
+            ctx.moveTo(128, 0); ctx.lineTo(128, 256);
+            ctx.moveTo(0, 128); ctx.lineTo(256, 128);
+            ctx.stroke();
+            const tex = new THREE.CanvasTexture(c);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(80, 80);
+            return tex;
+        }
 
-        // A. Articulated Operative Rig (Player & Rescued Engineers)
+        // A. Articulated Tactical Operative Rig
         function createOperativeRig(colors) {
             const root = new THREE.Group();
-            const suitMat = new THREE.MeshStandardMaterial({ color: colors.suit, roughness: 0.5, metalness: 0.5 });
+            const suitMat = new THREE.MeshStandardMaterial({ color: colors.suit, roughness: 0.5, metalness: 0.15 });
             const trimMat = new THREE.MeshBasicMaterial({ color: colors.trim });
-            const darkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.7 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, metalness: 0.1 });
 
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.45, 0.8), suitMat);
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.45, 0.75), suitMat);
             torso.position.y = 1.65; root.add(torso);
 
-            const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.0, 0.45), darkMat);
-            backpack.position.set(0, 0.05, 0.55); torso.add(backpack);
-            const packGlow = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.6, 0.1), trimMat);
-            packGlow.position.set(0, 0.05, 0.25); backpack.add(packGlow);
+            const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.0, 0.42), darkMat);
+            backpack.position.set(0, 0.05, 0.52); torso.add(backpack);
+            const packCore = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.58, 0.1), trimMat);
+            packCore.position.set(0, 0.05, 0.24); backpack.add(packCore);
 
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.85, 0.85), suitMat);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.82, 0.82), suitMat);
             head.position.y = 1.15; torso.add(head);
-            const visor = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.28, 0.88), trimMat);
+            const visor = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.26, 0.86), trimMat);
             visor.position.set(0, 0.05, -0.02); head.add(visor);
 
-            const armL = new THREE.Group(); armL.position.set(-0.95, 0.55, 0);
-            const amL = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.25, 0.45), suitMat); amL.position.y = -0.5; armL.add(amL); torso.add(armL);
+            const armL = new THREE.Group(); armL.position.set(-0.9, 0.55, 0);
+            const amL = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1.2, 0.42), suitMat); amL.position.y = -0.5; armL.add(amL); torso.add(armL);
 
-            const armR = new THREE.Group(); armR.position.set(0.95, 0.55, 0);
-            const amR = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.25, 0.45), suitMat); amR.position.y = -0.5; armR.add(amR);
-            const gun = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.25, 1.7), darkMat);
-            gun.position.set(0, -0.8, -0.6);
-            const barrelStrip = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.07, 1.3), trimMat);
-            barrelStrip.position.set(0, 0.08, -0.1); gun.add(barrelStrip);
+            const armR = new THREE.Group(); armR.position.set(0.9, 0.55, 0);
+            const amR = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1.2, 0.42), suitMat); amR.position.y = -0.5; armR.add(amR);
+            const gun = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.24, 1.7), darkMat);
+            gun.position.set(0, -0.75, -0.6);
+            const strip = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.07, 1.3), trimMat);
+            strip.position.set(0, 0.08, -0.1); gun.add(strip);
             armR.add(gun);
             torso.add(armR);
 
-            const legL = new THREE.Group(); legL.position.set(-0.38, 0.95, 0);
-            const lmL = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.25, 0.55), darkMat); lmL.position.y = -0.55; legL.add(lmL); root.add(legL);
+            const legL = new THREE.Group(); legL.position.set(-0.36, 0.95, 0);
+            const lmL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.2, 0.5), darkMat); lmL.position.y = -0.55; legL.add(lmL); root.add(legL);
 
-            const legR = new THREE.Group(); legR.position.set(0.38, 0.95, 0);
-            const lmR = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.25, 0.55), darkMat); lmR.position.y = -0.55; legR.add(lmR); root.add(legR);
+            const legR = new THREE.Group(); legR.position.set(0.36, 0.95, 0);
+            const lmR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.2, 0.5), darkMat); lmR.position.y = -0.55; legR.add(lmR); root.add(legR);
 
             return {
                 root, torso, head, armL, armR, legL, legR,
                 updateAnim: function(moving, time, attacking) {
-                    this.armR.rotation.x = attacking ? (Math.PI / 2.1 + Math.sin(time * 28) * 0.2) : (Math.PI / 2.5);
+                    this.armR.rotation.x = attacking ? (Math.PI / 2.0 + Math.sin(time * 35) * 0.2) : (Math.PI / 2.4);
                     if (moving) {
-                        const a = Math.sin(time * 8.5) * 0.65;
+                        const a = Math.sin(time * 9) * 0.65;
                         this.legL.rotation.x = a; this.legR.rotation.x = -a;
                         this.armL.rotation.x = -a * 0.7;
-                        this.torso.position.y = 1.65 + Math.abs(Math.sin(time * 8.5)) * 0.09;
+                        this.torso.position.y = 1.65 + Math.abs(Math.sin(time * 9)) * 0.08;
                     } else {
                         this.legL.rotation.x = 0; this.legR.rotation.x = 0;
                         this.armL.rotation.x = 0; this.torso.position.y = 1.65;
@@ -690,355 +764,492 @@
             };
         }
 
-        // B. BOSS 1 (NW Pines): WRAITH-65 — Reverse-Jointed Bipedal Sniper Strider Mech (Metal Gear / AT-ST Anatomy!)
-        function createWraith65Strider(x, z) {
+        // B. WILDERNESS MONSTER: Skittering Skeletal Bone-Hound ("Decibel Crawler")
+        function createBoneHoundMonster(x, z) {
             const root = new THREE.Group();
-            const gunmetal = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35, metalness: 0.85 });
-            const crimson = new THREE.MeshStandardMaterial({ color: 0x7f1d1d, roughness: 0.4, metalness: 0.6 });
-            const cyanGlow = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
-            const redLaser = new THREE.MeshBasicMaterial({ color: 0xff0044 });
+            const boneMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.4, metalness: 0.1 });
+            const fleshMat = new THREE.MeshStandardMaterial({ color: 0x881337, roughness: 0.6, metalness: 0.1 });
+            const glowRed = new THREE.MeshBasicMaterial({ color: 0xff0055 });
 
-            // Digitigrade Reverse-Jointed Bird-Mech Legs
-            const legs = [];
-            [-1.8, 1.8].forEach(lx => {
-                const legGroup = new THREE.Group();
-                legGroup.position.set(lx, 5.5, 0);
-                const upperThigh = new THREE.Mesh(new THREE.BoxGeometry(0.9, 3.4, 1.1), gunmetal);
-                upperThigh.position.set(0, -1.4, 0.6);
-                upperThigh.rotation.x = -0.45;
-                legGroup.add(upperThigh);
+            // Spine & Exposed Glowing Ribcage
+            const spine = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.18, 2.8, 8), boneMat);
+            spine.rotation.x = Math.PI / 2;
+            spine.position.y = 1.3;
+            root.add(spine);
 
-                const lowerShin = new THREE.Mesh(new THREE.BoxGeometry(0.7, 3.8, 0.9), crimson);
-                lowerShin.position.set(0, -3.8, 0.1);
-                lowerShin.rotation.x = 0.35;
-                legGroup.add(lowerShin);
+            const coreHeart = new THREE.Mesh(new THREE.SphereGeometry(0.45, 10, 10), glowRed);
+            coreHeart.position.set(0, 1.2, 0.2);
+            root.add(coreHeart);
 
-                const talonFoot = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 2.4), gunmetal);
-                talonFoot.position.set(0, -5.3, 0.4);
-                legGroup.add(talonFoot);
-                root.add(legGroup);
-                legs.push(legGroup);
+            for (let r = -0.8; r <= 0.8; r += 0.4) {
+                const rib = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.09, 6, 12, Math.PI), boneMat);
+                rib.rotation.x = Math.PI;
+                rib.position.set(0, 1.35, r);
+                root.add(rib);
+            }
+
+            // Elongated Predator Skull + Glowing Red Eyes + Fangs
+            const skull = new THREE.Mesh(new THREE.ConeGeometry(0.65, 1.6, 5), boneMat);
+            skull.rotation.x = Math.PI / 2;
+            skull.position.set(0, 1.55, 1.8);
+            root.add(skull);
+
+            [-0.25, 0.25].forEach(ex => {
+                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), glowRed);
+                eye.position.set(ex, 1.7, 1.65);
+                root.add(eye);
             });
 
-            // Angular Cockpit Hull + Spinning Cyan Coolant Turbine
-            const hull = new THREE.Mesh(new THREE.ConeGeometry(2.8, 5.2, 6), crimson);
-            hull.rotation.x = Math.PI / 2;
-            hull.position.set(0, 6.2, 0.4);
-            root.add(hull);
+            // 4 Articulated Clawed Legs
+            const legs = [];
+            [[-0.75, 0.9], [0.75, 0.9], [-0.75, -0.9], [0.75, -0.9]].forEach(([lx, lz]) => {
+                const legPivot = new THREE.Group();
+                legPivot.position.set(lx, 1.2, lz);
+                const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.12, 1.3, 6), fleshMat);
+                upper.position.y = -0.5;
+                upper.rotation.z = lx < 0 ? 0.3 : -0.3;
+                legPivot.add(upper);
+                const claw = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.6, 4), boneMat);
+                claw.position.set(lx < 0 ? -0.2 : 0.2, -1.1, 0.2);
+                legPivot.add(claw);
+                root.add(legPivot);
+                legs.push(legPivot);
+            });
 
-            const core = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.5, 20), cyanGlow);
+            // Whipping Bone Tail
+            const tail = new THREE.Mesh(new THREE.ConeGeometry(0.18, 1.8, 6), boneMat);
+            tail.rotation.x = -Math.PI / 3;
+            tail.position.set(0, 1.7, -1.8);
+            root.add(tail);
+
+            root.position.set(x, 0, z);
+            scene.add(root);
+            return {
+                root, legs, hp: 90, maxHp: 90, speed: 0.22, alive: true,
+                updateAnim: function(time) {
+                    const a = Math.sin(time * 12) * 0.65;
+                    this.legs[0].rotation.x = a; this.legs[1].rotation.x = -a;
+                    this.legs[2].rotation.x = -a; this.legs[3].rotation.x = a;
+                }
+            };
+        }
+
+        // C. BOSS 1 (NW Sector): WRAITH-65 — Towering Crimson & Gunmetal Jaeger Titan + 2 Orbiting Shield Drones!
+        function createWraith65Boss(x, z) {
+            const root = new THREE.Group();
+            const armorCrimson = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.35, metalness: 0.2 });
+            const steelGrey = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.4, metalness: 0.2 });
+            const cyanCore = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+            const redLaser = new THREE.MeshBasicMaterial({ color: 0xff0044 });
+
+            // Boss Rim Light so it NEVER looks dark!
+            const bossLight = new THREE.PointLight(0x00f3ff, 3.0, 35);
+            bossLight.position.set(0, 6, 4);
+            root.add(bossLight);
+
+            // Articulated Mech Legs
+            const legs = [];
+            [-1.6, 1.6].forEach(lx => {
+                const lg = new THREE.Group();
+                lg.position.set(lx, 4.2, 0);
+                const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.55, 2.4, 8), steelGrey);
+                thigh.position.y = -1.0; lg.add(thigh);
+                const shin = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.4, 1.4), armorCrimson);
+                shin.position.y = -2.8; lg.add(shin);
+                root.add(lg);
+                legs.push(lg);
+            });
+
+            // Broad Armored Torso + Glowing Cyan Turbine Core
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(4.4, 3.8, 2.4), armorCrimson);
+            torso.position.y = 6.2;
+            root.add(torso);
+
+            const turbineRing = new THREE.Mesh(new THREE.TorusGeometry(1.25, 0.22, 12, 24), steelGrey);
+            turbineRing.position.set(0, 6.2, 1.25);
+            root.add(turbineRing);
+
+            const core = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.4, 20), cyanCore);
             core.rotation.x = Math.PI / 2;
-            core.position.set(0, 5.8, 2.4);
+            core.position.set(0, 6.2, 1.25);
             root.add(core);
 
-            // Over-Shoulder 10-Meter Railgun Artillery Cannon
-            const railgun = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 9.5, 12), gunmetal);
+            // Winged Shoulder Missile Pods + Heavy Railgun Arm
+            [-2.9, 2.9].forEach(sx => {
+                const pod = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.4, 2.2), steelGrey);
+                pod.position.set(sx, 7.6, 0);
+                pod.rotation.z = sx < 0 ? 0.3 : -0.3;
+                root.add(pod);
+            });
+
+            const railgun = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 8.5, 12), steelGrey);
             railgun.rotation.x = Math.PI / 2;
-            railgun.position.set(2.2, 7.8, 2.2);
+            railgun.position.set(2.9, 5.8, 3.2);
             root.add(railgun);
 
-            // Radar Dish Head + Red Sniper Laser Sight
-            const dish = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 0.4, 0.8, 16), gunmetal);
-            dish.rotation.x = Math.PI / 2;
-            dish.position.set(-1.2, 7.8, 1.8);
-            root.add(dish);
+            // Cyclops Sniper Head + Sweeping Red Laser Sight
+            const head = new THREE.Mesh(new THREE.OctahedronGeometry(1.3, 1), steelGrey);
+            head.position.set(0, 9.0, 0.4);
+            root.add(head);
 
-            const laserSight = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.05, 0.12, 38, 8),
-                new THREE.MeshBasicMaterial({ color: 0xff0044, transparent: true, opacity: 0.75 })
+            const eye = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 12), redLaser);
+            eye.position.set(0, 9.0, 1.4);
+            root.add(eye);
+
+            const laserBeam = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.08, 0.16, 42, 8),
+                new THREE.MeshBasicMaterial({ color: 0xff0044, transparent: true, opacity: 0.8 })
             );
-            laserSight.rotation.x = Math.PI / 2;
-            laserSight.position.set(-1.2, 7.8, 21);
-            root.add(laserSight);
+            laserBeam.rotation.x = Math.PI / 2;
+            laserBeam.position.set(0, 9.0, 22);
+            root.add(laserBeam);
+
+            // 2 Orbiting Shield Drones (Must be shot or EMP'd to drop Wraith-65's shield!)
+            const drones = [];
+            [-4.5, 4.5].forEach((dx, idx) => {
+                const dMesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.95, 0), cyanCore);
+                dMesh.position.set(dx, 8.5, 1.5);
+                root.add(dMesh);
+                drones.push({ mesh: dMesh, alive: true, angle: idx * Math.PI });
+            });
+
+            const shieldDome = new THREE.Mesh(
+                new THREE.SphereGeometry(5.6, 18, 18),
+                new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true, transparent: true, opacity: 0.3 })
+            );
+            shieldDome.position.y = 5.5;
+            root.add(shieldDome);
 
             root.position.set(x, 0, z);
             scene.add(root);
 
             return {
-                root, legs, name: 'WRAITH-65 (SNIPER STRIDER)', coreId: 1,
-                hp: 320, maxHp: 320, speed: 0.18, alive: true, fireCd: 0,
+                root, legs, drones, shieldDome,
+                id: 'wraith', name: 'WRAITH-65 (JAEGER TITAN)', coreId: 1,
+                hp: 950, maxHp: 950, speed: 0.17, alive: true, shielded: true, stunTimer: 0, attackCd: 0,
+                tip: '🛡️ SHIELDED: SHOOT HIS 2 ORBITING CYAN DRONES OR PRESS [E/F] AT AN EMP PYLON!',
                 updateAnim: function(time, moving) {
                     if (moving) {
                         const a = Math.sin(time * 6) * 0.45;
                         this.legs[0].rotation.x = a;
                         this.legs[1].rotation.x = -a;
                     }
+                    this.drones.forEach(d => {
+                        if (d.alive) {
+                            d.angle += 0.04;
+                            d.mesh.position.x = Math.cos(d.angle) * 4.8;
+                            d.mesh.position.z = Math.sin(d.angle) * 4.8;
+                        }
+                    });
                 }
             };
         }
 
-        // C. BOSS 2 (NE Flooded Server Lake): EIDOLON — Floating 8-Tentacle Kraken Monolith (Zero Legs!)
-        function createEidolonKraken(x, z) {
+        // D. BOSS 2 (NE Sector): EIDOLON — Abyssal Skeletal Siren + 8 Writhing Tentacles + Water Ripples!
+        function createEidolonBoss(x, z) {
             const root = new THREE.Group();
-            const obsidian = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.2, metalness: 0.9 });
-            const skullMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
+            constvioletFlesh = new THREE.MeshStandardMaterial({ color: 0x4c1d95, roughness: 0.35, metalness: 0.15 });
+            const boneWhite = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3, metalness: 0.1 });
             const cyanGlow = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
 
-            // Floating Octagonal Spire Body
-            const spire = new THREE.Mesh(new THREE.OctahedronGeometry(2.6, 1), obsidian);
-            spire.scale.set(1, 1.8, 1);
-            spire.position.y = 6.2;
-            root.add(spire);
+            const bossLight = new THREE.PointLight(0xa855f7, 3.0, 35);
+            bossLight.position.set(0, 6, 4);
+            root.add(bossLight);
 
-            const core = new THREE.Mesh(new THREE.SphereGeometry(0.95, 16, 16), cyanGlow);
-            core.position.set(0, 5.8, 1.8);
+            // Ribbed Serpentine Torso & Glowing Heart
+            const torso = new THREE.Mesh(new THREE.ConeGeometry(2.4, 6.2, 8), violetFlesh);
+            torso.position.y = 5.8;
+            root.add(torso);
+
+            for (let r = 0; r < 4; r++) {
+                const rib = new THREE.Mesh(new THREE.TorusGeometry(1.9 - r * 0.25, 0.14, 8, 18), boneWhite);
+                rib.rotation.x = Math.PI / 2;
+                rib.position.y = 4.2 + r * 0.9;
+                root.add(rib);
+            }
+
+            const core = new THREE.Mesh(new THREE.SphereGeometry(1.1, 16, 16), cyanGlow);
+            core.position.set(0, 5.8, 1.5);
             root.add(core);
 
-            // Porcelain Skull Mask
-            const mask = new THREE.Mesh(new THREE.ConeGeometry(1.2, 2.4, 5), skullMat);
-            mask.rotation.x = Math.PI;
-            mask.position.set(0, 8.2, 1.6);
-            root.add(mask);
+            // Hollowed Porcelain Skull Face + Glowing Cyan Eye Sockets + Crown Halo
+            const skull = new THREE.Mesh(new THREE.ConeGeometry(1.4, 2.8, 5), boneWhite);
+            skull.rotation.x = Math.PI;
+            skull.position.set(0, 9.2, 0.8);
+            root.add(skull);
 
-            // 8 Animated Whipping Biomechanical Tentacles
+            [-0.4, 0.4].forEach(ex => {
+                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 8), cyanGlow);
+                eye.position.set(ex, 9.4, 1.55);
+                root.add(eye);
+            });
+
+            const halo = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.15, 10, 28), cyanGlow);
+            halo.position.set(0, 9.5, -0.5);
+            root.add(halo);
+
+            // 8 Multi-Segmented Whipping Kraken Tentacles
             const tentacles = [];
             for (let i = 0; i < 8; i++) {
                 const ang = (i * Math.PI * 2) / 8;
                 const tPivot = new THREE.Group();
-                tPivot.position.set(Math.cos(ang) * 1.8, 4.2, Math.sin(ang) * 1.8);
-                const tendril = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.04, 6.2, 8), obsidian);
-                tendril.position.y = -2.6;
-                tendril.rotation.z = 0.4;
+                tPivot.position.set(Math.cos(ang) * 2.0, 3.4, Math.sin(ang) * 2.0);
+                const tendril = new THREE.Mesh(new THREE.ConeGeometry(0.45, 5.8, 8), violetFlesh);
+                tendril.rotation.x = Math.PI;
+                tendril.position.y = -2.2;
+                tendril.rotation.z = 0.45;
                 tPivot.rotation.y = -ang;
                 tPivot.add(tendril);
                 root.add(tPivot);
                 tentacles.push(tPivot);
             }
 
-            // Expanding Cyan Water Ripple Rings
-            const ripples = [];
+            // Expanding Cyan Water Ripples
             for (let r = 1; r <= 3; r++) {
                 const ring = new THREE.Mesh(
-                    new THREE.RingGeometry(r * 2.2, r * 2.2 + 0.25, 32),
+                    new THREE.RingGeometry(r * 2.4, r * 2.4 + 0.25, 32),
                     new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide })
                 );
                 ring.rotation.x = -Math.PI / 2;
-                ring.position.y = 0.1;
+                ring.position.y = 0.12;
                 root.add(ring);
-                ripples.push(ring);
             }
+
+            const shieldDome = new THREE.Mesh(
+                new THREE.SphereGeometry(5.4, 18, 18),
+                new THREE.MeshBasicMaterial({ color: 0xa855f7, wireframe: true, transparent: true, opacity: 0.3 })
+            );
+            shieldDome.position.y = 5.5;
+            root.add(shieldDome);
 
             root.position.set(x, 0, z);
             scene.add(root);
 
             return {
-                root, tentacles, ripples, name: 'EIDOLON (FLOOD KRAKEN)', coreId: 2,
-                hp: 400, maxHp: 400, speed: 0.16, alive: true, fireCd: 0,
+                root, tentacles, shieldDome, drones: [],
+                id: 'eidolon', name: 'EIDOLON (ABYSSAL SIREN)', coreId: 2,
+                hp: 1150, maxHp: 1150, speed: 0.16, alive: true, shielded: true, stunTimer: 0, attackCd: 0,
+                tip: '🛡️ SHIELDED: TOSS A SONIC DECOY [G] OR ACTIVATE NEARBY EMP PYLON [E/F] TO SHATTER HER VEIL!',
                 updateAnim: function(time) {
-                    this.root.position.y = Math.sin(time * 3) * 0.6;
+                    this.root.position.y = Math.sin(time * 3.5) * 0.5;
                     this.tentacles.forEach((t, idx) => {
-                        t.rotation.z = Math.sin(time * 5 + idx) * 0.35;
+                        t.rotation.z = Math.sin(time * 6 + idx) * 0.4;
                     });
                 }
             };
         }
 
-        // D. BOSS 3 (SW Viaduct Highway): IRONBOUND — Quad-Tracked Bulldozer Tank-Centaur!
-        function createIronboundTank(x, z) {
+        // E. BOSS 3 (SW Sector): IRONBOUND — 6-Wheeled Saw-Blade Siege Behemoth!
+        function createIronboundBoss(x, z) {
             const root = new THREE.Group();
-            const charcoal = new THREE.MeshStandardMaterial({ color: 0x1e2430, roughness: 0.4, metalness: 0.85 });
-            const hazardYellow = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.4, metalness: 0.6 });
-            const furnace = new THREE.MeshBasicMaterial({ color: 0xff5500 });
+            const hazardAmber = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.35, metalness: 0.2 });
+            const steelSlate = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.4, metalness: 0.2 });
+            const furnaceGlow = new THREE.MeshBasicMaterial({ color: 0xff5500 });
 
-            // 4 Heavy Caterpillar Tank Treads
-            [[-2.6, 2.2], [2.6, 2.2], [-2.6, -2.2], [2.6, -2.2]].forEach(([tx, tz]) => {
-                const tread = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 3.6), charcoal);
-                tread.position.set(tx, 0.9, tz);
-                root.add(tread);
-            });
+            const bossLight = new THREE.PointLight(0xff6600, 3.0, 35);
+            bossLight.position.set(0, 6, 4);
+            root.add(bossLight);
 
-            // Armored Bus/Locomotive Chassis Base
-            const chassis = new THREE.Mesh(new THREE.BoxGeometry(4.8, 2.2, 6.8), hazardYellow);
-            chassis.position.set(0, 2.4, 0);
-            root.add(chassis);
-
-            // Front V-Shaped Bulldozer Cowcatcher Plow
-            const plow = new THREE.Mesh(new THREE.ConeGeometry(3.4, 2.8, 4), charcoal);
-            plow.rotation.x = Math.PI / 2;
-            plow.rotation.z = Math.PI / 4;
-            plow.position.set(0, 1.8, 4.4);
-            root.add(plow);
-
-            // Upper Dreadnought Turret Torso & Glowing Furnace Core
-            const turret = new THREE.Mesh(new THREE.BoxGeometry(3.8, 3.2, 3.4), charcoal);
-            turret.position.set(0, 5.0, -0.4);
-            root.add(turret);
-
-            const furnaceCore = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.5, 3.6), furnace);
-            furnaceCore.position.set(0, 5.0, -0.3);
-            root.add(furnaceCore);
-
-            // Twin Exhaust Smokestacks
-            [-1.4, 1.4].forEach(sx => {
-                const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 3.5, 10), charcoal);
-                stack.position.set(sx, 7.2, -1.5);
-                root.add(stack);
-            });
-
-            // Giant Crusher Claws
-            const arms = [];
-            [-2.8, 2.8].forEach(ax => {
-                const arm = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.4, 4.2), hazardYellow);
-                arm.position.set(ax, 4.8, 1.8);
-                root.add(arm);
-                arms.push(arm);
-            });
-
-            root.position.set(x, 0, z);
-            scene.add(root);
-
-            return {
-                root, arms, name: 'IRONBOUND (CONVOY JUGGERNAUT)', coreId: 3,
-                hp: 500, maxHp: 500, speed: 0.21, alive: true, fireCd: 0,
-                updateAnim: function(time) {
-                    this.arms[0].position.z = 1.8 + Math.sin(time * 8) * 0.6;
-                    this.arms[1].position.z = 1.8 - Math.sin(time * 8) * 0.6;
-                }
-            };
-        }
-
-        // E. BOSS 4 (SE Obsidian Crater): PYROCLAST — Twin-Headed Magma Goliath (Guards Core #4!)
-        function createPyroclastGoliath(x, z) {
-            const root = new THREE.Group();
-            const basalt = new THREE.MeshStandardMaterial({ color: 0x181018, roughness: 0.6, metalness: 0.5 });
-            const magma = new THREE.MeshBasicMaterial({ color: 0xff2a00 });
-
-            const body = new THREE.Mesh(new THREE.DodecahedronGeometry(3.4, 1), basalt);
-            body.position.y = 4.2;
-            root.add(body);
-
-            const magmaHeart = new THREE.Mesh(new THREE.SphereGeometry(1.5, 12, 12), magma);
-            magmaHeart.position.set(0, 4.2, 2.4);
-            root.add(magmaHeart);
-
-            // Crown of Volcanic Crystal Spires
-            for (let i = -2; i <= 2; i++) {
-                const crystal = new THREE.Mesh(new THREE.ConeGeometry(0.6, 3.8, 5), magma);
-                crystal.position.set(i * 1.1, 7.5, -0.5);
-                crystal.rotation.z = -i * 0.25;
-                root.add(crystal);
-            }
-
-            root.position.set(x, 0, z);
-            scene.add(root);
-
-            return {
-                root, name: 'PYROCLAST (REACTOR TITAN)', coreId: 4,
-                hp: 600, maxHp: 600, speed: 0.17, alive: true, fireCd: 0,
-                updateAnim: function(time) {
-                    this.root.rotation.y += 0.01;
-                }
-            };
-        }
-
-        // F. MALAKOR, THE 100TH NIGHT (4-Winged Obsidian Dragon-Wendigo Stalker & Night 100 Final Boss!)
-        function buildMalakorNightStalker() {
-            const root = new THREE.Group();
-            const obsidian = new THREE.MeshStandardMaterial({ color: 0x110915, roughness: 0.3, metalness: 0.85 });
-            const crimson = new THREE.MeshBasicMaterial({ color: 0xff0055 });
-            const violet = new THREE.MeshBasicMaterial({ color: 0xc026d3 });
-
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(2.6, 4.8, 1.8), obsidian);
-            torso.position.y = 5.2;
-            root.add(torso);
-
-            const core = new THREE.Mesh(new THREE.OctahedronGeometry(1.2, 1), crimson);
-            core.position.set(0, 5.4, 1.1);
-            root.add(core);
-
-            // 4 Giant Articulated Dragon Wings
-            const wings = [];
-            [-1, 1].forEach(side => {
-                [0, 1].forEach(tier => {
-                    const wGroup = new THREE.Group();
-                    wGroup.position.set(side * 1.2, 6.8 - tier * 1.4, -0.6);
-                    const wingBlade = new THREE.Mesh(new THREE.ConeGeometry(1.4, 6.5, 4), tier === 0 ? crimson : obsidian);
-                    wingBlade.rotation.z = -side * 1.15;
-                    wingBlade.position.set(side * 3.0, 1.2, 0);
-                    wGroup.add(wingBlade);
-                    root.add(wGroup);
-                    wings.push({ group: wGroup, side });
+            // 6 Rotating Saw-Blade Wheels
+            const wheels = [];
+            [-2.8, 2.8].forEach(wx => {
+                [-2.4, 0, 2.4].forEach(wz => {
+                    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.8, 12), steelSlate);
+                    wheel.rotation.z = Math.PI / 2;
+                    wheel.position.set(wx, 1.3, wz);
+                    root.add(wheel);
+                    wheels.push(wheel);
                 });
             });
 
-            // Horned Skull Head + Branching Crimson Antlers
-            const head = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.8, 2.0), obsidian);
-            head.position.set(0, 8.4, 0.5);
-            root.add(head);
+            // Armored Bus/Train Chassis + Flaming Cowcatcher Ram
+            const chassis = new THREE.Mesh(new THREE.BoxGeometry(5.0, 2.4, 7.2), hazardAmber);
+            chassis.position.set(0, 2.8, 0);
+            root.add(chassis);
 
-            [-0.5, 0.5].forEach(ex => {
-                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 10), crimson);
-                eye.position.set(ex, 8.5, 1.55);
-                root.add(eye);
+            const plow = new THREE.Mesh(new THREE.ConeGeometry(3.6, 3.2, 4), steelSlate);
+            plow.rotation.x = Math.PI / 2;
+            plow.rotation.z = Math.PI / 4;
+            plow.position.set(0, 2.0, 4.8);
+            root.add(plow);
 
-                const antler = new THREE.Mesh(new THREE.ConeGeometry(0.3, 3.8, 6), violet);
-                antler.position.set(ex * 2.4, 10.4, 0);
-                antler.rotation.z = ex < 0 ? 0.45 : -0.45;
-                root.add(antler);
+            // Upper Dreadnought Torso + Glowing Orange Furnace Ribcage
+            const upperTorso = new THREE.Mesh(new THREE.BoxGeometry(4.2, 3.6, 3.6), steelSlate);
+            upperTorso.position.set(0, 5.8, -0.4);
+            root.add(upperTorso);
+
+            const furnaceCore = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.8, 3.8), furnaceGlow);
+            furnaceCore.position.set(0, 5.8, -0.3);
+            root.add(furnaceCore);
+
+            // Twin Rotary Gatling Arms
+            [-3.1, 3.1].forEach(ax => {
+                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 4.6, 10), hazardAmber);
+                arm.rotation.x = Math.PI / 2;
+                arm.position.set(ax, 5.6, 2.0);
+                root.add(arm);
             });
 
-            const legL = new THREE.Group(); legL.position.set(-0.9, 2.8, 0);
-            const lmL = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.8, 0.8), obsidian); lmL.position.y = -1.4; legL.add(lmL); root.add(legL);
-            const legR = new THREE.Group(); legR.position.set(0.9, 2.8, 0);
-            const lmR = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.8, 0.8), obsidian); lmR.position.y = -1.4; legR.add(lmR); root.add(legR);
+            const shieldDome = new THREE.Mesh(
+                new THREE.SphereGeometry(5.8, 18, 18),
+                new THREE.MeshBasicMaterial({ color: 0xff6600, wireframe: true, transparent: true, opacity: 0.3 })
+            );
+            shieldDome.position.y = 5.0;
+            root.add(shieldDome);
+
+            root.position.set(x, 0, z);
+            scene.add(root);
+
+            return {
+                root, wheels, shieldDome, drones: [],
+                id: 'ironbound', name: 'IRONBOUND (SIEGE BEHEMOTH)', coreId: 3,
+                hp: 1350, maxHp: 1350, speed: 0.21, alive: true, shielded: true, stunTimer: 0, attackCd: 0,
+                tip: '🛡️ BULLETPROOF ARMOR: TRIGGER NEARBY BLUE EMP PYLON [E/F] OR TOSS DECOY [G] TO SHORT-CIRCUIT HIM!',
+                updateAnim: function(time) {
+                    this.wheels.forEach(w => { w.rotation.x += 0.12; });
+                }
+            };
+        }
+
+        // F. BOSS 4 (SE Sector): PYROCLAST — Volcanic Arachnid Goliath!
+        function createPyroclastBoss(x, z) {
+            const root = new THREE.Group();
+            const crimsonRock = new THREE.MeshStandardMaterial({ color: 0x7f1d1d, roughness: 0.5, metalness: 0.15 });
+            const magmaGlow = new THREE.MeshBasicMaterial({ color: 0xff3b00 });
+
+            const bossLight = new THREE.PointLight(0xff3b00, 3.0, 35);
+            bossLight.position.set(0, 6, 4);
+            root.add(bossLight);
+
+            const body = new THREE.Mesh(new THREE.DodecahedronGeometry(3.4, 1), crimsonRock);
+            body.position.y = 4.4;
+            root.add(body);
+
+            const heart = new THREE.Mesh(new THREE.SphereGeometry(1.6, 14, 14), magmaGlow);
+            heart.position.set(0, 4.4, 2.5);
+            root.add(heart);
+
+            // 6 Giant Volcanic Spider Legs
+            const legs = [];
+            [-1, 1].forEach(side => {
+                [-2.0, 0, 2.0].forEach(zOff => {
+                    const lg = new THREE.Group();
+                    lg.position.set(side * 2.8, 3.6, zOff);
+                    const legMesh = new THREE.Mesh(new THREE.ConeGeometry(0.65, 5.2, 6), crimsonRock);
+                    legMesh.rotation.z = side * 0.65;
+                    legMesh.position.y = -1.8;
+                    lg.add(legMesh);
+                    root.add(lg);
+                    legs.push(lg);
+                });
+            });
+
+            // Crown of Glowing Magma Spires
+            for (let i = -2; i <= 2; i++) {
+                const spire = new THREE.Mesh(new THREE.ConeGeometry(0.65, 4.0, 5), magmaGlow);
+                spire.position.set(i * 1.1, 8.2, -0.4);
+                spire.rotation.z = -i * 0.25;
+                root.add(spire);
+            }
+
+            const shieldDome = new THREE.Mesh(
+                new THREE.SphereGeometry(5.6, 18, 18),
+                new THREE.MeshBasicMaterial({ color: 0xff3b00, wireframe: true, transparent: true, opacity: 0.3 })
+            );
+            shieldDome.position.y = 4.8;
+            root.add(shieldDome);
+
+            root.position.set(x, 0, z);
+            scene.add(root);
+
+            return {
+                root, legs, shieldDome, drones: [],
+                id: 'pyroclast', name: 'PYROCLAST (MAGMA ARACHNID)', coreId: 4,
+                hp: 1550, maxHp: 1550, speed: 0.18, alive: true, shielded: true, stunTimer: 0, attackCd: 0,
+                tip: '🛡️ MAGMA CARAPACE: TRIGGER EMP PYLON [E/F] OR TOSS DECOY [G] TO EXPOSE HIS MOLTEN HEART!',
+                updateAnim: function(time) {
+                    this.legs.forEach((l, idx) => {
+                        l.rotation.x = Math.sin(time * 8 + idx) * 0.35;
+                    });
+                }
+            };
+        }
+
+        // G. MALAKOR, THE 100TH NIGHT (4-Winged Horned Dragon-Leviathan — NEVER clips into camera!)
+        function buildMalakorBoss() {
+            const root = new THREE.Group();
+            const darkCrimson = new THREE.MeshStandardMaterial({ color: 0x4c0519, roughness: 0.4, metalness: 0.15 });
+            const boneMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3, metalness: 0.1 });
+            const neonRed = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+
+            const mLight = new THREE.PointLight(0xff0055, 3.5, 40);
+            mLight.position.set(0, 7, 3);
+            root.add(mLight);
+
+            const torso = new THREE.Mesh(new THREE.ConeGeometry(2.6, 6.4, 7), darkCrimson);
+            torso.position.y = 5.6;
+            root.add(torso);
+
+            // Glowing Ribcage & Heart
+            for (let r = 0; r < 4; r++) {
+                const rib = new THREE.Mesh(new THREE.TorusGeometry(2.0 - r * 0.25, 0.15, 6, 16), boneMat);
+                rib.rotation.x = Math.PI / 2;
+                rib.position.y = 4.2 + r * 0.9;
+                root.add(rib);
+            }
+
+            const heart = new THREE.Mesh(new THREE.OctahedronGeometry(1.3, 1), neonRed);
+            heart.position.set(0, 5.8, 1.5);
+            root.add(heart);
+
+            // Dragon Skull Head + Curved Bone Horns
+            const skull = new THREE.Mesh(new THREE.ConeGeometry(1.5, 3.2, 5), boneMat);
+            skull.rotation.x = Math.PI / 2;
+            skull.position.set(0, 9.2, 1.4);
+            root.add(skull);
+
+            [-0.5, 0.5].forEach(ex => {
+                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), neonRed);
+                eye.position.set(ex, 9.5, 2.2);
+                root.add(eye);
+
+                const horn = new THREE.Mesh(new THREE.ConeGeometry(0.4, 4.2, 6), neonRed);
+                horn.position.set(ex * 2.5, 11.2, -0.4);
+                horn.rotation.z = ex < 0 ? 0.5 : -0.5;
+                root.add(horn);
+            });
+
+            // 4 Articulated Dragon Wings
+            const wings = [];
+            [-1, 1].forEach(side => {
+                [0, 1].forEach(tier => {
+                    const wg = new THREE.Group();
+                    wg.position.set(side * 1.4, 7.5 - tier * 1.5, -0.5);
+                    const blade = new THREE.Mesh(new THREE.ConeGeometry(1.6, 7.0, 4), tier === 0 ? neonRed : darkCrimson);
+                    blade.rotation.z = -side * 1.15;
+                    blade.position.set(side * 3.2, 1.2, 0);
+                    wg.add(blade);
+                    root.add(wg);
+                    wings.push({ group: wg, side });
+                });
+            });
 
             root.position.set(0, 0, -90);
             root.visible = false;
             scene.add(root);
 
             malakorRig = {
-                root, wings, legL, legR, hp: 1200, maxHp: 1200, vulnerable: false,
-                updateAnim: function(time, moving) {
+                root, wings, hp: 1800, maxHp: 1800, vulnerable: false, attackCd: 0,
+                updateAnim: function(time) {
                     this.wings.forEach((w, idx) => {
                         w.group.rotation.y = Math.sin(time * 8 + idx) * 0.45 * w.side;
                     });
-                    if (moving) {
-                        const a = Math.sin(time * 10) * 0.7;
-                        this.legL.rotation.x = a;
-                        this.legR.rotation.x = -a;
-                    }
                 }
             };
         }
 
-        // G. 6-Legged Biomechanical Scorpion ("Decibel Crawler")
-        function createBiotechScorpion(x, z) {
-            const root = new THREE.Group();
-            const chitin = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.8 });
-            const neonRed = new THREE.MeshBasicMaterial({ color: 0xff0055 });
-
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.65, 2.4), chitin);
-            body.position.y = 0.7;
-            root.add(body);
-
-            // Arched Scorpion Stinger Tail
-            const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.3, 2.2, 8), chitin);
-            tail.position.set(0, 1.7, -1.1);
-            tail.rotation.x = 0.55;
-            root.add(tail);
-
-            const stinger = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.8, 8), neonRed);
-            stinger.position.set(0, 2.7, -0.5);
-            stinger.rotation.x = Math.PI / 2;
-            root.add(stinger);
-
-            // 6 Spider Legs
-            [-1, 1].forEach(side => {
-                [-0.7, 0, 0.7].forEach(zOff => {
-                    const leg = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.16, 0.16), chitin);
-                    leg.position.set(side * 0.9, 0.45, zOff);
-                    leg.rotation.z = -side * 0.5;
-                    root.add(leg);
-                });
-            });
-
-            root.position.set(x, 0, z);
-            scene.add(root);
-            return { root, hp: 50, maxHp: 50, speed: 0.21, alive: true };
-        }
-
         // =========================================================================
-        // 5. BUILD 1,600m × 1,600m 4-BIOME OPEN WORLD & EXPRESS TRAIN BASE
+        // 5. INITIALIZE QUARANTINE CITY & 4 BIOME ARENAS
         // =========================================================================
         function init3DWorld() {
             const container = document.getElementById('game-wrapper');
@@ -1046,67 +1257,40 @@
             const height = container.clientHeight || 640;
 
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x13262f);
-            scene.fog = new THREE.Fog(0x13262f, 65, 340);
+            scene.background = new THREE.Color(0x091326);
+            scene.fog = new THREE.FogExp2(0x091326, 0.0045);
 
-            camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1600);
+            camera = new THREE.PerspectiveCamera(62, width / height, 0.1, 1400);
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(width, height);
-            renderer.shadowMap.enabled = true;
             renderer.domElement.id = 'webgl-canvas';
             container.appendChild(renderer.domElement);
 
-            ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            ambientLight = new THREE.AmbientLight(0xdbeafe, 0.9);
             scene.add(ambientLight);
-            hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0x0f172a, 0.65);
+            hemiLight = new THREE.HemisphereLight(0x93c5fd, 0x0f172a, 0.75);
             scene.add(hemiLight);
-            sunLight = new THREE.DirectionalLight(0xfffaed, 1.0);
+            sunLight = new THREE.DirectionalLight(0xf8fafc, 1.1);
             sunLight.position.set(100, 180, 100);
             scene.add(sunLight);
             moonLight = new THREE.DirectionalLight(0x38bdf8, 0.0);
             moonLight.position.set(-100, 120, -100);
             scene.add(moonLight);
 
-            // Base 1,600m Terrain + 4 Distinct Biome Ground Quadrants!
-            const baseGround = new THREE.Mesh(
-                new THREE.PlaneGeometry(1600, 1600),
-                new THREE.MeshStandardMaterial({ color: 0x162e26, roughness: 0.85 })
+            // Textured Cyber-Grid Terrain (Zero plain green grass!)
+            const gridTex = createGridTexture('#0b1528', '#1e293b');
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(1400, 1400),
+                new THREE.MeshStandardMaterial({ map: gridTex, roughness: 0.7, metalness: 0.1 })
             );
-            baseGround.rotation.x = -Math.PI / 2;
-            scene.add(baseGround);
+            ground.rotation.x = -Math.PI / 2;
+            scene.add(ground);
 
-            // NE Biome Ground: Glowing Subterranean Server Lake
-            const lakeFloor = new THREE.Mesh(
-                new THREE.PlaneGeometry(550, 550),
-                new THREE.MeshStandardMaterial({ color: 0x082f49, roughness: 0.15, metalness: 0.85 })
-            );
-            lakeFloor.rotation.x = -Math.PI / 2;
-            lakeFloor.position.set(300, 0.05, -300);
-            scene.add(lakeFloor);
-
-            // SW Biome Ground: Asphalt Highway Sector
-            const highwayFloor = new THREE.Mesh(
-                new THREE.PlaneGeometry(550, 550),
-                new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 })
-            );
-            highwayFloor.rotation.x = -Math.PI / 2;
-            highwayFloor.position.set(-300, 0.05, 300);
-            scene.add(highwayFloor);
-
-            // SE Biome Ground: Volcanic Obsidian Crater
-            const craterFloor = new THREE.Mesh(
-                new THREE.PlaneGeometry(550, 550),
-                new THREE.MeshStandardMaterial({ color: 0x2a0a12, roughness: 0.7 })
-            );
-            craterFloor.rotation.x = -Math.PI / 2;
-            craterFloor.position.set(300, 0.05, 300);
-            scene.add(craterFloor);
-
-            buildExpressTrainDepot();
+            buildExpressTrainHub();
             buildPlayerAndCompass();
-            buildMalakorNightStalker();
-            build4BiomeStrongholdsAndBosses();
-            spawnOpenWorldPropsAndResources();
+            buildMalakorBoss();
+            build4BiomeBossStrongholds();
+            spawnWorldResourcesAndHounds();
 
             window.addEventListener('resize', () => {
                 const w = container.clientWidth || 1200;
@@ -1117,68 +1301,75 @@
             });
         }
 
-        function buildExpressTrainDepot() {
-            // Sleek Bullet-Nose 3D Express Train at (0, 0, -10)
+        function buildExpressTrainHub() {
+            // Detailed Multi-Car Silver & Cyan Bullet Express Train at (0, 0, -14)
             const train = new THREE.Group();
-            const silver = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.25, metalness: 0.85 });
-            const neonCyan = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+            const silver = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.35, metalness: 0.2 });
+            const navy = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.15 });
+            const cyanGlow = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+            const warmWindow = new THREE.MeshBasicMaterial({ color: 0xfef08a });
 
-            const body = new THREE.Mesh(new THREE.BoxGeometry(20, 4.2, 5.0), silver);
-            body.position.set(2, 2.2, 0);
+            const body = new THREE.Mesh(new THREE.BoxGeometry(24, 4.4, 5.2), silver);
+            body.position.set(2, 2.5, 0);
             train.add(body);
 
-            const nose = new THREE.Mesh(new THREE.ConeGeometry(2.8, 6.0, 4), silver);
+            const nose = new THREE.Mesh(new THREE.ConeGeometry(3.1, 7.0, 4), silver);
             nose.rotation.z = Math.PI / 2;
             nose.rotation.x = Math.PI / 4;
-            nose.position.set(-10.5, 2.0, 0);
+            nose.position.set(-13.5, 2.3, 0);
             train.add(nose);
 
-            [-2.52, 2.52].forEach(vz => {
-                const stripe = new THREE.Mesh(new THREE.BoxGeometry(20, 0.2, 0.08), neonCyan);
-                stripe.position.set(2, 3.8, vz);
+            // Illuminated Passenger Windows & Neon Trim
+            [-2.62, 2.62].forEach(vz => {
+                const stripe = new THREE.Mesh(new THREE.BoxGeometry(24, 0.24, 0.08), cyanGlow);
+                stripe.position.set(2, 4.2, vz);
                 train.add(stripe);
+
+                for (let wx = -7; wx <= 11; wx += 3.2) {
+                    const win = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.1, 0.08), warmWindow);
+                    win.position.set(wx, 2.8, vz);
+                    train.add(win);
+                }
             });
 
-            train.position.set(0, 0, -10);
+            // Train Wheels / Bogies
+            for (let bx = -10; bx <= 10; bx += 5) {
+                const bogie = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.8, 5.4), navy);
+                bogie.position.set(bx, 0.4, 0);
+                train.add(bogie);
+            }
+
+            train.position.set(0, 0, -14);
             scene.add(train);
 
-            // Central UV Reactor Core & Expanding Safe-Zone Ring
-            const reactor = new THREE.Mesh(
-                new THREE.CylinderGeometry(1.4, 1.8, 3.8, 12),
-                new THREE.MeshBasicMaterial({ color: 0x00f3ff })
-            );
-            reactor.position.set(0, 1.9, 0);
+            // Central UV Shield Generator & Glowing Cyan Safe Ring
+            const reactor = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.8, 4.2, 12), cyanGlow);
+            reactor.position.set(0, 2.1, 0);
             scene.add(reactor);
 
-            trainUvLight = new THREE.PointLight(0x00f3ff, 4.0, 75, 1.2);
-            trainUvLight.position.set(0, 5, 0);
+            trainUvLight = new THREE.PointLight(0x00f3ff, 3.8, 80, 1.2);
+            trainUvLight.position.set(0, 6, 0);
             scene.add(trainUvLight);
 
-            const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
             uvBoundaryRing = new THREE.Mesh(new THREE.RingGeometry(safeRadius - 0.6, safeRadius + 0.6, 64), ringMat);
             uvBoundaryRing.rotation.x = -Math.PI / 2;
-            uvBoundaryRing.position.y = 0.12;
+            uvBoundaryRing.position.y = 0.14;
             scene.add(uvBoundaryRing);
-
-            // Armory Bench at (-8, 0, 4)
-            const bench = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.5, 2.2), new THREE.MeshStandardMaterial({ color: 0xf59e0b }));
-            bench.position.set(-8, 0.75, 4);
-            scene.add(bench);
         }
 
         function buildPlayerAndCompass() {
-            playerRig = createOperativeRig({ suit: 0x1e293b, trim: 0x00f3ff });
-            flashlight = new THREE.SpotLight(0xffffff, 0, 60, Math.PI / 4, 0.3, 1.2);
+            playerRig = createOperativeRig({ suit: 0x334155, trim: 0x00f3ff });
+            flashlight = new THREE.SpotLight(0xffffff, 0, 65, Math.PI / 4, 0.3, 1.2);
             flashlight.position.set(0, 2.2, 0);
-            flashlight.target.position.set(0, 1.8, -12);
+            flashlight.target.position.set(0, 1.8, -14);
             playerRig.root.add(flashlight);
             playerRig.root.add(flashlight.target);
             playerRig.root.position.set(player.x, 0, player.z);
             scene.add(playerRig.root);
 
-            // 3D Glowing Objective Arrow Ring at Player's Feet (Never get lost!)
             objectiveArrowMesh = new THREE.Mesh(
-                new THREE.ConeGeometry(0.65, 2.2, 4),
+                new THREE.ConeGeometry(0.7, 2.4, 4),
                 new THREE.MeshBasicMaterial({ color: 0x00f3ff })
             );
             objectiveArrowMesh.rotation.x = Math.PI / 2;
@@ -1186,38 +1377,69 @@
             scene.add(objectiveArrowMesh);
         }
 
-        function build4BiomeStrongholdsAndBosses() {
+        // Build Detailed Sci-Fi Containment Vaults, EMP Pylons & 4 Unique Bosses (No grey boxes!)
+        function build4BiomeBossStrongholds() {
             const strongholds = [
-                { id: 1, name: 'WRAITH-65', biome: 'NW Watchtower Pines', x: -220, z: -220, color: 0x00f3ff, builder: createWraith65Strider },
-                { id: 2, name: 'EIDOLON', biome: 'NE Flooded Server Lake', x: 220, z: -220, color: 0xa855f7, builder: createEidolonKraken },
-                { id: 3, name: 'IRONBOUND', biome: 'SW Viaduct Highway', x: -220, z: 220, color: 0xf59e0b, builder: createIronboundTank },
-                { id: 4, name: 'PYROCLAST', biome: 'SE Obsidian Crater', x: 220, z: 220, color: 0xff0055, builder: createPyroclastGoliath }
+                { id: 1, name: 'WRAITH-65', biome: 'NW Sector', x: -165, z: -165, color: 0x00f3ff, builder: createWraith65Boss },
+                { id: 2, name: 'EIDOLON', biome: 'NE Sector', x: 165, z: -165, color: 0xa855f7, builder: createEidolonBoss },
+                { id: 3, name: 'IRONBOUND', biome: 'SW Sector', x: -165, z: 165, color: 0xf59e0b, builder: createIronboundBoss },
+                { id: 4, name: 'PYROCLAST', biome: 'SE Sector', x: 165, z: 165, color: 0xff0055, builder: createPyroclastBoss }
             ];
 
             strongholds.forEach(sh => {
-                // Spawn the Unique 3D Boss
-                const boss = sh.builder(sh.x, sh.z + 18);
+                const boss = sh.builder(sh.x, sh.z + 20);
                 biomeBosses.push(boss);
 
-                // Build the Biome Bunker Vault holding the Ignition Core & Stranded Engineer
-                const vaultGroup = new THREE.Group();
-                const wallMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
-                const bunkerBox = new THREE.Mesh(new THREE.BoxGeometry(14, 6, 14), wallMat);
-                bunkerBox.position.y = 3;
-                vaultGroup.add(bunkerBox);
+                // Spawn 2 Interactive Blue EMP Pylons near each Boss so players can stun & break Boss Shields!
+                [-18, 18].forEach(pxOff => {
+                    const pylonGroup = new THREE.Group();
+                    const base = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.5, 1.0, 10), new THREE.MeshStandardMaterial({ color: 0x475569 }));
+                    base.position.y = 0.5; pylonGroup.add(base);
+                    const coil = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 4.5, 12), new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true }));
+                    coil.position.y = 2.6; pylonGroup.add(coil);
+                    pylonGroup.position.set(sh.x + pxOff, 0, sh.z + 24);
+                    scene.add(pylonGroup);
+                    empPylons.push({ mesh: pylonGroup, x: sh.x + pxOff, z: sh.z + 24, bossCoreId: sh.id, cd: 0 });
+                });
 
-                // Glowing Laser Forcefield Door (Unlocks when Boss is slain!)
+                // Detailed Octagonal Sci-Fi Containment Dome (Replaces the ugly grey box!)
+                const vaultGroup = new THREE.Group();
+                const frameMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4, metalness: 0.2 });
+                const glowMat = new THREE.MeshBasicMaterial({ color: sh.color });
+
+                const platform = new THREE.Mesh(new THREE.CylinderGeometry(9, 10, 0.8, 8), frameMat);
+                platform.position.y = 0.4;
+                vaultGroup.add(platform);
+
+                // 4 Angled Tech Arch Pillars
+                for (let a = 0; a < 4; a++) {
+                    const ang = (a * Math.PI) / 2 + Math.PI / 4;
+                    const pillar = new THREE.Mesh(new THREE.BoxGeometry(1.4, 8.5, 1.4), frameMat);
+                    pillar.position.set(Math.cos(ang) * 7.2, 4.2, Math.sin(ang) * 7.2);
+                    vaultGroup.add(pillar);
+                }
+
+                const roofRing = new THREE.Mesh(new THREE.TorusGeometry(7.2, 0.6, 8, 24), glowMat);
+                roofRing.rotation.x = Math.PI / 2;
+                roofRing.position.y = 8.4;
+                vaultGroup.add(roofRing);
+
+                // Laser Forcefield Cage
                 const barrier = new THREE.Mesh(
-                    new THREE.PlaneGeometry(5, 5),
-                    new THREE.MeshBasicMaterial({ color: sh.color, transparent: true, opacity: 0.75, side: THREE.DoubleSide })
+                    new THREE.CylinderGeometry(6.5, 6.5, 8.0, 16, 1, true),
+                    new THREE.MeshBasicMaterial({ color: sh.color, wireframe: true, transparent: true, opacity: 0.65 })
                 );
-                barrier.position.set(0, 2.5, 7.1);
+                barrier.position.y = 4.2;
                 vaultGroup.add(barrier);
 
-                // Glowing Ignition Core Pillar & Engineer inside
-                const coreMesh = new THREE.Mesh(new THREE.OctahedronGeometry(1.1, 1), new THREE.MeshBasicMaterial({ color: sh.color }));
-                coreMesh.position.set(0, 2.2, 9.5);
+                // Floating Ignition Core & Trapped Engineer Inside
+                const coreMesh = new THREE.Mesh(new THREE.OctahedronGeometry(1.4, 1), glowMat);
+                coreMesh.position.set(0, 3.2, 0);
                 vaultGroup.add(coreMesh);
+
+                const eng = createOperativeRig({ suit: 0x0284c7, trim: 0xfacc15 });
+                eng.root.position.set(2.2, 0.8, 0);
+                vaultGroup.add(eng.root);
 
                 vaultGroup.position.set(sh.x, 0, sh.z);
                 scene.add(vaultGroup);
@@ -1230,93 +1452,69 @@
                     z: sh.z,
                     barrier,
                     coreMesh,
+                    engMesh: eng.root,
                     unlocked: false,
                     collected: false
                 });
             });
         }
 
-        function spawnOpenWorldPropsAndResources() {
-            // 1. NW Watchtower Pines: 90 Tall Redwood Pine Trees + Watchtower
-            for (let i = 0; i < 90; i++) {
-                const x = -40 - Math.random() * 420;
-                const z = -40 - Math.random() * 420;
-                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.7, 5, 8), new THREE.MeshStandardMaterial({ color: 0x3b2314 }));
-                trunk.position.set(x, 2.5, z);
-                const foliage = new THREE.Mesh(new THREE.ConeGeometry(3.4, 8.5, 8), new THREE.MeshStandardMaterial({ color: 0x064e3b }));
-                foliage.position.set(x, 7.5, z);
-                scene.add(trunk); scene.add(foliage);
+        function spawnWorldResourcesAndHounds() {
+            // Ruined Cyber-City Pillars & Neon Monoliths
+            const bldgMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5, metalness: 0.15 });
+            for (let i = 0; i < 65; i++) {
+                const x = (Math.random() - 0.5) * 620;
+                const z = (Math.random() - 0.5) * 620;
+                if (Math.hypot(x, z) < 50) continue;
+                const h = 8 + Math.random() * 18;
+                const tower = new THREE.Mesh(new THREE.BoxGeometry(5, h, 5), bldgMat);
+                tower.position.set(x, h / 2, z);
+                scene.add(tower);
             }
 
-            // 2. NE Flooded Server Lake: 40 Glowing Server Monoliths & Overhead Halo Rings
-            const serverMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85, roughness: 0.2 });
-            for (let i = 0; i < 40; i++) {
-                const x = 60 + Math.random() * 400;
-                const z = -60 - Math.random() * 400;
-                const rack = new THREE.Mesh(new THREE.BoxGeometry(3.2, 9, 3.2), serverMat);
-                rack.position.set(x, 4.5, z);
-                scene.add(rack);
-            }
-
-            // 3. SW Viaduct Highway: Elevated Concrete Overpasses & EMP Coils
-            const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.7 });
-            for (let i = 0; i < 6; i++) {
-                const pillar = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 4), bridgeMat);
-                pillar.position.set(-120 - i * 45, 4, 160 + i * 25);
-                scene.add(pillar);
-            }
-
-            // 4. SE Obsidian Crater: 45 Glowing Magma Spires
-            for (let i = 0; i < 45; i++) {
-                const x = 60 + Math.random() * 400;
-                const z = 60 + Math.random() * 400;
-                const spire = new THREE.Mesh(new THREE.ConeGeometry(1.8, 7, 5), new THREE.MeshStandardMaterial({ color: 0x4c0519, emissive: 0x7f1d1d }));
-                spire.position.set(x, 3.5, z);
-                scene.add(spire);
-            }
-
-            // 5. 90 Harvestable Bio-Fuel Pods & Alloy Scrap Nodes across the world
-            for (let i = 0; i < 90; i++) {
-                const x = (Math.random() - 0.5) * 900;
-                const z = (Math.random() - 0.5) * 900;
+            // 80 Bio-Fuel & Scrap Crates
+            for (let i = 0; i < 80; i++) {
+                const x = (Math.random() - 0.5) * 580;
+                const z = (Math.random() - 0.5) * 580;
                 if (Math.hypot(x, z) < 28) continue;
                 const isFuel = i % 2 === 0;
                 const mesh = new THREE.Mesh(
-                    isFuel ? new THREE.CylinderGeometry(0.6, 0.6, 1.6, 10) : new THREE.DodecahedronGeometry(1.1),
-                    new THREE.MeshStandardMaterial({ color: isFuel ? 0x10b981 : 0xfacc15, metalness: 0.6 })
+                    isFuel ? new THREE.CylinderGeometry(0.65, 0.65, 1.8, 10) : new THREE.OctahedronGeometry(1.1, 0),
+                    new THREE.MeshBasicMaterial({ color: isFuel ? 0x10b981 : 0xfacc15 })
                 );
-                mesh.position.set(x, 0.8, z);
+                mesh.position.set(x, 1.0, z);
                 scene.add(mesh);
                 resourceNodes.push({ mesh, x, z, isFuel, active: true });
             }
 
-            // 6. 18 Wild Decibel Scorpions
-            for (let i = 0; i < 18; i++) {
-                const x = (Math.random() - 0.5) * 750;
-                const z = (Math.random() - 0.5) * 750;
-                if (Math.hypot(x, z) < 45) continue;
-                scorpions.push(createBiotechScorpion(x, z));
+            // 16 Skeletal Bone-Hounds
+            for (let i = 0; i < 16; i++) {
+                const x = (Math.random() - 0.5) * 520;
+                const z = (Math.random() - 0.5) * 520;
+                if (Math.hypot(x, z) < 55) continue;
+                boneHounds.push(createBoneHoundMonster(x, z));
             }
         }
 
         // =========================================================================
-        // 6. OPERATIVE SELECTION, STANDALONE TUTORIAL & CRAFTING
+        // 6. CLASS SELECTION, WEAPON COOLDOWN & BOSS SHIELD BREAKING
         // =========================================================================
         function selectOperative(className) {
             getAudioContext();
             playerClass = className;
             if (className === 'ARCHITECT-01') { hasFlashlight = true; bioFuel += 4; }
             if (className === 'SOVEREIGN') { scrap += 6; addCoins(1000); }
-            if (className === 'VANGUARD-7') { maxArmor = 150; armor = 150; weaponUpgraded = true; }
+            if (className === 'VANGUARD-7') { maxArmor = 150; armor = 150; }
             if (className === 'BROKER') { sonicDecoys += 3; }
 
             document.getElementById('start-modal').style.display = 'none';
             document.getElementById('hud-top').style.display = 'flex';
             document.getElementById('hud-bottom').style.display = 'flex';
+            document.getElementById('reticle').style.display = 'block';
             isTutorialMode = false;
             gameActive = true;
             updateInventoryUI();
-            showDialogue(`⚡ Deployed as ${className}! Follow the Cyan Arrow at your feet to NW Watchtower Pines to defeat WRAITH-65 and recover Ignition Core #1!`);
+            showDialogue(`⚡ Deployed as ${className}! Follow the Cyan Arrow at your feet to NW Sector (-165, -165). Destroy WRAITH-65's 2 Orbiting Drones or trigger an EMP Pylon [E/F] to break his shield!`);
         }
 
         function startVRTutorial() {
@@ -1324,9 +1522,10 @@
             document.getElementById('start-modal').style.display = 'none';
             document.getElementById('hud-top').style.display = 'flex';
             document.getElementById('hud-bottom').style.display = 'flex';
+            document.getElementById('reticle').style.display = 'block';
             isTutorialMode = true;
             gameActive = true;
-            showDialogue(`🎯 STANDALONE VR TUTORIAL: Press [SPACE / CLICK] to shoot, [E / F] to harvest nearby Bio-Fuel/Scrap pods, and [G] to test a Sonic Decoy! Completing this returns you cleanly to the Main Menu.`);
+            showDialogue(`🎯 STANDALONE VR TUTORIAL: Press [LEFT-CLICK] to shoot, [SPACE] to Jump over boss shockwaves, [SHIFT] to Dodge-Dash, and [E/F] to harvest nodes! Finishes cleanly back to the Main Menu.`);
 
             setTimeout(() => {
                 if (!isTutorialMode) return;
@@ -1335,8 +1534,9 @@
                 gameActive = false;
                 document.getElementById('hud-top').style.display = 'none';
                 document.getElementById('hud-bottom').style.display = 'none';
+                document.getElementById('reticle').style.display = 'none';
                 document.getElementById('start-modal').style.display = 'flex';
-                player.x = 0; player.z = 14;
+                player.x = 0; player.z = 18;
             }, 14000);
         }
 
@@ -1346,6 +1546,151 @@
             d.style.display = 'block';
             clearTimeout(d._timer);
             d._timer = setTimeout(() => { d.style.display = 'none'; }, 4500);
+        }
+
+        function reloadWeapon() {
+            if (isReloading || ammo >= maxAmmo) return;
+            isReloading = true;
+            document.getElementById('ammo-ui').innerText = 'RELOADING...';
+            playTone(380, 'triangle', 0.2);
+            setTimeout(() => {
+                ammo = maxAmmo;
+                isReloading = false;
+                updateInventoryUI();
+            }, 1100);
+        }
+
+        // Strict Fire-Rate Cooldown & Magazine Check (Fixes the 3-second boss kill bug!)
+        function firePlayerWeapon() {
+            if (!gameActive || inCutscene || isReloading) return;
+            const now = performance.now();
+            const fireInterval = weaponUpgraded ? 145 : 190;
+            if (now - lastFireTime < fireInterval) return;
+
+            if (ammo <= 0) {
+                reloadWeapon();
+                return;
+            }
+
+            lastFireTime = now;
+            ammo--;
+            if (ammo === 0) reloadWeapon();
+            updateInventoryUI();
+
+            isAttacking = true;
+            setTimeout(() => { isAttacking = false; }, 120);
+            playTone(250, 'sawtooth', 0.055, 0.14);
+
+            const ret = document.getElementById('reticle');
+            ret.style.transform = 'translate(-50%, -50%) scale(1.35)';
+            setTimeout(() => { ret.style.transform = 'translate(-50%, -50%) scale(1)'; }, 70);
+
+            const bolt = new THREE.Mesh(
+                new THREE.SphereGeometry(0.32, 8, 8),
+                new THREE.MeshBasicMaterial({ color: weaponUpgraded ? 0xfacc15 : 0x00f3ff })
+            );
+            bolt.position.set(player.x, player.y + 2.0, player.z);
+            scene.add(bolt);
+
+            let vx = -Math.sin(player.rot) * 1.75;
+            let vz = -Math.cos(player.rot) * 1.75;
+
+            const baseDmg = weaponUpgraded ? 36 : 22;
+            bullets.push({ mesh: bolt, vx, vz, dmg: playerClass === 'BROKER' ? baseDmg * 1.35 : baseDmg });
+        }
+
+        function triggerJump() {
+            if (!gameActive || inCutscene || player.y > 0.05) return;
+            player.vy = 0.62;
+            playTone(420, 'sine', 0.1);
+        }
+
+        function triggerDash() {
+            if (!gameActive || inCutscene || player.dashCd > 0 || stamina < 20) return;
+            stamina -= 20;
+            player.dashTimer = 10;
+            player.dashCd = 38;
+            playTone(620, 'triangle', 0.1);
+        }
+
+        function handleInteraction() {
+            if (!gameActive || inCutscene) return;
+            const pPos = new THREE.Vector2(player.x, player.z);
+
+            // 1. Trigger Nearby Blue EMP Pylon to Break Boss Shield!
+            for (const pylon of empPylons) {
+                if (pylon.cd <= 0 && pPos.distanceTo(new THREE.Vector2(pylon.x, pylon.z)) < 7.5) {
+                    pylon.cd = 300;
+                    const boss = biomeBosses.find(b => b.coreId === pylon.bossCoreId && b.alive);
+                    if (boss) {
+                        boss.shielded = false;
+                        boss.stunTimer = 260;
+                        boss.hp -= 120;
+                        playTone(820, 'triangle', 0.35);
+                        showDialogue(`⚡ EMP PYLON OVERLOADED! ${boss.name}'s Shield SHATTERED & Stunned for 8 seconds — Unload into his glowing core!`);
+                    }
+                    return;
+                }
+            }
+
+            // 2. Harvest Bio-Fuel & Scrap Nodes
+            for (const node of resourceNodes) {
+                if (node.active && pPos.distanceTo(new THREE.Vector2(node.x, node.z)) < 5.5) {
+                    node.active = false;
+                    scene.remove(node.mesh);
+                    if (node.isFuel) {
+                        bioFuel += 3;
+                        showDialogue('🧪 Harvested +3 Bio-Fuel Pods!');
+                    } else {
+                        scrap += (playerClass === 'SOVEREIGN' ? 6 : 3);
+                        showDialogue('⚙️ Salvaged Alloy Scrap Node!');
+                    }
+                    playTone(520, 'sine', 0.12);
+                    updateInventoryUI();
+                    return;
+                }
+            }
+
+            // 3. Collect Unlocked Biome Ignition Core & Rescue Engineer
+            for (const b of bunkers) {
+                if (b.unlocked && !b.collected && pPos.distanceTo(new THREE.Vector2(b.x, b.z)) < 9.5) {
+                    b.collected = true;
+                    scene.remove(b.coreMesh);
+                    scene.remove(b.engMesh);
+                    coresCollected++;
+                    rescuedEngineers++;
+                    nightMultiplier = 1 + beaconCount * 2 + rescuedEngineers;
+                    addCoins(5000);
+                    playTone(720, 'triangle', 0.35);
+                    showDialogue(`🔋 Recovered Ignition Core #${b.id} & Rescued Biome Engineer (${coresCollected}/4)! Return to the Express Train at (0,0) to install it!`);
+                    updateInventoryUI();
+                    return;
+                }
+            }
+
+            // 4. Install Collected Cores at Express Train Base (0, 0)
+            if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 15) {
+                if (coresCollected > coresInstalled) {
+                    coresInstalled = coresCollected;
+                    showDialogue(`🚄 Installed ${coresInstalled}/4 Ignition Cores into the 3D Express Train!`);
+                    playTone(660, 'triangle', 0.3);
+                    if (coresInstalled >= 4) {
+                        unlockMalakorFinalShowdown();
+                    }
+                    updateInventoryUI();
+                    return;
+                }
+                if (bioFuel > 0) {
+                    feedTrainReactor();
+                    return;
+                }
+            }
+
+            // 5. Dark Overlord Ending C at SE Throne (165, 165)
+            if (coresInstalled >= 4 && pPos.distanceTo(new THREE.Vector2(165, 165)) < 16) {
+                triggerCampaignEnding('NIGHT_101');
+                return;
+            }
         }
 
         function toggleCrafting(force) {
@@ -1359,11 +1704,10 @@
                 document.getElementById('btn-craft-pap').disabled = true;
                 document.getElementById('btn-craft-pap').innerText = '🔫 Rifle (UPGRADED)';
                 unlockAchievement('whisper_craft');
-                showDialogue('🔫 Pack-a-Punched Pulse Rifle! Weapon damage & range permanently increased!');
+                showDialogue('🔫 Pack-a-Punched Pulse Rifle! Weapon damage & fire rate increased!');
             } else if (type === 'beacon' && scrap >= 6 && bioFuel >= 4 && beaconCount < 5) {
                 scrap -= 6; bioFuel -= 4; beaconCount++;
                 nightMultiplier = 1 + beaconCount * 2 + rescuedEngineers;
-                // Spawn physical Signal Beacon at Train Base
                 const bMesh = new THREE.Mesh(new THREE.ConeGeometry(0.8, 4.5, 6), new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true }));
                 bMesh.position.set(-10 + beaconCount * 3.5, 2.25, -4);
                 scene.add(bMesh);
@@ -1374,11 +1718,11 @@
                 sentryTurretMesh.position.set(6, 1.1, 4);
                 scene.add(sentryTurretMesh);
                 document.getElementById('btn-craft-turret').disabled = true;
-                showDialogue('🛡️ Auto-Sentry Turret deployed at base! Repels Malakor and shoots nearby scorpions!');
+                showDialogue('🛡️ Auto-Sentry Turret deployed at base!');
             } else if (type === 'flashlight' && scrap >= 5 && !hasFlashlight) {
                 scrap -= 5; hasFlashlight = true;
                 document.getElementById('btn-craft-light').disabled = true;
-                showDialogue('🔦 Crafted UV High-Beam Flashlight! Press [L] at night to stun Malakor for 4 seconds!');
+                showDialogue('🔦 Crafted UV High-Beam Flashlight! Press [L] at night to stun Malakor!');
             } else if (type === 'plates' && scrap >= 4) {
                 scrap -= 4; armorPlates += 2;
                 showDialogue('🛡️ Crafted +2 Ballistic Armor Plates!');
@@ -1386,33 +1730,33 @@
                 bioFuel -= 4; medStims += 2;
                 showDialogue('💉 Crafted +2 Bio-Med Stims!');
             } else {
-                showDialogue('⚠️ Not enough Scrap or Bio-Fuel! Harvest glowing yellow & green nodes in the wilderness!');
+                showDialogue('⚠️ Not enough Scrap or Bio-Fuel!');
             }
             updateInventoryUI();
             toggleCrafting(false);
         }
 
         function feedTrainReactor() {
-            if (Math.hypot(player.x, player.z) < 12 && bioFuel > 0) {
+            if (Math.hypot(player.x, player.z) < 15 && bioFuel > 0) {
                 bioFuel--;
                 reactorFuel = Math.min(100, reactorFuel + 25);
                 playTone(440, 'sine', 0.15);
                 if (reactorFuel >= 100 && reactorTier < 5) {
                     reactorTier++;
-                    safeRadius += 14;
+                    safeRadius += 12;
                     scene.remove(uvBoundaryRing);
-                    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+                    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
                     uvBoundaryRing = new THREE.Mesh(new THREE.RingGeometry(safeRadius - 0.6, safeRadius + 0.6, 64), ringMat);
                     uvBoundaryRing.rotation.x = -Math.PI / 2;
-                    uvBoundaryRing.position.y = 0.12;
+                    uvBoundaryRing.position.y = 0.14;
                     scene.add(uvBoundaryRing);
-                    showDialogue(`🔋 UPGRADED TRAIN UV REACTOR TO TIER ${reactorTier}/5! Safe UV Ring expanded to ${safeRadius}m!`);
+                    showDialogue(`🔋 UPGRADED TRAIN UV SHIELD TO TIER ${reactorTier}/5! Safe Radius expanded to ${safeRadius}m!`);
                 } else {
-                    showDialogue('🔋 Refueled Train UV Reactor (+25% Fuel)!');
+                    showDialogue('🔋 Refueled Train UV Shield (+25% Fuel)!');
                 }
                 updateInventoryUI();
             } else {
-                showDialogue('🔋 Stand near the central Train UV Reactor at (0,0) to add Bio-Fuel!');
+                showDialogue('🔋 Stand near the central Train UV Shield at (0,0) to add Bio-Fuel!');
             }
         }
 
@@ -1437,13 +1781,22 @@
         function throwDecoy() {
             if (sonicDecoys <= 0) return showDialogue('🔊 Out of Sonic Decoys! Craft more at the Train Armory [B]!');
             sonicDecoys--;
-            const dMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 1.2, 12), new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true }));
-            dMesh.position.set(player.x, 0.6, player.z);
+            const dMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.3, 12), new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true }));
+            dMesh.position.set(player.x, 0.65, player.z);
             scene.add(dMesh);
-            activeDecoys.push({ mesh: dMesh, x: player.x, z: player.z, timer: 240 });
+            activeDecoys.push({ mesh: dMesh, x: player.x, z: player.z, timer: 260 });
+
+            // Break nearby Boss Shield!
+            biomeBosses.forEach(b => {
+                if (b.alive && Math.hypot(b.root.position.x - player.x, b.root.position.z - player.z) < 48) {
+                    b.shielded = false;
+                    b.stunTimer = 240;
+                }
+            });
+
             unlockAchievement('bait_switch');
             playTone(880, 'sine', 0.2);
-            showDialogue('🔊 Threw Sonic Decoy! Nearby Bosses & Scorpions are baited & stunned for 4 seconds!');
+            showDialogue('🔊 Threw Sonic Decoy! Nearby Bosses are baited & their Shields are DOWN for 8 seconds!');
             updateInventoryUI();
         }
 
@@ -1459,148 +1812,23 @@
                 if (dist < 45) {
                     malakorStunTimer = 4.5;
                     unlockAchievement('marksman');
-                    showDialogue('⚡ UV HIGH-BEAM STUNNED MALAKOR FOR 4.5 SECONDS! SPRINT TO THE TRAIN UV RING!');
+                    showDialogue('⚡ UV HIGH-BEAM STUNNED MALAKOR FOR 4.5 SECONDS! SPRINT TO THE TRAIN UV SHIELD!');
                     playTone(950, 'sawtooth', 0.25);
                 }
             }
         }
 
-        // =========================================================================
-        // 7. CINEMATIC CUTSCENE CAMERA & INTERACTION HANDLER
-        // =========================================================================
-        function playCinematicCutscene(targetPos, lookPos, duration, message) {
-            inCutscene = true;
-            showDialogue(message);
-            camera.position.set(targetPos.x, targetPos.y, targetPos.z);
-            camera.lookAt(lookPos.x, lookPos.y, lookPos.z);
-            setTimeout(() => { inCutscene = false; }, duration);
-        }
-
-        function firePlayerWeapon() {
-            if (!gameActive || inCutscene) return;
-            isAttacking = true;
-            setTimeout(() => { isAttacking = false; }, 160);
-            playTone(240, 'sawtooth', 0.06, 0.14);
-            noiseDb = Math.min(100, noiseDb + (playerClass === 'BROKER' ? 6 : 16));
-
-            const bolt = new THREE.Mesh(
-                new THREE.SphereGeometry(0.32, 8, 8),
-                new THREE.MeshBasicMaterial({ color: weaponUpgraded ? 0xfacc15 : 0x00f3ff })
-            );
-            bolt.position.set(player.x, 2.0, player.z);
-            scene.add(bolt);
-
-            let vx = -Math.sin(player.rot) * 1.6;
-            let vz = -Math.cos(player.rot) * 1.6;
-
-            // Slight auto-align if facing toward a nearby Boss or Scorpion
-            const allTargets = [...biomeBosses.filter(b => b.alive), ...scorpions.filter(s => s.alive)];
-            if (malakorRig && malakorRig.root.visible && malakorRig.vulnerable) allTargets.push(malakorRig);
-
-            for (const t of allTargets) {
-                const d = Math.hypot(t.root.position.x - player.x, t.root.position.z - player.z);
-                if (d < 42) {
-                    const ang = Math.atan2(-(t.root.position.x - player.x), -(t.root.position.z - player.z));
-                    let diff = ang - player.rot;
-                    while (diff > Math.PI) diff -= Math.PI * 2;
-                    while (diff < -Math.PI) diff += Math.PI * 2;
-                    if (Math.abs(diff) < 0.55) {
-                        vx = ((t.root.position.x - player.x) / d) * 1.6;
-                        vz = ((t.root.position.z - player.z) / d) * 1.6;
-                        break;
-                    }
-                }
-            }
-
-            const baseDmg = weaponUpgraded ? 45 : 25;
-            bullets.push({ mesh: bolt, vx, vz, dmg: playerClass === 'BROKER' ? baseDmg * 1.4 : baseDmg });
-        }
-
-        function handleInteraction() {
-            if (!gameActive || inCutscene) return;
-            const pPos = new THREE.Vector2(player.x, player.z);
-
-            // 1. Harvest Bio-Fuel & Scrap Nodes
-            for (const node of resourceNodes) {
-                if (node.active && pPos.distanceTo(new THREE.Vector2(node.x, node.z)) < 5.0) {
-                    node.active = false;
-                    scene.remove(node.mesh);
-                    if (node.isFuel) {
-                        bioFuel += 3;
-                        showDialogue('🧪 Harvested +3 Bio-Fuel Pods!');
-                    } else {
-                        scrap += (playerClass === 'SOVEREIGN' ? 6 : 3);
-                        showDialogue('⚙️ Salvaged Alloy Scrap Node!');
-                    }
-                    playTone(520, 'sine', 0.12);
-                    updateInventoryUI();
-                    return;
-                }
-            }
-
-            // 2. Collect Unlocked Biome Ignition Core & Rescue Engineer
-            for (const b of bunkers) {
-                if (b.unlocked && !b.collected && pPos.distanceTo(new THREE.Vector2(b.x, b.z + 8)) < 8.0) {
-                    b.collected = true;
-                    scene.remove(b.coreMesh);
-                    coresCollected++;
-                    rescuedEngineers++;
-                    nightMultiplier = 1 + beaconCount * 2 + rescuedEngineers;
-                    addCoins(5000);
-                    playTone(720, 'triangle', 0.35);
-                    showDialogue(`🔋 Recovered Ignition Core #${b.id} & Rescued Biome Engineer (${coresCollected}/4)! Return to the Express Train at (0,0) to install it!`);
-                    updateInventoryUI();
-                    return;
-                }
-            }
-
-            // 3. Install Collected Cores at Express Train Base (0, 0)
-            if (pPos.distanceTo(new THREE.Vector2(0, 0)) < 14) {
-                if (coresCollected > coresInstalled) {
-                    coresInstalled = coresCollected;
-                    showDialogue(`🚄 Installed ${coresInstalled}/4 Ignition Cores into the 3D Express Train!`);
-                    playTone(660, 'triangle', 0.3);
-                    if (coresInstalled >= 4) {
-                        unlockMalakorFinalShowdown();
-                    }
-                    updateInventoryUI();
-                    return;
-                }
-                if (bioFuel > 0) {
-                    feedTrainReactor();
-                    return;
-                }
-            }
-
-            // 4. Secret Ending C: Claim Malakor's Obsidian Throne at (260, 260) after all 4 Cores
-            if (coresInstalled >= 4 && pPos.distanceTo(new THREE.Vector2(220, 220)) < 16) {
-                triggerCampaignEnding('NIGHT_101');
-                return;
-            }
-
-            // Otherwise fire weapon
-            firePlayerWeapon();
-        }
-
-        function depositCoresAtTrain() {
-            handleInteraction();
-        }
-
         function unlockMalakorFinalShowdown() {
             malakorRig.vulnerable = true;
-            malakorRig.root.position.set(0, 0, -45);
+            malakorRig.root.position.set(0, 0, -48);
             malakorRig.root.visible = true;
-            playMalakorRoar();
-            playCinematicCutscene(
-                new THREE.Vector3(0, 8, -20),
-                new THREE.Vector3(0, 6, -45),
-                3000,
-                '🚨 ALL 4 IGNITION CORES INSTALLED! TRAIN UV ORBITAL CANNON ONLINE — MALAKOR IS NOW VULNERABLE! SLAY HIM OR BOARD THE TRAIN!'
-            );
+            playBossRoar();
+            showDialogue('🚨 ALL 4 IGNITION CORES INSTALLED! TRAIN UV CANNON ONLINE — MALAKOR IS NOW VULNERABLE! SLAY HIM OR BOARD THE TRAIN!');
         }
 
         function triggerCampaignEnding(type) {
             gameActive = false;
+            if (document.pointerLockElement) document.exitPointerLock?.();
             unlockAchievement('malakor_clear');
             const modal = document.getElementById('ending-modal');
             modal.style.display = 'flex';
@@ -1610,14 +1838,14 @@
                 const paid = addCoins(500000);
                 document.getElementById('end-tag').innerText = 'SECRET TRUE ENDING (ENDING B)';
                 document.getElementById('end-title').innerText = '🌅 PROTOCOL OMEGA: QUARANTINE PURIFIED';
-                document.getElementById('end-desc').innerText = 'With all 4 Ignition Cores, all 4 Engineers rescued, and Malakor vaporized by the Train’s UV Cannon on Night 100, you purged the acoustic plague forever.';
+                document.getElementById('end-desc').innerText = 'With all 4 Ignition Cores installed and Malakor vaporized by the Train’s UV Cannon, you purged the acoustic plague forever.';
                 document.getElementById('end-reward').innerText = `+${paid.toLocaleString()} ARCADE COINS`;
             } else if (type === 'NIGHT_101') {
                 unlockAchievement('squad_link');
                 const paid = addCoins(250000);
                 document.getElementById('end-tag').innerText = 'DARK OVERLORD ENDING (ENDING C)';
                 document.getElementById('end-title').innerText = '👑 THE 101ST NIGHT: APEX ASCENSION';
-                document.getElementById('end-desc').innerText = 'Instead of departing on the Express Train, you claimed the Obsidian Crater Throne to rule the machines of the Quarantine Zone.';
+                document.getElementById('end-desc').innerText = 'Instead of departing on the Express Train, you claimed the SE Crater Throne to rule the machines of the Quarantine Zone.';
                 document.getElementById('end-reward').innerText = `+${paid.toLocaleString()} ARCADE COINS`;
             } else {
                 const paid = addCoins(150000);
@@ -1629,21 +1857,23 @@
         }
 
         // =========================================================================
-        // 8. KEYBOARD + MOUSE LISTENERS
+        // 7. INPUT LISTENERS (WASD + MOUSE AIM + JUMP + DODGE DASH)
         // =========================================================================
         window.addEventListener('keydown', e => {
             const code = e.code;
-            const k = e.key.toLowerCase();
-            if (['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','Space','KeyE','KeyF','KeyG','KeyB','KeyL','ShiftLeft','ShiftRight'].includes(code)) {
+            if (['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','Space','ShiftLeft','ShiftRight'].includes(code)) {
                 e.preventDefault();
             }
-            if (code === 'KeyW' || code === 'ArrowUp' || k === 'w') keys.w = true;
-            if (code === 'KeyS' || code === 'ArrowDown' || k === 's') keys.s = true;
-            if (code === 'KeyA' || code === 'ArrowLeft' || k === 'a') keys.a = true;
-            if (code === 'KeyD' || code === 'ArrowRight' || k === 'd') keys.d = true;
-            if (code === 'ShiftLeft' || code === 'ShiftRight') keys.shift = true;
-            if (code === 'Space') firePlayerWeapon();
+            if (code === 'KeyW' || code === 'ArrowUp') keys.w = true;
+            if (code === 'KeyS' || code === 'ArrowDown') keys.s = true;
+            if (code === 'KeyA') keys.a = true;
+            if (code === 'KeyD') keys.d = true;
+            if (code === 'ArrowLeft') keys.left = true;
+            if (code === 'ArrowRight') keys.right = true;
+            if (code === 'ShiftLeft' || code === 'ShiftRight') triggerDash();
+            if (code === 'Space') triggerJump();
             if (code === 'KeyE' || code === 'KeyF') handleInteraction();
+            if (code === 'KeyR') reloadWeapon();
             if (code === 'KeyG') throwDecoy();
             if (code === 'KeyB') toggleCrafting();
             if (code === 'KeyL') toggleFlashlight();
@@ -1653,108 +1883,45 @@
 
         window.addEventListener('keyup', e => {
             const code = e.code;
-            const k = e.key.toLowerCase();
-            if (code === 'KeyW' || code === 'ArrowUp' || k === 'w') keys.w = false;
-            if (code === 'KeyS' || code === 'ArrowDown' || k === 's') keys.s = false;
-            if (code === 'KeyA' || code === 'ArrowLeft' || k === 'a') keys.a = false;
-            if (code === 'KeyD' || code === 'ArrowRight' || k === 'd') keys.d = false;
-            if (code === 'ShiftLeft' || code === 'ShiftRight') keys.shift = false;
+            if (code === 'KeyW' || code === 'ArrowUp') keys.w = false;
+            if (code === 'KeyS' || code === 'ArrowDown') keys.s = false;
+            if (code === 'KeyA') keys.a = false;
+            if (code === 'KeyD') keys.d = false;
+            if (code === 'ArrowLeft') keys.left = false;
+            if (code === 'ArrowRight') keys.right = false;
         });
 
         window.addEventListener('mousedown', e => {
             if (!gameActive || inCutscene) return;
             if (e.target.closest('button, a, .hud-panel, .slot, .modal-card, #action-prompt')) return;
-            if (e.button === 0) firePlayerWeapon();
+            if (e.button === 0) {
+                firePlayerWeapon();
+                const wrapper = document.getElementById('game-wrapper');
+                if (document.pointerLockElement !== wrapper) {
+                    wrapper.requestPointerLock?.();
+                }
+            }
+        });
+
+        window.addEventListener('mousemove', e => {
+            if (!gameActive || inCutscene) return;
+            const wrapper = document.getElementById('game-wrapper');
+            if (document.pointerLockElement === wrapper || e.buttons === 1) {
+                player.rot -= e.movementX * 0.0028;
+                player.pitch = Math.max(-0.45, Math.min(0.45, player.pitch - e.movementY * 0.002));
+            }
         });
 
         // =========================================================================
-        // 9. MAIN UPDATE LOOP: DAY/NIGHT SUNDIAL, BOSS AI, COMPASS & MINIMAP
+        // 8. MAIN UPDATE LOOP & LETHAL NIGHT/BOSS AI (Fixes Malakor Clipping!)
         // =========================================================================
-        function updateDayNightAndMalakor() {
-            cycleTimer += 0.04;
-            const progress = cycleTimer / TOTAL_CYCLE;
-            document.getElementById('sundial-hand').style.transform = `rotate(${progress * 360}deg)`;
-
-            if (cycleTimer < DAY_LEN) {
-                const rem = Math.round(DAY_LEN - cycleTimer);
-                document.getElementById('cycle-title').innerText = '☀️ DAY PHASE (EXPLORE & RAID)';
-                document.getElementById('cycle-title').style.color = 'var(--gold)';
-                document.getElementById('cycle-timer').innerText = `Night in: ${rem}s`;
-
-                ambientLight.intensity = 0.8; sunLight.intensity = 1.0; moonLight.intensity = 0.0;
-                scene.background.setHex(0x13262f); scene.fog.color.setHex(0x13262f);
-                if (!malakorRig.vulnerable) malakorRig.root.visible = false;
-            } else if (cycleTimer < DAY_LEN + DUSK_LEN) {
-                const rem = Math.round(DAY_LEN + DUSK_LEN - cycleTimer);
-                document.getElementById('cycle-title').innerText = '🌅 DUSK (RETURN TO TRAIN UV RING!)';
-                document.getElementById('cycle-title').style.color = '#fb923c';
-                document.getElementById('cycle-timer').innerText = `Malakor Hunts in: ${rem}s`;
-
-                ambientLight.intensity = 0.45; sunLight.intensity = 0.35; moonLight.intensity = 0.2;
-                scene.background.setHex(0x2a1215); scene.fog.color.setHex(0x2a1215);
-            } else if (cycleTimer < TOTAL_CYCLE) {
-                const rem = Math.round(TOTAL_CYCLE - cycleTimer);
-                document.getElementById('cycle-title').innerText = '👹 NIGHT: MALAKOR IS HUNTING';
-                document.getElementById('cycle-title').style.color = 'var(--accent)';
-                document.getElementById('cycle-timer').innerText = `Dawn in: ${rem}s`;
-
-                ambientLight.intensity = 0.32; sunLight.intensity = 0.0; moonLight.intensity = 0.5;
-                scene.background.setHex(0x040711); scene.fog.color.setHex(0x040711);
-
-                if (!malakorRig.root.visible) {
-                    malakorRig.root.position.set(player.x + 38, 0, player.z + 38);
-                    malakorRig.root.visible = true;
-                    playMalakorRoar();
-                    playCinematicCutscene(
-                        new THREE.Vector3(malakorRig.root.position.x, 7, malakorRig.root.position.z + 15),
-                        malakorRig.root.position,
-                        2200,
-                        '👹 MALAKOR HAS EMERGED FROM THE DARK! STAY INSIDE THE TRAIN UV RING OR USE FLASHLIGHT [L]!'
-                    );
-                }
-            } else {
-                // Dawn! Advance Night Counter by Multiplier!
-                cycleTimer = 0;
-                currentNight = Math.min(100, currentNight + nightMultiplier);
-                addCoins(100 * nightMultiplier);
-                document.getElementById('night-count').innerText = currentNight;
-                showDialogue(`🌅 Dawn of Night ${currentNight}/100! (+${100 * nightMultiplier} Coins)`);
-
-                if (currentNight >= 100 && !malakorRig.vulnerable) {
-                    unlockMalakorFinalShowdown();
-                }
-            }
-
-            // Malakor Night Pursuit Logic
-            if (malakorRig && malakorRig.root.visible) {
-                if (malakorStunTimer > 0) {
-                    malakorStunTimer -= 0.03;
-                    malakorRig.updateAnim(walkClock, false);
-                } else {
-                    const pVec = new THREE.Vector3(player.x, 0, player.z);
-                    const distToTrain = Math.hypot(player.x, player.z);
-
-                    if (malakorRig.vulnerable || distToTrain > safeRadius || reactorFuel <= 0) {
-                        malakorRig.root.lookAt(pVec);
-                        malakorRig.root.translateZ(0.32);
-                        malakorRig.updateAnim(walkClock, true);
-                        if (malakorRig.root.position.distanceTo(pVec) < 4.2) {
-                            takePlayerDamage(0.8);
-                        }
-                    } else {
-                        // Repelled by Train UV Safe Ring!
-                        malakorRig.root.lookAt(new THREE.Vector3(0, 0, 0));
-                        malakorRig.root.translateZ(-0.25);
-                        malakorRig.updateAnim(walkClock, true);
-                    }
-                }
-            }
-
-            if (reactorFuel > 0) reactorFuel = Math.max(0, reactorFuel - 0.01);
-            document.getElementById('fuel-text').innerText = `${Math.round(reactorFuel)}%`;
-        }
-
         function takePlayerDamage(amt) {
+            if (player.dashTimer > 0) return; // Dodge-Dash grants brief i-frames!
+            const wrapper = document.getElementById('game-wrapper');
+            wrapper.classList.add('hurt');
+            setTimeout(() => wrapper.classList.remove('hurt'), 220);
+            playTone(130, 'sawtooth', 0.18, 0.2);
+
             if (armor > 0) {
                 const abs = Math.min(armor, amt);
                 armor -= abs;
@@ -1763,66 +1930,161 @@
             hp -= amt;
             if (hp <= 0) {
                 hp = 100; armor = maxArmor;
-                player.x = 0; player.z = 12;
-                showDialogue('⚠️ Critical Injury! Emergency Med-Evac returned you to the Express Train Base!');
+                player.x = 0; player.z = 16;
+                showDialogue('💀 YOU WERE OVERWHELMED! Emergency Med-Evac reconstructed you at the Express Train Base!');
             }
+        }
+
+        function updateDayNightAndMalakor() {
+            cycleTimer += 0.04;
+            const progress = cycleTimer / TOTAL_CYCLE;
+            document.getElementById('sundial-hand').style.transform = `rotate(${progress * 360}deg)`;
+
+            if (cycleTimer < DAY_LEN) {
+                const rem = Math.round(DAY_LEN - cycleTimer);
+                document.getElementById('cycle-title').innerText = '☀️ DAY PHASE (RAID BOSSES)';
+                document.getElementById('cycle-title').style.color = 'var(--gold)';
+                document.getElementById('cycle-timer').innerText = `Night in: ${rem}s`;
+                scene.background.setHex(0x091326); scene.fog.color.setHex(0x091326);
+                if (!malakorRig.vulnerable) malakorRig.root.visible = false;
+            } else if (cycleTimer < DAY_LEN + DUSK_LEN) {
+                const rem = Math.round(DAY_LEN + DUSK_LEN - cycleTimer);
+                document.getElementById('cycle-title').innerText = '🌅 DUSK (RETURN TO UV SHIELD!)';
+                document.getElementById('cycle-title').style.color = '#fb923c';
+                document.getElementById('cycle-timer').innerText = `Malakor Hunts in: ${rem}s`;
+                scene.background.setHex(0x220c16); scene.fog.color.setHex(0x220c16);
+            } else if (cycleTimer < TOTAL_CYCLE) {
+                const rem = Math.round(TOTAL_CYCLE - cycleTimer);
+                document.getElementById('cycle-title').innerText = '👹 NIGHT: MALAKOR IS HUNTING';
+                document.getElementById('cycle-title').style.color = 'var(--accent)';
+                document.getElementById('cycle-timer').innerText = `Dawn in: ${rem}s`;
+                scene.background.setHex(0x03050c); scene.fog.color.setHex(0x03050c);
+
+                if (!malakorRig.root.visible) {
+                    const spawnAng = Math.random() * Math.PI * 2;
+                    malakorRig.root.position.set(player.x + Math.cos(spawnAng) * 42, 0, player.z + Math.sin(spawnAng) * 42);
+                    malakorRig.root.visible = true;
+                    playBossRoar();
+                    showDialogue('👹 MALAKOR HAS EMERGED! GET INSIDE THE TRAIN UV RING OR BLIND HIM WITH UV LIGHT [L]!');
+                }
+            } else {
+                cycleTimer = 0;
+                currentNight = Math.min(100, currentNight + nightMultiplier);
+                addCoins(100 * nightMultiplier);
+                document.getElementById('night-count').innerText = currentNight;
+                showDialogue(`🌅 Dawn of Night ${currentNight}/100! (+${100 * nightMultiplier} Coins)`);
+                if (currentNight >= 100 && !malakorRig.vulnerable) unlockMalakorFinalShowdown();
+            }
+
+            // Malakor Pursuit AI (Stops at 8m so he NEVER clips inside the camera, and fires lethal 35-DMG waves!)
+            if (malakorRig && malakorRig.root.visible) {
+                malakorRig.updateAnim(walkClock);
+                if (malakorStunTimer > 0) {
+                    malakorStunTimer -= 0.03;
+                } else {
+                    const pVec = new THREE.Vector3(player.x, 0, player.z);
+                    const distToTrain = Math.hypot(player.x, player.z);
+                    const distToPlayer = malakorRig.root.position.distanceTo(pVec);
+
+                    if (malakorRig.vulnerable || distToTrain > safeRadius || reactorFuel <= 0) {
+                        malakorRig.root.lookAt(pVec);
+                        // Keep minimum 8.5m standoff distance so he looks terrifying in front of you instead of clipping!
+                        if (distToPlayer > 8.5) {
+                            malakorRig.root.translateZ(0.36);
+                        }
+                        malakorRig.attackCd++;
+                        if (malakorRig.attackCd % 48 === 0 && distToPlayer < 26) {
+                            // Launch Crimson Claw Projectile & Expanding Shockwave Ring!
+                            const claw = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.5, 5), new THREE.MeshBasicMaterial({ color: 0xff0055 }));
+                            claw.position.set(malakorRig.root.position.x, 3.0, malakorRig.root.position.z);
+                            scene.add(claw);
+                            const ang = Math.atan2(player.x - claw.position.x, player.z - claw.position.z);
+                            bossProjectiles.push({ mesh: claw, vx: Math.sin(ang) * 0.65, vz: Math.cos(ang) * 0.65, dmg: 34 });
+                        }
+                    } else {
+                        // Repelled outside the Train's UV Safe Ring!
+                        malakorRig.root.lookAt(new THREE.Vector3(0, 0, 0));
+                        if (malakorRig.root.position.length() < safeRadius + 10) {
+                            malakorRig.root.translateZ(-0.3);
+                        }
+                    }
+                }
+            }
+
+            if (reactorFuel > 0) reactorFuel = Math.max(0, reactorFuel - 0.01);
+            document.getElementById('fuel-text').innerText = `${Math.round(reactorFuel)}%`;
         }
 
         function updateSimulation() {
             if (!gameActive || inCutscene) return;
 
-            let moving = false;
-            const sprinting = keys.shift && stamina > 5;
-            const curSpeed = sprinting ? player.sprintSpeed : player.baseSpeed;
+            if (keys.left) player.rot += 0.045;
+            if (keys.right) player.rot -= 0.045;
 
-            if (keys.a) player.rot += 0.042;
-            if (keys.d) player.rot -= 0.042;
-            if (keys.w) {
-                player.x -= Math.sin(player.rot) * curSpeed;
-                player.z -= Math.cos(player.rot) * curSpeed;
-                moving = true;
-            }
-            if (keys.s) {
-                player.x += Math.sin(player.rot) * (curSpeed * 0.65);
-                player.z += Math.cos(player.rot) * (curSpeed * 0.65);
-                moving = true;
-            }
+            let moveF = 0, moveS = 0;
+            if (keys.w) moveF += 1;
+            if (keys.s) moveF -= 1;
+            if (keys.a) moveS -= 1;
+            if (keys.d) moveS += 1;
+
+            const moving = Math.hypot(moveF, moveS) > 0.1;
+            const spd = player.dashTimer > 0 ? 0.95 : player.baseSpeed;
 
             if (moving) {
                 walkClock += 0.06;
-                noiseDb = Math.min(100, noiseDb + (sprinting ? 0.5 : 0.15));
-                if (sprinting) stamina = Math.max(0, stamina - 0.35);
-            } else {
-                noiseDb = Math.max(12, noiseDb - 0.6);
-                stamina = Math.min(100, stamina + 0.45);
+                const sinY = Math.sin(player.rot);
+                const cosY = Math.cos(player.rot);
+                player.x = Math.max(-340, Math.min(340, player.x + (-sinY * moveF - cosY * moveS) * spd));
+                player.z = Math.max(-340, Math.min(340, player.z + (-cosY * moveF + sinY * moveS) * spd));
+            }
+            stamina = Math.min(100, stamina + 0.35);
+            if (player.dashTimer > 0) player.dashTimer--;
+            if (player.dashCd > 0) player.dashCd--;
+
+            // Z-Axis Jump Gravity
+            if (player.y > 0 || player.vy > 0) {
+                player.y += player.vy;
+                player.vy -= 0.032;
+                if (player.y <= 0) { player.y = 0; player.vy = 0; }
             }
 
-            playerRig.root.position.set(player.x, 0, player.z);
+            playerRig.root.position.set(player.x, player.y, player.z);
             playerRig.root.rotation.y = player.rot;
             playerRig.updateAnim(moving, walkClock, isAttacking);
 
-            // Smooth 3rd-Person Follow Camera
-            camera.position.x = player.x + Math.sin(player.rot) * 10.5;
-            camera.position.y = 6.5;
-            camera.position.z = player.z + Math.cos(player.rot) * 10.5;
-            camera.lookAt(player.x, 2.0, player.z);
+            // Over-the-Shoulder Third-Person Action Camera
+            const camRightX = Math.cos(player.rot) * 1.8;
+            const camRightZ = -Math.sin(player.rot) * 1.8;
+            camera.position.set(
+                player.x + Math.sin(player.rot) * 8.5 + camRightX,
+                player.y + 4.4,
+                player.z + Math.cos(player.rot) * 8.5 + camRightZ
+            );
+            camera.lookAt(
+                player.x - Math.sin(player.rot) * 18,
+                player.y + 2.4 + player.pitch * 10,
+                player.z - Math.cos(player.rot) * 18
+            );
 
-            // Update 3D Objective Compass Arrow at Player's Feet!
+            // Update 3D Compass Arrow
             const nextBunker = bunkers.find(b => !b.collected);
-            let targetX = 0, targetZ = 0;
+            let tx = 0, tz = 0;
             if (coresCollected > coresInstalled || coresInstalled >= 4) {
-                targetX = 0; targetZ = 0;
+                tx = 0; tz = 0;
                 document.getElementById('objective-text').innerText = coresInstalled >= 4
                     ? '🎯 ALL 4 CORES INSTALLED! Slay Malakor or Board Train!'
                     : '🎯 Return to Express Train (0,0) & Press [E/F] to Install Core!';
             } else if (nextBunker) {
-                targetX = nextBunker.x; targetZ = nextBunker.z;
+                tx = nextBunker.x; tz = nextBunker.z;
                 document.getElementById('objective-text').innerText = `🎯 Follow Cyan Arrow: ${nextBunker.name} (${nextBunker.biome})`;
             }
-            objectiveArrowMesh.position.set(player.x, 0.4, player.z);
-            objectiveArrowMesh.lookAt(targetX, 0.4, targetZ);
+            objectiveArrowMesh.position.set(player.x, player.y + 0.35, player.z);
+            objectiveArrowMesh.lookAt(tx, player.y + 0.35, tz);
 
-            // Update Active Decoys
+            // EMP Pylon Cooldowns
+            empPylons.forEach(p => { if (p.cd > 0) p.cd--; });
+
+            // Update Decoys
             for (let i = activeDecoys.length - 1; i >= 0; i--) {
                 activeDecoys[i].timer--;
                 activeDecoys[i].mesh.rotation.y += 0.1;
@@ -1832,53 +2094,98 @@
                 }
             }
 
-            // Update 4 Biome Bosses & Show Boss Health Bar when nearby
-            let closestBoss = null;
+            // Update 4 Biome Bosses (Shields, Stuns, Ground Shockwaves & Barrages!)
+            let activeBossHud = null;
             if (malakorRig && malakorRig.vulnerable && malakorRig.root.visible) {
-                closestBoss = { name: 'MALAKOR, THE 100TH NIGHT', hp: malakorRig.hp, maxHp: malakorRig.maxHp };
+                activeBossHud = { name: 'MALAKOR, THE 100TH NIGHT', hp: malakorRig.hp, maxHp: malakorRig.maxHp, tip: '🔥 VULNERABLE TO UV CANNON: UNLOAD INTO HIS HEART!' };
             }
 
             biomeBosses.forEach(b => {
                 if (!b.alive) return;
+                b.shieldDome.visible = b.shielded;
                 const d = Math.hypot(b.root.position.x - player.x, b.root.position.z - player.z);
-                if (d < 48) {
-                    closestBoss = b;
-                    if (activeDecoys.length === 0) {
+
+                if (b.stunTimer > 0) {
+                    b.stunTimer--;
+                    b.root.rotation.y += 0.08;
+                    if (b.stunTimer === 0) b.shielded = true;
+                }
+
+                if (d < 55) {
+                    activeBossHud = b;
+                    if (b.stunTimer <= 0) {
                         b.root.lookAt(player.x, 0, player.z);
-                        if (d > 7) b.root.translateZ(b.speed);
+                        if (d > 10) b.root.translateZ(b.speed);
                         b.updateAnim(walkClock, true);
 
-                        b.fireCd++;
-                        if (b.fireCd % 75 === 0) {
-                            const orb = new THREE.Mesh(new THREE.SphereGeometry(0.55, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff0055 }));
-                            orb.position.set(b.root.position.x, 4.0, b.root.position.z);
-                            scene.add(orb);
-                            const ang = Math.atan2(player.x - orb.position.x, player.z - orb.position.z);
-                            bossProjectiles.push({ mesh: orb, vx: Math.sin(ang) * 0.48, vz: Math.cos(ang) * 0.48 });
+                        b.attackCd++;
+                        // Attack 1: Expanding Red Ground Shockwave Ring (Jump [SPACE] over it!)
+                        if (b.attackCd % 110 === 0) {
+                            const ringMesh = new THREE.Mesh(
+                                new THREE.RingGeometry(1.5, 2.3, 32),
+                                new THREE.MeshBasicMaterial({ color: 0xff0055, side: THREE.DoubleSide })
+                            );
+                            ringMesh.rotation.x = -Math.PI / 2;
+                            ringMesh.position.set(b.root.position.x, 0.25, b.root.position.z);
+                            scene.add(ringMesh);
+                            shockwaveRings.push({ mesh: ringMesh, x: b.root.position.x, z: b.root.position.z, r: 2.0 });
+                        }
+                        // Attack 2: Twin Plasma Barrage
+                        if (b.attackCd % 65 === 0) {
+                            [-0.18, 0.18].forEach(off => {
+                                const orb = new THREE.Mesh(new THREE.SphereGeometry(0.6, 10, 10), new THREE.MeshBasicMaterial({ color: 0xff0055 }));
+                                orb.position.set(b.root.position.x, 4.2, b.root.position.z);
+                                scene.add(orb);
+                                const ang = Math.atan2(player.x - orb.position.x, player.z - orb.position.z) + off;
+                                bossProjectiles.push({ mesh: orb, vx: Math.sin(ang) * 0.56, vz: Math.cos(ang) * 0.56, dmg: 22 });
+                            });
                         }
                     }
                 }
             });
 
             const bossHud = document.getElementById('boss-hud');
-            if (closestBoss) {
+            if (activeBossHud) {
                 bossHud.style.display = 'block';
-                document.getElementById('boss-name-ui').innerText = closestBoss.name;
-                const pct = Math.max(0, Math.round((closestBoss.hp / closestBoss.maxHp) * 100));
+                document.getElementById('boss-name-ui').innerText = activeBossHud.name;
+                const pct = Math.max(0, Math.round((activeBossHud.hp / activeBossHud.maxHp) * 100));
                 document.getElementById('boss-hp-ui').innerText = `${pct}%`;
                 document.getElementById('boss-hp-fill').style.width = `${pct}%`;
+                document.getElementById('boss-tip-ui').innerText = activeBossHud.stunTimer > 0
+                    ? '💫 SHIELD SHATTERED! UNLOAD CRITICAL SHOTS NOW!'
+                    : activeBossHud.tip;
             } else {
                 bossHud.style.display = 'none';
             }
 
-            // Update Wild Scorpions
-            scorpions.forEach(s => {
-                if (!s.alive) return;
-                const d = Math.hypot(s.root.position.x - player.x, s.root.position.z - player.z);
-                if (d < 28 && activeDecoys.length === 0) {
-                    s.root.lookAt(player.x, 0, player.z);
-                    s.root.translateZ(s.speed);
-                    if (d < 2.6) takePlayerDamage(0.35);
+            // Update Expanding Ground Shockwave Rings (Jump [SPACE] to dodge!)
+            for (let i = shockwaveRings.length - 1; i >= 0; i--) {
+                const sw = shockwaveRings[i];
+                sw.r += 0.48;
+                const scale = sw.r / 2.0;
+                sw.mesh.scale.set(scale, scale, 1);
+                const distToPlayer = Math.hypot(player.x - sw.x, player.z - sw.z);
+                if (Math.abs(distToPlayer - sw.r) < 1.2 && player.y < 0.8) {
+                    takePlayerDamage(24);
+                    scene.remove(sw.mesh);
+                    shockwaveRings.splice(i, 1);
+                    continue;
+                }
+                if (sw.r > 38) {
+                    scene.remove(sw.mesh);
+                    shockwaveRings.splice(i, 1);
+                }
+            }
+
+            // Update Bone-Hounds
+            boneHounds.forEach(h => {
+                if (!h.alive) return;
+                const d = Math.hypot(h.root.position.x - player.x, h.root.position.z - player.z);
+                if (d < 34 && activeDecoys.length === 0) {
+                    h.root.lookAt(player.x, 0, player.z);
+                    h.root.translateZ(h.speed);
+                    h.updateAnim(walkClock);
+                    if (d < 2.6) takePlayerDamage(0.55);
                 }
             });
 
@@ -1889,34 +2196,63 @@
                 b.mesh.position.z += b.vz;
                 let hit = false;
 
-                // Hit Scorpions
-                for (const s of scorpions) {
-                    if (s.alive && Math.hypot(b.mesh.position.x - s.root.position.x, b.mesh.position.z - s.root.position.z) < 2.2) {
-                        s.hp -= b.dmg;
+                // 1. Hit Bone-Hounds
+                for (const h of boneHounds) {
+                    if (h.alive && Math.hypot(b.mesh.position.x - h.root.position.x, b.mesh.position.z - h.root.position.z) < 2.4) {
+                        h.hp -= b.dmg;
                         hit = true;
-                        if (s.hp <= 0) {
-                            s.alive = false;
-                            scene.remove(s.root);
-                            scrap += 3; bioFuel += 2; addCoins(200);
-                            scorpionKills++;
-                            if (scorpionKills >= 4) unlockAchievement('lurker_hunter');
+                        playTone(880, 'sine', 0.04, 0.08);
+                        if (h.hp <= 0) {
+                            h.alive = false;
+                            scene.remove(h.root);
+                            scrap += 3; bioFuel += 2; addCoins(250);
+                            houndKills++;
+                            if (houndKills >= 4) unlockAchievement('lurker_hunter');
                             updateInventoryUI();
                         }
                         break;
                     }
                 }
 
-                // Hit Biome Bosses
+                // 2. Hit Wraith-65's Orbiting Shield Drones!
                 if (!hit) {
                     for (const boss of biomeBosses) {
-                        if (boss.alive && Math.hypot(b.mesh.position.x - boss.root.position.x, b.mesh.position.z - boss.root.position.z) < 4.5) {
-                            boss.hp -= b.dmg;
+                        if (!boss.alive || !boss.drones) continue;
+                        for (const d of boss.drones) {
+                            if (!d.alive) continue;
+                            const worldPos = new THREE.Vector3();
+                            d.mesh.getWorldPosition(worldPos);
+                            if (Math.hypot(b.mesh.position.x - worldPos.x, b.mesh.position.z - worldPos.z) < 2.5) {
+                                d.alive = false;
+                                d.mesh.visible = false;
+                                hit = true;
+                                playTone(960, 'triangle', 0.2);
+                                if (boss.drones.every(dr => !dr.alive)) {
+                                    boss.shielded = false;
+                                    boss.stunTimer = 300;
+                                    showDialogue('💥 BOTH SHIELD DRONES DESTROYED! WRAITH-65 SHIELD SHATTERED!');
+                                } else {
+                                    showDialogue('💥 Destroyed 1/2 Shield Drones! Shoot the second drone!');
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // 3. Hit Biome Bosses (90% damage reduction if Shield is still up!)
+                if (!hit) {
+                    for (const boss of biomeBosses) {
+                        if (boss.alive && Math.hypot(b.mesh.position.x - boss.root.position.x, b.mesh.position.z - boss.root.position.z) < 4.8) {
+                            const finalDmg = boss.shielded ? Math.max(2, Math.round(b.dmg * 0.12)) : Math.round(b.dmg * 1.6);
+                            boss.hp -= finalDmg;
                             hit = true;
-                            playTone(900, 'sine', 0.04, 0.08);
+                            playTone(boss.shielded ? 180 : 920, 'sine', 0.04, 0.09);
+
                             if (boss.hp <= 0) {
                                 boss.alive = false;
                                 scene.remove(boss.root);
-                                addCoins(10000);
+                                addCoins(15000);
                                 if (boss.coreId === 1) unlockAchievement('wraith_clear');
                                 if (boss.coreId === 2) unlockAchievement('eidolon_clear');
                                 if (boss.coreId === 3) unlockAchievement('ironbound_clear');
@@ -1925,12 +2261,7 @@
                                 if (targetBunker) {
                                     targetBunker.unlocked = true;
                                     scene.remove(targetBunker.barrier);
-                                    playCinematicCutscene(
-                                        new THREE.Vector3(targetBunker.x, 8, targetBunker.z + 22),
-                                        new THREE.Vector3(targetBunker.x, 2, targetBunker.z),
-                                        2600,
-                                        `🔓 ${boss.name} DEFEATED! Bunker Vault Unlocked — Walk inside and press [E / F] to claim Ignition Core #${boss.coreId}!`
-                                    );
+                                    showDialogue(`🔓 ${boss.name} DEFEATED! Containment Dome Unlocked — Press [E / F] inside the dome to claim Ignition Core #${boss.coreId}!`);
                                 }
                             }
                             break;
@@ -1938,9 +2269,9 @@
                     }
                 }
 
-                // Hit Vulnerable Malakor
+                // 4. Hit Vulnerable Malakor
                 if (!hit && malakorRig && malakorRig.vulnerable && malakorRig.root.visible) {
-                    if (Math.hypot(b.mesh.position.x - malakorRig.root.position.x, b.mesh.position.z - malakorRig.root.position.z) < 4.8) {
+                    if (Math.hypot(b.mesh.position.x - malakorRig.root.position.x, b.mesh.position.z - malakorRig.root.position.z) < 5.0) {
                         malakorRig.hp -= b.dmg;
                         hit = true;
                         if (malakorRig.hp <= 0) {
@@ -1962,13 +2293,13 @@
                 const p = bossProjectiles[i];
                 p.mesh.position.x += p.vx;
                 p.mesh.position.z += p.vz;
-                if (Math.hypot(p.mesh.position.x - player.x, p.mesh.position.z - player.z) < 1.8) {
-                    takePlayerDamage(14);
+                if (Math.hypot(p.mesh.position.x - player.x, p.mesh.position.z - player.z) < 1.9 && player.y < 1.2) {
+                    takePlayerDamage(p.dmg || 20);
                     scene.remove(p.mesh);
                     bossProjectiles.splice(i, 1);
                     continue;
                 }
-                if (Math.hypot(p.mesh.position.x - player.x, p.mesh.position.z - player.z) > 90) {
+                if (Math.hypot(p.mesh.position.x - player.x, p.mesh.position.z - player.z) > 95) {
                     scene.remove(p.mesh);
                     bossProjectiles.splice(i, 1);
                 }
@@ -1977,13 +2308,21 @@
             // Contextual Prompt Check
             const promptEl = document.getElementById('action-prompt');
             let nearPrompt = null;
-            for (const bk of bunkers) {
-                if (bk.unlocked && !bk.collected && Math.hypot(player.x - bk.x, player.z - (bk.z + 8)) < 8.5) {
-                    nearPrompt = `Press [E / F] to Claim Ignition Core #${bk.id} & Rescue Engineer`;
+            for (const pylon of empPylons) {
+                if (pylon.cd <= 0 && Math.hypot(player.x - pylon.x, player.z - pylon.z) < 7.5) {
+                    nearPrompt = 'Press [E / F] to Overload Blue EMP Pylon (Shatters Boss Shield!)';
                     break;
                 }
             }
-            if (!nearPrompt && Math.hypot(player.x, player.z) < 13 && coresCollected > coresInstalled) {
+            if (!nearPrompt) {
+                for (const bk of bunkers) {
+                    if (bk.unlocked && !bk.collected && Math.hypot(player.x - bk.x, player.z - bk.z) < 9.5) {
+                        nearPrompt = `Press [E / F] to Claim Ignition Core #${bk.id} & Rescue Engineer`;
+                        break;
+                    }
+                }
+            }
+            if (!nearPrompt && Math.hypot(player.x, player.z) < 15 && coresCollected > coresInstalled) {
                 nearPrompt = `Press [E / F] to Install Ignition Core into 3D Express Train (${coresCollected}/4)`;
             }
             if (nearPrompt) {
@@ -1999,17 +2338,16 @@
             document.getElementById('armor-fill').style.width = `${(armor / maxArmor) * 100}%`;
             document.getElementById('hp-fill').style.width = `${Math.max(0, hp)}%`;
             document.getElementById('stam-fill').style.width = `${stamina}%`;
-            document.getElementById('db-fill').style.width = `${noiseDb}%`;
-            document.getElementById('db-fill').style.background = noiseDb > 55 ? '#ff0055' : '#10b981';
         }
 
         function updateInventoryUI() {
+            document.getElementById('val-ammo').innerText = ammo;
+            document.getElementById('ammo-ui').innerText = isReloading ? 'RELOADING...' : `${ammo} / ${maxAmmo} [R]`;
             document.getElementById('val-fuel').innerText = bioFuel;
             document.getElementById('val-scrap').innerText = scrap;
             document.getElementById('val-plates').innerText = armorPlates;
             document.getElementById('val-stims').innerText = medStims;
             document.getElementById('val-decoys').innerText = sonicDecoys;
-            document.getElementById('val-cores').innerText = `${coresInstalled}/4`;
             document.getElementById('cores-header').innerText = `${coresInstalled}/4`;
             document.getElementById('eng-header').innerText = `${rescuedEngineers}/4`;
             document.getElementById('radius-text').innerText = `${safeRadius}m`;
@@ -2024,32 +2362,28 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, 96, 96);
 
-            ctx.fillStyle = '#050b16';
+            ctx.fillStyle = '#040812';
             ctx.beginPath(); ctx.arc(48, 48, 45, 0, Math.PI * 2); ctx.fill();
 
-            // Center Express Train Base (Cyan)
             ctx.fillStyle = '#00f3ff';
             ctx.beginPath(); ctx.arc(48, 48, 4, 0, Math.PI * 2); ctx.fill();
 
-            // 4 Biome Strongholds
             bunkers.forEach(b => {
-                const bx = 48 + (b.x / 360) * 42;
-                const bz = 48 + (b.z / 360) * 42;
+                const bx = 48 + (b.x / 240) * 40;
+                const bz = 48 + (b.z / 240) * 40;
                 ctx.fillStyle = b.collected ? '#10b981' : '#facc15';
                 ctx.fillRect(bx - 3, bz - 3, 6, 6);
             });
 
-            // Malakor Ping
             if (malakorRig && malakorRig.root.visible) {
-                const mx = 48 + (malakorRig.root.position.x / 360) * 42;
-                const mz = 48 + (malakorRig.root.position.z / 360) * 42;
+                const mx = 48 + (malakorRig.root.position.x / 240) * 40;
+                const mz = 48 + (malakorRig.root.position.z / 240) * 40;
                 ctx.fillStyle = '#ff0055';
                 ctx.beginPath(); ctx.arc(mx, mz, 4, 0, Math.PI * 2); ctx.fill();
             }
 
-            // Player Dot
-            const px = 48 + (player.x / 360) * 42;
-            const pz = 48 + (player.z / 360) * 42;
+            const px = 48 + (player.x / 240) * 40;
+            const pz = 48 + (player.z / 240) * 40;
             ctx.fillStyle = '#ffffff';
             ctx.beginPath(); ctx.arc(px, pz, 3.2, 0, Math.PI * 2); ctx.fill();
         }
