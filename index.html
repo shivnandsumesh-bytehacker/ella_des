@@ -60,7 +60,7 @@
             height: 100vh;
             pointer-events: none;
             z-index: 0;
-            opacity: 0.45;
+            opacity: 0.48;
         }
 
         header, #unlocked-perks-bar, .controls-bar, .grid, footer {
@@ -138,7 +138,10 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            cursor: pointer;
+            transition: border-color 0.15s, transform 0.1s;
         }
+        .stats-badge:hover { border-color: var(--gold); transform: translateY(-1px); }
 
         .mult-badge {
             font-family: 'JetBrains Mono', monospace;
@@ -158,14 +161,14 @@
             border: 1px solid var(--card-border);
             text-decoration: none; 
             font-weight: 600; 
-            font-size: 0.85rem;
-            padding: 8px 14px;
+            font-size: 0.83rem;
+            padding: 8px 13px;
             border-radius: 8px;
             transition: background 0.15s, border-color 0.15s, transform 0.1s;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 7px;
+            gap: 6px;
             position: relative;
         }
         .nav-btn:hover {
@@ -182,6 +185,17 @@
         }
         .nav-btn.primary-btn:hover {
             filter: brightness(1.12);
+        }
+
+        .nav-btn.gold-btn {
+            background: rgba(234, 179, 8, 0.14);
+            color: var(--gold);
+            border-color: rgba(234, 179, 8, 0.45);
+            font-weight: 700;
+        }
+        .nav-btn.gold-btn:hover {
+            background: rgba(234, 179, 8, 0.24);
+            border-color: var(--gold);
         }
 
         .notif-dot {
@@ -219,25 +233,27 @@
             color: var(--emerald);
         }
 
-        /* Search & Category Bar */
+        /* Search, Random Roulette & Category Bar */
         .controls-bar {
             width: 100%;
             max-width: 1160px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
 
         .search-box {
             flex: 1;
-            min-width: 240px;
+            min-width: 220px;
+            display: flex;
+            gap: 8px;
         }
 
         .search-box input {
-            width: 100%;
+            flex: 1;
             background: var(--card);
             border: 1px solid var(--card-border);
             border-radius: 8px;
@@ -267,7 +283,7 @@
             background: var(--card);
             border: 1px solid var(--card-border);
             color: var(--text-muted);
-            padding: 8px 14px;
+            padding: 8px 13px;
             border-radius: 8px;
             font-size: 0.82rem;
             font-weight: 600;
@@ -314,11 +330,15 @@
             min-height: 138px;
         }
 
-        .card:hover { 
-            transform: translateY(-3px); 
+        .card:hover, .card.roulette-highlight { 
+            transform: translateY(-4px); 
             border-color: var(--primary); 
             background: var(--card-hover);
-            box-shadow: 0 6px 20px -6px color-mix(in srgb, var(--primary) 35%, transparent);
+            box-shadow: 0 8px 24px -6px color-mix(in srgb, var(--primary) 45%, transparent);
+        }
+
+        .card.pinned-card {
+            border-color: color-mix(in srgb, var(--gold) 65%, var(--card-border));
         }
 
         .card-top {
@@ -328,6 +348,26 @@
             align-items: flex-start;
             margin-bottom: 12px;
         }
+
+        .card-top-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fav-star-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 2px 4px;
+            line-height: 1;
+            transition: transform 0.15s, color 0.15s;
+            z-index: 2;
+        }
+        .fav-star-btn:hover { transform: scale(1.25); color: var(--gold); }
+        .fav-star-btn.active { color: var(--gold); text-shadow: 0 0 8px rgba(234, 179, 8, 0.6); }
 
         .icon { 
             font-size: 1.5rem; 
@@ -426,6 +466,69 @@
             justify-content: center;
         }
         .modal-close:hover { color: #fff; border-color: var(--primary); }
+
+        /* Daily Mystery Crate Spinner UI */
+        .crate-stage {
+            background: var(--bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 24px 16px;
+            text-align: center;
+            margin: 14px 0;
+        }
+        .crate-icon-big {
+            font-size: 3.4rem;
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+        .crate-icon-big.shaking {
+            animation: crateShake 0.14s infinite;
+        }
+        @keyframes crateShake {
+            0%, 100% { transform: rotate(0deg) scale(1.08); }
+            25% { transform: rotate(-10deg) scale(1.12); }
+            75% { transform: rotate(10deg) scale(1.12); }
+        }
+        .crate-result-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin-top: 10px;
+            min-height: 24px;
+        }
+
+        /* Theme Quick-Switcher Grid */
+        .theme-switcher-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .theme-Option-card {
+            background: var(--bg);
+            border: 1.5px solid var(--card-border);
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--text-main);
+            transition: transform 0.12s, border-color 0.12s;
+        }
+        .theme-Option-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+        .theme-Option-card.active-theme { border-color: var(--primary); box-shadow: 0 0 14px color-mix(in srgb, var(--primary) 35%, transparent); }
+        .theme-swatch-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 2px solid rgba(255,255,255,0.25);
+        }
 
         /* Creator Code Input */
         .code-input-row {
@@ -614,14 +717,16 @@
             <h1>CYBER ARCADE</h1>
         </div>
         <div class="header-actions">
-            <div class="stats-badge">🪙 <span id="coin-count">0</span></div>
+            <div class="stats-badge" onclick="openCrateModal()" title="Click for Daily Loot Crate!">🪙 <span id="coin-count">0</span></div>
             <div class="mult-badge" id="mult-badge">2.5X</div>
+            <button class="nav-btn gold-btn" onclick="openCrateModal()">🎁 Daily Crate</button>
+            <button class="nav-btn" onclick="openThemeModal()">🎨 Themes</button>
             <button class="nav-btn" onclick="openChangelogModal()">
                 <span class="notif-dot" id="patch-notif-dot"></span> Patch Notes
             </button>
             <button class="nav-btn" onclick="openFeedbackModal()">Send Feedback</button>
             <button class="nav-btn" onclick="openCodeModal()">Redeem Code</button>
-            <a href="shop.html" class="nav-btn primary-btn">Shop</a>
+            <a href="shop.html" class="nav-btn primary-btn">🛒 Shop</a>
         </div>
     </header>
 
@@ -629,10 +734,12 @@
 
     <div class="controls-bar">
         <div class="search-box">
-            <input type="text" id="search-input" placeholder="Search 26 games..." oninput="filterGames()">
+            <input type="text" id="search-input" placeholder="Search 26 games (or star ⭐ favorites)..." oninput="filterGames()">
+            <button class="nav-btn" onclick="spinRandomGame()" title="Pick a random game!">🎲 Random Game</button>
         </div>
         <div class="filter-tags">
             <button class="filter-btn active" onclick="setCategory('ALL', this)">All</button>
+            <button class="filter-btn" onclick="setCategory('FAV', this)">⭐ Favorites</button>
             <button class="filter-btn" onclick="setCategory('3D', this)">3D & Sim</button>
             <button class="filter-btn" onclick="setCategory('ACTION', this)">Action & Sports</button>
             <button class="filter-btn" onclick="setCategory('PUZZLE', this)">Arcade & Puzzle</button>
@@ -640,21 +747,25 @@
     </div>
 
     <div class="grid" id="games-grid">
-        <a href="lore.html" class="card" data-cat="3D" data-title="Blackout Echo Protocol 3D FPS Co-Op Hush 99 Nights Call of Duty Wraith Eidolon Ironbound Malakor">
+        <a href="lore.html" class="card" data-cat="3D" data-title="Hush They Can Hear 3D Extraction Stealth Raider Customizer Vehicles Bosses Camp Halvorsen">
             <div class="card-top">
-                <span class="icon">🎯</span>
-                <span class="badge badge-hot">3D CO-OP FPS</span>
+                <span class="icon">🔇</span>
+                <div class="card-top-right">
+                    <span class="badge badge-hot">3D EXTRACTION</span>
+                </div>
             </div>
             <div>
-                <h3>Blackout: Echo Protocol</h3>
-                <p>3D Acoustic Stealth, 4 Bosses & Co-Op</p>
+                <h3>HUSH: They Can Hear</h3>
+                <p>Acoustic Stealth, Cars, Raider Studio & Bosses</p>
             </div>
         </a>
 
         <a href="bus.html" class="card" data-cat="3D" data-title="Darry's Bus Terminal 3D Sunshine Simulator">
             <div class="card-top">
                 <span class="icon">🚌</span>
-                <span class="badge badge-hot">MULTIPLAYER</span>
+                <div class="card-top-right">
+                    <span class="badge badge-hot">MULTIPLAYER</span>
+                </div>
             </div>
             <div>
                 <h3>Darry’s Bus Terminal</h3>
@@ -665,7 +776,9 @@
         <a href="basketball.html" class="card" data-cat="ACTION" data-title="Basketball Legends Rivals">
             <div class="card-top">
                 <span class="icon">🏀</span>
-                <span class="badge badge-new">UPDATED</span>
+                <div class="card-top-right">
+                    <span class="badge badge-new">UPDATED</span>
+                </div>
             </div>
             <div>
                 <h3>Basketball Legends</h3>
@@ -676,7 +789,9 @@
         <a href="space.html" class="card" data-cat="ACTION" data-title="Space Invaders">
             <div class="card-top">
                 <span class="icon">👾</span>
-                <span class="badge badge-new">BOSSES</span>
+                <div class="card-top-right">
+                    <span class="badge badge-new">BOSSES</span>
+                </div>
             </div>
             <div>
                 <h3>Space Invaders</h3>
@@ -687,7 +802,9 @@
         <a href="volleyball.html" class="card" data-cat="ACTION" data-title="Volleyball Legends">
             <div class="card-top">
                 <span class="icon">🏐</span>
-                <span class="badge badge-new">UPDATED</span>
+                <div class="card-top-right">
+                    <span class="badge badge-new">UPDATED</span>
+                </div>
             </div>
             <div>
                 <h3>Volleyball Legends</h3>
@@ -698,7 +815,9 @@
         <a href="car.html" class="card" data-cat="3D" data-title="Car Racer Drift Master 3D">
             <div class="card-top">
                 <span class="icon">🏎️</span>
-                <span class="badge badge-3d">3D</span>
+                <div class="card-top-right">
+                    <span class="badge badge-3d">3D</span>
+                </div>
             </div>
             <div>
                 <h3>Drift Master 3D</h3>
@@ -709,7 +828,9 @@
         <a href="tetris.html" class="card" data-cat="PUZZLE" data-title="Cyber Tetris">
             <div class="card-top">
                 <span class="icon">🟦</span>
-                <span class="badge badge-3d">DAS/ARR</span>
+                <div class="card-top-right">
+                    <span class="badge badge-3d">DAS/ARR</span>
+                </div>
             </div>
             <div>
                 <h3>Cyber Tetris</h3>
@@ -720,7 +841,9 @@
         <a href="minecraft.html" class="card" data-cat="3D" data-title="Minecraft 3D">
             <div class="card-top">
                 <span class="icon">⛏️</span>
-                <span class="badge badge-hot">SANDBOX</span>
+                <div class="card-top-right">
+                    <span class="badge badge-hot">SANDBOX</span>
+                </div>
             </div>
             <div>
                 <h3>Minecraft 3D</h3>
@@ -731,7 +854,9 @@
         <a href="plane.html" class="card" data-cat="3D" data-title="3D Flight Sim">
             <div class="card-top">
                 <span class="icon">✈️</span>
-                <span class="badge badge-3d">3D</span>
+                <div class="card-top-right">
+                    <span class="badge badge-3d">3D</span>
+                </div>
             </div>
             <div>
                 <h3>3D Flight Sim</h3>
@@ -742,7 +867,9 @@
         <a href="train.html" class="card" data-cat="3D" data-title="3D Train Express Pro Cab">
             <div class="card-top">
                 <span class="icon">🚂</span>
-                <span class="badge badge-3d">3D CAB</span>
+                <div class="card-top-right">
+                    <span class="badge badge-3d">3D CAB</span>
+                </div>
             </div>
             <div>
                 <h3>3D Train Express</h3>
@@ -753,7 +880,9 @@
         <a href="snowrider.html" class="card" data-cat="3D" data-title="3D Snow Rider">
             <div class="card-top">
                 <span class="icon">🛷</span>
-                <span class="badge badge-3d">3D</span>
+                <div class="card-top-right">
+                    <span class="badge badge-3d">3D</span>
+                </div>
             </div>
             <div>
                 <h3>3D Snow Rider</h3>
@@ -764,7 +893,9 @@
         <a href="forest99.html" class="card" data-cat="3D" data-title="99 Nights Forest 3D">
             <div class="card-top">
                 <span class="icon">🌲</span>
-                <span class="badge badge-3d">3D</span>
+                <div class="card-top-right">
+                    <span class="badge badge-3d">3D</span>
+                </div>
             </div>
             <div>
                 <h3>99 Nights Forest</h3>
@@ -775,7 +906,9 @@
         <a href="badminton.html" class="card" data-cat="ACTION" data-title="Super Badminton 3D">
             <div class="card-top">
                 <span class="icon">🏸</span>
-                <span class="badge badge-3d">3D</span>
+                <div class="card-top-right">
+                    <span class="badge badge-3d">3D</span>
+                </div>
             </div>
             <div>
                 <h3>Badminton Legends</h3>
@@ -786,6 +919,7 @@
         <a href="clicker.html" class="card" data-cat="ACTION" data-title="Neon Clicker">
             <div class="card-top">
                 <span class="icon">🪙</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>Neon Clicker</h3>
@@ -796,6 +930,7 @@
         <a href="pong.html" class="card" data-cat="ACTION" data-title="Cyber Pong AI">
             <div class="card-top">
                 <span class="icon">🏓</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>Cyber Pong AI</h3>
@@ -806,6 +941,7 @@
         <a href="snake.html" class="card" data-cat="ACTION" data-title="Cyber Snake">
             <div class="card-top">
                 <span class="icon">🐍</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>Cyber Snake</h3>
@@ -816,6 +952,7 @@
         <a href="2048.html" class="card" data-cat="PUZZLE" data-title="2048">
             <div class="card-top">
                 <span class="icon">🔢</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>2048</h3>
@@ -826,6 +963,7 @@
         <a href="doodle.html" class="card" data-cat="ACTION" data-title="Doodle Jump">
             <div class="card-top">
                 <span class="icon">🚀</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>Doodle Jump</h3>
@@ -836,6 +974,7 @@
         <a href="bird.html" class="card" data-cat="ACTION" data-title="Cyber Bird">
             <div class="card-top">
                 <span class="icon">🐦</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>Cyber Bird</h3>
@@ -846,7 +985,9 @@
         <a href="maze.html" class="card" data-cat="PUZZLE" data-title="Cyber Maze Neon Escape">
             <div class="card-top">
                 <span class="icon">🌀</span>
-                <span class="badge badge-new">RADAR</span>
+                <div class="card-top-right">
+                    <span class="badge badge-new">RADAR</span>
+                </div>
             </div>
             <div>
                 <h3>Cyber Maze</h3>
@@ -857,6 +998,7 @@
         <a href="colorcatch.html" class="card" data-cat="PUZZLE" data-title="Color Catch">
             <div class="card-top">
                 <span class="icon">🎨</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>Color Catch</h3>
@@ -867,6 +1009,7 @@
         <a href="memory.html" class="card" data-cat="PUZZLE" data-title="Memory Match">
             <div class="card-top">
                 <span class="icon">🧠</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>Memory Match</h3>
@@ -877,6 +1020,7 @@
         <a href="simon.html" class="card" data-cat="PUZZLE" data-title="Simon Says">
             <div class="card-top">
                 <span class="icon">💡</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>Simon Says</h3>
@@ -887,6 +1031,7 @@
         <a href="tictactoe.html" class="card" data-cat="PUZZLE" data-title="Tic Tac Toe">
             <div class="card-top">
                 <span class="icon">❌</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>Tic Tac Toe</h3>
@@ -897,6 +1042,7 @@
         <a href="tower.html" class="card" data-cat="PUZZLE" data-title="Tower Stacker">
             <div class="card-top">
                 <span class="icon">🏗️</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>Tower Stacker</h3>
@@ -907,12 +1053,52 @@
         <a href="mathdash.html" class="card" data-cat="PUZZLE" data-title="Math Dash">
             <div class="card-top">
                 <span class="icon">🧮</span>
+                <div class="card-top-right"></div>
             </div>
             <div>
                 <h3>Math Dash</h3>
                 <p>Timed mental calculation</p>
             </div>
         </a>
+    </div>
+
+    <!-- Daily Mystery Loot Crate Modal -->
+    <div id="crate-modal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">🎁 Daily Mystery Loot Crate</h2>
+                <button class="modal-close" onclick="closeCrateModal()">✕</button>
+            </div>
+            <p style="color:var(--text-muted); font-size:0.83rem; margin:0;">
+                Claim your free Daily Supply Drop every 24 hours, or spend 1,000 Coins for an instant bonus spin!
+            </p>
+            <div class="crate-stage">
+                <div class="crate-icon-big" id="crate-Visual-icon">📦</div>
+                <div class="crate-result-text" id="crate-result-text">Ready to unbox!</div>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="nav-btn gold-btn" id="btn-free-daily" onclick="spinMysteryCrate(true)" style="flex:1; justify-content:center; padding:12px;">
+                    🌟 Claim Free Daily Crate
+                </button>
+                <button class="nav-btn primary-btn" id="btn-paid-crate" onclick="spinMysteryCrate(false)" style="flex:1; justify-content:center; padding:12px;">
+                    🪙 Spin Crate (1,000 Coins)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Theme Switcher Modal (11 Themes Ready for Shop!) -->
+    <div id="theme-modal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 class="modal-title">🎨 Hub Theme Studio (11 Palettes)</h2>
+                <button class="modal-close" onclick="closeThemeModal()">✕</button>
+            </div>
+            <p style="color:var(--text-muted); font-size:0.82rem; margin:0;">
+                Preview or equip any of the 11 custom color & particle themes synchronized with the Arcade Shop:
+            </p>
+            <div class="theme-switcher-grid" id="theme-switcher-grid"></div>
+        </div>
     </div>
 
     <!-- Patch Notes (Auto-Updating) Modal -->
@@ -926,7 +1112,7 @@
                 <button class="modal-close" onclick="closeChangelogModal()">✕</button>
             </div>
 
-            <!-- Live GitHub Commits Feed (Populates automatically if GITHUB_REPO is set) -->
+            <!-- Live GitHub Commits Feed -->
             <div id="github-live-commits" style="display:none; margin-bottom: 18px;">
                 <div class="log-entry" style="border-left-color: var(--emerald);">
                     <div class="log-date" style="color: var(--emerald);">⚡ LIVE REPOSITORY UPDATES</div>
@@ -935,12 +1121,11 @@
                 </div>
             </div>
 
-            <!-- Dynamic Patch Notes Container (Rendered from PATCH_NOTES array) -->
             <div id="patch-notes-container"></div>
         </div>
     </div>
 
-    <!-- Feedback & Game Suggestion Modal (All 26 Games Auto-Loaded) -->
+    <!-- Feedback & Game Suggestion Modal -->
     <div id="feedback-modal" class="modal">
         <div class="modal-card">
             <div class="modal-header">
@@ -957,9 +1142,7 @@
                 </div>
                 <div class="form-group">
                     <label>Select Game or Topic (All Arcade Games Included)</label>
-                    <select name="game" id="feedback-game-select" class="form-control" required>
-                        <!-- Auto-populated from all game cards on page load -->
-                    </select>
+                    <select name="game" id="feedback-game-select" class="form-control" required></select>
                 </div>
                 <div class="form-group">
                     <label>Feedback Type</label>
@@ -1002,7 +1185,7 @@
                 <div class="codex-title">Active Hints</div>
                 <div class="hint-item"><span class="hint-tag">DEV</span> Lead developer's name</div>
                 <div class="hint-item"><span class="hint-tag">IDEA</span> Ideaist's name for a permanent coin boost</div>
-                <div class="hint-item"><span class="hint-tag">FPS</span> Enter <strong>BLACKOUT</strong> for Spec-Ops supply drop</div>
+                <div class="hint-item"><span class="hint-tag">RAID</span> Enter <strong>HUSH</strong> for Raider Extraction Stash</div>
                 <div class="hint-item"><span class="hint-tag">HOOPS</span> The 65% sniper with the white AirPod</div>
                 <div class="hint-item"><span class="hint-tag">SNIPER</span> The heavy artillery 3PT shooter</div>
                 <div class="hint-item"><span class="hint-tag">LUCK</span> Try entering <strong>JACKPOT</strong></div>
@@ -1021,45 +1204,180 @@
     <script src="canming-ai.js"></script>
 
     <script>
-        // =========================================================================
-        // ⚙️ 1. DEVELOPER EMAIL FOR IN-BROWSER AJAX FEEDBACK (Works on School iPads)
-        // =========================================================================
         const DEVELOPER_EMAIL = "shivnand.sumesh@gmail.com";
-
-        // =========================================================================
-        // ⚙️ 2. GITHUB REPO FOR AUTO COMMITS
-        // =========================================================================
         const GITHUB_REPO = "shivnandsumesh-bytehacker/ella_des"; 
 
-        // =========================================================================
-        // 📜 3. EASY PATCH NOTES LIST (Add new items to the top anytime)
-        // =========================================================================
         const PATCH_NOTES = [
             {
-                version: "v2.6 — BLACKOUT: ECHO PROTOCOL (3D Tactical Co-Op FPS)",
+                version: "v2.7 — HUSH: They Can Hear, 11 Hub Themes & Daily Loot Crates",
                 items: [
-                    "<strong>Blackout: Echo Protocol (lore.html):</strong> Launched full 3D First-Person Tactical Stealth & Raid game combining <em>99 Nights</em>, <em>Call of Duty</em>, <em>Hush</em>, <em>3D Train Express</em>, and <em>BFS Wrist Radar</em>.",
-                    "<strong>4 Operatives & 4 3D Sector Bosses:</strong> Play as <strong>ARCHITECT-01</strong>, <strong>SOVEREIGN</strong>, <strong>VANGUARD-7</strong>, or <strong>BROKER</strong> against <strong>WRAITH-65</strong>, <strong>EIDOLON</strong>, <strong>IRONBOUND</strong>, and <strong>MALAKOR</strong>.",
-                    "<strong>Co-Op & 12 Coin Commendations:</strong> Added PeerJS 4-digit Squad Codes, skippable <em>Operation: Zero Decibel</em> tutorial, Pack-a-Punch Train Workbench, and 12 Achievements synced directly with the Hub Perks Bar."
+                    "<strong>HUSH: They Can Hear (lore.html):</strong> Added full <em>HUSH SUPPLY</em> Lobby, 5-Tab <em>YOUR RAIDER</em> Customizer, Two-Part Sewer Humvee Intro Cutscene, One-Way Sealed Manhole, Camp Halvorsen, Drivable Cars with Engine Telemetry, and Pack Listeners.",
+                    "<strong>Cyber Arcade Hub:</strong> Added <strong>Daily Mystery Crate</strong>, <strong>11 Custom Theme Palettes</strong> (including Midas Gold, Arctic Frost, Blood Moon, Synthwave, Toxic & Noir), <strong>⭐ Game Favorites Pinning</strong>, and <strong>🎲 Random Game Roulette</strong>."
                 ]
             }
         ];
 
-        // Map Blackout Achievement IDs to Hub Perk Pills
         const BLACKOUT_ACH_TITLES = {
-            ghost_op: '🎖️ Ghost Operative',
+            ghost_op: '🎖️ VR Certified',
             whisper_craft: '🎖️ Pack-a-Punched',
             bait_switch: '🎖️ Acoustic Diversion',
-            lurker_hunter: '🎖️ Blind Spot',
-            marksman: '🎖️ Surgical Precision',
-            wraith_clear: '🎖️ Counter-Sniper',
-            eidolon_clear: '🎖️ Mirror Shattered',
-            ironbound_clear: '🎖️ Line Derailed',
+            lurker_hunter: '🎖️ Hound Hunter',
+            marksman: '🎖️ UV Blindside',
+            wraith_clear: '🎖️ Jaeger Down',
+            eidolon_clear: '🎖️ Siren Purged',
+            ironbound_clear: '🎖️ Siege Derailed',
             malakor_clear: '🏆 The 100th Dawn',
-            power_engineer: '🎖️ Grid Restored',
-            squad_link: '🎖️ Echo Squad',
-            master_protocol: '👑 Apex Veteran'
+            power_engineer: '🎖️ Protocol Omega',
+            squad_link: '🎖️ 101st Overlord',
+            master_protocol: '👑 Apex Legend'
         };
+
+        // =========================================================================
+        // ⭐ FAVORITES PINNING & RANDOM GAME ROULETTE
+        // =========================================================================
+        function getFavoriteGames() {
+            try { return JSON.parse(localStorage.getItem('arcade_fav_games')) || []; }
+            catch (e) { return []; }
+        }
+
+        function initFavoriteStars() {
+            const favs = getFavoriteGames();
+            const grid = document.getElementById('games-grid');
+            const cards = Array.from(grid.querySelectorAll('.card'));
+
+            cards.forEach(card => {
+                const href = card.getAttribute('href');
+                const topRight = card.querySelector('.card-top-right') || card.querySelector('.card-top');
+                let starBtn = card.querySelector('.fav-star-btn');
+                if (!starBtn) {
+                    starBtn = document.createElement('button');
+                    starBtn.className = 'fav-star-btn';
+                    starBtn.title = 'Pin to Favorites';
+                    starBtn.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleFavoriteGame(href);
+                    };
+                    topRight.appendChild(starBtn);
+                }
+                const isFav = favs.includes(href);
+                starBtn.classList.toggle('active', isFav);
+                starBtn.innerText = isFav ? '★' : '☆';
+                card.classList.toggle('pinned-card', isFav);
+            });
+
+            // Sort pinned cards to the top while keeping original relative order
+            cards.sort((a, b) => {
+                const aFav = favs.includes(a.getAttribute('href')) ? 1 : 0;
+                const bFav = favs.includes(b.getAttribute('href')) ? 1 : 0;
+                return bFav - aFav;
+            });
+            cards.forEach(c => grid.appendChild(c));
+        }
+
+        function toggleFavoriteGame(href) {
+            let favs = getFavoriteGames();
+            if (favs.includes(href)) favs = favs.filter(h => h !== href);
+            else favs.push(href);
+            localStorage.setItem('arcade_fav_games', JSON.stringify(favs));
+            playSoundFx('success');
+            initFavoriteStars();
+            filterGames();
+        }
+
+        function spinRandomGame() {
+            const visibleCards = Array.from(document.querySelectorAll('.card')).filter(c => c.style.display !== 'none');
+            if (visibleCards.length === 0) return;
+
+            let steps = 16;
+            let idx = 0;
+            const interval = setInterval(() => {
+                visibleCards.forEach(c => c.classList.remove('roulette-highlight'));
+                idx = Math.floor(Math.random() * visibleCards.length);
+                visibleCards[idx].classList.add('roulette-highlight');
+                playSoundFx('blip');
+                steps--;
+                if (steps <= 0) {
+                    clearInterval(interval);
+                    playSoundFx('jackpot');
+                    setTimeout(() => {
+                        window.location.href = visibleCards[idx].getAttribute('href');
+                    }, 450);
+                }
+            }, 75);
+        }
+
+        // =========================================================================
+        // 🎁 DAILY MYSTERY LOOT CRATE SYSTEM
+        // =========================================================================
+        function openCrateModal() {
+            document.getElementById('crate-modal').style.display = 'flex';
+            updateDailyCrateButtons();
+        }
+        function closeCrateModal() { document.getElementById('crate-modal').style.display = 'none'; }
+
+        function updateDailyCrateButtons() {
+            const lastDaily = parseInt(localStorage.getItem('arcade_last_daily_crate')) || 0;
+            const now = Date.now();
+            const canClaimFree = (now - lastDaily) >= 24 * 60 * 60 * 1000;
+            const freeBtn = document.getElementById('btn-free-daily');
+            if (canClaimFree) {
+                freeBtn.disabled = false;
+                freeBtn.innerText = '🌟 Claim Free Daily Crate';
+            } else {
+                freeBtn.disabled = true;
+                const hrsLeft = Math.ceil((24 * 60 * 60 * 1000 - (now - lastDaily)) / (1000 * 60 * 60));
+                freeBtn.innerText = `⏳ Free Crate in ${hrsLeft}h`;
+            }
+        }
+
+        function spinMysteryCrate(isFreeDaily) {
+            if (isFreeDaily) {
+                const lastDaily = parseInt(localStorage.getItem('arcade_last_daily_crate')) || 0;
+                if (Date.now() - lastDaily < 24 * 60 * 60 * 1000) return;
+                localStorage.setItem('arcade_last_daily_crate', Date.now().toString());
+                updateDailyCrateButtons();
+            } else {
+                if (getWalletCoins() < 1000) {
+                    document.getElementById('crate-result-text').style.color = 'var(--accent)';
+                    document.getElementById('crate-result-text').innerText = 'Not enough coins! Need 1,000 Coins.';
+                    playSoundFx('error');
+                    return;
+                }
+                setWalletCoins(getWalletCoins() - 1000);
+            }
+
+            const iconEl = document.getElementById('crate-Visual-icon');
+            const resEl = document.getElementById('crate-result-text');
+            iconEl.classList.add('shaking');
+            resEl.style.color = 'var(--primary)';
+            resEl.innerText = 'Unboxing Supply Drop...';
+
+            const LOOT_TABLE = [
+                { label: '🪙 +1,500 Coins', coins: 1500, weight: 40 },
+                { label: '💎 +3,500 Coins', coins: 3500, weight: 30 },
+                { label: '🔥 +7,500 Coins', coins: 7500, weight: 18 },
+                { label: '👑 +15,000 MEGA STASH!', coins: 15000, weight: 9 },
+                { label: '⚡ +50,000 GOD JACKPOT!', coins: 50000, weight: 3 }
+            ];
+
+            setTimeout(() => {
+                iconEl.classList.remove('shaking');
+                let roll = Math.random() * 100;
+                let picked = LOOT_TABLE[0];
+                for (const item of LOOT_TABLE) {
+                    if (roll < item.weight) { picked = item; break; }
+                    roll -= item.weight;
+                }
+                const mult = getMultiplier();
+                const finalCoins = Math.round(picked.coins * mult);
+                setWalletCoins(getWalletCoins() + finalCoins);
+                resEl.style.color = 'var(--emerald)';
+                resEl.innerText = `${picked.label} (${mult > 1 ? `x${mult} = ` : ''}+${finalCoins.toLocaleString()} Coins!)`;
+                launchConfetti(picked.coins >= 15000 ? 130 : 65);
+                playSoundFx(picked.coins >= 15000 ? 'jackpot' : 'success');
+            }, 950);
+        }
 
         // Automatically populate the Feedback Form with ALL games from the grid
         function populateFeedbackDropdown() {
@@ -1162,6 +1480,17 @@
                     gain.connect(ctx.destination);
                     osc.start(t);
                     osc.stop(t + 0.25);
+                } else if (type === 'blip') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(680, t);
+                    gain.gain.setValueAtTime(0.12, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.05);
                 } else if (type === 'jackpot') {
                     for (let i = 0; i < 8; i++) {
                         const osc = ctx.createOscillator();
@@ -1293,6 +1622,13 @@
                 badge: 'Ideaist VIP',
                 desc: 'Granted +6,000 Coins & Permanent 2.5x Multiplier!'
             },
+            'HUSH': {
+                name: 'Hush Supply Raider Drop',
+                rewardCoins: 20000,
+                unlocks: ['hush_raider_unlocked'],
+                badge: '🔇 Hush Raider',
+                desc: 'Granted +20,000 Coins & Hush Raider Commendation!'
+            },
             'BLACKOUT': {
                 name: 'Echo Protocol Spec-Ops Drop',
                 rewardCoins: 15000,
@@ -1396,7 +1732,6 @@
         }
         function closeFeedbackModal() { document.getElementById('feedback-modal').style.display = 'none'; }
 
-        // In-Browser AJAX Form Submission (No mailto: restriction on school iPads)
         async function submitFeedbackForm(e) {
             e.preventDefault();
             const form = e.target;
@@ -1527,7 +1862,6 @@
                 }
             });
 
-            // Sync Blackout: Echo Protocol Commendations
             try {
                 const blackoutUnlocked = JSON.parse(localStorage.getItem('blackout_achievements')) || [];
                 blackoutUnlocked.forEach(id => {
@@ -1567,13 +1901,18 @@
         let currentFilter = 'ALL';
         function filterGames() {
             const query = document.getElementById('search-input').value.toLowerCase().trim();
+            const favs = getFavoriteGames();
             const cards = document.querySelectorAll('.card');
 
             cards.forEach(card => {
                 const title = (card.getAttribute('data-title') || '').toLowerCase();
+                const name = (card.querySelector('h3')?.innerText || '').toLowerCase();
                 const cat = card.getAttribute('data-cat');
-                const matchesQuery = title.includes(query);
-                const matchesCat = (currentFilter === 'ALL' || cat === currentFilter);
+                const href = card.getAttribute('href');
+                const matchesQuery = title.includes(query) || name.includes(query);
+                const matchesCat = (currentFilter === 'ALL') ||
+                                   (currentFilter === 'FAV' && favs.includes(href)) ||
+                                   (cat === currentFilter);
 
                 card.style.display = (matchesQuery && matchesCat) ? 'flex' : 'none';
             });
@@ -1587,46 +1926,114 @@
         }
 
         // =========================================================================
-        // 🎨 COMPLETE THEME ENGINE + ANIMATED BACKGROUND CANVAS
+        // 🎨 EXPANDED 11-PALETTE THEME ENGINE + INTERACTIVE CURSOR TRAIL
         // =========================================================================
         const THEME_PALETTES = {
             neon: {
+                label: '⚡ Cyber Neon',
                 primary: '#38bdf8', accent: '#f43f5e', bg: '#090a0f',
                 card: '#12151e', border: '#222634', hover: '#181c28',
                 header: 'rgba(18, 21, 30, 0.88)', dot: '#1e2330', fx: 'neon'
             },
             cyber: { 
+                label: '💻 Matrix Rain',
                 primary: '#10b981', accent: '#f59e0b', bg: '#050b07',
                 card: '#0b160f', border: '#143321', hover: '#112217',
                 header: 'rgba(11, 22, 15, 0.88)', dot: '#122b1d', fx: 'matrix'
             },
             sunset: { 
+                label: '🌋 Volcanic Magma',
                 primary: '#f97316', accent: '#facc15', bg: '#110706',
                 card: '#1d0d0b', border: '#3b1914', hover: '#281310',
                 header: 'rgba(29, 13, 11, 0.88)', dot: '#2e1410', fx: 'magma'
             },
             purple: { 
+                label: '🌌 Deep Space',
                 primary: '#c084fc', accent: '#38bdf8', bg: '#080511',
                 card: '#130d24', border: '#2a1d4e', hover: '#1b1333',
                 header: 'rgba(19, 13, 36, 0.88)', dot: '#21173b', fx: 'space'
             },
             glitch: { 
+                label: '👾 Cyber Glitch',
                 primary: '#ff0055', accent: '#00f0ff', bg: '#08060c',
                 card: '#14101d', border: '#381b30', hover: '#1f172b',
                 header: 'rgba(20, 16, 29, 0.88)', dot: '#2c162b', fx: 'glitch'
+            },
+            gold: {
+                label: '👑 Midas Gold',
+                primary: '#facc15', accent: '#f59e0b', bg: '#0c0a04',
+                card: '#181409', border: '#382e12', hover: '#241e0d',
+                header: 'rgba(24, 20, 9, 0.88)', dot: '#2c240e', fx: 'magma'
+            },
+            arctic: {
+                label: '❄️ Arctic Frost',
+                primary: '#7dd3fc', accent: '#38bdf8', bg: '#060c14',
+                card: '#0e1928', border: '#1e3552', hover: '#142438',
+                header: 'rgba(14, 25, 40, 0.88)', dot: '#192d47', fx: 'snow'
+            },
+            bloodmoon: {
+                label: '🩸 Blood Moon',
+                primary: '#ef4444', accent: '#fb7185', bg: '#0c0406',
+                card: '#19090d', border: '#3b131c', hover: '#260d14',
+                header: 'rgba(25, 9, 13, 0.88)', dot: '#2e1017', fx: 'magma'
+            },
+            synthwave: {
+                label: '🌆 Synthwave 84',
+                primary: '#f472b6', accent: '#22d3ee', bg: '#0b0514',
+                card: '#180c29', border: '#391b5e', hover: '#23113b',
+                header: 'rgba(24, 12, 41, 0.88)', dot: '#2d164b', fx: 'space'
+            },
+            toxic: {
+                label: '🧪 Toxic Bio-Hazard',
+                primary: '#a3e635', accent: '#10b981', bg: '#070b04',
+                card: '#101809', border: '#253813', hover: '#17240d',
+                header: 'rgba(16, 24, 9, 0.88)', dot: '#1e2e10', fx: 'magma'
+            },
+            noir: {
+                label: '🕶️ Stealth Noir',
+                primary: '#f8fafc', accent: '#94a3b8', bg: '#050507',
+                card: '#111115', border: '#27272f', hover: '#1a1a20',
+                header: 'rgba(17, 17, 21, 0.88)', dot: '#1f1f26', fx: 'neon'
             }
         };
 
         const THEME_ALIASES = {
             'default': 'neon', 'neon': 'neon', 'cyber_neon': 'neon', 'cyber-neon': 'neon',
             'cyber': 'cyber', 'matrix': 'cyber', 'matrix_rain': 'cyber', 'matrix-rain': 'cyber',
-            'sunset': 'sunset', 'magma': 'sunset', 'volcanic': 'sunset', 'volcanic_magma': 'sunset', 'volcanic-magma': 'sunset', 'lava': 'sunset', 'gold': 'sunset',
+            'sunset': 'sunset', 'magma': 'sunset', 'volcanic': 'sunset', 'volcanic_magma': 'sunset', 'volcanic-magma': 'sunset', 'lava': 'sunset',
             'purple': 'purple', 'space': 'purple', 'deep_space': 'purple', 'deep-space': 'purple', 'galaxy': 'purple', 'void': 'purple',
-            'glitch': 'glitch', 'cyber_glitch': 'glitch', 'cyber-glitch': 'glitch'
+            'glitch': 'glitch', 'cyber_glitch': 'glitch', 'cyber-glitch': 'glitch',
+            'gold': 'gold', 'midas': 'gold', 'royal': 'gold',
+            'arctic': 'arctic', 'frost': 'arctic', 'ice': 'arctic', 'snow': 'arctic',
+            'bloodmoon': 'bloodmoon', 'crimson': 'bloodmoon', 'hush': 'bloodmoon', 'red': 'bloodmoon',
+            'synthwave': 'synthwave', 'retro': 'synthwave', 'vaporwave': 'synthwave',
+            'toxic': 'toxic', 'biohazard': 'toxic', 'acid': 'toxic', 'emerald': 'toxic',
+            'noir': 'noir', 'monochrome': 'noir', 'stealth': 'noir', 'dark': 'noir'
         };
 
         let bgAnimId = null;
         let currentFxMode = null;
+        let activeThemeKey = 'neon';
+        let trailParticles = [];
+
+        function openThemeModal() {
+            const grid = document.getElementById('theme-switcher-grid');
+            grid.innerHTML = Object.entries(THEME_PALETTES).map(([key, pal]) => `
+                <div class="theme-Option-card ${key === activeThemeKey ? 'active-theme' : ''}" onclick="selectThemeFromHub('${key}')">
+                    <span class="theme-swatch-dot" style="background:linear-gradient(135deg, ${pal.primary}, ${pal.accent});"></span>
+                    <span>${pal.label}</span>
+                </div>
+            `).join('');
+            document.getElementById('theme-modal').style.display = 'flex';
+        }
+        function closeThemeModal() { document.getElementById('theme-modal').style.display = 'none'; }
+
+        function selectThemeFromHub(key) {
+            localStorage.setItem('arcade_theme', key);
+            applyGlobalTheme();
+            openThemeModal();
+            playSoundFx('blip');
+        }
 
         function applyGlobalTheme() { 
             const rawTheme = (
@@ -1636,8 +2043,8 @@
                 'neon'
             ).toLowerCase().trim();
 
-            const mappedKey = THEME_ALIASES[rawTheme] || 'neon';
-            const active = THEME_PALETTES[mappedKey] || THEME_PALETTES.neon;
+            activeThemeKey = THEME_ALIASES[rawTheme] || 'neon';
+            const active = THEME_PALETTES[activeThemeKey] || THEME_PALETTES.neon;
 
             const root = document.documentElement;
             root.style.setProperty('--primary', active.primary); 
@@ -1663,8 +2070,22 @@
         window.addEventListener('resize', resizeBgCanvas);
         resizeBgCanvas();
 
+        // Spawn Interactive Cursor / Touch Trail Particles
+        window.addEventListener('mousemove', e => {
+            if (trailParticles.length < 35) {
+                const pal = THEME_PALETTES[activeThemeKey] || THEME_PALETTES.neon;
+                trailParticles.push({
+                    x: e.clientX, y: e.clientY,
+                    vx: (Math.random() - 0.5) * 1.5,
+                    vy: (Math.random() - 0.5) * 1.5,
+                    size: Math.random() * 3.5 + 1.5,
+                    alpha: 0.75,
+                    color: Math.random() > 0.4 ? pal.primary : pal.accent
+                });
+            }
+        });
+
         function startThemeCanvas(fxMode, primaryColor, accentColor) {
-            if (currentFxMode === fxMode && bgAnimId) return;
             currentFxMode = fxMode;
             if (bgAnimId) cancelAnimationFrame(bgAnimId);
             bgEntities = [];
@@ -1678,13 +2099,13 @@
                     bgEntities.push({ x: i * 22, y: Math.random() * h, speed: Math.random() * 2.5 + 1.5, char: String.fromCharCode(0x30A0 + Math.random() * 96) });
                 }
             } else {
-                const count = fxMode === 'space' ? 70 : 35;
+                const count = (fxMode === 'space' || fxMode === 'snow') ? 65 : 38;
                 for (let i = 0; i < count; i++) {
                     bgEntities.push({
                         x: Math.random() * w,
                         y: Math.random() * h,
                         vx: (Math.random() - 0.5) * (fxMode === 'glitch' ? 3 : 0.6),
-                        vy: fxMode === 'magma' ? -(Math.random() * 1.5 + 0.4) : (Math.random() - 0.5) * 0.6,
+                        vy: fxMode === 'magma' ? -(Math.random() * 1.4 + 0.4) : (fxMode === 'snow' ? (Math.random() * 1.4 + 0.5) : (Math.random() - 0.5) * 0.6),
                         size: Math.random() * 3 + 1.2,
                         alpha: Math.random() * 0.7 + 0.2,
                         color: Math.random() > 0.3 ? primaryColor : accentColor
@@ -1727,6 +2148,26 @@
                         bgCtx.restore();
                     });
                 }
+
+                // Render Interactive Cursor Trail
+                for (let i = trailParticles.length - 1; i >= 0; i--) {
+                    const tp = trailParticles[i];
+                    tp.x += tp.vx;
+                    tp.y += tp.vy;
+                    tp.alpha -= 0.035;
+                    if (tp.alpha <= 0) {
+                        trailParticles.splice(i, 1);
+                        continue;
+                    }
+                    bgCtx.save();
+                    bgCtx.globalAlpha = tp.alpha;
+                    bgCtx.fillStyle = tp.color;
+                    bgCtx.beginPath();
+                    bgCtx.arc(tp.x, tp.y, tp.size, 0, Math.PI * 2);
+                    bgCtx.fill();
+                    bgCtx.restore();
+                }
+
                 bgAnimId = requestAnimationFrame(renderBg);
             }
             renderBg();
@@ -1736,6 +2177,7 @@
             applyGlobalTheme(); 
             updateWallet(); 
             updatePerksBar();
+            initFavoriteStars();
             populateFeedbackDropdown();
             initPatchNotes();
         });
