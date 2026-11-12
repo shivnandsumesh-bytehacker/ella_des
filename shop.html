@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cyber Arcade • Black Market & Shop</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,278 +13,518 @@
             --accent: #f43f5e; 
             --gold: #eab308;
             --emerald: #10b981;
+            --purple: #a855f7;
             --bg: #090a0f; 
             --card: #12151e; 
             --card-border: #222634;
             --card-hover: #181c28;
+            --header-bg: rgba(18, 21, 30, 0.88);
+            --grid-dot: #1e2330;
             --text-main: #f8fafc;
             --text-muted: #8b95a5;
         }
 
-        * { box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
 
         body { 
             background-color: var(--bg); 
-            background-image: radial-gradient(#1e2330 1px, transparent 1px);
+            background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
             background-size: 24px 24px;
             color: var(--text-main); 
-            font-family: 'Inter', sans-serif; 
+            font-family: 'Inter', system-ui, sans-serif; 
             margin: 0; 
-            padding: 20px 16px 40px 16px; 
+            padding: 20px 16px 50px 16px; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             min-height: 100vh; 
             position: relative;
             overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        #bg-canvas {
+        #bg-canvas, #confetti-canvas {
             position: fixed;
             inset: 0;
             width: 100vw;
             height: 100vh;
             pointer-events: none;
-            z-index: -1;
+        }
+        #bg-canvas { z-index: 0; opacity: 0.48; }
+        #confetti-canvas { z-index: 2000; }
+
+        header, .hero-banner, .section-title, .shop-grid, .crate-arena {
+            position: relative;
+            z-index: 10;
         }
 
         header { 
             width: 100%; 
-            max-width: 1000px; 
+            max-width: 1100px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            background: rgba(18, 21, 30, 0.85); 
+            background: var(--header-bg); 
             backdrop-filter: blur(12px);
             padding: 14px 22px; 
             border-radius: 12px; 
             border: 1px solid var(--card-border); 
-            margin-bottom: 24px; 
-            z-index: 10;
+            margin-bottom: 20px; 
+            gap: 12px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-main);
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            padding: 8px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .back-btn:hover {
+            border-color: var(--primary);
+            background: var(--card-hover);
         }
 
         .brand {
             display: flex;
             align-items: center;
             gap: 10px;
-            text-decoration: none;
             color: var(--text-main);
             font-family: 'Space Grotesk', sans-serif;
             font-weight: 800;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             cursor: pointer;
         }
         .brand:active { transform: scale(0.98); }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
         .stats-badge { 
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.95rem; 
             font-weight: 700; 
             color: var(--gold);
-            background: #161922;
-            border: 1px solid #2e3446;
+            background: var(--card);
+            border: 1px solid var(--card-border);
             padding: 7px 14px;
             border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mult-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #000;
+            background: var(--gold);
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+
+        /* Status Toast Banner */
+        #shop-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card);
+            border: 2px solid var(--primary);
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 10px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.75);
+            z-index: 1500;
+            transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+        }
+        #shop-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .hero-banner {
+            width: 100%;
+            max-width: 1100px;
+            text-align: center;
+            margin-bottom: 8px;
         }
 
         h2 { 
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.8rem;
+            font-size: 1.85rem;
             margin: 0 0 6px 0;
             letter-spacing: -0.5px;
-            z-index: 10;
         }
 
         .section-title {
             width: 100%;
-            max-width: 1000px;
+            max-width: 1100px;
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             color: var(--primary);
-            margin: 24px 0 12px 0;
+            margin: 26px 0 12px 0;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
             border-bottom: 1px solid var(--card-border);
             padding-bottom: 6px;
-            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .shop-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+            grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); 
             gap: 14px; 
             width: 100%; 
-            max-width: 1000px; 
-            z-index: 10;
+            max-width: 1100px; 
         }
 
         .shop-card { 
-            background: rgba(18, 21, 30, 0.9); 
+            background: var(--card); 
             backdrop-filter: blur(8px);
             border: 1px solid var(--card-border); 
             border-radius: 12px; 
-            padding: 18px; 
+            padding: 16px; 
             display: flex; 
             flex-direction: column; 
             justify-content: space-between; 
-            transition: transform 0.15s ease, border-color 0.15s ease;
+            transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
         }
         .shop-card:hover {
-            transform: translateY(-2px);
-            border-color: #475569;
+            transform: translateY(-3px);
+            border-color: var(--primary);
+            background: var(--card-hover);
+            box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--primary) 35%, transparent);
+        }
+        .shop-card.active-card {
+            border-color: var(--emerald);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
         }
 
         .shop-card h3 {
             font-family: 'Space Grotesk', sans-serif;
-            margin: 0 0 6px 0;
-            font-size: 1.05rem;
+            margin: 0 0 5px 0;
+            font-size: 1.02rem;
         }
 
         .shop-card p {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             color: var(--text-muted);
-            margin: 0 0 14px 0;
+            margin: 0 0 12px 0;
             line-height: 1.4;
         }
 
         .preview-box { 
-            height: 50px; 
+            height: 48px; 
             border-radius: 8px; 
-            margin-bottom: 14px; 
+            margin-bottom: 12px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            font-weight: 700; 
-            border: 1px solid rgba(255,255,255,0.1); 
+            font-size: 0.78rem;
+            font-weight: 800; 
+            border: 1px solid rgba(255,255,255,0.12); 
+            position: relative;
+            overflow: hidden;
         }
 
         .btn { 
-            background: var(--text-main); 
+            font-family: 'Inter', sans-serif;
+            background: var(--primary); 
             color: var(--bg); 
             border: none; 
             padding: 10px; 
             border-radius: 8px; 
             font-weight: 700; 
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             cursor: pointer; 
             width: 100%; 
-            transition: background 0.15s, transform 0.1s;
+            transition: filter 0.15s, transform 0.1s;
         }
-        .btn:hover { background: #e2e8f0; }
-        .btn:active { transform: scale(0.97); }
-        .btn:disabled { background: #1f2433; color: #475569; cursor: not-allowed; }
-        .btn.equipped { background: var(--emerald); color: #000; }
+        .btn:hover:not(:disabled) { filter: brightness(1.12); }
+        .btn:active:not(:disabled) { transform: scale(0.97); }
+        .btn:disabled { background: #1f2433; color: #526077; cursor: not-allowed; }
+        .btn.equipped { background: var(--emerald); color: #04130d; font-weight: 800; }
+        .btn.owned-equip { background: var(--text-main); color: var(--bg); }
+
+        /* Interactive Mystery Loot Crate Arena */
+        .crate-arena {
+            width: 100%;
+            max-width: 1100px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 22px;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+            align-items: center;
+        }
+        @media (max-width: 760px) {
+            .crate-arena { grid-template-columns: 1fr; text-align: center; }
+        }
+        .crate-display-box {
+            background: var(--bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 22px;
+            text-align: center;
+        }
+        .crate-emoji {
+            font-size: 3.6rem;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        .crate-emoji.spinning {
+            animation: shakeCrate 0.12s infinite;
+        }
+        @keyframes shakeCrate {
+            0%, 100% { transform: rotate(0deg) scale(1.1); }
+            25% { transform: rotate(-12deg) scale(1.15); }
+            75% { transform: rotate(12deg) scale(1.15); }
+        }
+        .crate-roll-readout {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin-top: 10px;
+            min-height: 24px;
+        }
     </style>
 </head>
 <body>
 
     <canvas id="bg-canvas"></canvas>
+    <canvas id="confetti-canvas"></canvas>
+    <div id="shop-toast">Unlocked!</div>
 
     <header>
-        <div class="brand" onclick="handleEasterEggTap()">⚡ CYBER ARCADE • SHOP</div>
-        <div class="stats-badge">🪙 <span id="coin-count">0</span></div>
+        <div class="header-left">
+            <a href="index.html" class="back-btn">← Hub</a>
+            <div class="brand" onclick="handleEasterEggTap()" title="Tap 7 times rapidly for a secret...">⚡ BLACK MARKET & SHOP</div>
+        </div>
+        <div class="header-right">
+            <div class="mult-badge" id="mult-badge">1.0X</div>
+            <div class="stats-badge">🪙 <span id="coin-count">0</span></div>
+        </div>
     </header>
 
-    <h2>Black Market & Upgrades</h2>
-    <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:10px; z-index:10;">Unlock animated live themes, stack multipliers, and test your luck.</p>
-
-    <!-- SECTION 1: ANIMATED THEMES -->
-    <div class="section-title">🎨 Animated Live Themes</div>
-    <div class="shop-grid">
-        <div class="shop-card">
-            <div>
-                <h3>Cyber Neon</h3>
-                <p>Clean classic blue launcher aesthetic.</p>
-                <div class="preview-box" style="background:#090a0f; color:#38bdf8;">DEFAULT</div>
-            </div>
-            <button class="btn" id="btn-neon" onclick="equipTheme('neon')">Equip</button>
-        </div>
-
-        <div class="shop-card">
-            <div>
-                <h3>Matrix Rain</h3>
-                <p>Live falling digital green code.</p>
-                <div class="preview-box" style="background:#051a0e; color:#10b981;">100 COINS</div>
-            </div>
-            <button class="btn" id="btn-matrix" onclick="handleTheme('matrix', 100)">Buy</button>
-        </div>
-
-        <div class="shop-card">
-            <div>
-                <h3>Cyber Glitch</h3>
-                <p>Pulsing hot pink & cyan scanlines.</p>
-                <div class="preview-box" style="background:#120814; color:#ff007f;">250 COINS</div>
-            </div>
-            <button class="btn" id="btn-glitch" onclick="handleTheme('glitch', 250)">Buy</button>
-        </div>
-
-        <div class="shop-card">
-            <div>
-                <h3>Deep Space</h3>
-                <p>Twinkling starfield cosmic nebula.</p>
-                <div class="preview-box" style="background:#0b0714; color:#c084fc;">500 COINS</div>
-            </div>
-            <button class="btn" id="btn-space" onclick="handleTheme('space', 500)">Buy</button>
-        </div>
-
-        <div class="shop-card">
-            <div>
-                <h3>Volcanic Magma</h3>
-                <p>Rising fiery embers & gold heat.</p>
-                <div class="preview-box" style="background:#1a0808; color:#f59e0b;">750 COINS</div>
-            </div>
-            <button class="btn" id="btn-magma" onclick="handleTheme('magma', 750)">Buy</button>
-        </div>
+    <div class="hero-banner">
+        <h2>Black Market & Upgrades</h2>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin:0;">Unlock 11 live animated themes, permanent coin multipliers, game passes, and mystery vaults.</p>
     </div>
 
-    <!-- SECTION 2: PASSIVE MULTIPLIERS -->
-    <div class="section-title">⚡ Passive Coin Multipliers</div>
-    <div class="shop-grid">
-        <div class="shop-card">
-            <div>
-                <h3>1.5X Coin Surge</h3>
-                <p>Permanently boost all coin earnings by 50%.</p>
-                <div class="preview-box" style="background:#161922; color:var(--gold);">1,500 COINS</div>
-            </div>
-            <button class="btn" id="perk-mult15" onclick="buyPerk('mult_15', 1500, 1.5)">Unlock</button>
-        </div>
-
-        <div class="shop-card">
-            <div>
-                <h3>2.5X Overdrive</h3>
-                <p>Massive 250% coin multiplier for elite grinders.</p>
-                <div class="preview-box" style="background:#161922; color:var(--gold);">5,000 COINS</div>
-            </div>
-            <button class="btn" id="perk-mult25" onclick="buyPerk('mult_25', 5000, 2.5)">Unlock</button>
-        </div>
+    <!-- SECTION 1: 11 ANIMATED LIVE THEMES -->
+    <div class="section-title">
+        <span>🎨 Animated Live Themes (11 Palettes)</span>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:0.74rem; color:var(--text-muted);" id="themes-owned-count">1 / 11 Owned</span>
     </div>
+    <div class="shop-grid" id="themes-shop-grid"></div>
 
-    <!-- SECTION 3: MYSTERY LOOT CRATE -->
-    <div class="section-title">🎁 Mystery Loot Crate</div>
-    <div class="shop-grid" style="grid-template-columns: 1fr;">
-        <div class="shop-card" style="flex-direction:row; justify-content:space-between; align-items:center;">
+    <!-- SECTION 2: PERMANENT PASSIVE MULTIPLIERS -->
+    <div class="section-title">⚡ Permanent Coin Multipliers</div>
+    <div class="shop-grid" id="multipliers-shop-grid"></div>
+
+    <!-- SECTION 3: BLACK MARKET GAME PASSES & SPEC-OPS GEAR -->
+    <div class="section-title">🎮 Black Market Game Passes</div>
+    <div class="shop-grid" id="passes-shop-grid"></div>
+
+    <!-- SECTION 4: INTERACTIVE MYSTERY LOOT CRATES -->
+    <div class="section-title">🎁 Mystery Coin Vaults</div>
+    <div class="crate-arena">
+        <div class="crate-display-box">
+            <div class="crate-emoji" id="crate-icon">📦</div>
+            <div class="crate-roll-readout" id="crate-status-text">Select a Vault to Unbox!</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
             <div>
-                <h3>Mystery Coin Vault Crate</h3>
-                <p style="margin:0;">Spend 500 coins for a chance to win up to 10,000 bonus coins!</p>
+                <h3 style="font-family:'Space Grotesk',sans-serif; margin:0 0 4px 0;">Standard Supply Crate & High-Roller Vault</h3>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin:0; line-height:1.45;">
+                    All crate payouts scale with your active <strong>Coin Multiplier</strong>! High-Roller Vaults also have a chance to unlock a random unowned Theme for free!
+                </p>
             </div>
-            <button class="btn" style="width:auto; padding: 12px 24px;" onclick="openLootCrate()">Open (500 🪙)</button>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button class="btn" onclick="spinShopCrate(500, 'STANDARD')">
+                    📦 Standard Crate (500 🪙)<br><small style="font-weight:500; opacity:0.85;">Win up to 10,000 🪙</small>
+                </button>
+                <button class="btn" style="background:var(--gold); color:#000;" onclick="spinShopCrate(2500, 'HIGHROLLER')">
+                    👑 High-Roller Vault (2,500 🪙)<br><small style="font-weight:600; opacity:0.9;">Win up to 75,000 🪙 + Themes</small>
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
+        // =========================================================================
+        // 1. ALL 11 THEMES, MULTIPLIERS & GAME PASSES CATALOG
+        // =========================================================================
+        const SHOP_THEMES = [
+            { id: 'neon', name: 'Cyber Neon', desc: 'Clean sky-blue & crimson indie launcher aesthetic.', cost: 0, primary: '#38bdf8', accent: '#f43f5e', bg: '#090a0f', card: '#12151e', border: '#222634', hover: '#181c28', fx: 'neon' },
+            { id: 'matrix', name: 'Matrix Rain', desc: 'Falling digital green katakana code stream.', cost: 100, primary: '#10b981', accent: '#f59e0b', bg: '#050b07', card: '#0b160f', border: '#143321', hover: '#112217', fx: 'matrix' },
+            { id: 'glitch', name: 'Cyber Glitch', desc: 'Pulsing hot pink & cyan high-voltage scanlines.', cost: 250, primary: '#ff0055', accent: '#00f0ff', bg: '#08060c', card: '#14101d', border: '#381b30', hover: '#1f172b', fx: 'glitch' },
+            { id: 'space', name: 'Deep Space', desc: 'Twinkling cosmic starfield & violet nebula.', cost: 500, primary: '#c084fc', accent: '#38bdf8', bg: '#080511', card: '#130d24', border: '#2a1d4e', hover: '#1b1333', fx: 'space' },
+            { id: 'magma', name: 'Volcanic Magma', desc: 'Rising fiery embers & molten gold heat.', cost: 750, primary: '#f97316', accent: '#facc15', bg: '#110706', card: '#1d0d0b', border: '#3b1914', hover: '#281310', fx: 'magma' },
+            { id: 'arctic', name: 'Arctic Frost', desc: 'Crisp sub-zero ice blue with drifting snow.', cost: 1000, primary: '#7dd3fc', accent: '#38bdf8', bg: '#060c14', card: '#0e1928', border: '#1e3552', hover: '#142438', fx: 'snow' },
+            { id: 'toxic', name: 'Toxic Bio-Hazard', desc: 'Radioactive lime & emerald quarantine glow.', cost: 1250, primary: '#a3e635', accent: '#10b981', bg: '#070b04', card: '#101809', border: '#253813', hover: '#17240d', fx: 'magma' },
+            { id: 'synthwave', name: 'Synthwave 84', desc: 'Retro 80s sunset magenta & electric cyan.', cost: 1500, primary: '#f472b6', accent: '#22d3ee', bg: '#0b0514', card: '#180c29', border: '#391b5e', hover: '#23113b', fx: 'space' },
+            { id: 'bloodmoon', name: 'Blood Moon (HUSH)', desc: 'Dark crimson eclipse built for night raiders.', cost: 2000, primary: '#ef4444', accent: '#fb7185', bg: '#0c0406', card: '#19090d', border: '#3b131c', hover: '#260d14', fx: 'magma' },
+            { id: 'noir', name: 'Stealth Noir', desc: 'High-contrast monochrome spec-ops terminal.', cost: 2500, primary: '#f8fafc', accent: '#94a3b8', bg: '#050507', card: '#111115', border: '#27272f', hover: '#1a1a20', fx: 'neon' },
+            { id: 'gold', name: 'Midas Gold VIP', desc: ' Pure 24K luxury gold & obsidian prestige.', cost: 5000, primary: '#facc15', accent: '#f59e0b', bg: '#0c0a04', card: '#181409', border: '#382e12', hover: '#241e0d', fx: 'magma' }
+        ];
+
+        const SHOP_MULTIPLIERS = [
+            { id: 'mult_15', name: '1.5X Coin Surge', desc: 'Permanently boost all arcade coin & crate earnings by 50%.', cost: 1500, mult: 1.5, tag: '1.5X BOOST' },
+            { id: 'mult_25', name: '2.5X Overdrive', desc: 'Massive 250% coin multiplier across all 26 games.', cost: 5000, mult: 2.5, tag: '2.5X BOOST' },
+            { id: 'mult_50', name: '5.0X Cyber God Mode', desc: 'Ultimate 500% coin multiplier for maximum high-roller payouts.', cost: 25000, mult: 5.0, tag: '5.0X GOD MODE' }
+        ];
+
+        const SHOP_PASSES = [
+            { id: 'hush_specops_kit', name: 'HUSH: Spec-Ops Raider Kit', desc: 'Unlocks Silenced R15, Dual-Tube NVG & +15,000 Credits badge.', cost: 3000, storageKeys: ['hush_raider_unlocked', 'blackout_specops_active'], tag: '🔇 HUSH RAID' },
+            { id: 'hoops_all_stars', name: 'Hoops Legends: All-Star Pass', desc: 'Instantly unlocks Kai Jie (65% Sniper) & Sharran in Basketball Legends.', cost: 4000, storageKeys: ['hoops_unlocked_kaijie', 'hoops_unlocked_sharran'], tag: '🏀 2 PLAYERS' },
+            { id: 'drift_nitro_pass', name: 'Drift Master: Nitro Overclock', desc: 'Unlocks Touge Twin-Turbo Nitro & Phonk Bass Booster.', cost: 2500, storageKeys: ['drift_nitro_unlocked'], tag: '🏎️ NITRO PASS' }
+        ];
+
         let ownedThemes = JSON.parse(localStorage.getItem('arcade_owned_themes')) || ['neon'];
         let activeTheme = localStorage.getItem('arcade_theme') || 'neon';
         let ownedPerks = JSON.parse(localStorage.getItem('arcade_owned_perks')) || [];
 
         function getCoins() { return parseInt(localStorage.getItem('arcade_coins')) || 0; }
-        function setCoins(val) { localStorage.setItem('arcade_coins', Math.max(0, val)); }
+        function setCoins(val) { localStorage.setItem('arcade_coins', Math.max(0, Math.round(val))); }
+        function getMultiplier() { return parseFloat(localStorage.getItem('arcade_multiplier')) || 1.0; }
 
-        // Live Animated Canvas Background Engine
+        // =========================================================================
+        // 2. WEB AUDIO SYNTH & CONFETTI ENGINE
+        // =========================================================================
+        let audioCtx = null;
+        function playSfx(type) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const t = audioCtx.currentTime;
+                if (type === 'buy') {
+                    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.type = 'triangle';
+                        o.frequency.setValueAtTime(f, t + i * 0.06);
+                        g.gain.setValueAtTime(0.2, t + i * 0.06);
+                        g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.25);
+                        o.connect(g); g.connect(audioCtx.destination);
+                        o.start(t + i * 0.06); o.stop(t + i * 0.06 + 0.25);
+                    });
+                } else if (type === 'tick') {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(720, t);
+                    g.gain.setValueAtTime(0.1, t);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.start(t); o.stop(t + 0.04);
+                } else if (type === 'jackpot') {
+                    for (let i = 0; i < 7; i++) {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.type = 'sine';
+                        o.frequency.setValueAtTime(550 + i * 90, t + i * 0.055);
+                        g.gain.setValueAtTime(0.22, t + i * 0.055);
+                        g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.055 + 0.25);
+                        o.connect(g); g.connect(audioCtx.destination);
+                        o.start(t + i * 0.055); o.stop(t + i * 0.055 + 0.25);
+                    }
+                }
+            } catch (e) {}
+        }
+
+        const cCanvas = document.getElementById('confetti-canvas');
+        const cCtx = cCanvas.getContext('2d');
+        let confetti = [];
+        let cAnimId = null;
+
+        function resizeConfetti() {
+            cCanvas.width = window.innerWidth;
+            cCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeConfetti);
+        resizeConfetti();
+
+        function launchConfetti(count = 75) {
+            const colors = ['#38bdf8', '#eab308', '#f43f5e', '#10b981', '#c084fc', '#ffffff'];
+            for (let i = 0; i < count; i++) {
+                confetti.push({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                    vx: (Math.random() - 0.5) * 18,
+                    vy: (Math.random() - 0.8) * 18,
+                    size: Math.random() * 7 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rot: Math.random() * 6,
+                    alpha: 1
+                });
+            }
+            if (!cAnimId) loopConfetti();
+        }
+
+        function loopConfetti() {
+            cCtx.clearRect(0, 0, cCanvas.width, cCanvas.height);
+            for (let i = confetti.length - 1; i >= 0; i--) {
+                const p = confetti[i];
+                p.x += p.vx; p.y += p.vy; p.vy += 0.45; p.alpha -= 0.014;
+                cCtx.save();
+                cCtx.globalAlpha = Math.max(0, p.alpha);
+                cCtx.fillStyle = p.color;
+                cCtx.fillRect(p.x, p.y, p.size, p.size);
+                cCtx.restore();
+                if (p.alpha <= 0) confetti.splice(i, 1);
+            }
+            if (confetti.length > 0) cAnimId = requestAnimationFrame(loopConfetti);
+            else cAnimId = null;
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('shop-toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        // =========================================================================
+        // 3. LIVE ANIMATED BACKGROUND CANVAS & THEME ENGINE
+        // =========================================================================
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
+        let trail = [];
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -293,183 +533,301 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
+        window.addEventListener('mousemove', e => {
+            if (trail.length < 30) {
+                const tObj = SHOP_THEMES.find(t => t.id === activeTheme) || SHOP_THEMES[0];
+                trail.push({
+                    x: e.clientX, y: e.clientY,
+                    vx: (Math.random() - 0.5) * 1.4,
+                    vy: (Math.random() - 0.5) * 1.4,
+                    size: Math.random() * 3 + 1.5,
+                    alpha: 0.75,
+                    color: Math.random() > 0.4 ? tObj.primary : tObj.accent
+                });
+            }
+        });
+
         function initParticles() {
             particles = [];
-            const count = activeTheme === 'matrix' ? 70 : (activeTheme === 'space' ? 90 : 40);
+            const tObj = SHOP_THEMES.find(t => t.id === activeTheme) || SHOP_THEMES[0];
+            const fx = tObj.fx;
+            const count = fx === 'matrix' ? 65 : (fx === 'space' || fx === 'snow' ? 75 : 40);
             for (let i = 0; i < count; i++) {
                 particles.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
-                    vy: activeTheme === 'matrix' ? (Math.random() * 3 + 2) : (activeTheme === 'magma' ? -(Math.random() * 2 + 1) : (Math.random() - 0.5) * 0.5),
-                    vx: activeTheme === 'matrix' ? 0 : (Math.random() - 0.5) * 0.5,
-                    size: activeTheme === 'space' ? Math.random() * 2 + 1 : (Math.random() * 3 + 1),
+                    vy: fx === 'matrix' ? (Math.random() * 2.5 + 1.5) : (fx === 'magma' ? -(Math.random() * 1.6 + 0.5) : (fx === 'snow' ? (Math.random() * 1.5 + 0.5) : (Math.random() - 0.5) * 0.6)),
+                    vx: fx === 'matrix' ? 0 : (Math.random() - 0.5) * (fx === 'glitch' ? 3 : 0.6),
+                    size: Math.random() * 3 + 1.2,
                     char: String.fromCharCode(0x30A0 + Math.floor(Math.random() * 96)),
-                    alpha: Math.random()
+                    color: Math.random() > 0.35 ? tObj.primary : tObj.accent
                 });
             }
         }
 
         function loopCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            if (activeTheme === 'neon') {
-                ctx.fillStyle = '#090a0f';
-            } else if (activeTheme === 'matrix') {
-                ctx.fillStyle = 'rgba(5, 26, 14, 0.25)';
-            } else if (activeTheme === 'glitch') {
-                ctx.fillStyle = '#120814';
-            } else if (activeTheme === 'space') {
-                ctx.fillStyle = '#0b0714';
-            } else if (activeTheme === 'magma') {
-                ctx.fillStyle = '#1a0808';
-            }
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const tObj = SHOP_THEMES.find(t => t.id === activeTheme) || SHOP_THEMES[0];
 
             particles.forEach(p => {
                 p.y += p.vy;
                 p.x += p.vx;
                 if (p.y > canvas.height) p.y = 0;
                 if (p.y < 0) p.y = canvas.height;
+                if (p.x > canvas.width) p.x = 0;
+                if (p.x < 0) p.x = canvas.width;
 
                 ctx.save();
-                if (activeTheme === 'matrix') {
-                    ctx.fillStyle = '#10b981';
-                    ctx.font = '14px monospace';
+                if (tObj.fx === 'matrix') {
+                    ctx.fillStyle = tObj.primary;
+                    ctx.globalAlpha = 0.35;
+                    ctx.font = '14px "JetBrains Mono", monospace';
                     ctx.fillText(p.char, p.x, p.y);
                 } else {
-                    ctx.fillStyle = activeTheme === 'glitch' ? '#ff007f' : (activeTheme === 'space' ? '#ffffff' : '#f59e0b');
-                    ctx.globalAlpha = Math.abs(Math.sin(Date.now() * 0.002 + p.x));
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = 0.55;
+                    if (tObj.fx === 'glitch' && Math.random() < 0.04) {
+                        ctx.fillRect(p.x, p.y, p.size * 8, 2);
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
                 }
                 ctx.restore();
             });
+
+            for (let i = trail.length - 1; i >= 0; i--) {
+                const tp = trail[i];
+                tp.x += tp.vx; tp.y += tp.vy; tp.alpha -= 0.035;
+                if (tp.alpha <= 0) { trail.splice(i, 1); continue; }
+                ctx.save();
+                ctx.globalAlpha = tp.alpha;
+                ctx.fillStyle = tp.color;
+                ctx.beginPath();
+                ctx.arc(tp.x, tp.y, tp.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
 
             requestAnimationFrame(loopCanvas);
         }
         loopCanvas();
 
         function applyGlobalTheme() {
-            const themes = {
-                neon: { primary: '#38bdf8', accent: '#f43f5e', bg: '#090a0f', card: '#12151e' },
-                matrix: { primary: '#10b981', accent: '#3b82f6', bg: '#051a0e', card: '#0b2e1a' },
-                glitch: { primary: '#ff007f', accent: '#38bdf8', bg: '#120814', card: '#220f26' },
-                space: { primary: '#c084fc', accent: '#38bdf8', bg: '#0b0714', card: '#150f24' },
-                magma: { primary: '#f59e0b', accent: '#ef4444', bg: '#1a0808', card: '#2b1010' }
-            };
-            const active = themes[activeTheme] || themes.neon;
-            document.documentElement.style.setProperty('--primary', active.primary);
-            document.documentElement.style.setProperty('--accent', active.accent);
-            document.documentElement.style.setProperty('--bg', active.bg);
-            document.documentElement.style.setProperty('--card', active.card);
+            const active = SHOP_THEMES.find(t => t.id === activeTheme) || SHOP_THEMES[0];
+            const root = document.documentElement;
+            root.style.setProperty('--primary', active.primary);
+            root.style.setProperty('--accent', active.accent);
+            root.style.setProperty('--bg', active.bg);
+            root.style.setProperty('--card', active.card);
+            root.style.setProperty('--card-border', active.border);
+            root.style.setProperty('--card-hover', active.hover);
             initParticles();
         }
 
+        // =========================================================================
+        // 4. RENDER SHOP CARDS & HANDLE PURCHASES
+        // =========================================================================
         function updateUI() {
             applyGlobalTheme();
             const coins = getCoins();
+            const mult = getMultiplier();
             document.getElementById('coin-count').innerText = coins.toLocaleString();
+            document.getElementById('mult-badge').innerText = `${mult}X`;
+            document.getElementById('themes-owned-count').innerText = `${ownedThemes.length} / ${SHOP_THEMES.length} Owned`;
 
-            const themeList = ['neon', 'matrix', 'glitch', 'space', 'magma'];
-            themeList.forEach(t => {
-                const btn = document.getElementById(`btn-${t}`);
-                if (!btn) return;
-                const costs = { matrix: 100, glitch: 250, space: 500, magma: 750 };
+            // 1. Render 11 Themes
+            const tGrid = document.getElementById('themes-shop-grid');
+            tGrid.innerHTML = SHOP_THEMES.map(t => {
+                const isEquipped = activeTheme === t.id;
+                const isOwned = ownedThemes.includes(t.id);
+                let btnLabel = isEquipped ? 'Equipped ✔' : (isOwned ? 'Equip' : `Buy (${t.cost.toLocaleString()} 🪙)`);
+                let btnClass = isEquipped ? 'btn equipped' : (isOwned ? 'btn owned-equip' : 'btn');
+                let disabled = isEquipped || (!isOwned && coins < t.cost);
 
-                if (activeTheme === t) {
-                    btn.innerText = 'Equipped';
-                    btn.className = 'btn equipped';
-                    btn.disabled = true;
-                } else if (ownedThemes.includes(t)) {
-                    btn.innerText = 'Equip';
-                    btn.className = 'btn';
-                    btn.disabled = false;
-                } else {
-                    btn.innerText = `Buy (${costs[t]} 🪙)`;
-                    btn.className = 'btn';
-                    btn.disabled = coins < costs[t];
-                }
-            });
+                return `
+                    <div class="shop-card ${isEquipped ? 'active-card' : ''}">
+                        <div>
+                            <h3>${t.name}</h3>
+                            <p>${t.desc}</p>
+                            <div class="preview-box" style="background:${t.bg}; color:${t.primary}; border-color:${t.border};">
+                                <span style="width:10px; height:10px; border-radius:50%; background:${t.accent}; margin-right:8px;"></span>
+                                ${t.cost === 0 ? 'DEFAULT' : `${t.cost.toLocaleString()} 🪙`}
+                            </div>
+                        </div>
+                        <button class="${btnClass}" ${disabled ? 'disabled' : ''} onclick="handleTheme('${t.id}', ${t.cost})">${btnLabel}</button>
+                    </div>
+                `;
+            }).join('');
 
-            const perks = [
-                { id: 'mult_15', cost: 1500, btnId: 'perk-mult15' },
-                { id: 'mult_25', cost: 5000, btnId: 'perk-mult25' }
-            ];
-            perks.forEach(p => {
-                const btn = document.getElementById(p.btnId);
-                if (!btn) return;
-                if (ownedPerks.includes(p.id)) {
-                    btn.innerText = 'Unlocked ✔';
-                    btn.className = 'btn equipped';
-                    btn.disabled = true;
-                } else {
-                    btn.disabled = coins < p.cost;
-                }
-            });
+            // 2. Render Multipliers
+            const mGrid = document.getElementById('multipliers-shop-grid');
+            mGrid.innerHTML = SHOP_MULTIPLIERS.map(m => {
+                const isUnlocked = ownedPerks.includes(m.id) || mult >= m.mult;
+                return `
+                    <div class="shop-card ${isUnlocked ? 'active-card' : ''}">
+                        <div>
+                            <h3>${m.name}</h3>
+                            <p>${m.desc}</p>
+                            <div class="preview-box" style="background:var(--bg); color:var(--gold);">
+                                ${m.tag} • ${m.cost.toLocaleString()} 🪙
+                            </div>
+                        </div>
+                        <button class="btn ${isUnlocked ? 'equipped' : ''}" ${isUnlocked || coins < m.cost ? 'disabled' : ''} onclick="buyMultiplier('${m.id}', ${m.cost}, ${m.mult})">
+                            ${isUnlocked ? 'Active ✔' : `Unlock (${m.cost.toLocaleString()} 🪙)`}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            // 3. Render Black Market Game Passes
+            const pGrid = document.getElementById('passes-shop-grid');
+            pGrid.innerHTML = SHOP_PASSES.map(p => {
+                const isUnlocked = ownedPerks.includes(p.id);
+                return `
+                    <div class="shop-card ${isUnlocked ? 'active-card' : ''}">
+                        <div>
+                            <h3>${p.name}</h3>
+                            <p>${p.desc}</p>
+                            <div class="preview-box" style="background:var(--bg); color:var(--primary);">
+                                ${p.tag} • ${p.cost.toLocaleString()} 🪙
+                            </div>
+                        </div>
+                        <button class="btn ${isUnlocked ? 'equipped' : ''}" ${isUnlocked || coins < p.cost ? 'disabled' : ''} onclick="buyGamePass('${p.id}', ${p.cost})">
+                            ${isUnlocked ? 'Unlocked ✔' : `Buy Pass (${p.cost.toLocaleString()} 🪙)`}
+                        </button>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function handleTheme(themeName, cost) {
-            if (ownedThemes.includes(themeName)) {
-                equipTheme(themeName);
+        function handleTheme(themeId, cost) {
+            if (ownedThemes.includes(themeId)) {
+                equipTheme(themeId);
             } else if (getCoins() >= cost) {
                 setCoins(getCoins() - cost);
-                ownedThemes.push(themeName);
+                ownedThemes.push(themeId);
                 localStorage.setItem('arcade_owned_themes', JSON.stringify(ownedThemes));
-                equipTheme(themeName);
+                playSfx('buy');
+                launchConfetti(55);
+                equipTheme(themeId);
+                showToast(`🎨 Unlocked & Equipped ${themeId.toUpperCase()} Theme!`);
             }
         }
 
-        function equipTheme(themeName) {
-            activeTheme = themeName;
+        function equipTheme(themeId) {
+            activeTheme = themeId;
             localStorage.setItem('arcade_theme', activeTheme);
+            playSfx('tick');
             updateUI();
         }
 
-        function buyPerk(perkId, cost, multValue) {
+        function buyMultiplier(perkId, cost, multValue) {
             if (getCoins() >= cost && !ownedPerks.includes(perkId)) {
                 setCoins(getCoins() - cost);
                 ownedPerks.push(perkId);
                 localStorage.setItem('arcade_owned_perks', JSON.stringify(ownedPerks));
 
-                const currentMult = parseFloat(localStorage.getItem('arcade_multiplier')) || 1.0;
-                if (multValue > currentMult) {
+                if (multValue > getMultiplier()) {
                     localStorage.setItem('arcade_multiplier', multValue);
                 }
-
-                alert(`🎉 Successfully unlocked multiplier upgrade!`);
+                playSfx('jackpot');
+                launchConfetti(90);
+                showToast(`⚡ Activated Permanent ${multValue}X Coin Multiplier!`);
                 updateUI();
             }
         }
 
-        function openLootCrate() {
-            const cost = 500;
+        function buyGamePass(passId, cost) {
+            const pass = SHOP_PASSES.find(p => p.id === passId);
+            if (!pass || ownedPerks.includes(passId) || getCoins() < cost) return;
+
+            setCoins(getCoins() - cost);
+            ownedPerks.push(passId);
+            localStorage.setItem('arcade_owned_perks', JSON.stringify(ownedPerks));
+            pass.storageKeys.forEach(k => localStorage.setItem(k, 'true'));
+
+            playSfx('buy');
+            launchConfetti(70);
+            showToast(`🎮 Unlocked ${pass.name}!`);
+            updateUI();
+        }
+
+        // =========================================================================
+        // 5. INTERACTIVE MYSTERY CRATE SPINNER
+        // =========================================================================
+        let isSpinningCrate = false;
+        function spinShopCrate(cost, tier) {
+            if (isSpinningCrate) return;
+            const statusEl = document.getElementById('crate-status-text');
+            const iconEl = document.getElementById('crate-icon');
+
             if (getCoins() < cost) {
-                alert("Not enough coins! You need 500 coins to open a crate.");
+                statusEl.style.color = 'var(--accent)';
+                statusEl.innerText = `❌ Need ${cost.toLocaleString()} Coins to open this vault!`;
                 return;
             }
 
+            isSpinningCrate = true;
             setCoins(getCoins() - cost);
-            const roll = Math.random();
-            let prize = 0;
-            let msg = "";
+            updateUI();
 
-            if (roll < 0.60) {
-                prize = 300;
-                msg = "🎁 Minor Drop: +300 Coins!";
-            } else if (roll < 0.88) {
-                prize = 1000;
-                msg = "🔥 Lucky Drop: +1,000 Coins!";
-            } else if (roll < 0.98) {
-                prize = 3500;
-                msg = "🌟 Epic Drop: +3,500 Coins!";
+            iconEl.innerText = tier === 'HIGHROLLER' ? '👑' : '📦';
+            iconEl.classList.add('spinning');
+            statusEl.style.color = 'var(--primary)';
+            statusEl.innerText = 'Decrypting Vault Lock...';
+
+            let ticks = 10;
+            const tickInterval = setInterval(() => {
+                playSfx('tick');
+                ticks--;
+                if (ticks <= 0) {
+                    clearInterval(tickInterval);
+                    finishCrateSpin(tier);
+                }
+            }, 85);
+        }
+
+        function finishCrateSpin(tier) {
+            isSpinningCrate = false;
+            const iconEl = document.getElementById('crate-icon');
+            const statusEl = document.getElementById('crate-status-text');
+            iconEl.classList.remove('spinning');
+
+            const roll = Math.random();
+            const mult = getMultiplier();
+            let basePrize = 0;
+            let label = '';
+
+            if (tier === 'HIGHROLLER') {
+                if (roll < 0.50) { basePrize = 2000; label = '💎 Vault Drop'; }
+                else if (roll < 0.82) { basePrize = 6000; label = '🔥 Double Stash'; }
+                else if (roll < 0.96) { basePrize = 18000; label = '🌟 Mega Bullion'; }
+                else { basePrize = 75000; label = '👑 APEX JACKPOT!'; }
+
+                // 25% chance to also unlock a free unowned theme!
+                const lockedThemes = SHOP_THEMES.filter(t => !ownedThemes.includes(t.id));
+                if (lockedThemes.length > 0 && Math.random() < 0.25) {
+                    const freeTheme = lockedThemes[Math.floor(Math.random() * lockedThemes.length)];
+                    ownedThemes.push(freeTheme.id);
+                    localStorage.setItem('arcade_owned_themes', JSON.stringify(ownedThemes));
+                    label += ` + FREE [${freeTheme.name}] THEME!`;
+                }
             } else {
-                prize = 10000;
-                msg = "💎 JACKPOT! +10,000 Coins!";
+                if (roll < 0.55) { basePrize = 400; label = '🎁 Supply Drop'; }
+                else if (roll < 0.85) { basePrize = 1200; label = '🔥 Lucky Drop'; }
+                else if (roll < 0.97) { basePrize = 3500; label = '🌟 Epic Drop'; }
+                else { basePrize = 10000; label = '💎 MEGA JACKPOT!'; }
             }
 
-            setCoins(getCoins() + prize);
-            alert(msg);
+            const totalWon = Math.round(basePrize * mult);
+            setCoins(getCoins() + totalWon);
+            statusEl.style.color = 'var(--emerald)';
+            statusEl.innerText = `${label}: +${totalWon.toLocaleString()} Coins!`;
+
+            playSfx(basePrize >= 3500 ? 'jackpot' : 'buy');
+            launchConfetti(basePrize >= 3500 ? 110 : 50);
             updateUI();
         }
 
@@ -484,12 +842,16 @@
             if (easterEggTaps >= 7) {
                 easterEggTaps = 0;
                 setCoins(getCoins() + 2500);
-                alert("🔓 SECRET EASTER EGG FOUND: +2,500 Developer Coins Credited!");
+                playSfx('jackpot');
+                launchConfetti(85);
+                showToast("🔓 SECRET 7-TAP EASTER EGG: +2,500 Developer Coins!");
                 updateUI();
             }
         }
 
         document.addEventListener("DOMContentLoaded", updateUI);
+        window.addEventListener("pageshow", updateUI);
+        window.addEventListener("storage", updateUI);
     </script>
 </body>
 </html>
